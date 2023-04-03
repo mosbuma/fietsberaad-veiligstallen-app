@@ -20,6 +20,7 @@ some tables are missing primary keys: patch script fixes this:
 - wachtlijst_fietstype -> add extra prismaID column
 
 TODO:
+
 These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
 
 - Model "ds_parking_locations", field: "geoShape", original data type: "geometry"
@@ -29,6 +30,6 @@ These fields are not supported by the Prisma Client, because Prisma currently do
 
 ## update prisma client when test database schema changes
 
-change to nextjs project root
-npx prisma db pull --force
-npx prisma generate
+- change to nextjs project root
+- `npx prisma db pull --force`
+- `npx prisma generate`
