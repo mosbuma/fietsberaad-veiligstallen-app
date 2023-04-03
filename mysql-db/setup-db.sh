@@ -2,7 +2,7 @@
 #source https://earthly.dev/blog/docker-mysql/
 
 CWD=$(pwd)
-source "$CWD/.env"
+source "../.env"
 
 if [ ! -$PASSWD ]; then
     echo "Set the password for mysql server in the .env file"
@@ -22,15 +22,18 @@ echo "remove existing database and docker container"
 docker stop veiligstallen-mysql
 docker rm veiligstallen-mysql
 
+echo enter your password to delete the database files
+sudo rm -rf $CWD/persist-db
+mkdir -p $CWD/persist-db
 
 echo $PASSWD > "$CWD/secrets/mysql-root-password"
 
 echo "create veiligstallen mysql database"
 docker run --name veiligstallen-mysql -d \
-    -p 3306:3306 \
+    -p $PORT:3306 \
     -e MYSQL_ROOT_PASSWORD_FILE=run/secrets/mysql-root-password \
-    -v mysql:$CWD/persist-db \
-    -v ./secrets:/run/secrets \
+    -v $CWD/persist-db:/var/lib/mysql \
+    -v $CWD/secrets:/run/secrets \
     mysql:5.7
 # --restart unless-stopped \
 
