@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 
 import { api } from "~/utils/api";
+// import ParkingFacilities from "~/pages/parking-facilities";
 import MapboxMap from "~/components/MapComponent";
-import SearchBar from "~/components/SearchBar";
+import AppHeader from "~/components/AppHeader";
+import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 
 // Fetch all posts (in /pages/index.tsx)
 export async function getStaticProps() {
@@ -62,6 +64,8 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
   const [mapmode, setMapmode] = useState(true);
 
+  const toggleParkingFacilitiesView = () => setMapmode(! mapmode);
+
   return (
     <>
 
@@ -72,44 +76,36 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
-      <main className="
-      ">
-        {/*AppHeader*/}
-        <div className="
-          absolute t-0 z-10
-        ">
+      <main>
+        <AppHeader />
+
+        <div data-name="parking-facilities">
           <div className="
+            flex min-h-screen flex-col items-center justify-center
+          ">
+            {mapmode ? (
+              <>
+                <MapboxMap fietsenstallingen={fietsenstallingen} />
+              </>
+            ) : (
+              <div className="mx-5 pt-24">
+                {fietsenstallingen.map((x: any) => {
+                  return <ParkingFacilityBlock key={x.title} parking={x} />
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="
+            fixed
+            bottom-5
+            right-5
             bg-white
             rounded-full
-            px-4
-          ">
-            <SearchBar />
+            p-4
+          " onClick={toggleParkingFacilitiesView}>
+            MAPLIST
           </div>
-        </div>
-
-        <div className="
-          flex min-h-screen flex-col items-center justify-center
-        ">
-          {mapmode ? (
-            <>
-              <MapboxMap fietsenstallingen={fietsenstallingen} />
-            </>
-          ) : (
-            <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-              <h1 className="text-[2rem]">Veiligstallen / Prisma Demo</h1>
-              <table className="table-auto">
-                {fietsenstallingen.map((x: any) => (
-                  <tr className="border">
-                    <td className="border-2">{x.Plaats}</td>
-                    <td className="border-2">{x.Postcode}</td>
-                    <td className="border-2">{x.Title}</td>
-                    <td className="border-2">{x.Status}</td>
-                    <td className="border-2">{x.Coordinaten}</td>
-                  </tr>
-                ))}
-              </table>
-            </div>
-          )}
         </div>
 
       </main>

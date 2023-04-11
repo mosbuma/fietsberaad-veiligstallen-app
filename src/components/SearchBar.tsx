@@ -3,13 +3,12 @@ import Input from '@mui/material/TextField';
 
 function SearchBar({ fietsenstallingen = [] }: any) {
   return (
-    <div>
-      <input
-        type="search"
-        name=""
-        placeholder="Vind een stalling"
-      />
-    </div>
+    <input
+      type="search"
+      name=""
+      placeholder="Vind een stalling"
+      className="w-full h-10"
+    />
   );
 }
 
