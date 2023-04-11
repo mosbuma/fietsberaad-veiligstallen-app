@@ -2,7 +2,7 @@
 #source https://earthly.dev/blog/docker-mysql/
 
 CWD=$(pwd)
-source "../.env"
+source "$CWD/../.env"
 
 if [ ! -$PASSWD ]; then
     echo "Set the password for mysql server in the .env file"
@@ -22,18 +22,15 @@ echo "remove existing database and docker container"
 docker stop veiligstallen-mysql
 docker rm veiligstallen-mysql
 
-echo enter your password to delete the database files
-sudo rm -rf $CWD/persist-db
-mkdir -p $CWD/persist-db
 
-echo $PASSWD > "$CWD/secrets/mysql-root-password"
+printf $PASSWD > "$CWD/secrets/mysql-root-password"
 
 echo "create veiligstallen mysql database"
 docker run --name veiligstallen-mysql -d \
-    -p $PORT:3306 \
+    -p 3308:3306 \
     -e MYSQL_ROOT_PASSWORD_FILE=run/secrets/mysql-root-password \
-    -v $CWD/persist-db:/var/lib/mysql \
-    -v $CWD/secrets:/run/secrets \
+    -v mysql:$CWD/persist-db \
+    -v ~/dev/fietsberaad-veiligstallen-app/mysql-db/secrets:/run/secrets \
     mysql:5.7
 # --restart unless-stopped \
 
@@ -45,4 +42,3 @@ docker exec -i veiligstallen-mysql mysql -h127.0.0.1 -P3306 -uroot --password=$P
 
 echo "applying patch for prisma introspection"
 docker exec -i veiligstallen-mysql mysql -h127.0.0.1 -P3306 -uroot --password=$PASSWD < $PWD/fix-for-prisma.sql 
-    
