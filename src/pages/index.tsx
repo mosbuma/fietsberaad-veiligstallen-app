@@ -20,7 +20,7 @@ export async function getStaticProps() {
     where: {
       Plaats: {
         not: "",
-      },
+      }
     },
     // select: {
     //   StallingsID: true,

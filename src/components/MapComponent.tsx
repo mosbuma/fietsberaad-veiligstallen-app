@@ -1,7 +1,7 @@
 import * as React from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import baseStyle from "./MapStyles/base.js";
+import nine3030 from "../mapStyles/nine3030";
 
 // import the mapbox-gl styles so that the map is displayed correctly
 
@@ -26,8 +26,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       container: node,
       accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
       // style: "maplibre://styles/mapbox/streets-v11",
-      style:
-        "https://api.maptiler.com/maps/hybrid/style.json?key=ZH8yI08EPvuzF57Lyc61",
+      style: nine3030,
       center: [5, 52],
       zoom: 7,
     });
