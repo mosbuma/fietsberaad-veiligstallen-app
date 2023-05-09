@@ -1,8 +1,9 @@
 import * as React from "react";
 import Input from '@mui/material/TextField';
-import SearchBar from "~/components/SearchBar";
 
-function AppHeader() {
+function AppHeader({
+  children
+}) {
   return (
     <div className="
       fixed
@@ -21,16 +22,8 @@ function AppHeader() {
         className="h-10 mr-2"
         alt="logo Gemeente Utrecht"
       />
-      <div className="
-        bg-white
-        rounded-full
-        px-5
-        py-0
-        h-10
-        flex-1
-        shadow-lg  
-      ">
-        <SearchBar />
+      <div className="flex-1">
+        {children}
       </div>
     </div>
   );

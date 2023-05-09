@@ -11,6 +11,7 @@ import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
+import SearchBar from "~/components/SearchBar";
 
 export async function getStaticProps() {
   const { PrismaClient } = require("@prisma/client");
@@ -85,7 +86,19 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       </Head>
 
       <main className="flex-grow">
-        <AppHeader />
+        <AppHeader>
+          <div className="
+            bg-white
+            rounded-full
+            px-5
+            py-0
+            h-10
+            flex-1
+            shadow-lg  
+          ">
+            <SearchBar />
+          </div>
+        </AppHeader>
 
         <div data-name="parking-facilities">
           <div

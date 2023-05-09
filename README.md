@@ -27,6 +27,10 @@ Next, the prisma ORM model is recreated
 
 ## Running the app
 
+Make sure the database is running:
+
+    npm run start-db
+
 For development purposes:
 
     npm run dev
