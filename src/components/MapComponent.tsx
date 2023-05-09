@@ -29,35 +29,10 @@ const getMarkerTypes = () => {
   });
 
   return stallingMarkers;
+}
 
-  // case "buurtstalling":
-  //   color = "yellow";
-  //   break;
-  // case "fietskluizen":
-  //   color = "orange";
-  //   break;
-  // case "bewaakt":
-  //   color = "green";
-  //   break;
-  // case "fietstrommel":
-  //   color = "yellow";
-  //   break;
-  // case "toezicht":
-  //   color = "red";
-  //   break;
-  // case "onbewaakt":
-  //   color = "green";
-  //   break;
-  // case "geautomatiseerd":
-  //   color = "green";
-  //   break;
-
-  // var airport = new Marker(airportIcon, {
-  //     anchor: 'bottom',
-  //     offset: [0, 6]
-  //   })
-  //   .setLngLat([8.551922366826949, 47.46101649104483])
-  //   .addTo(map);
+const didClickMarker = (e: any) => {
+  console.log("Clicked marker", e);
 }
 
 function MapboxMap({ fietsenstallingen = [] }: any) {
@@ -92,6 +67,8 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // Get all marker types
     const markerTypes = getMarkerTypes();
 
+    let allMarkersOnTheMap: any = [];
+
     fietsenstallingen.forEach((stalling: any) => {
       if (stalling.Coordinaten !== null && stalling.Type !== null) {
         let coords = stalling.Coordinaten.split(",");
@@ -101,11 +78,21 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         })
           .setLngLat([coords[1], coords[0]])
           .addTo(mapboxMap);
+
+        // Add click handler to marker
+        marker.getElement().addEventListener('click', didClickMarker);
+
+        allMarkersOnTheMap.push(marker);
       }
     });
 
+    // Function that executes if component unloads:
     return () => {
       mapboxMap.remove();
+      // Remove all marker click events
+      allMarkersOnTheMap.forEach((x: any) => {
+        x.getElement().removeEventListener('click', didClickMarker)
+      })
     };
   }, []);
 
