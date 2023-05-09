@@ -1,10 +1,9 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import SearchBar from "~/components/SearchBar";
 import { setAuthState } from "~/store/authSlice";
-import { AppState } from "../store/store";
+// import { AppState } from "~/store/Store";
 
-function AppHeader() {
+function AppHeader({ children }) {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
@@ -33,19 +32,7 @@ function AppHeader() {
         className="mr-2 h-10"
         alt="logo Gemeente Utrecht"
       />
-      <div
-        className="
-          h-10
-          flex-1
-          rounded-full
-          bg-white
-          px-5
-          py-0
-          shadow-lg
-        "
-      >
-        <SearchBar />
-      </div>
+      <div className="flex-1">{children}</div>
       <button
         className="
           mx-2

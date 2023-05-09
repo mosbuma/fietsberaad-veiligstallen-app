@@ -1,5 +1,8 @@
 import React from "react";
 import "keen-slider/keen-slider.min.css";
+import CardStyles from './Card.module.css';
+
+import ParkingFacilityBlock from './ParkingFacilityBlock';
 
 export interface CardData {
   ID: string;
@@ -13,10 +16,23 @@ const Card: React.FC<Props> = ({ title, description, ID }) => {
   return (
     <div
       key={"card-" + title}
-      className="keen-slider__slide flex flex-col rounded-lg bg-white p-4"
+      className={`
+        ${CardStyles.base}
+        keen-slider__slide
+        flex
+        flex-col
+        rounded-lg
+        bg-white
+        p-4
+      `}
     >
-      <div className="mb-2 text-lg font-bold">{title}</div>
-      <p className="card__description">{description}</p>
+      <ParkingFacilityBlock
+        parking={{
+          Title: title,
+          Plaats: description,
+          Status: '24 uur geopend'
+        }}
+      />
     </div>
   );
 };

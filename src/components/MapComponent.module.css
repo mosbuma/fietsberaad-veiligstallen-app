@@ -1,0 +1,30 @@
+.marker {
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border-radius: 9999px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: #eee;
+}
+.marker-buurtstalling {
+  border-color: yellow;
+}
+.marker-fietskluizen {
+  border-color: orange;
+}
+.marker-bewaakt {
+  border-color: green;
+}
+.marker-fietstrommel {
+  border-color: yellow;
+}
+.marker-toezicht {
+  border-color: red;
+}
+.marker-onbewaakt {
+  border-color: green;
+}
+.marker-geautomatiseerd {
+  border-color: green;
+}
