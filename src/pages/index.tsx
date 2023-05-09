@@ -3,6 +3,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
+import { useSelector } from "react-redux";
 
 import { api } from "~/utils/api";
 // import ParkingFacilities from "~/pages/parking-facilities";
@@ -12,15 +13,17 @@ import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import SearchBar from "~/components/SearchBar";
+import FilterBox from "~/components/FilterBox";
 
 export async function getStaticProps() {
   const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
+
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
     where: {
       Plaats: {
         not: "",
-      }
+      },
     },
     // select: {
     //   StallingsID: true,
@@ -65,8 +68,15 @@ export async function getStaticProps() {
 const Home: NextPage = ({ fietsenstallingen }: any) => {
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
   const [mapmode, setMapmode] = useState(true);
+  const activeTypes = useSelector(
+    (state: AppState) => state.filter.activeTypes
+  );
 
   const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
+  const resetFilter = () => {};
+
+  const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(true);
+  const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
 
   const cards: CardData[] = fietsenstallingen.map((x: any, idx: number) => {
     return {
@@ -75,6 +85,20 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       description: x.Description,
     };
   });
+
+  console.log(
+    "@@@@ activeTypes",
+    JSON.stringify(
+      fietsenstallingen.map((x) => ({
+        n: x.Title,
+        t: x.Type,
+        a: activeTypes,
+        r: activeTypes.indexOf(x.Type) > -1,
+      })),
+      null,
+      2
+    )
+  );
 
   return (
     <>
@@ -87,15 +111,17 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
 
       <main className="flex-grow">
         <AppHeader>
-          <div className="
-            bg-white
+          <div
+            className="
+            bg-whitecontains
+            h-10
+            flex-1
             rounded-full
             px-5
             py-0
-            h-10
-            flex-1
             shadow-lg  
-          ">
+          "
+          >
             <SearchBar />
           </div>
         </AppHeader>
@@ -108,13 +134,19 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
           >
             {mapmode ? (
               <>
-                <MapboxMap fietsenstallingen={fietsenstallingen} />
+                <MapboxMap
+                  fietsenstallingen={fietsenstallingen.filter(
+                    (x) => activeTypes.indexOf(x.Type) > -1
+                  )}
+                />
               </>
             ) : (
               <div className="mx-5 pt-24">
-                {fietsenstallingen.map((x: any) => {
-                  return <ParkingFacilityBlock key={x.title} parking={x} />;
-                })}
+                {fietsenstallingen
+                  .filter((x) => activeTypes.indexOf(x.Type) > -1)
+                  .map((x: any) => {
+                    return <ParkingFacilityBlock key={x.title} parking={x} />;
+                  })}
               </div>
             )}
           </div>
@@ -146,6 +178,9 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
           >
             MAPLIST
           </div>
+          {isFilterBoxOpen && (
+            <FilterBox onReset={resetFilter} onClose={toggleFilterBox} />
+          )}
         </div>
       </main>
     </>
@@ -154,7 +189,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
 
 {
   /* <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-<Link
+<LinkObject.keys(
   className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
   href="https://create.t3.gg/en/usage/first-steps"
   target="_blank"
@@ -164,7 +199,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
     Just the basics - Everything you need to know to set up your
     database and authentication.
   </div>
-</Link>
+</LinkObject.keys>
 <Link
   className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
   href="https://create.t3.gg/en/introduction"
