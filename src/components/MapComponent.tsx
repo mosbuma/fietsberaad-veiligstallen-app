@@ -1,9 +1,64 @@
 import * as React from "react";
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import nine3030 from "../mapStyles/nine3030";
 
-// import the mapbox-gl styles so that the map is displayed correctly
+// Import the mapbox-gl styles so that the map is displayed correctly
+import "maplibre-gl/dist/maplibre-gl.css";
+// Import map styles
+import nine3030 from "../mapStyles/nine3030";
+// Import component styles, i.e. for the markers
+import styles from './MapComponent.module.css';
+
+const getMarkerTypes = () => {
+  const stallingTypes = [
+    'buurtstalling',
+    'fietskluizen',
+    'bewaakt',
+    'fietstrommel',
+    'toezicht',
+    'onbewaakt',
+    'geautomatiseerd'
+  ];
+
+  const stallingMarkers: any = [];
+  stallingTypes.forEach(x => {
+    const icon = document.createElement('div');
+    icon.classList.add(styles.marker);
+    icon.classList.add(styles[`marker-${x}`]);
+
+    stallingMarkers[x] = icon;
+  });
+
+  return stallingMarkers;
+
+  // case "buurtstalling":
+  //   color = "yellow";
+  //   break;
+  // case "fietskluizen":
+  //   color = "orange";
+  //   break;
+  // case "bewaakt":
+  //   color = "green";
+  //   break;
+  // case "fietstrommel":
+  //   color = "yellow";
+  //   break;
+  // case "toezicht":
+  //   color = "red";
+  //   break;
+  // case "onbewaakt":
+  //   color = "green";
+  //   break;
+  // case "geautomatiseerd":
+  //   color = "green";
+  //   break;
+
+  // var airport = new Marker(airportIcon, {
+  //     anchor: 'bottom',
+  //     offset: [0, 6]
+  //   })
+  //   .setLngLat([8.551922366826949, 47.46101649104483])
+  //   .addTo(map);
+}
 
 function MapboxMap({ fietsenstallingen = [] }: any) {
   // this is where the map instance will be stored after initialization
@@ -34,36 +89,15 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // save the map object to React.useState
     setMap(mapboxMap);
 
+    // Get all marker types
+    const markerTypes = getMarkerTypes();
+
     fietsenstallingen.forEach((stalling: any) => {
       if (stalling.Coordinaten !== null && stalling.Type !== null) {
         let coords = stalling.Coordinaten.split(",");
-        let color = "#FFFFFF";
-        switch (stalling.Type) {
-          case "buurtstalling":
-            color = "yellow";
-            break;
-          case "fietskluizen":
-            color = "orange";
-            break;
-          case "bewaakt":
-            color = "green";
-            break;
-          case "fietstrommel":
-            color = "yellow";
-            break;
-          case "toezicht":
-            color = "red";
-            break;
-          case "onbewaakt":
-            color = "green";
-            break;
-          case "geautomatiseerd":
-            color = "green";
-            break;
-        }
-        const marker = new maplibregl.Marker({
-          color,
-          scale: "0.5",
+
+        const marker = new maplibregl.Marker(markerTypes[stalling.Type], {
+          // For size relative to zoom level, see: https://stackoverflow.com/a/63876653 
         })
           .setLngLat([coords[1], coords[0]])
           .addTo(mapboxMap);
