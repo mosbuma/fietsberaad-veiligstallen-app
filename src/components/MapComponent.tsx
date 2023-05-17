@@ -35,6 +35,34 @@ const didClickMarker = (e: any) => {
   console.log("Clicked marker", e);
 }
 
+// TODO: maak geojson: https://docs.mapbox.com/help/tutorials/markers-js/
+
+const createGeoJson = (input: any) => {
+  const features: any = []
+
+  input.forEach(x => {
+
+    const coords = x.Coordinaten;// I.e.: 52.508011,5.473280;
+
+    // console.log('x', x);
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [coords]
+      },
+      properties: {
+        'marker-color': '#3bb2d0',
+        'marker-size': 'large',
+        'marker-symbol': 'rocket',
+        title: x.Title
+      }
+    });
+  });
+
+  return features;
+}
+
 function MapboxMap({ fietsenstallingen = [] }: any) {
   // this is where the map instance will be stored after initialization
   const [map, setMap] = React.useState<maplibregl.Map>();
@@ -50,6 +78,8 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // the component is rendered on the server
     // or the dom node is not initialized, then return early
     if (typeof window === "undefined" || node === null) return;
+
+    const tmp = createGeoJson(fietsenstallingen);
 
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
