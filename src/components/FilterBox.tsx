@@ -6,15 +6,16 @@ import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
-  { id: "st-bw", title: "Bewaakte stalling", active: false },
-  { id: "st-au", title: "Geautomatiseerde stalling", active: false },
-  { id: "st-on", title: "Onbewaakte stalling", active: false },
+  { id: "bewaakt", title: "Bewaakte stalling", active: false },
+  { id: "geautomatiseerd", title: "Geautomatiseerde stalling", active: false },
+  { id: "onbewaakt", title: "Onbewaakte stalling", active: false },
+  { id: "toezicht", title: "Stalling met toezicht", active: false },
 ];
 
 const OPTIONS_2 = [
-  { id: "st-pr", title: "Prive stalling", active: false },
-  { id: "st-bu", title: "Buurtstalling", active: false },
-  { id: "st-tr", title: "Fietsentrommel", active: false },
+  { id: "buurtstalling", title: "Buurtstalling", active: false },
+  { id: "fietstrommel", title: "Fietsentrommel", active: false },
+  { id: "fietskluizen", title: "Fietskluis", active: false },
 ];
 
 type FilterBoxProps = {

@@ -6,22 +6,22 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // Import map styles
 import nine3030 from "../mapStyles/nine3030";
 // Import component styles, i.e. for the markers
-import styles from './MapComponent.module.css';
+import styles from "./MapComponent.module.css";
 
 const getMarkerTypes = () => {
   const stallingTypes = [
-    'buurtstalling',
-    'fietskluizen',
-    'bewaakt',
-    'fietstrommel',
-    'toezicht',
-    'onbewaakt',
-    'geautomatiseerd'
+    "buurtstalling",
+    "fietskluizen",
+    "bewaakt",
+    "fietstrommel",
+    "toezicht",
+    "onbewaakt",
+    "geautomatiseerd",
   ];
 
   const stallingMarkers: any = [];
-  stallingTypes.forEach(x => {
-    const icon = document.createElement('div');
+  stallingTypes.forEach((x) => {
+    const icon = document.createElement("div");
     icon.classList.add(styles.marker);
     icon.classList.add(styles[`marker-${x}`]);
 
@@ -29,11 +29,11 @@ const getMarkerTypes = () => {
   });
 
   return stallingMarkers;
-}
+};
 
 const didClickMarker = (e: any) => {
   console.log("Clicked marker", e);
-}
+};
 
 // TODO: maak geojson: https://docs.mapbox.com/help/tutorials/markers-js/
 
@@ -104,13 +104,13 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         let coords = stalling.Coordinaten.split(",");
 
         const marker = new maplibregl.Marker(markerTypes[stalling.Type], {
-          // For size relative to zoom level, see: https://stackoverflow.com/a/63876653 
+          // For size relative to zoom level, see: https://stackoverflow.com/a/63876653
         })
           .setLngLat([coords[1], coords[0]])
           .addTo(mapboxMap);
 
         // Add click handler to marker
-        marker.getElement().addEventListener('click', didClickMarker);
+        marker.getElement().addEventListener("click", didClickMarker);
 
         allMarkersOnTheMap.push(marker);
       }
@@ -121,10 +121,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       mapboxMap.remove();
       // Remove all marker click events
       allMarkersOnTheMap.forEach((x: any) => {
-        x.getElement().removeEventListener('click', didClickMarker)
-      })
+        x.getElement().removeEventListener("click", didClickMarker);
+      });
     };
-  }, []);
+  }, [fietsenstallingen]);
 
   return <div ref={mapNode} style={{ width: "100vw", height: "100vh" }} />;
 }
