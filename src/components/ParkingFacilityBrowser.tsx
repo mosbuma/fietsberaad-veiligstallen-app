@@ -34,6 +34,9 @@ function ParkingFacilityBrowser({
     style={{
       width: '414px',
       maxWidth: 'calc(100% - 2.5rem)',
+      maxHeight: '60vh',
+      height: '100%',
+      overflow: 'auto'
     }}
     >
       <SearchBar />

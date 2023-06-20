@@ -30,6 +30,7 @@ function ParkingFacilityBlock({
       border-gray-300
       pb-4
       flex justify-between
+      cursor-pointer
     " onClick={() => {
       if(onClick) onClick(parking.ID);
     }}>

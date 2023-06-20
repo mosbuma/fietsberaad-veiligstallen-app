@@ -81,7 +81,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
           z-10
           p-4
         " style={{
-          top: '64px'
+          top: '64px',
         }}>
           <ParkingFacilityBrowser
             fietsenstallingen={fietsenstallingen}
