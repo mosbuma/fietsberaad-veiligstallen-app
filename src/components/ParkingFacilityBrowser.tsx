@@ -39,7 +39,7 @@ function ParkingFacilityBrowser({
       <SearchBar />
 
       <div className="
-        px-2
+        px-0
       ">
         {fietsenstallingen.map(x => {
           return <ParkingFacilityBlock
