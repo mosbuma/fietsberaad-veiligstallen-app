@@ -4,10 +4,55 @@
 
 * {
   box-sizing: border-box;
+  font-family: poppinsregular, sans-serif
+}
+b {
+  font-family: poppinssemibold, sans-serif;
+  font-weight: normal;
 }
 
 html, body {
   position: relative;
   overflow: auto;
   height: 100%;
+}
+
+@font-face {
+    font-family: 'poppinsbold';
+    src: url('/font/poppins/poppins-bold-webfont.woff2') format('woff2'),
+         url('/font/poppins/poppins-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'poppinsbold_italic';
+    src: url('/font/poppins/poppins-bolditalic-webfont.woff2') format('woff2'),
+         url('/font/poppins/poppins-bolditalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'poppinsmedium';
+    src: url('/font/poppins/poppins-medium-webfont.woff2') format('woff2'),
+         url('/font/poppins/poppins-medium-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'poppinsregular';
+    src: url('/font/poppins/poppins-regular-webfont.woff2') format('woff2'),
+         url('/font/poppins/poppins-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'poppinssemibold';
+    src: url('/font/poppins/poppins-semibold-webfont.woff2') format('woff2'),
+         url('/font/poppins/poppins-semibold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
 }
