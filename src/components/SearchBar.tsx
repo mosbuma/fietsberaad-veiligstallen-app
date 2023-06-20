@@ -7,7 +7,13 @@ function SearchBar({ fietsenstallingen = [] }: any) {
       type="search"
       name=""
       placeholder="Vind een stalling"
-      className="w-full h-10"
+      className="
+        h-10 shadow-md rounded-3xl -mx-5
+        px-3
+      "
+      style={{
+        width: 'calc(100% + 2.5rem)'
+      }}
     />
   );
 }

@@ -1,15 +1,26 @@
 import { useState } from "react";
-import { type NextPage } from "next";
+import {
+  type NextPage,
+  type GetStaticPaths
+} from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { useSelector } from "react-redux";
+import { useRouter } from 'next/router'
 
 import { api } from "~/utils/api";
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeader from "~/components/AppHeader";
 import AppBody from "~/components/AppBody";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
+
+export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
+    return {
+        paths: [], //indicates that no page needs be created at build time
+        fallback: 'blocking' //indicates the type of fallback
+    }
+}
 
 export async function getStaticProps() {
   const { PrismaClient } = require("@prisma/client");
@@ -61,7 +72,9 @@ export async function getStaticProps() {
   };
 }
 
-const Home: NextPage = ({ fietsenstallingen }: any) => {
+const Stalling: NextPage = ({ fietsenstallingen }: any) => {
+  const router = useRouter()
+
   return (
     <>
       <Head>
@@ -85,14 +98,17 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
         }}>
           <ParkingFacilityBrowser
             fietsenstallingen={fietsenstallingen}
+            activeParkingId={router.query.id}
           />
         </div>
 
-        <ParkingFacilities fietsenstallingen={fietsenstallingen} />
+        <ParkingFacilities
+          fietsenstallingen={fietsenstallingen}
+        />
         
       </main>
     </>
   );
 };
 
-export default Home;
+export default Stalling;

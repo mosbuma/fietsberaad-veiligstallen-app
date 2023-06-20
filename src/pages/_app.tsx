@@ -10,6 +10,8 @@ import "@fontsource/roboto/700.css";
 
 import "~/styles/globals.css";
 
+import '~/styles/components/AppHeader.css';
+
 const MyApp: AppType = ({ Component, pageProps }) => {
   return <Component {...pageProps} />;
 };
