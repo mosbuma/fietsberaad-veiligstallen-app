@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 
 // Components
-import Input from '@mui/material/TextField';
+import Input from "@mui/material/TextField";
 import MapboxMap from "~/components/MapComponent";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 import CardList from "~/components/CardList";
@@ -35,13 +35,22 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
   //   )
   // );
 
-  const cards: CardData[] = fietsenstallingen.map((x: any, idx: number) => {
-    return {
-      ID: x.ID,
-      title: x.Title,
-      description: x.Description,
-    };
-  });
+  let cards: CardData[] = [];
+  let filteredFietsenstallingen: any[] = [];
+
+  if (fietsenstallingen) {
+    cards = fietsenstallingen.map((x: any, idx: number) => {
+      return {
+        ID: x.ID,
+        title: x.Title,
+        description: x.Description,
+      };
+    });
+
+    filteredFietsenstallingen = fietsenstallingen.filter(
+      (x) => activeTypes.indexOf(x.Type) > -1
+    );
+  }
 
   return (
     <div data-name="parking-facilities">
@@ -52,19 +61,13 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       >
         {mapmode ? (
           <>
-            <MapboxMap
-              fietsenstallingen={fietsenstallingen.filter(
-                (x) => activeTypes.indexOf(x.Type) > -1
-              )}
-            />
+            <MapboxMap fietsenstallingen={filteredFietsenstallingen} />
           </>
         ) : (
           <div className="mx-5 pt-24">
-            {fietsenstallingen
-              .filter((x) => activeTypes.indexOf(x.Type) > -1)
-              .map((x: any) => {
-                return <ParkingFacilityBlock key={x.title} parking={x} />;
-              })}
+            {filteredFietsenstallingen.map((x: any) => {
+              return <ParkingFacilityBlock key={x.title} parking={x} />;
+            })}
           </div>
         )}
       </div>
@@ -104,7 +107,7 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
         />
       )}
     </div>
-  )
-}
+  );
+};
 
 export default ParkingFacilities;

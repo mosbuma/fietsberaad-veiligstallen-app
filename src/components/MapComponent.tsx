@@ -9,7 +9,7 @@ import nine3030 from "../mapStyles/nine3030";
 import styles from "./MapComponent.module.css";
 
 const getMarkerTypes = () => {
-  const stallingTypes = [
+  const stallingTypes: string[] = [
     "buurtstalling",
     "fietskluizen",
     "bewaakt",
@@ -19,11 +19,15 @@ const getMarkerTypes = () => {
     "geautomatiseerd",
   ];
 
-  const stallingMarkers: any = [];
+  const stallingMarkers: { [key: string]: HTMLDivElement } = {};
   stallingTypes.forEach((x) => {
     const icon = document.createElement("div");
-    icon.classList.add(styles.marker);
-    icon.classList.add(styles[`marker-${x}`]);
+    if (styles.marker !== undefined) {
+      icon.classList.add(styles.marker);
+    }
+    if (`marker-${x}` in styles && styles[`marker-${x}`] !== undefined) {
+      icon.classList.add(styles[`marker-${x}`] || "");
+    }
 
     stallingMarkers[x] = icon;
   });
@@ -36,36 +40,48 @@ const didClickMarker = (e: any) => {
 };
 
 // TODO: maak geojson: https://docs.mapbox.com/help/tutorials/markers-js/
+interface GeoJsonFeature {
+  type: string;
+  geometry: {
+    type: string;
+    coordinates: number[];
+  };
+  properties: {
+    "marker-color": string;
+    "marker-size": string;
+    "marker-symbol": string;
+    title: string;
+  };
+}
 
-const createGeoJson = (input: any) => {
-  const features: any = []
+const createGeoJson = (input): GeoJsonFeature[] => {
+  const features: GeoJsonFeature[] = [];
 
-  input.forEach(x => {
-
-    const coords = x.Coordinaten;// I.e.: 52.508011,5.473280;
+  input.forEach((x) => {
+    const coords = x.Coordinaten; // I.e.: 52.508011,5.473280;
 
     // console.log('x', x);
     features.push({
-      type: 'Feature',
+      type: "Feature",
       geometry: {
-        type: 'Point',
-        coordinates: [coords]
+        type: "Point",
+        coordinates: [coords],
       },
       properties: {
-        'marker-color': '#3bb2d0',
-        'marker-size': 'large',
-        'marker-symbol': 'rocket',
-        title: x.Title
-      }
+        "marker-color": "#3bb2d0",
+        "marker-size": "large",
+        "marker-symbol": "rocket",
+        title: x.Title,
+      },
     });
   });
 
   return features;
-}
+};
 
 function MapboxMap({ fietsenstallingen = [] }: any) {
   // this is where the map instance will be stored after initialization
-  const [map, setMap] = React.useState<maplibregl.Map>();
+  // const [map, setMap] = React.useState<maplibregl.Map>();
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
@@ -79,7 +95,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // or the dom node is not initialized, then return early
     if (typeof window === "undefined" || node === null) return;
 
-    const tmp = createGeoJson(fietsenstallingen);
+    // const tmp = createGeoJson(fietsenstallingen);
 
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
@@ -92,7 +108,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
 
     // save the map object to React.useState
-    setMap(mapboxMap);
+    // setMap(mapboxMap);
 
     // Get all marker types
     const markerTypes = getMarkerTypes();
