@@ -11,7 +11,8 @@
     "setup-db": "cd mysql-db && bash setup-db.sh && cd .. && prisma db pull --force && prisma generate",
     "start-db": "docker start veiligstallen-mysql",
     "stop-db": "docker start veiligstallen-mysql",
-    "remove-db": "docker stop veiligstallen-mysql && docker rm veiligstallen-mysql"
+    "remove-db": "docker stop veiligstallen-mysql && docker rm veiligstallen-mysql",
+    "deploy": "cd scripts && bash deploy.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
