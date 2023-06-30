@@ -34,3 +34,18 @@ Make sure the database is running:
 For development purposes:
 
     npm run dev
+
+## Deploying the app
+
+The app is deployed to a test server at the moment: https://veiligstallen.addbrainz.com/
+
+Deploy a new version using these commands:
+
+    ssh parkman@veiligstallen.addbrainz.com
+     ./scripts/remote/update-veiligstallen.sh
+
+Deployment is configured like this:
+
+- Op de testserver wordt een pull van de repository gedaan, daarna een npm build
+- De app wordt gedraaid met de pm2 taakmanager
+- Op de achtergrond draait altijd een Docker container voor de database
