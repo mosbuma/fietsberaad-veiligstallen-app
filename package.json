@@ -11,7 +11,8 @@
     "setup-db": "cd mysql-db && bash setup-db.sh && cd .. && prisma db pull --force && prisma generate",
     "start-db": "docker start veiligstallen-mysql",
     "stop-db": "docker start veiligstallen-mysql",
-    "remove-db": "docker stop veiligstallen-mysql && docker rm veiligstallen-mysql"
+    "remove-db": "docker stop veiligstallen-mysql && docker rm veiligstallen-mysql",
+    "deploy": "cd scripts && bash deploy.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
@@ -49,7 +50,7 @@
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "autoprefixer": "^10.4.14",
-    "eslint": "^8.36.0",
+    "eslint": "^8.43.0",
     "eslint-config-next": "^13.2.4",
     "postcss": "^8.4.21",
     "prettier": "^2.8.6",

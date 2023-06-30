@@ -1,18 +1,14 @@
-import { useState } from "react";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { Prisma } from "@prisma/client";
-import { useSelector } from "react-redux";
 
-import { api } from "~/utils/api";
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeader from "~/components/AppHeader";
-import AppBody from "~/components/AppBody";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 
+import { PrismaClient } from "@prisma/client";
+
 export async function getStaticProps() {
-  const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
 
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
@@ -30,7 +26,7 @@ export async function getStaticProps() {
     // },
   });
 
-  fietsenstallingen.forEach((stalling: any) => {
+  fietsenstallingen.forEach((stalling) => {
     Object.entries(stalling).forEach(([key, prop]) => {
       if (prop instanceof Date) {
         stalling[key] = stalling.toString();
@@ -72,24 +68,23 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       </Head>
 
       <main className="flex-grow">
-
         <AppHeader />
 
-        <div className="
-          absolute
+        <div
+          className="
           l-0
+          absolute
           z-10
           p-4
-        " style={{
-          top: '64px',
-        }}>
-          <ParkingFacilityBrowser
-            fietsenstallingen={fietsenstallingen}
-          />
+        "
+          style={{
+            top: "64px",
+          }}
+        >
+          <ParkingFacilityBrowser fietsenstallingen={fietsenstallingen} />
         </div>
 
         <ParkingFacilities fietsenstallingen={fietsenstallingen} />
-        
       </main>
     </>
   );
