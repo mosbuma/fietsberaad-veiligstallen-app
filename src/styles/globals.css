@@ -4,10 +4,10 @@
 
 * {
   box-sizing: border-box;
-  font-family: poppinsregular, sans-serif
+  font-family: 'poppinsregular', sans-serif
 }
 b {
-  font-family: poppinssemibold, sans-serif;
+  font-family: 'poppinssemibold', sans-serif;
   font-weight: normal;
 }
 
@@ -15,6 +15,16 @@ html, body {
   position: relative;
   overflow: auto;
   height: 100%;
+}
+
+.font-poppinsmedium {
+  font-family: "poppinsmedium", sans-serif;
+}
+.font-poppinssemibold {
+  font-family: "poppinssemibold", sans-serif;
+}
+.font-poppinsbold {
+  font-family: "poppinsbold", sans-serif;
 }
 
 @font-face {

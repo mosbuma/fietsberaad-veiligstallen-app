@@ -33,16 +33,27 @@ const FilterBoxList: React.FC<FilterBoxListProps> = ({
 }) => {
   return (
     <div>
-      <h2 className="p-2 text-center font-bold">{title}</h2>
+      <h2 className="pb-3 font-bold text-lg poppinsbold">
+        {title}
+      </h2>
       <div className="flex flex-col justify-between text-sm">
         {options.map((option, index) => (
           <button
             key={option.id}
-            className={`rounded-md px-2 py-2 ${
-              option.active
-                ? "border border-blue-500 bg-blue-500 text-white"
-                : "border border-gray-400 bg-white text-gray-700"
-            }`}
+            className={`
+              py-1 px-2 mb-3
+              text-left rounded-md
+              whitespace-nowrap text-ellipsis overflow-hidden
+              font-poppinsmedium
+              text-base
+              hover:shadow
+              transition-all
+              ${
+                option.active
+                  ? "border border-gray-700 shadow shadow-md"
+                  : "border border-gray-400 bg-white text-gray-700"
+              }
+            `}
             onClick={() => onToggleFilter(option.id)}
             style={{ userSelect: "none" }} // disable highlighting
           >

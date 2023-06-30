@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FiFilter } from "react-icons/fi";
+import { AiFillMinusCircle } from "react-icons/ai";
 import FilterBoxList, { updateActiveStates } from "~/components/FilterBoxList";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleType } from "~/store/filterSlice";
@@ -47,31 +48,46 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 h-auto border-t border-gray-200 bg-white ${
+      className={`h-auto border-t border-gray-200 bg-white rounded-xl ${
         isOpen ? "" : "h-16"
       } transition-all duration-300 ease-in-out`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl py-5 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between">
-          <FilterBoxList
-            title="Publieke Stalling"
-            options={options1_with_state}
-            onToggleFilter={toggleFilter}
-          />
-          <FilterBoxList
-            title="Private Stalling"
-            options={options2_with_state}
-            onToggleFilter={toggleFilter}
-          />
+          <div className="w-6/12 mr-3">
+            <FilterBoxList
+              title="Publieke Stalling"
+              options={options1_with_state}
+              onToggleFilter={toggleFilter}
+            />
+          </div>
+          <div className="w-6/12">
+            <FilterBoxList
+              title="Private Stalling"
+              options={options2_with_state}
+              onToggleFilter={toggleFilter}
+            />
+          </div>
         </div>
         {children}
         <div className="mt-2 flex justify-center">
           <button
-            className="text-gray-700 hover:text-gray-900"
+            className={`
+              bg-black
+              text-white
+              rounded-md
+              py-1
+              px-3
+              flex
+            `}
             onClick={isOpen ? onClose : onOpen}
             aria-expanded={isOpen}
           >
-            <FiFilter size={20} />
+            <div className="flex flex-col justify-center h-full mr-2">
+              <AiFillMinusCircle size={20} color="white" />
+            </div>
+            Minder filters
+            
           </button>
         </div>
       </div>

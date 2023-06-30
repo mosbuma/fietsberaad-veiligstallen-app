@@ -96,13 +96,23 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       >
         MAPLIST
       </div>
-      {isFilterBoxOpen && (
-        <FilterBox
-          isOpen={isFilterBoxOpen}
-          onReset={resetFilter}
-          onClose={toggleFilterBox}
-        />
-      )}
+
+      <div className="
+        absolute
+        right-0
+        z-10
+        p-4
+      " style={{
+        top: '64px',
+      }}>
+        {isFilterBoxOpen && (
+          <FilterBox
+            isOpen={isFilterBoxOpen}
+            onReset={resetFilter}
+            onClose={toggleFilterBox}
+          />
+        )}
+      </div>
     </div>
   )
 }
