@@ -54,10 +54,10 @@ interface GeoJsonFeature {
   };
 }
 
-const createGeoJson = (input): GeoJsonFeature[] => {
+const createGeoJson = (input: GeoJsonFeature[]) => {
   const features: GeoJsonFeature[] = [];
 
-  input.forEach((x) => {
+  input.forEach((x: any) => {
     const coords = x.Coordinaten; // I.e.: 52.508011,5.473280;
 
     // console.log('x', x);
@@ -76,7 +76,10 @@ const createGeoJson = (input): GeoJsonFeature[] => {
     });
   });
 
-  return features;
+  return {
+    type: "FeatureCollection",
+    features: features
+  }
 };
 
 function MapboxMap({ fietsenstallingen = [] }: any) {
@@ -95,8 +98,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // or the dom node is not initialized, then return early
     if (typeof window === "undefined" || node === null) return;
 
-    // const tmp = createGeoJson(fietsenstallingen);
-
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
       container: node,
@@ -106,6 +107,32 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       center: [5, 52],
       zoom: 7,
     });
+
+    // mapboxMap.on('load', function () {
+    //   const geojson = createGeoJson(fietsenstallingen);
+    //   mapboxMap.addSource('fietsenstallingen', { type: 'geojson', data: geojson });
+    //   mapboxMap.addLayer({
+    //     'id': 'fietsenstallingen',
+    //     'type': 'symbol',
+    //     'source': 'fietsenstallingen',
+
+    //     'layout': {
+    //       'icon-image': ["concat", ['get', 'system_id'], '-p:', ['get', 'duration_bin']],
+    //       // 'icon-size': 0.4,
+    //       'icon-size': [
+    //         'interpolate',
+    //           ['linear'],
+    //           ['zoom'],
+    //           11,
+    //           0.2,
+    //           16,
+    //           0.7
+    //         ],
+    //       'icon-allow-overlap': true,
+    //     },
+
+    //   });
+    // });
 
     // save the map object to React.useState
     // setMap(mapboxMap);

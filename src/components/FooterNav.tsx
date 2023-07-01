@@ -36,6 +36,7 @@ const FooterNav = () => {
       rounded-t-xl
       flex
       text-xs
+      z-10
     ">
       {navItemsPrimary.map(x => <FooterNavItem
         className="font-bold"

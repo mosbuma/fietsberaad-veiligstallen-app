@@ -10,6 +10,7 @@ export type FilterBoxPriceOption = {
 };
 
 type FilterBoxPriceProps = {
+  name?: any;
   title: string;
   options: FilterBoxPriceOption[];
   onToggleFilter: (optionId: string) => void;

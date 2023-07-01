@@ -13,7 +13,7 @@ const OPTIONS_1 = [
   { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: true },
   { id: "geautomatiseerd", name: "geautomatiseerd", title: "Geautomatiseerde stalling", active: true },
   { id: "onbewaakt", name: "publiek", title: "Onbewaakte stalling", active: true },
-  { id: "toezicht", title: "Stalling met toezicht", active: true },
+  { id: "toezicht", name: "toezicht", title: "Stalling met toezicht", active: true },
 ];
 
 const OPTIONS_2 = [
@@ -54,7 +54,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
   const options1_with_state = updateActiveTypeStates(OPTIONS_1, activeTypes);
   const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
-  const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, activeTypes);
+  const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, []);
 
   return (
     <div
