@@ -3,23 +3,23 @@ import { FilterState } from "~/store/filterSlice";
 
 import { RadioButton } from "~/components/Button";
 
-export type FilterBoxOption = {
+export type FilterBoxPriceOption = {
   id: string;
   title: string;
   active: boolean;
 };
 
-type FilterBoxListProps = {
+type FilterBoxPriceProps = {
   title: string;
-  options: FilterBoxOption[];
+  options: FilterBoxPriceOption[];
   onToggleFilter: (optionId: string) => void;
 };
 
 // utility functions
-export const updateActiveTypeStates = (
-  options: FilterBoxOption[],
+export const updateActivePriceStates = (
+  options: FilterBoxPriceOption[],
   activeTypes: string[]
-): FilterBoxOption[] => {
+): FilterBoxPriceOption[] => {
   // Map over the options and update the `active` field based on whether
   // the option's `id` is included in the `activeTypes` array
   return options.map((option) => ({
@@ -28,7 +28,7 @@ export const updateActiveTypeStates = (
   }));
 };
 
-const FilterBoxList: React.FC<FilterBoxListProps> = ({
+const FilterBoxPrice: React.FC<FilterBoxPriceProps> = ({
   title,
   options,
   onToggleFilter,
@@ -53,4 +53,4 @@ const FilterBoxList: React.FC<FilterBoxListProps> = ({
   );
 };
 
-export default FilterBoxList;
+export default FilterBoxPrice;

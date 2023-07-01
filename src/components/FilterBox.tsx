@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FiFilter } from "react-icons/fi";
 import { AiFillMinusCircle } from "react-icons/ai";
-import FilterBoxList, { updateActiveStates } from "~/components/FilterBoxList";
+import FilterBoxList, { updateActiveTypeStates } from "~/components/FilterBoxList";
+import FilterBoxPrice, { updateActivePriceStates } from "~/components/FilterBoxPrice";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
@@ -17,6 +18,12 @@ const OPTIONS_2 = [
   { id: "buurtstalling", title: "Buurtstalling", active: false },
   { id: "fietstrommel", title: "Fietsentrommel", active: false },
   { id: "fietskluizen", title: "Fietskluis", active: false },
+];
+
+const OPTIONS_PRICE = [
+  { id: "per_uur", title: "Per uur", active: false },
+  { id: "per_dag", title: "Per dag", active: false },
+  { id: "jaarabonnement", title: "Jaarabonnement", active: false }
 ];
 
 type FilterBoxProps = {
@@ -43,8 +50,9 @@ const FilterBox: React.FC<FilterBoxProps> = ({
     dispatch(toggleType({ pfType: optionId }));
   };
 
-  const options1_with_state = updateActiveStates(OPTIONS_1, activeTypes);
-  const options2_with_state = updateActiveStates(OPTIONS_2, activeTypes);
+  const options1_with_state = updateActiveTypeStates(OPTIONS_1, activeTypes);
+  const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
+  const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, activeTypes);
 
   return (
     <div
@@ -69,7 +77,17 @@ const FilterBox: React.FC<FilterBoxProps> = ({
             />
           </div>
         </div>
+
+        <div className="hidden">
+          <FilterBoxPrice
+            title="Prijs"
+            options={options_price_with_state}
+            onToggleFilter={toggleFilter}
+          />
+        </div>
+
         {children}
+        
         <div className="mt-2 flex justify-center">
           <button
             className={`
