@@ -11,7 +11,7 @@ import FilterBox from "~/components/FilterBox";
 
 const ParkingFacilities = ({ fietsenstallingen }: any) => {
   const [mapmode, setMapmode] = useState(true);
-  const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(true);
+  const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -108,13 +108,12 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       " style={{
         top: '64px',
       }}>
-        {isFilterBoxOpen && (
-          <FilterBox
-            isOpen={isFilterBoxOpen}
-            onReset={resetFilter}
-            onClose={toggleFilterBox}
-          />
-        )}
+        <FilterBox
+          isOpen={isFilterBoxOpen}
+          onReset={resetFilter}
+          onOpen={toggleFilterBox}
+          onClose={toggleFilterBox}
+        />
       </div>
     </div>
   );

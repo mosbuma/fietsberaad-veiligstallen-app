@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FiFilter } from "react-icons/fi";
-import { AiFillMinusCircle } from "react-icons/ai";
+import {
+  AiFillMinusCircle, AiFillPlusCircle
+} from "react-icons/ai";
 import FilterBoxList, { updateActiveTypeStates } from "~/components/FilterBoxList";
 import FilterBoxPrice, { updateActivePriceStates } from "~/components/FilterBoxPrice";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,6 +56,8 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
   const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, activeTypes);
 
+  console.log('isOpen', isOpen)
+
   return (
     <div
       className={`h-auto border-t border-gray-200 bg-white rounded-xl ${
@@ -61,17 +65,23 @@ const FilterBox: React.FC<FilterBoxProps> = ({
       } transition-all duration-300 ease-in-out`}
     >
       <div className="mx-auto max-w-7xl py-5 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between">
-          <div className="w-6/12 mr-3">
+        <div className={`
+          ${isOpen ? 'flex justify-between' : ''}
+        `}>
+          <div className={`
+            ${isOpen ? 'w-6/12 mr-3' : ''}
+          `}>
             <FilterBoxList
-              title="Publieke Stalling"
+              title={`${isOpen ? 'Publieke Stalling' : ''}`}
               options={options1_with_state}
               onToggleFilter={toggleFilter}
             />
           </div>
-          <div className="w-6/12">
+          <div className={`
+            ${isOpen ? 'w-6/12 mr-3' : ''}
+          `}>
             <FilterBoxList
-              title="Private Stalling"
+              title={`${isOpen ? 'Private Stalling' : ''}`}
               options={options2_with_state}
               onToggleFilter={toggleFilter}
             />
@@ -88,7 +98,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
         {children}
         
-        <div className="mt-2 flex justify-center">
+        <div className="">
           <button
             className={`
               bg-black
@@ -101,11 +111,21 @@ const FilterBox: React.FC<FilterBoxProps> = ({
             onClick={isOpen ? onClose : onOpen}
             aria-expanded={isOpen}
           >
-            <div className="flex flex-col justify-center h-full mr-2">
-              <AiFillMinusCircle size={20} color="white" />
-            </div>
-            Minder filters
-            
+
+            {isOpen && <>
+              <div className="flex flex-col justify-center h-full mr-2">
+                <AiFillMinusCircle size={20} color="white" />
+              </div>
+              Minder filters
+            </>}
+
+            {! isOpen && <>
+              <div className="flex flex-col justify-center h-full mr-2">
+                <AiFillPlusCircle size={20} color="white" />
+              </div>
+              Meer filters
+            </>}
+
           </button>
         </div>
       </div>

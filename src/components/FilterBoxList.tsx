@@ -35,10 +35,10 @@ const FilterBoxList: React.FC<FilterBoxListProps> = ({
 }) => {
   return (
     <div>
-      <h2 className="pb-3 font-bold text-lg poppinsbold">
+      {(title && title.length >= 1) ? <h2 className="font-bold text-lg poppinsbold pb-2">
         {title}
-      </h2>
-      <div className="flex flex-col justify-between text-sm">
+      </h2> : ''}
+      <div className="pt-1 flex flex-col justify-between text-sm">
         {options.map((option, index) => (
           <RadioButton
             key={option.id}

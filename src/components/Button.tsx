@@ -14,6 +14,7 @@ export const RadioButton = ({
         text-left rounded-md
         whitespace-nowrap text-ellipsis overflow-hidden
         font-poppinsmedium
+        width-auto
         text-base
         hover:shadow
         transition-all
