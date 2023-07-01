@@ -8,6 +8,7 @@ import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
+import FooterNav from "~/components/FooterNav";
 
 const ParkingFacilities = ({ fietsenstallingen }: any) => {
   const [mapmode, setMapmode] = useState(true);
@@ -72,7 +73,7 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
         )}
       </div>
 
-      <div style={{ position: "relative" }}>
+      {/*<div style={{ position: "relative" }}>
         <div
           className="l-0 b-20 r-0 h-max-40 absolute"
           style={{
@@ -85,8 +86,9 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
         >
           <CardList cards={cards} />
         </div>
-      </div>
-      <div
+      </div>*/}
+
+      {/*<div
         className="
         fixed
         bottom-5
@@ -99,6 +101,7 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       >
         MAPLIST
       </div>
+      */}
 
       <div className="
         absolute
@@ -115,6 +118,8 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
           onClose={toggleFilterBox}
         />
       </div>
+
+      <FooterNav />
     </div>
   );
 };

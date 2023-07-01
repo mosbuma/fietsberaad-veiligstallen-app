@@ -10,22 +10,22 @@ import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
-  { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: false },
-  { id: "geautomatiseerd", name: "geautomatiseerd", title: "Geautomatiseerde stalling", active: false },
-  { id: "onbewaakt", name: "publiek", title: "Onbewaakte stalling", active: false },
-  { id: "toezicht", title: "Stalling met toezicht", active: false },
+  { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: true },
+  { id: "geautomatiseerd", name: "geautomatiseerd", title: "Geautomatiseerde stalling", active: true },
+  { id: "onbewaakt", name: "publiek", title: "Onbewaakte stalling", active: true },
+  { id: "toezicht", title: "Stalling met toezicht", active: true },
 ];
 
 const OPTIONS_2 = [
-  { id: "buurtstalling", name: "buurtstalling", title: "Buurtstalling", active: false },
-  { id: "fietstrommel", name: "fietstrommel", title: "Fietsentrommel", active: false },
-  { id: "fietskluizen", name: "fietskluizen", title: "Fietskluis", active: false },
+  { id: "buurtstalling", name: "buurtstalling", title: "Buurtstalling", active: true },
+  { id: "fietstrommel", name: "fietstrommel", title: "Fietsentrommel", active: true },
+  { id: "fietskluizen", name: "fietskluizen", title: "Fietskluis", active: true },
 ];
 
 const OPTIONS_PRICE = [
-  { id: "per_uur", title: "Per uur", active: false },
-  { id: "per_dag", title: "Per dag", active: false },
-  { id: "jaarabonnement", title: "Jaarabonnement", active: false }
+  { id: "per_uur", title: "Per uur", active: true },
+  { id: "per_dag", title: "Per dag", active: true },
+  { id: "jaarabonnement", title: "Jaarabonnement", active: true }
 ];
 
 type FilterBoxProps = {
@@ -96,7 +96,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
         {children}
         
-        <div className="">
+        <div className="hidden">
           <button
             className={`
               bg-black
