@@ -1,5 +1,7 @@
 import { useRouter } from 'next/navigation';
 
+import {getParkingColor} from '~/utils/theme';
+
 import Styles from './ParkingFacilityBlock.module.css';
 
 function ParkingFacilityBlock({
@@ -13,7 +15,8 @@ function ParkingFacilityBlock({
     Plaats?: string,
     Postcode?: any,
     Status?: any,
-    Coordinaten?: any
+    Coordinaten?: any,
+    Type?: any
   },
   compact?: boolean,
   onClick?: Function
@@ -41,7 +44,8 @@ function ParkingFacilityBlock({
           inline-block align-middle ${Styles['icon-type']}
         `}
         style={{
-          marginTop: '7px'
+          marginTop: '5px',
+          borderColor: getParkingColor(parking.Type)
         }}
       />
       <div data-name="right" className="flex-1">

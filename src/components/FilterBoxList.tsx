@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { FilterState } from "~/store/filterSlice";
 
+import {getParkingColor} from '~/utils/theme';
+
 import { RadioButton } from "~/components/Button";
+
+import Styles from './ParkingFacilityBlock.module.css';
 
 export type FilterBoxOption = {
   id: string;
+  name: string;
   title: string;
   active: boolean;
 };
@@ -44,6 +49,19 @@ const FilterBoxList: React.FC<FilterBoxListProps> = ({
             key={option.id}
             isActive={option.active}
             onClick={() => onToggleFilter(option.id)}
+            htmlBefore={(
+              <div
+                data-name="left"
+                className={`
+                  mr-2
+                  inline-block align-middle ${Styles['icon-type']}
+                `}
+                style={{
+                  marginTop: '-3px',
+                  borderColor: getParkingColor(option.name)
+                }}
+              />
+            )}
           >
             {option.title}
           </RadioButton>

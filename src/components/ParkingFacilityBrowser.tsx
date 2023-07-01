@@ -44,7 +44,7 @@ function ParkingFacilityBrowser({
       <div className="
         px-0
       ">
-        {fietsenstallingen.map(x => {
+        {fietsenstallingen.map((x: any) => {
           return <ParkingFacilityBlock
             parking={x}
             compact={x.ID !== selectedParkingId}

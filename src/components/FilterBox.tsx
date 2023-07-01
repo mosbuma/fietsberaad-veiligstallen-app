@@ -10,16 +10,16 @@ import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
-  { id: "bewaakt", title: "Bewaakte stalling", active: false },
-  { id: "geautomatiseerd", title: "Geautomatiseerde stalling", active: false },
-  { id: "onbewaakt", title: "Onbewaakte stalling", active: false },
+  { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: false },
+  { id: "geautomatiseerd", name: "geautomatiseerd", title: "Geautomatiseerde stalling", active: false },
+  { id: "onbewaakt", name: "publiek", title: "Onbewaakte stalling", active: false },
   { id: "toezicht", title: "Stalling met toezicht", active: false },
 ];
 
 const OPTIONS_2 = [
-  { id: "buurtstalling", title: "Buurtstalling", active: false },
-  { id: "fietstrommel", title: "Fietsentrommel", active: false },
-  { id: "fietskluizen", title: "Fietskluis", active: false },
+  { id: "buurtstalling", name: "buurtstalling", title: "Buurtstalling", active: false },
+  { id: "fietstrommel", name: "fietstrommel", title: "Fietsentrommel", active: false },
+  { id: "fietskluizen", name: "fietskluizen", title: "Fietskluis", active: false },
 ];
 
 const OPTIONS_PRICE = [
@@ -55,8 +55,6 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   const options1_with_state = updateActiveTypeStates(OPTIONS_1, activeTypes);
   const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
   const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, activeTypes);
-
-  console.log('isOpen', isOpen)
 
   return (
     <div

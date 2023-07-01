@@ -1,11 +1,13 @@
 export const RadioButton = ({
   isActive,
   onClick,
-  children
+  children,
+  htmlBefore
 }: {
   isActive?: Boolean,
   onClick?: Function,
   children: any
+  htmlBefore?: any
 }) => {
   return (
     <button
@@ -29,6 +31,7 @@ export const RadioButton = ({
       }}
       style={{ userSelect: "none" }} // disable highlighting
     >
+      {htmlBefore}
       {children}
     </button>
   );
