@@ -6,6 +6,9 @@ function PageTitle({
 }) {
   return (
     <h1 className="
+      text-3xl
+      font-poppinssemibold
+      mb-6
     ">
       {children}
     </h1>
