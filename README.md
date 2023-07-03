@@ -42,7 +42,8 @@ The app is deployed to a test server at the moment: https://veiligstallen.addbra
 Deploy a new version using these commands:
 
     ssh parkman@veiligstallen.addbrainz.com
-     ./scripts/remote/update-veiligstallen.sh
+    cd fietsberaad-veiligstallen-app
+    ./scripts/remote/update-veiligstallen.sh
 
 Deployment is configured like this:
 
