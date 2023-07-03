@@ -1,5 +1,8 @@
 import * as React from "react";
 import maplibregl from "maplibre-gl";
+import { useSelector } from "react-redux";
+
+import { AppState } from "~/store/store";
 
 // Import utils
 import {getParkingColor} from '~/utils/theme'
@@ -13,28 +16,8 @@ import nine3030 from "../mapStyles/nine3030";
 // Import component styles, i.e. for the markers
 import styles from "./MapComponent.module.css";
 
-const getMarkerTypes = () => {
-  const stallingTypes: string[] = parkingTypes;
-
-  const stallingMarkers: { [key: string]: HTMLDivElement } = {};
-  stallingTypes.forEach((x) => {
-    const icon = document.createElement("div");
-    if (styles.marker !== undefined) {
-      icon.classList.add(styles.marker);
-    }
-    if (`marker-${x}` in styles && styles[`marker-${x}`] !== undefined) {
-      icon.classList.add(styles[`marker-${x}`] || "");
-    }
-
-    stallingMarkers[x] = icon;
-  });
-
-  return stallingMarkers;
-};
-
 const didClickMarker = (e: any) => {
   console.log("Clicked marker", e);
-
 };
 
 // Add custom markers
@@ -94,7 +77,11 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
 
 function MapboxMap({ fietsenstallingen = [] }: any) {
   // this is where the map instance will be stored after initialization
-  // const [map, setMap] = React.useState<maplibregl.Map>();
+  const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
+
+  const activeTypes = useSelector(
+    (state: AppState) => state.filter.activeTypes
+  );
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
@@ -103,10 +90,14 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   React.useEffect(() => {
     const node = mapNode.current;
+
     // if the window object is not found, that means
     // the component is rendered on the server
     // or the dom node is not initialized, then return early
     if (typeof window === "undefined" || node === null) return;
+
+    // If stateMap already exists: Stop, as the map is already initiated
+    if(stateMap) return;
 
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
@@ -119,21 +110,38 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
 
     mapboxMap.on('load', function () {
-      window['VS_mapboxMap'] = mapboxMap;
-      addMarkerImages(mapboxMap);
+      // Save map as local variabele
+      setStateMap(mapboxMap);
+    });
 
-      const geojson = createGeoJson(fietsenstallingen);
+    // Function that executes if component unloads:
+    return () => {
+      mapboxMap.remove();
+    };
+  }, []);
 
-      mapboxMap.addSource('fietsenstallingen', { type: 'geojson', data: geojson });
-      console.log('geojson', geojson)
+  // If fietsenstallingen variable changes: Update source data
+  React.useEffect(() => {
+    if(! stateMap) return;
 
-      // setFilter
-      // https://docs.mapbox.com/mapbox-gl-js/example/filter-features-within-map-view/
+    // Create geojson
+    const geojson: any = createGeoJson(fietsenstallingen);
 
-      mapboxMap.addLayer({
+    // Add or update fietsenstallingen data
+    const source: maplibregl.GeoJSONSource = stateMap.getSource('fietsenstallingen') as maplibregl.GeoJSONSource;
+    if (source) {
+      source.setData(geojson);
+    } else {
+      stateMap.addSource('fietsenstallingen', { type: 'geojson', data: geojson });
+    }
+
+    // Add markers layer
+    if(! stateMap.getLayer('fietsenstallingen-markers')) {
+      stateMap.addLayer({
         'id': 'fietsenstallingen-markers',
         'source': 'fietsenstallingen',
         'type': 'circle',
+        'filter': ['all'],
         'paint': {
           'circle-color': '#fff',
           'circle-radius': 5,
@@ -150,42 +158,27 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
           ]
         }
       });
-    });
+    }
+  }, [
+    stateMap,
+    fietsenstallingen
+  ]);
 
-    // save the map object to React.useState
-    // setMap(mapboxMap);
+  // Filter map markers if activeTypes filter changes
+  React.useEffect(() => {
+    if(! stateMap) return;
 
-    // Get all marker types
-    // const markerTypes = getMarkerTypes();
+    const geojson = createGeoJson(fietsenstallingen);
 
-    // let allMarkersOnTheMap: any = [];
-
-    // fietsenstallingen.forEach((stalling: any) => {
-    //   if (stalling.Coordinaten !== null && stalling.Type !== null) {
-    //     let coords = stalling.Coordinaten.split(",");
-
-    //     const marker = new maplibregl.Marker(markerTypes[stalling.Type], {
-    //       // For size relative to zoom level, see: https://stackoverflow.com/a/63876653
-    //     })
-    //       .setLngLat([coords[1], coords[0]])
-    //       .addTo(mapboxMap);
-
-    //     // Add click handler to marker
-    //     marker.getElement().addEventListener("click", didClickMarker);
-
-    //     allMarkersOnTheMap.push(marker);
-    //   }
-    // });
-
-    // Function that executes if component unloads:
-    return () => {
-      mapboxMap.remove();
-      // Remove all marker click events
-      // allMarkersOnTheMap.forEach((x: any) => {
-      //   x.getElement().removeEventListener("click", didClickMarker);
-      // });
-    };
-  }, [fietsenstallingen]);
+    stateMap.setFilter(
+      'fietsenstallingen-markers',
+      ['all', ['in', ['get', 'type'], ['literal', activeTypes]]]
+    )
+  }, [
+    stateMap,
+    fietsenstallingen,
+    activeTypes
+  ])
 
   return <div ref={mapNode} style={{ width: "100vw", height: "100vh" }} />;
 }
