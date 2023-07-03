@@ -1,6 +1,11 @@
 import * as React from "react";
 import maplibregl from "maplibre-gl";
 
+// Import utils
+import {getParkingColor} from '~/utils/theme'
+import {getParkingMarker} from '~/utils/map'
+import {parkingTypes} from '~/utils/parkings'
+
 // Import the mapbox-gl styles so that the map is displayed correctly
 import "maplibre-gl/dist/maplibre-gl.css";
 // Import map styles
@@ -9,15 +14,7 @@ import nine3030 from "../mapStyles/nine3030";
 import styles from "./MapComponent.module.css";
 
 const getMarkerTypes = () => {
-  const stallingTypes: string[] = [
-    "buurtstalling",
-    "fietskluizen",
-    "bewaakt",
-    "fietstrommel",
-    "toezicht",
-    "onbewaakt",
-    "geautomatiseerd",
-  ];
+  const stallingTypes: string[] = parkingTypes;
 
   const stallingMarkers: { [key: string]: HTMLDivElement } = {};
   stallingTypes.forEach((x) => {
@@ -37,9 +34,25 @@ const getMarkerTypes = () => {
 
 const didClickMarker = (e: any) => {
   console.log("Clicked marker", e);
+
 };
 
-// TODO: maak geojson: https://docs.mapbox.com/help/tutorials/markers-js/
+// Add custom markers
+const addMarkerImages = (map: any) => {
+  const addMarkerImage = async(parkingType: string) => {
+    if (map.hasImage(parkingType)) {
+      console.log("parkingType image for %s already exists", parkingType);
+      return;
+    }
+    const marker = await getParkingMarker(getParkingColor(parkingType));
+    // Add marker image
+    map.addImage(parkingType, { width: 50, height: 50, data: marker});
+  };
+  parkingTypes.forEach(x => {
+    addMarkerImage(x);
+  });
+}
+
 interface GeoJsonFeature {
   type: string;
   geometry: {
@@ -47,37 +60,34 @@ interface GeoJsonFeature {
     coordinates: number[];
   };
   properties: {
-    "marker-color": string;
-    "marker-size": string;
-    "marker-symbol": string;
     title: string;
+    type: string;
   };
 }
 
 const createGeoJson = (input: GeoJsonFeature[]) => {
-  const features: GeoJsonFeature[] = [];
+  let features: GeoJsonFeature[] = [];
 
   input.forEach((x: any) => {
-    const coords = x.Coordinaten; // I.e.: 52.508011,5.473280;
+    if(! x.Coordinaten) return;
 
-    // console.log('x', x);
+    const coords = x.Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
+
     features.push({
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: [coords],
+        coordinates: [coords[1], coords[0]],
       },
       properties: {
-        "marker-color": "#3bb2d0",
-        "marker-size": "large",
-        "marker-symbol": "rocket",
         title: x.Title,
+        type: x.Type || 'unknown'
       },
     });
   });
 
   return {
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: features
   }
 };
@@ -108,64 +118,72 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       zoom: 7,
     });
 
-    // mapboxMap.on('load', function () {
-    //   const geojson = createGeoJson(fietsenstallingen);
-    //   mapboxMap.addSource('fietsenstallingen', { type: 'geojson', data: geojson });
-    //   mapboxMap.addLayer({
-    //     'id': 'fietsenstallingen',
-    //     'type': 'symbol',
-    //     'source': 'fietsenstallingen',
+    mapboxMap.on('load', function () {
+      window['VS_mapboxMap'] = mapboxMap;
+      addMarkerImages(mapboxMap);
 
-    //     'layout': {
-    //       'icon-image': ["concat", ['get', 'system_id'], '-p:', ['get', 'duration_bin']],
-    //       // 'icon-size': 0.4,
-    //       'icon-size': [
-    //         'interpolate',
-    //           ['linear'],
-    //           ['zoom'],
-    //           11,
-    //           0.2,
-    //           16,
-    //           0.7
-    //         ],
-    //       'icon-allow-overlap': true,
-    //     },
+      const geojson = createGeoJson(fietsenstallingen);
 
-    //   });
-    // });
+      mapboxMap.addSource('fietsenstallingen', { type: 'geojson', data: geojson });
+      console.log('geojson', geojson)
+
+      // setFilter
+      // https://docs.mapbox.com/mapbox-gl-js/example/filter-features-within-map-view/
+
+      mapboxMap.addLayer({
+        'id': 'fietsenstallingen-markers',
+        'source': 'fietsenstallingen',
+        'type': 'circle',
+        'paint': {
+          'circle-color': '#fff',
+          'circle-radius': 5,
+          'circle-stroke-width': 4,
+          'circle-stroke-color': [
+            'match', ['get','type'],
+            'bewaakt', '#028090',
+            'geautomatiseerd', '#028090',
+            'fietskluizen', '#9E1616',
+            'fietstrommel', '#DF4AAD',
+            'buurtstalling', '#FFB300',
+            'publiek', '#00CE83',
+            '#00CE83'
+          ]
+        }
+      });
+    });
 
     // save the map object to React.useState
     // setMap(mapboxMap);
 
     // Get all marker types
-    const markerTypes = getMarkerTypes();
+    // const markerTypes = getMarkerTypes();
 
-    let allMarkersOnTheMap: any = [];
+    // let allMarkersOnTheMap: any = [];
 
-    fietsenstallingen.forEach((stalling: any) => {
-      if (stalling.Coordinaten !== null && stalling.Type !== null) {
-        let coords = stalling.Coordinaten.split(",");
+    // fietsenstallingen.forEach((stalling: any) => {
+    //   if (stalling.Coordinaten !== null && stalling.Type !== null) {
+    //     let coords = stalling.Coordinaten.split(",");
 
-        const marker = new maplibregl.Marker(markerTypes[stalling.Type], {
-          // For size relative to zoom level, see: https://stackoverflow.com/a/63876653
-        })
-          .setLngLat([coords[1], coords[0]])
-          .addTo(mapboxMap);
+    //     const marker = new maplibregl.Marker(markerTypes[stalling.Type], {
+    //       // For size relative to zoom level, see: https://stackoverflow.com/a/63876653
+    //     })
+    //       .setLngLat([coords[1], coords[0]])
+    //       .addTo(mapboxMap);
 
-        // Add click handler to marker
-        marker.getElement().addEventListener("click", didClickMarker);
+    //     // Add click handler to marker
+    //     marker.getElement().addEventListener("click", didClickMarker);
 
-        allMarkersOnTheMap.push(marker);
-      }
-    });
+    //     allMarkersOnTheMap.push(marker);
+    //   }
+    // });
 
     // Function that executes if component unloads:
     return () => {
       mapboxMap.remove();
       // Remove all marker click events
-      allMarkersOnTheMap.forEach((x: any) => {
-        x.getElement().removeEventListener("click", didClickMarker);
-      });
+      // allMarkersOnTheMap.forEach((x: any) => {
+      //   x.getElement().removeEventListener("click", didClickMarker);
+      // });
     };
   }, [fietsenstallingen]);
 

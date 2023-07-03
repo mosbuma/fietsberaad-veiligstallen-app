@@ -62,7 +62,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
         isOpen ? "" : "h-16"
       } transition-all duration-300 ease-in-out`}
     >
-      <div className="mx-auto max-w-7xl py-5 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl py-5 px-4">
         <div className={`
           ${isOpen ? 'flex justify-between' : ''}
         `}>
