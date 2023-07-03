@@ -7,6 +7,7 @@ import ContentPageWrapper from "~/components/ContentPageWrapper";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import CloseButton from "~/components/CloseButton";
+import {Button} from "~/components/Button";
 
 const Stalling = () => {
   return (
@@ -34,11 +35,18 @@ const Stalling = () => {
           mr-8
         ">
 
-          <PageTitle>
+          <PageTitle className="flex justify-center">
+  
             Utrecht Laag Catharijne
-          </PageTitle> 
+    
+            <Button className="ml-4">
+              bewerken
+            </Button>
+
+          </PageTitle>
 
         </div>
+      
 
         <div className="flex justify-between">
           <div data-name="content-left" className="mr-12">
