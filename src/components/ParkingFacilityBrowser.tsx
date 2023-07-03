@@ -46,6 +46,7 @@ function ParkingFacilityBrowser({
       ">
         {fietsenstallingen.map((x: any) => {
           return <ParkingFacilityBlock
+            key={x.ID}
             parking={x}
             compact={x.ID !== selectedParkingId}
             onClick={clickParking}

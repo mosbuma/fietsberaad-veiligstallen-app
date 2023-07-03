@@ -39,12 +39,14 @@ const FooterNav = () => {
       z-10
     ">
       {navItemsPrimary.map(x => <FooterNavItem
+        key={x.title}
         className="font-bold"
       >
         {x.title}        
       </FooterNavItem>)}
 
       {navItemsSecundary.map(x => <FooterNavItem
+        key={x.title}
       >
         {x.title}        
       </FooterNavItem>)}
