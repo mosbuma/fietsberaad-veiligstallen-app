@@ -1,13 +1,12 @@
 import { useState } from "react";
-import {
-  type NextPage,
-  type GetStaticPaths
-} from "next";
+import { type NextPage, type GetStaticPaths } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
+import { prisma } from "~/server/db";
+
 import { useSelector } from "react-redux";
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
 import ParkingFacilities from "~/components/ParkingFacilities";
@@ -16,15 +15,14 @@ import AppBody from "~/components/AppBody";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-    return {
-        paths: [], //indicates that no page needs be created at build time
-        fallback: 'blocking' //indicates the type of fallback
-    }
-}
+  return {
+    paths: [], //indicates that no page needs be created at build time
+    fallback: "blocking", //indicates the type of fallback
+  };
+};
 
 export async function getStaticProps() {
-  const { PrismaClient } = require("@prisma/client");
-  const prisma = new PrismaClient();
+  console.log("@@ stalling [id].getStaticProps - prisma: ", prisma);
 
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
     where: {
@@ -73,7 +71,7 @@ export async function getStaticProps() {
 }
 
 const Stalling: NextPage = ({ fietsenstallingen }: any) => {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <>
@@ -85,27 +83,26 @@ const Stalling: NextPage = ({ fietsenstallingen }: any) => {
       </Head>
 
       <main className="flex-grow">
-
         <AppHeader />
 
-        <div className="
-          absolute
+        <div
+          className="
           l-0
+          absolute
           z-10
           p-4
-        " style={{
-          top: '64px'
-        }}>
+        "
+          style={{
+            top: "64px",
+          }}
+        >
           <ParkingFacilityBrowser
             fietsenstallingen={fietsenstallingen}
             activeParkingId={router.query.id}
           />
         </div>
 
-        <ParkingFacilities
-          fietsenstallingen={fietsenstallingen}
-        />
-        
+        <ParkingFacilities fietsenstallingen={fietsenstallingen} />
       </main>
     </>
   );
