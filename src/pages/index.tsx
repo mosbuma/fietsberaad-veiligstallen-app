@@ -9,9 +9,11 @@ import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import Parking from "~/components/Parking";
 import Modal from "src/components/Modal";
+import superjson from "superjson";
 
 export async function getStaticProps() {
   try {
+    console.log("index.getStaticProps - start");
     const fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
         Plaats: {
@@ -30,19 +32,22 @@ export async function getStaticProps() {
     fietsenstallingen.forEach((stalling) => {
       Object.entries(stalling).forEach(([key, prop]) => {
         if (prop instanceof Date) {
-          stalling[key] = stalling.toString();
-          console.log(
-            `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-          );
+          stalling[key] = new Date(stalling[key]).toISOString();
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
+          // );
         }
         if (prop instanceof BigInt) {
-          console.log(
-            `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-          );
           stalling[key] = stalling.toString();
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
+          // );
         }
         if (prop instanceof Prisma.Decimal) {
           // stalling[key] = stalling.toString();
+          // console.log(
+          //   `@@@@ delete ${key} [${typeof prop}]`
+          // );
           delete stalling[key];
         }
       });
@@ -82,8 +87,6 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
       </>
     );
   }
-
-  console.log(fietsenstallingen);
 
   return (
     <>

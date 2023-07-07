@@ -2,13 +2,42 @@ import React from "react";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
-import ContentPageWrapper from "~/components/ContentPageWrapper";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
 
 const Parking = ({ parkingdata }) => {
-  console.log("@@ stallingdata", JSON.stringify(parkingdata, 0, 2));
+  const formatOpening = (
+    dayidx: number,
+    day: string,
+    label: string
+  ): React.ReactNode => {
+    const wkday = new Date().getDay();
+
+    const tmpopen: Date = new Date(parkingdata["Open_" + day]);
+    const hoursopen = tmpopen.getHours();
+    const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
+
+    const tmpclose: Date = new Date(parkingdata["Dicht_" + day]);
+    const hoursclose = tmpclose.getHours();
+    const minutesclose = String(tmpclose.getMinutes()).padStart(2, "0");
+
+    if (tmpclose <= tmpopen) {
+      return <></>;
+    }
+
+    const value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
+
+    return (
+      <>
+        <div className={wkday === dayidx ? "font-bold" : ""}>{label}</div>
+        <div className="text-right">{value}</div>
+      </>
+    );
+  };
+
+  console.log("@@ stallingdata", JSON.stringify(parkingdata, null, 2));
+
   return (
     <div className="ml-10 mr-10 mt-10">
       <div
@@ -56,25 +85,22 @@ const Parking = ({ parkingdata }) => {
             >
               Openingstijden
             </div>
-            <div className="grid flex-1 grid-cols-2  ">
-              <div>Maandag</div>
-              <div className="text-right">
-                {parkingdata.Open_ma} - {parkingdata.Dicht_ma}
-              </div>
-              <div>Dinsdag</div>
-              <div className="text-right">7:00 - 1:00</div>
-
-              <div className="font-bold">Woensdag</div>
-              <div className="text-right font-bold">7:00 - 1:00</div>
-
-              <div>Donderdag</div>
-              <div className="text-right">7:00 - 1:00</div>
-              <div>Vrijdag</div>
-              <div className="text-right">7:00 - 1:00</div>
-              <div>Zaterdag</div>
-              <div className="text-right">7:00 - 1:00</div>
-              <div>Zondag</div>
-              <div className="text-right">7:00 - 1:00</div>
+            <div className="grid flex-1 grid-cols-2">
+              {formatOpening(2, "ma", "Maandag")}
+              {formatOpening(3, "di", "Dinsdag")}
+              {formatOpening(4, "wo", "Woensdag")}
+              {formatOpening(5, "do", "Donderdag")}
+              {formatOpening(6, "vr", "Vrijdag")}
+              {formatOpening(0, "za", "Zaterdag")}
+              {formatOpening(1, "zo", "Zondag")}
+              {parkingdata.Openingstijden !== "" && (
+                <div className="col-span-2">
+                  <div>
+                    <br />
+                    {parkingdata.Openingstijden}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
