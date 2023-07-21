@@ -101,7 +101,10 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
         <AppHeader />
 
         {currentStallingId && (
-          <Modal onClose={() => setCurrentStallingId(undefined)}>
+          <Modal
+            onClose={() => setCurrentStallingId(undefined)}
+            clickOutsideClosesDialog={() => setCurrentStallingId(undefined)}
+            >
             <Parking
               id={currentStallingId}
               parkingdata={fietsenstallingen.find((stalling) => {

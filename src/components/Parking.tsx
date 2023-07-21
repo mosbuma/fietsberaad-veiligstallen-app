@@ -30,7 +30,7 @@ const Parking = ({ parkingdata }) => {
 
     return (
       <>
-        <div className={wkday === dayidx ? "font-bold" : ""}>{label}</div>
+        <div className={wkday+1 === dayidx ? "font-bold" : ""}>{label}</div>
         <div className="text-right">{value}</div>
       </>
     );
