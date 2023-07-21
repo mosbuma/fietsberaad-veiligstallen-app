@@ -10,7 +10,8 @@ Make sure that Docker is installed and working
 
 Make sure that you have filled in the database config in the .env file. In example:
 
-    DATABASE_URL="mysql://root:safepark99@localhost:3306/veiligstallen"
+    DATABASE_URL="mysql://root:safepark99@localhost:3308/veiligstallen"
+    PORT=3308
     PASSWD=safepark99
 
 Make sure that you have filled in a Mapbox key in the .env.local file
