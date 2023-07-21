@@ -8,15 +8,13 @@ function SearchBar({ fietsenstallingen = [] }: any) {
       name=""
       placeholder="Vind een stalling"
       className="
-        h-10 shadow-md rounded-3xl -mx-5
+        h-10 shadow-md rounded-3xl
         px-4
         sticky
         top-0
         z-10
+        w-full
       "
-      style={{
-        width: 'calc(100% + 2.5rem)'
-      }}
     />
   );
 }

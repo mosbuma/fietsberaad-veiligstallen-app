@@ -26,7 +26,6 @@ function ParkingFacilityBrowser({
     <div className="
       ParkingFacilityBrowser
       bg-white
-      px-5
       py-0
       shadow-lg
       rounded-3xl

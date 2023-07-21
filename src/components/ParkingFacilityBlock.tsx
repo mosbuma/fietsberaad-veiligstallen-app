@@ -27,11 +27,12 @@ function ParkingFacilityBlock({
     <div className="
       ParkingFacilityBlock
       w-full bg-white
-      my-4
+      px-5
+      my-5
       border-b
       border-solid
       border-gray-300
-      pb-4
+      pb-5
       flex justify-between
       cursor-pointer
     " onClick={() => {
