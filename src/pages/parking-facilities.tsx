@@ -7,14 +7,13 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 
 import { api } from "~/utils/api";
+import { prisma } from "~/server/db";
 import MapboxMap from "~/components/MapComponent";
 import AppHeader from "~/components/AppHeader";
 import ParkingFacilities from "~/components/ParkingFacilities";
 
 // Fetch all posts (in /pages/index.tsx)
 export async function getStaticProps() {
-  const { PrismaClient } = require("@prisma/client");
-  const prisma = new PrismaClient();
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
     where: {
       Plaats: {
@@ -67,7 +66,6 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
 
   return (
     <>
-
       <Head>
         <title>VeiligStallen</title>
         <meta name="description" content="VeiligStallen" />
@@ -80,9 +78,11 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
 
         <ParkingFacilities />
 
-        <div className="
+        <div
+          className="
           flex min-h-screen flex-col items-center justify-center
-        ">
+        "
+        >
           {mapmode ? (
             <>
               <MapboxMap fietsenstallingen={fietsenstallingen} />
@@ -104,9 +104,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
             </div>
           )}
         </div>
-
       </main>
-
     </>
   );
 };

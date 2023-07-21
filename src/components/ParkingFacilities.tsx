@@ -103,14 +103,17 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       </div>
       */}
 
-      <div className="
+      <div
+        className="
         absolute
         right-0
         z-10
         p-4
-      " style={{
-        top: '64px',
-      }}>
+      "
+        style={{
+          top: "64px",
+        }}
+      >
         <FilterBox
           isOpen={isFilterBoxOpen}
           onReset={resetFilter}

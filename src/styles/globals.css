@@ -4,14 +4,15 @@
 
 * {
   box-sizing: border-box;
-  font-family: 'poppinsregular', sans-serif
+  font-family: "poppinsregular", sans-serif;
 }
 b {
-  font-family: 'poppinssemibold', sans-serif;
+  font-family: "poppinssemibold", sans-serif;
   font-weight: normal;
 }
 
-html, body {
+html,
+body {
   position: relative;
   overflow: auto;
   height: 100%;
@@ -28,41 +29,96 @@ html, body {
 }
 
 @font-face {
-    font-family: 'poppinsbold';
-    src: url('/font/poppins/poppins-bold-webfont.woff2') format('woff2'),
-         url('/font/poppins/poppins-bold-webfont.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "poppinsbold";
+  src: url("/font/poppins/poppins-bold-webfont.woff2") format("woff2"),
+    url("/font/poppins/poppins-bold-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'poppinsbold_italic';
-    src: url('/font/poppins/poppins-bolditalic-webfont.woff2') format('woff2'),
-         url('/font/poppins/poppins-bolditalic-webfont.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "poppinsbold_italic";
+  src: url("/font/poppins/poppins-bolditalic-webfont.woff2") format("woff2"),
+    url("/font/poppins/poppins-bolditalic-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'poppinsmedium';
-    src: url('/font/poppins/poppins-medium-webfont.woff2') format('woff2'),
-         url('/font/poppins/poppins-medium-webfont.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "poppinsmedium";
+  src: url("/font/poppins/poppins-medium-webfont.woff2") format("woff2"),
+    url("/font/poppins/poppins-medium-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'poppinsregular';
-    src: url('/font/poppins/poppins-regular-webfont.woff2') format('woff2'),
-         url('/font/poppins/poppins-regular-webfont.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "poppinsregular";
+  src: url("/font/poppins/poppins-regular-webfont.woff2") format("woff2"),
+    url("/font/poppins/poppins-regular-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'poppinssemibold';
-    src: url('/font/poppins/poppins-semibold-webfont.woff2') format('woff2'),
-         url('/font/poppins/poppins-semibold-webfont.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "poppinssemibold";
+  src: url("/font/poppins/poppins-semibold-webfont.woff2") format("woff2"),
+    url("/font/poppins/poppins-semibold-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.modal-wrapper {
+  width: 90vw;
+  height: 90vh;
+  /* min-height: 50vh;
+  max-height: 90vh; */
+}
+
+.modal {
+  position: relative;
+  background: white;
+  height: 100%;
+  width: 100%;
+  border-radius: 15px;
+  /* padding: 15px; */
+  overflow-y: auto;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  -ms-overflow-style: none; /* hide scrollbar IE and Edge */
+  scrollbar-width: none; /* hide scrollbar Firefox */
+}
+
+.modal::-webkit-scrollbar {
+  display: none; /* hide scrollbar Chrome, Safari and Opera */
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-body {
+  /* padding-top: 10px; */
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 48px;
+  font-weight: bold;
+  color: #000;
+  text-decoration: none;
+}
+
+.modal-close-button:hover {
+  color: #ff0000;
 }

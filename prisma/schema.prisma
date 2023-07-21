@@ -89,6 +89,7 @@ model account_transacties {
   @@index([accountid], map: "accountid")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model accounts {
   ID                  String                       @id @default("") @db.VarChar(35)
   Email               String?                      @unique(map: "Email") @db.VarChar(255)
@@ -119,6 +120,7 @@ model accounts {
   @@index([saldo], map: "saldo")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model accounts_pasids {
   ID                         String    @id @db.VarChar(35)
   AccountID                  String?   @db.VarChar(35)
@@ -422,6 +424,7 @@ model contact_contact {
   @@index([parentSiteID], map: "parentSiteID_2")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model contact_fietsenstalling {
   BikeparkID String @db.VarChar(35)
   SiteID     String @db.VarChar(255)
@@ -442,6 +445,7 @@ model contact_report_settings {
   @@index([siteID], map: "siteID")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model contacts {
   ID                                                       String              @id @default("") @db.VarChar(35)
   ItemType                                                 String?             @db.VarChar(20)
@@ -830,6 +834,7 @@ model fietstypen {
   naamenkelvoud String  @db.VarChar(255)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model financialtransactions {
   ID                  String    @id @db.VarChar(35)
   mollieTransactionID String?   @db.VarChar(20)
@@ -1113,6 +1118,7 @@ model prijswinnaars {
   @@index([TrekkingID, PasID, PrijsID], map: "TrekkingID")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model prijswinnaars_backup {
   ID         String  @id @db.VarChar(35)
   TrekkingID String? @db.VarChar(35)
@@ -1230,6 +1236,7 @@ model security_roles {
   security_users security_users[]
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model security_users {
   UserID                String                 @id @default("") @db.VarChar(35)
   Locale                String?                @default("Dutch (Standard)") @db.VarChar(55)
@@ -1332,6 +1339,7 @@ model testimonials {
   DateModified   DateTime? @db.DateTime(0)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model transacties {
   ID                Int       @id @default(autoincrement())
   ZipID             String?   @db.VarChar(4)

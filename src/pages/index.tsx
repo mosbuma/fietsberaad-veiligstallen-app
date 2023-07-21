@@ -1,63 +1,93 @@
+import { SetStateAction, useState } from "react";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { Prisma } from "@prisma/client";
+import { prisma } from "~/server/db";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
-
-import { PrismaClient } from "@prisma/client";
+import Parking from "~/components/Parking";
+import Modal from "src/components/Modal";
+import superjson from "superjson";
 
 export async function getStaticProps() {
-  const prisma = new PrismaClient();
-
-  const fietsenstallingen = await prisma.fietsenstallingen.findMany({
-    where: {
-      Plaats: {
-        not: "",
+  try {
+    console.log("index.getStaticProps - start");
+    const fietsenstallingen = await prisma.fietsenstallingen.findMany({
+      where: {
+        Plaats: {
+          not: "",
+        },
       },
-    },
-    // select: {
-    //   StallingsID: true,
-    //   Title: true,
-    //   Location: true,
-    //   Coordinaten: true,
-    //   DateCreated: true,
-    // },
-  });
-
-  fietsenstallingen.forEach((stalling) => {
-    Object.entries(stalling).forEach(([key, prop]) => {
-      if (prop instanceof Date) {
-        stalling[key] = stalling.toString();
-        console.log(
-          `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-        );
-      }
-      if (prop instanceof BigInt) {
-        console.log(
-          `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-        );
-        stalling[key] = stalling.toString();
-      }
-      if (prop instanceof Prisma.Decimal) {
-        // stalling[key] = stalling.toString();
-        delete stalling[key];
-      }
+      // select: {
+      //   StallingsID: true,
+      //   Title: true,
+      //   Location: true,
+      //   Coordinaten: true,
+      //   DateCreated: true,
+      // },
     });
 
-    console.log(typeof stalling.freeHoursReservation);
+    fietsenstallingen.forEach((stalling) => {
+      Object.entries(stalling).forEach(([key, prop]) => {
+        if (prop instanceof Date) {
+          stalling[key] = new Date(stalling[key]).toISOString();
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
+          // );
+        }
+        if (prop instanceof BigInt) {
+          stalling[key] = stalling.toString();
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
+          // );
+        }
+        if (prop instanceof Prisma.Decimal) {
+          // stalling[key] = stalling.toString();
+          // console.log(
+          //   `@@@@ delete ${key} [${typeof prop}]`
+          // );
+          delete stalling[key];
+        }
+      });
 
-    delete stalling.reservationCostPerDay;
-    delete stalling.wachtlijst_Id;
-  });
+      console.log(typeof stalling.freeHoursReservation);
 
-  return {
-    props: { fietsenstallingen: fietsenstallingen },
-  };
+      delete stalling.reservationCostPerDay;
+      delete stalling.wachtlijst_Id;
+    });
+
+    return {
+      props: { fietsenstallingen: fietsenstallingen, online: true },
+    };
+  } catch (ex) {
+    console.error("index.getStaticProps - error: ", ex.message);
+    return {
+      props: { fietsenstallingen: [], online: false },
+    };
+  }
 }
 
-const Home: NextPage = ({ fietsenstallingen }: any) => {
+const Home: NextPage = ({ fietsenstallingen, online }: any) => {
+  const [currentStallingId, setCurrentStallingId] = useState(undefined);
+
+  if (online === false) {
+    return (
+      <>
+        <Head>
+          <title>VeiligStallen</title>
+          <meta name="description" content="VeiligStallen" />
+          <link rel="icon" href="/favicon.ico" />
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
+        </Head>
+        <main className="flex-grow">
+          <h1>Database offline</h1>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -70,6 +100,17 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       <main className="flex-grow">
         <AppHeader />
 
+        {currentStallingId && (
+          <Modal onClose={() => setCurrentStallingId(undefined)}>
+            <Parking
+              id={currentStallingId}
+              parkingdata={fietsenstallingen.find((stalling) => {
+                return stalling.ID === currentStallingId;
+              })}
+            />
+          </Modal>
+        )}
+
         <div
           className="
           l-0
@@ -81,7 +122,12 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
             top: "64px",
           }}
         >
-          <ParkingFacilityBrowser fietsenstallingen={fietsenstallingen} />
+          <ParkingFacilityBrowser
+            fietsenstallingen={fietsenstallingen}
+            onShowStallingDetails={(id: SetStateAction<undefined>) =>
+              setCurrentStallingId(id)
+            }
+          />
         </div>
 
         <ParkingFacilities fietsenstallingen={fietsenstallingen} />
