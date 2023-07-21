@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { AppState } from "~/store/store";
 
 // Components
 import Input from "@mui/material/TextField";
@@ -49,7 +50,7 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
     });
 
     filteredFietsenstallingen = fietsenstallingen.filter(
-      (x) => activeTypes.indexOf(x.Type) > -1
+      (x: any) => activeTypes.indexOf(x.Type) > -1
     );
   }
 

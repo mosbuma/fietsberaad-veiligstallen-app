@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useCallback, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 

@@ -4,11 +4,11 @@ async function getParkingMarker(color: string) {
 }
 
 async function styleParkingMarker(color: string) {
-  var xmlns = "http://www.w3.org/2000/svg";
-  var svgElement = document.createElementNS(xmlns, "svg");
+  const xmlns = "http://www.w3.org/2000/svg";
+  const svgElement = document.createElementNS(xmlns, "svg");
   
   // outer transparant circle
-  var circle_1 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+  const circle_1 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
   circle_1.setAttribute("cx","12");
   circle_1.setAttribute("cy","12");
   circle_1.setAttribute("r","12");
@@ -18,19 +18,19 @@ async function styleParkingMarker(color: string) {
   svgElement.appendChild(circle_1);
 
   // inner non transparant circle
-  var inner_circle = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  const inner_circle = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   inner_circle.setAttribute("transform","translate(2 2)");
   inner_circle.setAttribute("fill",color);
   inner_circle.setAttribute("stroke","#fff");
   inner_circle.setAttribute("stroke-width","1");
 
-  var child_circle_1 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+  const child_circle_1 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
   child_circle_1.setAttribute("cx","10");
   child_circle_1.setAttribute("cy","10");
   child_circle_1.setAttribute("r","10");
   child_circle_1.setAttribute("stroke","none");
 
-  var  child_circle_2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+  const child_circle_2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
   child_circle_2.setAttribute("cx","10");
   child_circle_2.setAttribute("cy","10");
   child_circle_2.setAttribute("r","9.5");
@@ -39,8 +39,8 @@ async function styleParkingMarker(color: string) {
   inner_circle.appendChild(child_circle_2);
   svgElement.appendChild(inner_circle);
 
-  var width = {};
-  var height = {};
+  const width: any = {};
+  const height: any = {};
 
   // console.log(svg.firstChild.tagName);
   svgElement.setAttribute("viewBox", "0 0 24 24");
@@ -48,20 +48,24 @@ async function styleParkingMarker(color: string) {
   width.value = 50;
   height.value = 50;
   
-  var canvas = document.createElement('canvas');
+  const canvas = document.createElement('canvas');
   svgElement.setAttribute('width', width.value);
   svgElement.setAttribute('height', height.value);
   canvas.width = width.value;
   canvas.height = height.value;
-  var data = new XMLSerializer().serializeToString(svgElement);
-  var win = window.URL || window.webkitURL || window;
-  var img = new Image();
-  var blob = new Blob([data], { type: 'image/svg+xml' });
+  const data = new XMLSerializer().serializeToString(svgElement);
+  const win = window.URL || window.webkitURL || window;
+  const img = new Image();
+  const blob = new Blob([data], { type: 'image/svg+xml' });
 
-  var url = win.createObjectURL(blob);
+  const url = win.createObjectURL(blob);
   img.src = url;
   await img.decode();
-  var context = canvas.getContext('2d');
+  const context = canvas.getContext('2d');
+  if(! context) {
+    return;
+  }
+  
   context.drawImage(img, 0, 0);
   win.revokeObjectURL(url);
 

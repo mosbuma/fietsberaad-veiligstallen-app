@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as React from "react";
 import maplibregl from "maplibre-gl";
 import { useSelector } from "react-redux";

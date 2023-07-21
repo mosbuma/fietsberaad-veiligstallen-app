@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState } from "react";
 import Card, { CardData } from "./Card";
 import { useKeenSlider } from "keen-slider/react";

@@ -29,7 +29,7 @@ export async function getStaticProps() {
       // },
     });
 
-    fietsenstallingen.forEach((stalling) => {
+    fietsenstallingen.forEach((stalling: any) => {
       Object.entries(stalling).forEach(([key, prop]) => {
         if (prop instanceof Date) {
           stalling[key] = new Date(stalling[key]).toISOString();
@@ -61,7 +61,7 @@ export async function getStaticProps() {
     return {
       props: { fietsenstallingen: fietsenstallingen, online: true },
     };
-  } catch (ex) {
+  } catch (ex: any) {
     console.error("index.getStaticProps - error: ", ex.message);
     return {
       props: { fietsenstallingen: [], online: false },
@@ -103,11 +103,11 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
         {currentStallingId && (
           <Modal
             onClose={() => setCurrentStallingId(undefined)}
-            clickOutsideClosesDialog={() => setCurrentStallingId(undefined)}
+            clickOutsideClosesDialog={true}
             >
             <Parking
-              id={currentStallingId}
-              parkingdata={fietsenstallingen.find((stalling) => {
+              key={currentStallingId}
+              parkingdata={fietsenstallingen.find((stalling: any) => {
                 return stalling.ID === currentStallingId;
               })}
             />
@@ -127,7 +127,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
         >
           <ParkingFacilityBrowser
             fietsenstallingen={fietsenstallingen}
-            onShowStallingDetails={(id: SetStateAction<undefined>) =>
+            onShowStallingDetails={(id: any) =>
               setCurrentStallingId(id)
             }
           />

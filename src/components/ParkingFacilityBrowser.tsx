@@ -7,11 +7,11 @@ import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 function ParkingFacilityBrowser({
   fietsenstallingen,
   activeParkingId,
-  onShowStallingDetails = undefined,
+  onShowStallingDetails
 }: {
   fietsenstallingen: any;
-  activeParkingId?: number;
-  onShowStallingDetails: () => void;
+  activeParkingId?: any;
+  onShowStallingDetails?: (id: number) => void;
 }) {
   const [selectedParkingId, setSelectedParkingId] = useState(activeParkingId);
 
@@ -21,9 +21,9 @@ function ParkingFacilityBrowser({
     // push(`/stalling/${id}`);// Redirect
 
     // Set active parking ID
-    setSelectedParkingId(id);
+    setSelectedParkingId(parseInt(id));
 
-    onShowStallingDetails && onShowStallingDetails(id);
+    onShowStallingDetails && onShowStallingDetails(parseInt(id));
   };
 
   return (

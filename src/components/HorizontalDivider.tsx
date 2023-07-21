@@ -2,6 +2,8 @@ import * as React from "react";
 
 function HorizontalDivider({
   className
+}: {
+  className: string
 }) {
   return (
     <div

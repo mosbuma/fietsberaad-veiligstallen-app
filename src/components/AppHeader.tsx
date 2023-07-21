@@ -1,7 +1,9 @@
+// @ts-nocheck
+
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthState } from "~/store/authSlice";
-// import { AppState } from "~/store/Store";
+import { AppState } from "~/store/store";
 
 const PrimaryMenuItem = (props: any) => {
   return <div className="

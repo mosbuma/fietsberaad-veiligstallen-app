@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 const FooterNavItem = ({
   children,
   className

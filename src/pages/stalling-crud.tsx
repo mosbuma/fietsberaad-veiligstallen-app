@@ -115,14 +115,14 @@ const Stalling = () => {
                   <div className="font-bold">Fietsen</div>
                   <div className="ml-2 grid grid-cols-2">
                     <div>Eerste 24 uur:</div>
-                    <div align="right">gratis</div>
+                    <div className="text-center">gratis</div>
                     <div>Daarna per 24 uur:</div>
-                    <div align="right">&euro;0,60</div>
+                    <div className="text-center">&euro;0,60</div>
                   </div>
                   <div className="font-bold">Bromfietsen</div>
                   <div className="ml-2 grid grid-cols-2">
                     <div>Eerste 24 uur:</div>
-                    <div align="right">&euro;0,60</div>
+                    <div className="text-center">&euro;0,60</div>
                   </div>
                 </div>
               </div>
@@ -163,13 +163,13 @@ const Stalling = () => {
                 <div className="flex-1">
                   <div className="ml-2 grid grid-cols-2">
                     <div>Bromfietsen</div>
-                    <div align="right">32</div>
+                    <div className="text-center">32</div>
                     <div>Afwijkende maten</div>
-                    <div align="right">7</div>
+                    <div className="text-center">7</div>
                     <div>Elektrische fietsen</div>
-                    <div align="right">19</div>
+                    <div className="text-center">19</div>
                     <div>Bakfietsen</div>
-                    <div align="right">12</div>
+                    <div className="text-center">12</div>
                   </div>
                 </div>
               </div>
@@ -188,9 +188,9 @@ const Stalling = () => {
                 <div className="flex-1">
                   <div className="ml-2 grid grid-cols-2">
                     <div>Jaarbonnement fiets</div>
-                    <div align="right">&euro;80,90</div>
+                    <div className="text-center">&euro;80,90</div>
                     <div>Jaarabonnement bromfiets</div>
-                    <div align="right">&euro;262.97</div>
+                    <div className="text-center">&euro;262.97</div>
                   </div>
                 </div>
               </div>

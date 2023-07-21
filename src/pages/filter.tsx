@@ -77,7 +77,7 @@ const IndexPage: React.FC = () => {
         </p>
       </div>
       {isFilterBoxOpen && (
-        <FilterBox onReset={resetFilter} onClose={toggleFilterBox} />
+        <FilterBox isOpen={true} onOpen={() => {}}onReset={resetFilter} onClose={toggleFilterBox} />
       )}
     </div>
   );
