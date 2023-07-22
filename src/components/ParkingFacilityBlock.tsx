@@ -7,7 +7,8 @@ import Styles from './ParkingFacilityBlock.module.css';
 function ParkingFacilityBlock({
   parking,
   compact,
-  onClick
+  openParkingHandler,
+  expandParkingHandler
 }: {
   parking: {
     ID: string,
@@ -19,10 +20,11 @@ function ParkingFacilityBlock({
     Type?: any
   },
   compact?: boolean,
-  onClick?: Function
+  expandParkingHandler?: Function
+  openParkingHandler?: Function
 }) {
   const { push } = useRouter();
-  
+
   return (
     <div className="
       ParkingFacilityBlock
@@ -35,9 +37,11 @@ function ParkingFacilityBlock({
       pb-5
       flex justify-between
       cursor-pointer
-    " onClick={() => {
-      if(onClick) onClick(parking.ID);
-    }}>
+      "
+      onClick={() => {
+        if(expandParkingHandler) expandParkingHandler(parking.ID);
+      }}
+    >
       <div
         data-name="left"
         className={`
@@ -84,7 +88,13 @@ function ParkingFacilityBlock({
               <span>icoon2</span>
             </div>
             <div>
-              <a href="#" className="underline text-sm text-gray-500">meer informatie</a>
+              <a
+               onClick={() => {
+                  if(openParkingHandler) openParkingHandler(parking.ID);
+                }}
+                href="#"
+                className="underline text-sm text-gray-500"
+              >meer informatie</a>
             </div>
           </div>
         </>}

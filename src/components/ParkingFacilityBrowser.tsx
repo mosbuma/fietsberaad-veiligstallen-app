@@ -41,15 +41,20 @@ function ParkingFacilityBrowser({
     mapVisibleFeatures.length
   ])
 
+  const expandParking = (id: string) => {
+    // Set active parking ID
+    setSelectedParkingId(id);
+  };
+
   const clickParking = (id: string) => {
     // Set URL
     // window.history.replaceState(null, document.title, `/stalling/${id}`); // Only change URL
     // push(`/stalling/${id}`);// Redirect
 
     // Set active parking ID
-    setSelectedParkingId(parseInt(id));
+    setSelectedParkingId(id);
 
-    onShowStallingDetails && onShowStallingDetails(parseInt(id));
+    onShowStallingDetails && onShowStallingDetails(id);
   };
 
   return (
@@ -82,7 +87,8 @@ function ParkingFacilityBrowser({
               key={x.ID}
               parking={x}
               compact={x.ID !== selectedParkingId}
-              onClick={clickParking}
+              expandParkingHandler={expandParking}
+              openParkingHandler={clickParking}
             />
           );
         })}
