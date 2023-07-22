@@ -72,6 +72,8 @@ export async function getStaticProps() {
 const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
 
+  console.log('fietsenstallingen', fietsenstallingen)
+
   if (online === false) {
     return (
       <>

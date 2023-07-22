@@ -58,7 +58,6 @@ class MainDocument extends Document {
           <link href="/icons/splashscreens-ios/ipadpro3_splash.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
           <link href="/icons/splashscreens-ios/ipadpro2_splash.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
 
-
           {/* <!-- apple splash screen images -->
           <link rel='apple-touch-startup-image' href='/images/apple_splash_2048.png' sizes='2048x2732' />
           <link rel='apple-touch-startup-image' href='/images/apple_splash_1668.png' sizes='1668x2224' />

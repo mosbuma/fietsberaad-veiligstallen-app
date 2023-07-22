@@ -1,8 +1,8 @@
 // @ts-nocheck
-
 import * as React from "react";
 import maplibregl from "maplibre-gl";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setMapExtent, setMapZoom } from "~/store/mapSlice";
 
 import { AppState } from "~/store/store";
 
@@ -81,9 +81,22 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   // this is where the map instance will be stored after initialization
   const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
 
+  // Connect to redux store
+  const dispatch = useDispatch()
+
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
+
+  const mapExtent = useSelector(
+    (state: AppState) => state.map.extent
+  );
+
+  const mapZoom = useSelector(
+    (state: AppState) => state.map.zoom
+  );
+
+  console.log(mapZoom)
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
@@ -111,10 +124,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       zoom: 7,
     });
 
-    mapboxMap.on('load', function () {
-      // Save map as local variabele
-      setStateMap(mapboxMap);
-    });
+    mapboxMap.on('load', () => onMapLoaded(mapboxMap));
 
     // Function that executes if component unloads:
     return () => {
@@ -124,7 +134,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   // If fietsenstallingen variable changes: Update source data
   React.useEffect(() => {
-    if(! stateMap) return;
+    if(! stateMap || stateMap === undefined) return;
 
     // Create geojson
     const geojson: any = createGeoJson(fietsenstallingen);
@@ -181,6 +191,31 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     fietsenstallingen,
     activeTypes
   ])
+
+  const onMapLoaded = (mapboxMap) => {
+    // Save map as local variabele
+    setStateMap(mapboxMap);
+    // Set event handlers
+    mapboxMap.on('moveend', function() {
+      registerMapView(mapboxMap);
+    })
+    mapboxMap.on('zoomend', function() {
+      registerMapView(mapboxMap);
+    });
+  }
+
+  const registerMapView = React.useCallback(theMap => {
+    const bounds = theMap.getBounds();
+    const payload = [
+      bounds._sw.lng,
+      bounds._sw.lat,
+      bounds._ne.lng,
+      bounds._ne.lat
+    ]
+
+    dispatch(setMapExtent(payload));
+    dispatch(setMapZoom(theMap.getZoom()));
+  }, []);
 
   return <div ref={mapNode} style={{ width: "100vw", height: "100vh" }} />;
 }

@@ -12,4 +12,4 @@ The *updated* design created in 2023-04, by Janine and Eline, can be found here:
 
 The *updated* design created on 2023-05-30, by Janine and Eline, can be found here:
 
-- Desktop: https://xd.adobe.com/view/7cf3eb99-a7d4-4191-a72c-8eb03076ea83-29a0/ 
+- Desktop: https://xd.adobe.com/view/7cf3eb99-a7d4-4191-a72c-8eb03076ea83-29a0/
