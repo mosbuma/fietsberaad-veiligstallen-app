@@ -9,7 +9,15 @@ export interface FilterState {
 
 // Initial state
 const initialState: FilterState = {
-  activeTypes: [],
+  activeTypes: [
+    'bewaakt',
+    'geautomatiseerd',
+    'onbewaakt',
+    'toezicht',
+    'buurtstalling',
+    'fietstrommel',
+    'fietskluizen'
+  ],
 };
 
 // Actual Slice

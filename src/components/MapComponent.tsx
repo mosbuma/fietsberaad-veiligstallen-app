@@ -2,13 +2,20 @@
 import * as React from "react";
 import maplibregl from "maplibre-gl";
 import { useDispatch, useSelector } from "react-redux";
-import { setMapExtent, setMapZoom } from "~/store/mapSlice";
+import {
+  setMapExtent,
+  setMapZoom,
+  setMapVisibleFeatures
+} from "~/store/mapSlice";
 
 import { AppState } from "~/store/store";
 
 // Import utils
 import {getParkingColor} from '~/utils/theme'
-import {getParkingMarker} from '~/utils/map'
+import {getParkingMarker} from '~/utils/map/index'
+import {
+  mapMoveEndEvents
+} from '~/utils/map/parkingsFilteringBasedOnExtent'
 import {parkingTypes} from '~/utils/parkings'
 
 // Import the mapbox-gl styles so that the map is displayed correctly
@@ -65,6 +72,7 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
         coordinates: [coords[1], coords[0]],
       },
       properties: {
+        id: x.ID,
         title: x.Title,
         type: x.Type || 'unknown'
       },
@@ -96,7 +104,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     (state: AppState) => state.map.zoom
   );
 
-  console.log(mapZoom)
+  const filterActiveTypes = useSelector(
+    (state: AppState) => state.filter.activeTypes
+  );
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
@@ -192,15 +202,38 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     activeTypes
   ])
 
+  // If filterActiveTypes changes: 
+  React.useEffect(() => {
+    if(! stateMap) return;
+
+    mapMoveEndEvents(stateMap, (visibleFeatures) => {
+      dispatch(setMapVisibleFeatures(visibleFeatures));
+    });
+  }, [
+    stateMap,
+    filterActiveTypes
+  ]);
+
   const onMapLoaded = (mapboxMap) => {
     // Save map as local variabele
     setStateMap(mapboxMap);
     // Set event handlers
-    mapboxMap.on('moveend', function() {
-      registerMapView(mapboxMap);
-    })
+    // mapboxMap.on('movestart', function() {})
+    mapboxMap.on('moveend', () => { onMoveEnd(mapboxMap) });
     mapboxMap.on('zoomend', function() {
       registerMapView(mapboxMap);
+    });
+    // Call onMoveEnd if map is loaded, as initialization
+    // This function is called when all rendering has been done
+    mapboxMap.on('idle',function() {
+      onMoveEnd(mapboxMap);
+    });
+  }
+
+  const onMoveEnd = (mapboxMap) => {
+    registerMapView(mapboxMap);
+    mapMoveEndEvents(mapboxMap, (visibleFeatures) => {
+      dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }
 

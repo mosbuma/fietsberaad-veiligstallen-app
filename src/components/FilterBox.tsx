@@ -52,6 +52,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   onReset: Function
 }) => {
   const dispatch = useDispatch();
+
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );

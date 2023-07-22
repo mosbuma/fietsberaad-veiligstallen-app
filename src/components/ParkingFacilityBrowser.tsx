@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
@@ -14,6 +15,31 @@ function ParkingFacilityBrowser({
   onShowStallingDetails?: (id: number) => void;
 }) {
   const [selectedParkingId, setSelectedParkingId] = useState(activeParkingId);
+  const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
+
+  // Connect to redux store
+  const dispatch = useDispatch()
+
+  const mapVisibleFeatures = useSelector(
+    (state: AppState) => state.map.visibleFeatures
+  );
+
+  // If mapVisibleFeatures change: Filter parkings
+  useEffect(() => {
+    if(! fietsenstallingen) return;
+    if(! mapVisibleFeatures) return;
+
+    const allParkings = fietsenstallingen;
+    const visibleParkingIds = mapVisibleFeatures.map(x => x.id);
+    // Only keep parkings that are visible on the map
+    const filtered = allParkings.filter((x) => visibleParkingIds.indexOf(x.ID) > -1);
+    // Set filtered parkings into a state variable
+    setVisibleParkings(filtered);
+  }, [
+    fietsenstallingen,
+    mapVisibleFeatures,
+    mapVisibleFeatures.length
+  ])
 
   const clickParking = (id: string) => {
     // Set URL
@@ -50,7 +76,7 @@ function ParkingFacilityBrowser({
         px-0
       "
       >
-        {fietsenstallingen.map((x: any) => {
+        {visibleParkings.map((x: any) => {
           return (
             <ParkingFacilityBlock
               key={x.ID}

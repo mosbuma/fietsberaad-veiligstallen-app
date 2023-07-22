@@ -6,12 +6,14 @@ import { HYDRATE } from "next-redux-wrapper";
 export interface MapState {
   extent: Number[];
   zoom: Number;
+  extent: any[];
 }
 
 // Initial state
 const initialState: MapState = {
   extent: [],
-  zoom: undefined
+  zoom: undefined,
+  visibleFeatures: []
 };
 
 // Actual Slice
@@ -27,6 +29,10 @@ export const mapSlice = createSlice({
     setMapZoom(state, action) {
       state.zoom = action.payload;
     },
+    // Action to set visible features
+    setMapVisibleFeatures(state, action) {
+      state.visibleFeatures = action.payload;
+    },
   },
 
   // Special reducer for hydrating the state. Special case for next-redux-wrapper
@@ -41,5 +47,7 @@ export const mapSlice = createSlice({
 });
 
 export const {
-  setMapExtent, setMapZoom
+  setMapExtent,
+  setMapZoom,
+  setMapVisibleFeatures
 } = mapSlice.actions;
