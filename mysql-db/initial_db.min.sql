@@ -9877,3 +9877,46 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vw_stallingstegoedenexploi
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+
+
+
+CREATE TABLE zones (
+  zone_id integer NOT NULL,
+  area longtext,
+  name character varying(255),
+  owner character varying(255),
+  municipality character varying(255),
+  zone_type character varying(255),
+  stats_ref character varying(40),
+  last_updated timestamp
+);
+
+
+--
+-- Name: zones_zone_id_seq; Type: SEQUENCE SET; Schema: public;
+--
+
+SELECT pg_catalog.setval('zones_zone_id_seq', 53032, true);
+
+
+--
+-- Name: zones zones_pkey; Type: CONSTRAINT; Schema: public;
+--
+
+ALTER TABLE ONLY zones
+    ADD CONSTRAINT zones_pkey PRIMARY KEY (zone_id);
+
+
+--
+-- Name: municipality; Type: INDEX; Schema: public;
+--
+
+CREATE INDEX municipality ON zones USING btree (zone_type, municipality);
+
+
+--
+-- Name: zones_area_index; Type: INDEX; Schema: public;
+--
+
+CREATE INDEX zones_area_index ON zones USING gist (area);
+

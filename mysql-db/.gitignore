@@ -1,2 +1,3 @@
 persist-db/
 secrets/
+initial_db_zones_data.sql
