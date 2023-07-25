@@ -1639,6 +1639,20 @@ model winkansen_zelf_inzet {
   @@id([PasID, Datum, ZipID, Winkans_zelf_inzet_prijsID])
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model zones {
+  zone_id      Int
+  area         String?  @db.LongText
+  name         String?  @db.VarChar(255)
+  owner        String?  @db.VarChar(255)
+  municipality String?  @db.VarChar(255)
+  zone_type    String?  @db.VarChar(255)
+  stats_ref    String?  @db.VarChar(40)
+  last_updated DateTime @default(now()) @db.Timestamp(0)
+
+  @@ignore
+}
+
 enum unieke_bezoekers_periode {
   jaar
   q1
