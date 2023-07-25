@@ -43,3 +43,7 @@ yarn-error.log*
 
 #deploy scripts
 /scripts/updatelog.txt
+
+#check
+/public/fallback*
+/public/workbox*

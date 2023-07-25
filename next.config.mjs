@@ -7,39 +7,36 @@ import withPWA from "next-pwa";
 !process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"));
 
 /** @type {import("next").NextConfig} */
-// const config = {
-//   reactStrictMode: true,
+const config = {
+  reactStrictMode: true,
 
-//   /**
-//    * If you have the "experimental: { appDir: true }" setting enabled, then you
-//    * must comment the below `i18n` config out.
-//    *
-//    * @see https://github.com/vercel/next.js/issues/41980
-//    */
-//   i18n: {
-//     locales: ["en"],
-//     defaultLocale: "en",
-//   },
-//   typescript: {
-//     // !! WARN !!
-//     // Dangerously allow production builds to successfully complete even if
-//     // your project has type errors.
-//     // !! WARN !!
-//     ignoreBuildErrors: true,
-//   },
-//   eslint: {
-//     ignoreDuringBuilds: true,
-//   },
-// };
-export default withPWA(Object.assign({}, {
-  dest: "public",
-  disable: process.env.NODE_ENV === 'development',
-  // sw: "service-worker.js",
-  // fallbacks: {
-  //   image: '/static/images/fallback.png',
-  //   // document: '/other-offline',  // if you want to fallback to a custom    page other than /_offline
-  //   // font: '/static/font/fallback.woff2',
-  //   // audio: ...,
-  //   // video: ...,
+  /**
+   * If you have the "experimental: { appDir: true }" setting enabled, then you
+   * must comment the below `i18n` config out.
+   *
+   * @see https://github.com/vercel/next.js/issues/41980
+   */
+  // i18n: {
+  //   locales: ["en"],
+  //   defaultLocale: "en",
   // },
-}));
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+};
+
+const nextConfig = withPWA({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+})(config);
+
+export default nextConfig;
+
+// export default withPWA(Object.assign({}, pwa, config));

@@ -38,11 +38,11 @@ For development purposes:
 
 ## Deploying the app
 
-The app is deployed to a test server at the moment: https://veiligstallen.addbrainz.com/
+The app is deployed to a test server at the moment: https://beta.veiligstallen.nl/
 
 Deploy a new version using these commands:
 
-    ssh parkman@veiligstallen.addbrainz.com
+    ssh parkman@beta.veiligstallen.nl
     cd fietsberaad-veiligstallen-app
     ./scripts/remote/update-veiligstallen.sh
 
