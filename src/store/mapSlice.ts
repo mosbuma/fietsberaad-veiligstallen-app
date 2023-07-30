@@ -7,13 +7,15 @@ export interface MapState {
   extent: Number[];
   zoom: Number;
   extent: any[];
+  municipality: Array[];
 }
 
 // Initial state
 const initialState: MapState = {
   extent: [],
   zoom: undefined,
-  visibleFeatures: []
+  visibleFeatures: [],
+  municipality: []
 };
 
 // Actual Slice
@@ -32,6 +34,10 @@ export const mapSlice = createSlice({
     // Action to set visible features
     setMapVisibleFeatures(state, action) {
       state.visibleFeatures = action.payload;
+    },
+    // Action to set active municipality ()based on location)
+    setMunicipality(state, action) {
+      state.municipality = action.payload;
     },
   },
 

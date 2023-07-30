@@ -18,6 +18,8 @@ some tables are missing primary keys: patch script fixes this:
 - modules_contacts -> add extra prismaID column
 - plaats_fietstype -> add extra prismaID column
 - wachtlijst_fietstype -> add extra prismaID column
+- zones -> set existing key to primary
+- zones -> add extra prismaID column
 
 TODO:
 

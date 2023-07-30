@@ -1,6 +1,7 @@
 // @ts-nocheck
 import * as React from "react";
 import maplibregl from "maplibre-gl";
+import * as turf from '@turf/turf'
 import { useDispatch, useSelector } from "react-redux";
 import {
   setMapExtent,
@@ -12,7 +13,13 @@ import { AppState } from "~/store/store";
 
 // Import utils
 import {getParkingColor} from '~/utils/theme'
-import {getParkingMarker} from '~/utils/map/index'
+import {
+  getParkingMarker,
+  isPointInsidePolygon
+} from '~/utils/map/index'
+import {
+  getActiveMunicipality
+} from '~/utils/map/active_municipality'
 import {
   mapMoveEndEvents
 } from '~/utils/map/parkingsFilteringBasedOnExtent'
@@ -108,6 +115,11 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     (state: AppState) => state.filter.activeTypes
   );
 
+  const municipalities = useSelector(
+    (state: AppState) => state.geo.municipalities
+  );
+  console.log('municipalities', municipalities)
+
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
   // will contain `null` by default
@@ -142,9 +154,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     };
   }, []);
 
-  // If fietsenstallingen variable changes: Update source data
+  // If 'fietsenstallingen' variable changes: Update source data
   React.useEffect(() => {
     if(! stateMap || stateMap === undefined) return;
+    if(! stateMap.getSource) return;
 
     // Create geojson
     const geojson: any = createGeoJson(fietsenstallingen);
@@ -202,7 +215,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     activeTypes
   ])
 
-  // If filterActiveTypes changes: 
+  // Update visible features in state if filter changes
   React.useEffect(() => {
     if(! stateMap) return;
 
@@ -214,39 +227,55 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     filterActiveTypes
   ]);
 
+  // Function that's called if map is loaded
   const onMapLoaded = (mapboxMap) => {
     // Save map as local variabele
     setStateMap(mapboxMap);
     // Set event handlers
     // mapboxMap.on('movestart', function() {})
-    mapboxMap.on('moveend', () => { onMoveEnd(mapboxMap) });
+    mapboxMap.on('moveend', () => {
+      onMoved(mapboxMap)
+    });
     mapboxMap.on('zoomend', function() {
       registerMapView(mapboxMap);
     });
     // Call onMoveEnd if map is loaded, as initialization
     // This function is called when all rendering has been done
     mapboxMap.on('idle',function() {
-      onMoveEnd(mapboxMap);
+      onMoved(mapboxMap);
     });
   }
 
-  const onMoveEnd = (mapboxMap) => {
+  const onMoved = (mapboxMap) => {
+    // Register map view in state (extend and zoom level)
     registerMapView(mapboxMap);
+    // Set visible features into state
     mapMoveEndEvents(mapboxMap, (visibleFeatures) => {
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }
 
   const registerMapView = React.useCallback(theMap => {
+    // Set map boundaries
     const bounds = theMap.getBounds();
-    const payload = [
+    const extent = [
       bounds._sw.lng,
       bounds._sw.lat,
       bounds._ne.lng,
       bounds._ne.lat
-    ]
-
-    dispatch(setMapExtent(payload));
+    ];
+    // Create polygon that represents the boundaries of the map
+    const polygon = turf.points([
+      [extent[1], extent[0]],
+      [extent[3], extent[2]]
+    ]);
+    // Calculate the center of this map view
+    const center = turf.center(polygon)
+    const activeMunicipality = getActiveMunicipality(center);
+    // console.log('municipalities', municipalities)
+    // console.log('activeMunicipality', activeMunicipality);
+    // Set values in state
+    dispatch(setMapExtent(extent));
     dispatch(setMapZoom(theMap.getZoom()));
   }, []);
 

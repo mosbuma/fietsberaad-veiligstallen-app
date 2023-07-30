@@ -72,6 +72,32 @@ async function styleParkingMarker(color: string) {
   return new Uint8Array(context.getImageData(0, 0, img.width, img.height).data.buffer);
 }
 
+// Check if lat/lng point is inside polygon
+// https://stackoverflow.com/a/29915728
+//
+// Example usage:
+// var polygon = [ [ 1, 1 ], [ 1, 2 ], [ 2, 2 ], [ 2, 1 ] ];
+// isPointInsidePolygon([ 1.5, 1.5 ], polygon); // true
+const isPointInsidePolygon = (point, vs) => {
+  // ray-casting algorithm based on
+  // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+
+  var x = point[0], y = point[1];
+
+  var inside = false;
+  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+      var xi = vs[i][0], yi = vs[i][1];
+      var xj = vs[j][0], yj = vs[j][1];
+      
+      var intersect = ((yi > y) != (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+  }
+
+  return inside;
+};
+
 export {
-  getParkingMarker
+  getParkingMarker,
+  isPointInsidePolygon
 }

@@ -1,9 +1,10 @@
 // @ts-nocheck
-
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthState } from "~/store/authSlice";
 import { AppState } from "~/store/store";
+
+import Logo from './Logo';
 
 const PrimaryMenuItem = (props: any) => {
   return <div className="
@@ -33,6 +34,7 @@ function AppHeader({
   children?: any
 }) {
   const dispatch = useDispatch();
+
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
   );
@@ -73,11 +75,7 @@ function AppHeader({
         "
         style={{height: '64px'}}
       >
-        <img
-          src="https://huisstijl.utrecht.nl/typo3conf/ext/alternet_sitepackage/Resources/Public/Images/svg/wapen-utrecht-rood.svg"
-          className="mr-2 h-10"
-          alt="logo Gemeente Utrecht"
-        />
+        <Logo />
         <div className="flex-1 flex flex-start">
           {primaryMenuItems.map(x => <PrimaryMenuItem key={x} item={x} />)}
         </div>
