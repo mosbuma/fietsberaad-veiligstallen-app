@@ -13,21 +13,23 @@ function Logo({
   );
 
   const getLogoUrl = (municipalityCode: string) => {
-    let code: string;
+    let image: string;
     switch(municipalityCode) {
       case 'Utrecht':
+        image = `https://huisstijl.utrecht.nl/typo3conf/ext/alternet_sitepackage/Resources/Public/Images/svg/wapen-utrecht-rood.svg`
+        break;
       default:
-        code = `https://huisstijl.utrecht.nl/typo3conf/ext/alternet_sitepackage/Resources/Public/Images/svg/wapen-utrecht-rood.svg`
+        image = `/images/logo.png`
         break;
     }
-    return code;
+    return image;
   }
 
   return (
     <>
   		<img
         src={getLogoUrl('municipality.code')}
-        className="mr-2 h-10"
+        className="mr-2 h-12"
         alt="logo Gemeente Utrecht"
       />
     </>
