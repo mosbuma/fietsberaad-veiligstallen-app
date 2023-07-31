@@ -28,7 +28,7 @@ const SecundaryMenuItem = (props: any) => {
   </div>
 }
 
-function AppHeader({
+function AppHeaderDesktop({
   children
 }: {
   children?: any
@@ -107,4 +107,4 @@ function AppHeader({
   );
 }
 
-export default AppHeader;
+export default AppHeaderDesktop;

@@ -104,26 +104,29 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
       </div>
       */}
 
-      <div
-        className="
-        absolute
-        right-0
-        z-10
-        p-4
-      "
-        style={{
-          top: "64px",
-        }}
-      >
-        <FilterBox
-          isOpen={isFilterBoxOpen}
-          onReset={resetFilter}
-          onOpen={toggleFilterBox}
-          onClose={toggleFilterBox}
-        />
-      </div>
 
-      <FooterNav />
+      <div data-comment="Show only on desktop" className="hidden sm:flex">
+        <div
+          className="
+
+          absolute
+          right-0
+          z-10
+          p-4
+        "
+          style={{
+            top: "64px",
+          }}
+        >
+          <FilterBox
+            isOpen={isFilterBoxOpen}
+            onReset={resetFilter}
+            onOpen={toggleFilterBox}
+            onClose={toggleFilterBox}
+          />
+        </div>
+        <FooterNav />
+      </div>
     </div>
   );
 };

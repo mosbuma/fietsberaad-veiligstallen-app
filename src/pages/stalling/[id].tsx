@@ -91,6 +91,7 @@ const Stalling: NextPage = ({ fietsenstallingen }: any) => {
           absolute
           z-10
           p-4
+          w-full
         "
           style={{
             top: "64px",

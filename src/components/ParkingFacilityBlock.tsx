@@ -30,23 +30,27 @@ function ParkingFacilityBlock({
       ParkingFacilityBlock
       w-full bg-white
       px-5
-      my-5
       border-b
       border-solid
       border-gray-300
       pb-5
+      pt-5
       flex justify-between
       cursor-pointer
       "
       onClick={() => {
+        // Expand parking if expandParkingHandler was given
         if(expandParkingHandler) expandParkingHandler(parking.ID);
+        // Open parking if no expand handler was given
+        if(! expandParkingHandler && openParkingHandler) openParkingHandler(parking.ID);
       }}
     >
       <div
         data-name="left"
         className={`
+          hidden sm:inline-block
           mr-2
-          inline-block align-middle ${Styles['icon-type']}
+          align-middle ${Styles['icon-type']}
         `}
         style={{
           marginTop: '5px',
@@ -69,7 +73,7 @@ function ParkingFacilityBlock({
           <div className="flex-1">
             Eerste 24 uur gratis
           </div>
-          <div>
+          <div className="hidden sm:inline-block">
             |
           </div>
           <div className="flex-1 text-right">

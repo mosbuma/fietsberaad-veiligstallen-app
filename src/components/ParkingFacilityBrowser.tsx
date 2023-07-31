@@ -17,9 +17,6 @@ function ParkingFacilityBrowser({
   const [selectedParkingId, setSelectedParkingId] = useState(activeParkingId);
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
 
-  // Connect to redux store
-  const dispatch = useDispatch()
-
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
   );
@@ -68,7 +65,7 @@ function ParkingFacilityBrowser({
     "
       style={{
         width: "414px",
-        maxWidth: "calc(100% - 2.5rem)",
+        maxWidth: "calc(100%)",
         maxHeight: "60vh",
         height: "100%",
         overflow: "auto",
@@ -76,20 +73,18 @@ function ParkingFacilityBrowser({
     >
       <SearchBar />
 
-      <div
-        className="
-        px-0
-      "
-      >
+      <div className="px-0">
         {visibleParkings.map((x: any) => {
           return (
-            <ParkingFacilityBlock
-              key={x.ID}
-              parking={x}
-              compact={x.ID !== selectedParkingId}
-              expandParkingHandler={expandParking}
-              openParkingHandler={clickParking}
-            />
+            <div className="mr-0 mb-0 ml-0">
+              <ParkingFacilityBlock
+                key={x.ID}
+                parking={x}
+                compact={x.ID !== selectedParkingId}
+                expandParkingHandler={expandParking}
+                openParkingHandler={clickParking}
+              />
+            </div>
           );
         })}
       </div>

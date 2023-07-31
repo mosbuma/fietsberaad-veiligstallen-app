@@ -3,15 +3,17 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import superjson from "superjson";
 
 // import { setMunicipalities } from "~/store/geoSlice";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
-import AppHeader from "~/components/AppHeader";
+import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import Parking from "~/components/Parking";
 import Modal from "src/components/Modal";
-import superjson from "superjson";
+import SearchBar from "~/components/SearchBar";
+import CardList from "~/components/CardList";
 
 export async function getStaticProps() {
   try {
@@ -157,7 +159,10 @@ const Home: NextPage = ({
       </Head>
 
       <main className="flex-grow">
-        <AppHeader />
+        
+        <div data-comment="Show only on desktop" className="hidden sm:flex">
+          <AppHeaderDesktop />
+        </div>
 
         {currentStallingId && (
           <Modal
@@ -175,16 +180,60 @@ const Home: NextPage = ({
 
         <div
           className="
-          l-0
-          absolute
-          z-10
-          p-4
-        "
-          style={{
-            top: "64px",
-          }}
+            l-0
+            absolute
+            z-10
+            p-4
+            w-full
+          "
         >
-          <ParkingFacilityBrowser
+
+          <div
+            data-comment="Spacer - Show only on desktop"
+            className="
+              hidden sm:block
+              w-full h-16
+            ">
+          </div>
+
+          <div
+            data-comment="Parkings list - Show only on desktop"
+            className="
+              hidden sm:block
+            "
+          >
+            <ParkingFacilityBrowser
+              fietsenstallingen={fietsenstallingen}
+              onShowStallingDetails={(id: any) =>
+                setCurrentStallingId(id)
+              }
+            />
+          </div>
+
+          <div
+            data-comment="Mobile topbar - Show only on mobile"
+            className="
+              flex sm:hidden
+            "
+          >
+            LOGO
+            <SearchBar />
+            HAMB.
+          </div>
+
+        </div>
+
+        <div
+          data-comment="Parkings cards - Show only on mobile"
+          className="
+            block sm:hidden
+            absolute
+            bottom-9
+            z-10
+            w-full
+          "
+        >
+          <CardList
             fietsenstallingen={fietsenstallingen}
             onShowStallingDetails={(id: any) =>
               setCurrentStallingId(id)
@@ -193,6 +242,7 @@ const Home: NextPage = ({
         </div>
 
         <ParkingFacilities fietsenstallingen={fietsenstallingen} />
+
       </main>
     </>
   );

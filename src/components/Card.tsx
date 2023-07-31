@@ -14,10 +14,15 @@ export interface CardData {
 
 interface Props extends CardData {}
 
-const Card: React.FC<Props> = ({ title, description, ID }) => {
+const Card: React.FC<Props> = ({
+  parking,
+  isActive,
+  expandParking,
+  clickParking
+}) => {
   return (
     <div
-      key={"card-" + title}
+      key={"card-" + parking.title}
       className={`
         ${CardStyles.base}
         keen-slider__slide
@@ -25,16 +30,14 @@ const Card: React.FC<Props> = ({ title, description, ID }) => {
         flex-col
         rounded-lg
         bg-white
-        p-4
       `}
     >
       <ParkingFacilityBlock
-        parking={{
-          ID: ID,
-          Title: title,
-          Plaats: description,
-          Status: '24 uur geopend'
-        }}
+        parking={parking}
+        key={parking.ID}
+        compact={true}
+        expandParkingHandler={expandParking}
+        openParkingHandler={clickParking}
       />
     </div>
   );

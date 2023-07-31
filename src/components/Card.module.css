@@ -1,3 +1,6 @@
 .base {
-  background: #f00;
+/*  min-width: 80vw !Important;*/
+/*  max-width: 80vw !Important;*/
+/*  width: 80vw !Important;*/
+  height: 100%;
 }
