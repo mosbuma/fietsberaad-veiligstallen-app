@@ -33,14 +33,14 @@ export async function getStaticProps() {
     Object.entries(stalling).forEach(([key, prop]) => {
       if (prop instanceof Date) {
         stalling[key] = stalling.toString();
-        console.log(
-          `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-        );
+        // console.log(
+        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
+        // );
       }
       if (prop instanceof BigInt) {
-        console.log(
-          `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-        );
+        // console.log(
+        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
+        // );
         stalling[key] = stalling.toString();
       }
       if (prop instanceof Prisma.Decimal) {
@@ -49,7 +49,7 @@ export async function getStaticProps() {
       }
     });
 
-    console.log(typeof stalling.freeHoursReservation);
+    // console.log(typeof stalling.freeHoursReservation);
 
     delete stalling.reservationCostPerDay;
     delete stalling.wachtlijst_Id;

@@ -5,7 +5,7 @@ const IndexPage: React.FC = () => {
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(true);
 
   const resetFilter = () => {
-    console.log("reset filter");
+    // console.log("reset filter");
   };
 
   const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
@@ -77,7 +77,12 @@ const IndexPage: React.FC = () => {
         </p>
       </div>
       {isFilterBoxOpen && (
-        <FilterBox isOpen={true} onOpen={() => {}}onReset={resetFilter} onClose={toggleFilterBox} />
+        <FilterBox
+          isOpen={true}
+          onOpen={() => {}}
+          onReset={resetFilter}
+          onClose={toggleFilterBox}
+        />
       )}
     </div>
   );

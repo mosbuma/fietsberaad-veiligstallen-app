@@ -2,32 +2,64 @@
 
 import { useState } from "react";
 import { FiFilter } from "react-icons/fi";
-import {
-  AiFillMinusCircle, AiFillPlusCircle
-} from "react-icons/ai";
-import FilterBoxList, { updateActiveTypeStates } from "~/components/FilterBoxList";
-import FilterBoxPrice, { updateActivePriceStates } from "~/components/FilterBoxPrice";
+import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
+import FilterBoxList, {
+  updateActiveTypeStates,
+} from "~/components/FilterBoxList";
+import FilterBoxPrice, {
+  updateActivePriceStates,
+} from "~/components/FilterBoxPrice";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
   { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: true },
-  { id: "geautomatiseerd", name: "geautomatiseerd", title: "Geautomatiseerde stalling", active: true },
-  { id: "onbewaakt", name: "publiek", title: "Onbewaakte stalling", active: true },
-  { id: "toezicht", name: "toezicht", title: "Stalling met toezicht", active: true },
+  {
+    id: "geautomatiseerd",
+    name: "geautomatiseerd",
+    title: "Geautomatiseerde stalling",
+    active: true,
+  },
+  {
+    id: "onbewaakt",
+    name: "publiek",
+    title: "Onbewaakte stalling",
+    active: true,
+  },
+  {
+    id: "toezicht",
+    name: "toezicht",
+    title: "Stalling met toezicht",
+    active: true,
+  },
 ];
 
 const OPTIONS_2 = [
-  { id: "buurtstalling", name: "buurtstalling", title: "Buurtstalling", active: true },
-  { id: "fietstrommel", name: "fietstrommel", title: "Fietsentrommel", active: true },
-  { id: "fietskluizen", name: "fietskluizen", title: "Fietskluis", active: true },
+  {
+    id: "buurtstalling",
+    name: "buurtstalling",
+    title: "Buurtstalling",
+    active: true,
+  },
+  {
+    id: "fietstrommel",
+    name: "fietstrommel",
+    title: "Fietsentrommel",
+    active: true,
+  },
+  {
+    id: "fietskluizen",
+    name: "fietskluizen",
+    title: "Fietskluis",
+    active: true,
+  },
 ];
 
 const OPTIONS_PRICE = [
   { id: "per_uur", title: "Per uur", active: true },
   { id: "per_dag", title: "Per dag", active: true },
-  { id: "jaarabonnement", title: "Jaarabonnement", active: true }
+  { id: "jaarabonnement", title: "Jaarabonnement", active: true },
 ];
 
 type FilterBoxProps = {
@@ -45,11 +77,11 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   onClose,
   onReset,
 }: {
-  children?: any,
-  isOpen: boolean,
-  onOpen: Function,
-  onClose: Function,
-  onReset: Function
+  children?: any;
+  isOpen: boolean;
+  onOpen: Function;
+  onClose: Function;
+  onReset: Function;
 }) => {
   const dispatch = useDispatch();
 
@@ -58,7 +90,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   );
 
   const toggleFilter = (optionId: string) => {
-    console.log("toggleFilter", optionId);
+    // ("toggleFilter", optionId);
     dispatch(toggleType({ pfType: optionId }));
   };
 
@@ -68,28 +100,34 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
   return (
     <div
-      className={`h-auto border-t border-gray-200 bg-white rounded-xl ${
+      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${
         isOpen ? "" : "h-16"
       } transition-all duration-300 ease-in-out`}
     >
-      <div className="mx-auto max-w-7xl py-5 px-4">
-        <div className={`
-          ${isOpen ? 'flex justify-between' : ''}
-        `}>
-          <div className={`
-            ${isOpen ? 'w-6/12 mr-3' : ''}
-          `}>
+      <div className="mx-auto max-w-7xl px-4 py-5">
+        <div
+          className={`
+          ${isOpen ? "flex justify-between" : ""}
+        `}
+        >
+          <div
+            className={`
+            ${isOpen ? "mr-3 w-6/12" : ""}
+          `}
+          >
             <FilterBoxList
-              title={`${isOpen ? 'Publieke Stalling' : ''}`}
+              title={`${isOpen ? "Publieke Stalling" : ""}`}
               options={options1_with_state}
               onToggleFilter={toggleFilter}
             />
           </div>
-          <div className={`
-            ${isOpen ? 'w-6/12 mr-3' : ''}
-          `}>
+          <div
+            className={`
+            ${isOpen ? "mr-3 w-6/12" : ""}
+          `}
+          >
             <FilterBoxList
-              title={`${isOpen ? 'Private Stalling' : ''}`}
+              title={`${isOpen ? "Private Stalling" : ""}`}
               options={options2_with_state}
               onToggleFilter={toggleFilter}
             />
@@ -105,37 +143,39 @@ const FilterBox: React.FC<FilterBoxProps> = ({
         </div>
 
         {children}
-        
+
         <div className="hidden">
           <button
             className={`
-              bg-black
-              text-white
-              rounded-md
-              py-1
-              px-3
               flex
+              rounded-md
+              bg-black
+              px-3
+              py-1
+              text-white
             `}
             onClick={() => {
-              isOpen ? onClose() : onOpen()
+              isOpen ? onClose() : onOpen();
             }}
             aria-expanded={isOpen}
           >
+            {isOpen && (
+              <>
+                <div className="mr-2 flex h-full flex-col justify-center">
+                  <AiFillMinusCircle size={20} color="white" />
+                </div>
+                Minder filters
+              </>
+            )}
 
-            {isOpen && <>
-              <div className="flex flex-col justify-center h-full mr-2">
-                <AiFillMinusCircle size={20} color="white" />
-              </div>
-              Minder filters
-            </>}
-
-            {! isOpen && <>
-              <div className="flex flex-col justify-center h-full mr-2">
-                <AiFillPlusCircle size={20} color="white" />
-              </div>
-              Meer filters
-            </>}
-
+            {!isOpen && (
+              <>
+                <div className="mr-2 flex h-full flex-col justify-center">
+                  <AiFillPlusCircle size={20} color="white" />
+                </div>
+                Meer filters
+              </>
+            )}
           </button>
         </div>
       </div>

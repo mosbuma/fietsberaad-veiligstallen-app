@@ -6,11 +6,7 @@ import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
 
-const Parking = ({
-  parkingdata
-}: {
-  parkingdata: any
-}) => {
+const Parking = ({ parkingdata }: { parkingdata: any }) => {
   const formatOpening = (
     dayidx: number,
     day: string,
@@ -34,13 +30,13 @@ const Parking = ({
 
     return (
       <>
-        <div className={wkday+1 === dayidx ? "font-bold" : ""}>{label}</div>
+        <div className={wkday + 1 === dayidx ? "font-bold" : ""}>{label}</div>
         <div className="text-right">{value}</div>
       </>
     );
   };
 
-  console.log("@@ stallingdata", JSON.stringify(parkingdata, null, 2));
+  // console.log("@@ stallingdata has %s items", parkingdata.length);
 
   return (
     <div className="ml-10 mr-10 mt-10">
