@@ -1,4 +1,5 @@
 import { SetStateAction, useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { Prisma } from "@prisma/client";
@@ -14,6 +15,9 @@ import Parking from "~/components/Parking";
 import Modal from "src/components/Modal";
 import SearchBar from "~/components/SearchBar";
 import CardList from "~/components/CardList";
+import Logo from "~/components/Logo";
+import ActiveFilters from "~/components/ActiveFilters";
+import {IconButton} from "~/components/Button";
 
 export async function getStaticProps() {
   try {
@@ -131,6 +135,10 @@ const Home: NextPage = ({
   //   })();
   // }, [])
 
+  const activeTypes = useSelector(
+    (state: AppState) => state.filter.activeTypes
+  );
+
   console.log('fietsenstallingen', fietsenstallingen)
 
   if (online === false) {
@@ -216,9 +224,48 @@ const Home: NextPage = ({
               flex sm:hidden
             "
           >
-            LOGO
+            <Logo />
             <SearchBar />
             HAMB.
+          </div>
+
+        </div>
+
+        <div
+          data-comment="Floating buttons: Filter & Toggle buttons"
+          className="
+            block sm:hidden
+            absolute
+            bottom-56
+            z-10
+            w-full
+          "
+        >
+
+          <div
+            data-comment="Active parking types - Only show if <= 2 selected"
+            style={{
+              transform: 'scale(0.8)',
+              transformOrigin: 'left bottom',
+            }}
+            className="mx-5 my-2 w-5/6"
+            hidden={activeTypes.length > 2}
+          >
+            <ActiveFilters />
+          </div>
+
+          <div
+            data-comment="Floating button: Toggle filter"
+            className="
+              mx-5 my-2 w-1/6
+              absolute
+              right-0
+              bottom-0
+            "
+          >
+            <IconButton>
+              FILTER
+            </IconButton>
           </div>
 
         </div>

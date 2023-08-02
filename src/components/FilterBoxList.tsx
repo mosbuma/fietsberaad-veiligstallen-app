@@ -45,11 +45,12 @@ const FilterBoxList: React.FC<FilterBoxListProps> = ({
       {(title && title.length >= 1) ? <h2 className="font-bold text-lg poppinsbold pb-2">
         {title}
       </h2> : ''}
-      <div className="pt-1 -mb-2 flex flex-col justify-between text-sm">
+      <div className="pt-1 -mb-2 sm:flex sm:flex-col sm:justify-between text-sm">
         {options.map((option, index) => (
           <RadioButton
             key={option.id}
             isActive={option.active}
+            className="mr-3"
             onClick={() => onToggleFilter(option.id)}
             htmlBefore={(
               <div

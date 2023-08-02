@@ -57,7 +57,6 @@ const CardList: React.FC<Props> = ({
     onShowStallingDetails && onShowStallingDetails(id);
   };
 
-  console.log("typeof window !== 'undefined' ? (window.innerWidth / 315) : 1.3", typeof window !== 'undefined' ? (window.innerWidth / 315) : 1.3)
   const [ref] = useKeenSlider<HTMLDivElement>({
     slides: {
       perView: typeof window !== 'undefined' ? (window.innerWidth / 315) : 1.3,// slides are 315px in width

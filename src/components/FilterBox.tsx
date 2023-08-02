@@ -14,7 +14,12 @@ import { toggleType } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
-  { id: "bewaakt", name: "bewaakt", title: "Bewaakte stalling", active: true },
+  {
+    id: "bewaakt",
+    name: "bewaakt",
+    title: "Bewaakte stalling",
+    active: true
+  },
   {
     id: "geautomatiseerd",
     name: "geautomatiseerd",
@@ -123,8 +128,8 @@ const FilterBox: React.FC<FilterBoxProps> = ({
           </div>
           <div
             className={`
-            ${isOpen ? "mr-3 w-6/12" : ""}
-          `}
+              ${isOpen ? "mr-3 w-6/12" : ""}
+            `}
           >
             <FilterBoxList
               title={`${isOpen ? "Private Stalling" : ""}`}

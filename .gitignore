@@ -47,3 +47,5 @@ yarn-error.log*
 #check
 /public/fallback*
 /public/workbox*
+
+/PRIVATE.md

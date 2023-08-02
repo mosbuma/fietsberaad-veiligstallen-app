@@ -19,7 +19,7 @@ function Logo({
         image = `https://huisstijl.utrecht.nl/typo3conf/ext/alternet_sitepackage/Resources/Public/Images/svg/wapen-utrecht-rood.svg`
         break;
       default:
-        image = `/images/logo.png`
+        image = `/images/logo-transparant.png`
         break;
     }
     return image;

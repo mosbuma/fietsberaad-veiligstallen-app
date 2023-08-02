@@ -118,7 +118,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   const municipalities = useSelector(
     (state: AppState) => state.geo.municipalities
   );
-  console.log('municipalities', municipalities)
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
