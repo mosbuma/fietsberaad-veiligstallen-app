@@ -86,17 +86,18 @@ export const IconButton = ({
   onClick,
   children,
   htmlBefore,
-  className
+  className,
+  iconUrl
 }: {
   onClick?: Function,
   children: any
   htmlBefore?: any,
   className?: string
+  iconUrl?: string
 }) => {
   return (
     <button
       className={`
-        py-1 px-4 mb-3
         text-left rounded-full
         whitespace-nowrap text-ellipsis overflow-hidden
         font-poppinsmedium
@@ -105,6 +106,11 @@ export const IconButton = ({
         hover:shadow
         transition-all
         text-white
+        bg-center
+        bg-no-repeat
+        w-10
+        h-10
+        shadow-md
         ${className}
       `}
       onClick={() => {
@@ -112,7 +118,9 @@ export const IconButton = ({
       }}
       style={{
         userSelect: "none", // disable highlighting
-        backgroundColor: '#CC0000'
+        backgroundColor: '#FFFFFF',
+        backgroundImage: `url('${iconUrl}')`,
+        backgroundSize: '20px'
       }}
     >
       {htmlBefore}

@@ -193,6 +193,7 @@ const Home: NextPage = ({
             z-10
             p-4
             w-full
+            sm:w-auto
           "
         >
 
@@ -207,7 +208,7 @@ const Home: NextPage = ({
           <div
             data-comment="Parkings list - Show only on desktop"
             className="
-              hidden sm:block
+              hidden sm:inline-block
             "
           >
             <ParkingFacilityBrowser
@@ -226,7 +227,7 @@ const Home: NextPage = ({
           >
             <Logo />
             <SearchBar />
-            HAMB.
+            {/*HAMB.*/}
           </div>
 
         </div>
@@ -257,17 +258,33 @@ const Home: NextPage = ({
           <div
             data-comment="Floating button: Toggle filter"
             className="
-              mx-5 my-2 w-1/6
+              mx-5 w-1/6
               absolute
               right-0
               bottom-0
+              text-right
             "
           >
-            <IconButton>
-              FILTER
+            <IconButton className="mb-5" iconUrl={"https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png"}>
+            </IconButton>
+
+            <IconButton className="mb-0" iconUrl={"https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"}>
             </IconButton>
           </div>
 
+        </div>
+
+        <div
+          data-comment="Filter overlay - Show only on mobile"
+          className="
+            block sm:hidden
+            absolute
+            bottom-0
+            z-10
+            w-full
+          "
+        >
+          
         </div>
 
         <div
