@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
 import ParkingFacilities from "~/components/ParkingFacilities";
-import AppHeader from "~/components/AppHeader";
+import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import AppBody from "~/components/AppBody";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 
@@ -83,7 +83,7 @@ const Stalling: NextPage = ({ fietsenstallingen }: any) => {
       </Head>
 
       <main className="flex-grow">
-        <AppHeader />
+        <AppHeaderDesktop />
 
         <div
           className="

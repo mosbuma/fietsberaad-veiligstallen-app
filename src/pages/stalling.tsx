@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Import components
-import AppHeader from "~/components/AppHeader";
+import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import PageTitle from "~/components/PageTitle";
 import ContentPageWrapper from "~/components/ContentPageWrapper";
 import ImageSlider from "~/components/ImageSlider";
@@ -12,7 +12,7 @@ import {Button} from "~/components/Button";
 const Stalling = () => {
   return (
     <div className="container">
-      <AppHeader>
+      <AppHeaderDesktop>
 
         <div className="
           flex justify-between
@@ -27,7 +27,7 @@ const Stalling = () => {
 
         </div>
 
-      </AppHeader>
+      </AppHeaderDesktop>
       <ContentPageWrapper>
 
         <div className="

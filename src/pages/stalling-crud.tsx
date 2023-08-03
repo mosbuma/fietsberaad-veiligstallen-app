@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 // Import components
-import AppHeader from "~/components/AppHeader";
+import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import PageTitle from "~/components/PageTitle";
 import ContentPageWrapper from "~/components/ContentPageWrapper";
 import ImageSlider from "~/components/ImageSlider";
@@ -15,7 +15,7 @@ const Stalling = () => {
   const renderReadonly = () => {
     return (
       <div className="container">
-        <AppHeader>
+        <AppHeaderDesktop>
           <div
             className="
             mr-8 flex
@@ -26,7 +26,7 @@ const Stalling = () => {
 
             <CloseButton />
           </div>
-        </AppHeader>
+        </AppHeaderDesktop>
         <ContentPageWrapper>
           <div
             className="

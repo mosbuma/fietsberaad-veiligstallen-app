@@ -9,7 +9,7 @@ import { Prisma } from "@prisma/client";
 import { api } from "~/utils/api";
 import { prisma } from "~/server/db";
 import MapboxMap from "~/components/MapComponent";
-import AppHeader from "~/components/AppHeader";
+import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilities from "~/components/ParkingFacilities";
 
 // Fetch all posts (in /pages/index.tsx)
@@ -74,7 +74,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       </Head>
 
       <main>
-        <AppHeader />
+        <AppHeaderDesktop />
 
         <ParkingFacilities />
 
