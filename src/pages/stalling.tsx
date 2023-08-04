@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Import components
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
@@ -7,59 +7,51 @@ import ContentPageWrapper from "~/components/ContentPageWrapper";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import CloseButton from "~/components/CloseButton";
-import {Button} from "~/components/Button";
+import { Button } from "~/components/Button";
 
 const Stalling = () => {
   return (
     <div className="container">
       <AppHeaderDesktop>
-
-        <div className="
-          flex justify-between
-          mr-8
-        ">
-
-          <PageTitle>
-            Utrecht Laag Catharijne
-          </PageTitle> 
+        <div
+          className="
+          mr-8 flex
+          justify-between
+        "
+        >
+          <PageTitle>Utrecht Laag Catharijne</PageTitle>
 
           <CloseButton />
-
         </div>
-
       </AppHeaderDesktop>
       <ContentPageWrapper>
-
-        <div className="
-          flex justify-between
-          mr-8
-        ">
-
+        <div
+          className="
+          mr-8 flex
+          justify-between
+        "
+        >
           <PageTitle className="flex justify-center">
-  
             Utrecht Laag Catharijne
-    
-            <Button className="ml-4">
-              bewerken
-            </Button>
-
+            <Button className="ml-4">bewerken</Button>
           </PageTitle>
-
         </div>
-      
 
         <div className="flex justify-between">
           <div data-name="content-left" className="mr-12">
-
             <ImageSlider />
 
-            <section className="
+            <section
+              className="
               mt-8
               flex justify-between
-            ">
+            "
+            >
               <p>
-                <b>Fietsenstalling Laag Catharijne</b><br />
-                Catharijnesingel 28<br />
+                <b>Fietsenstalling Laag Catharijne</b>
+                <br />
+                Catharijnesingel 32
+                <br />
                 3511 GB Utrecht
               </p>
               <p>
@@ -70,20 +62,22 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Openingstijden
               </div>
-              <div className="flex-1 grid grid-cols-2  ">
+              <div className="grid flex-1 grid-cols-2  ">
                 <div>Maandag</div>
                 <div className="text-right">7:00 - 1:00</div>
                 <div>Dinsdag</div>
                 <div className="text-right">7:00 - 1:00</div>
 
                 <div className="font-bold">Woensdag</div>
-                <div className="font-bold text-right">7:00 - 1:00</div>
+                <div className="text-right font-bold">7:00 - 1:00</div>
 
                 <div>Donderdag</div>
                 <div className="text-right">7:00 - 1:00</div>
@@ -99,10 +93,12 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Tarief
               </div>
               <div className="flex-1">
@@ -124,10 +120,12 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Services
               </div>
               <div className="flex-1">
@@ -144,10 +142,12 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Capaciteit
               </div>
               <div className="flex-1">
@@ -167,10 +167,12 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Abonnementen
               </div>
               <div className="flex-1">
@@ -188,43 +190,44 @@ const Stalling = () => {
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Soort stalling
               </div>
-              <div className="flex-1">
-                Bewaakte stalling
-              </div>
+              <div className="flex-1">Bewaakte stalling</div>
             </div>
 
             <HorizontalDivider className="my-4" />
 
             <div className="flex justify-between">
-              <div className="
+              <div
+                className="
                 w-48
                 font-bold
-              ">
+              "
+              >
                 Beheerder
               </div>
-              <div className="flex-1">
-                U-stal
-              </div>
+              <div className="flex-1">U-stal</div>
             </div>
 
             {/*<button>Breng mij hier naartoe</button>*/}
-
           </div>
 
           <div data-name="content-right" className="ml-12">
-            <img src="/images/kaart-voorbeeld.png" alt="Kaart" width="414"
-              className="rounded-3xl" />
+            <img
+              src="/images/kaart-voorbeeld.png"
+              alt="Kaart"
+              width="414"
+              className="rounded-3xl"
+            />
           </div>
-
         </div>
       </ContentPageWrapper>
-
     </div>
   );
 };

@@ -60,7 +60,7 @@ const Stalling = () => {
                 <p>
                   <b>Fietsenstalling Laag Catharijne</b>
                   <br />
-                  Catharijnesingel 28
+                  Catharijnesingel 34
                   <br />
                   3511 GB Utrecht
                 </p>

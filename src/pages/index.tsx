@@ -17,25 +17,25 @@ import SearchBar from "~/components/SearchBar";
 import CardList from "~/components/CardList";
 import Logo from "~/components/Logo";
 import ActiveFilters from "~/components/ActiveFilters";
-import {IconButton} from "~/components/Button";
+import { IconButton } from "~/components/Button";
 
 export async function getStaticProps() {
   try {
-    console.log("index.getStaticProps - start");
+    // console.log("index.getStaticProps - start");
     const fietsenstallingen = await getParkingsFromDatabase();
 
     return {
       props: {
         fietsenstallingen: fietsenstallingen,
-        online: true
+        online: true,
       },
     };
   } catch (ex: any) {
-    console.error("index.getStaticProps - error: ", ex.message);
+    // console.error("index.getStaticProps - error: ", ex.message);
     return {
       props: {
         fietsenstallingen: [],
-        online: false
+        online: false,
       },
     };
   }
@@ -80,14 +80,14 @@ const getParkingsFromDatabase = async () => {
       }
     });
 
-    console.log(typeof stalling.freeHoursReservation);
-
     delete stalling.reservationCostPerDay;
     delete stalling.wachtlijst_Id;
   });
 
+  fietsenstallingen.filter((x: any) => x.Plaats !== "");
+
   return fietsenstallingen;
-}
+};
 
 // const getMunicipalities = async () => {
 //   const municipalities = await prisma.zones.findMany({
@@ -120,10 +120,7 @@ const getParkingsFromDatabase = async () => {
 //   return municipalities;
 // }
 
-const Home: NextPage = ({
-  fietsenstallingen,
-  online
-}: any) => {
+const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
 
   // On app load: Load municipalities in state
@@ -139,7 +136,7 @@ const Home: NextPage = ({
     (state: AppState) => state.filter.activeTypes
   );
 
-  console.log('fietsenstallingen', fietsenstallingen)
+  // console.log("fietsenstallingen", fietsenstallingen);
 
   if (online === false) {
     return (
@@ -167,7 +164,6 @@ const Home: NextPage = ({
       </Head>
 
       <main className="flex-grow">
-        
         <div data-comment="Show only on desktop" className="hidden sm:flex">
           <AppHeaderDesktop />
         </div>
@@ -176,7 +172,7 @@ const Home: NextPage = ({
           <Modal
             onClose={() => setCurrentStallingId(undefined)}
             clickOutsideClosesDialog={true}
-            >
+          >
             <Parking
               key={currentStallingId}
               parkingdata={fietsenstallingen.find((stalling: any) => {
@@ -191,19 +187,18 @@ const Home: NextPage = ({
             l-0
             absolute
             z-10
-            p-4
             w-full
+            p-4
             sm:w-auto
           "
         >
-
           <div
             data-comment="Spacer - Show only on desktop"
             className="
-              hidden sm:block
-              w-full h-16
-            ">
-          </div>
+              hidden h-16
+              w-full sm:block
+            "
+          ></div>
 
           <div
             data-comment="Parkings list - Show only on desktop"
@@ -213,9 +208,7 @@ const Home: NextPage = ({
           >
             <ParkingFacilityBrowser
               fietsenstallingen={fietsenstallingen}
-              onShowStallingDetails={(id: any) =>
-                setCurrentStallingId(id)
-              }
+              onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
             />
           </div>
 
@@ -229,25 +222,23 @@ const Home: NextPage = ({
             <SearchBar />
             {/*HAMB.*/}
           </div>
-
         </div>
 
         <div
           data-comment="Floating buttons: Filter & Toggle buttons"
           className="
-            block sm:hidden
-            absolute
-            bottom-56
+            absolute bottom-56
             z-10
+            block
             w-full
+            sm:hidden
           "
         >
-
           <div
             data-comment="Active parking types - Only show if <= 2 selected"
             style={{
-              transform: 'scale(0.8)',
-              transformOrigin: 'left bottom',
+              transform: "scale(0.8)",
+              transformOrigin: "left bottom",
             }}
             className="mx-5 my-2 w-5/6"
             hidden={activeTypes.length > 2}
@@ -258,55 +249,57 @@ const Home: NextPage = ({
           <div
             data-comment="Floating button: Toggle filter"
             className="
-              mx-5 w-1/6
-              absolute
+              absolute bottom-0
               right-0
-              bottom-0
+              mx-5
+              w-1/6
               text-right
             "
           >
-            <IconButton className="mb-5" iconUrl={"https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png"}>
-            </IconButton>
+            <IconButton
+              className="mb-5"
+              iconUrl={
+                "https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png"
+              }
+            ></IconButton>
 
-            <IconButton className="mb-0" iconUrl={"https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"}>
-            </IconButton>
+            <IconButton
+              className="mb-0"
+              iconUrl={
+                "https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"
+              }
+            ></IconButton>
           </div>
-
         </div>
 
         <div
           data-comment="Filter overlay - Show only on mobile"
           className="
-            block sm:hidden
-            absolute
-            bottom-0
+            absolute bottom-0
             z-10
+            block
             w-full
+            sm:hidden
           "
-        >
-          
-        </div>
+        ></div>
 
         <div
           data-comment="Parkings cards - Show only on mobile"
           className="
-            block sm:hidden
-            absolute
-            bottom-9
+            absolute bottom-9
             z-10
+            block
             w-full
+            sm:hidden
           "
         >
           <CardList
             fietsenstallingen={fietsenstallingen}
-            onShowStallingDetails={(id: any) =>
-              setCurrentStallingId(id)
-            }
+            onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
           />
         </div>
 
         <ParkingFacilities fietsenstallingen={fietsenstallingen} />
-
       </main>
     </>
   );

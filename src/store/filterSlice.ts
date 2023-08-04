@@ -5,19 +5,21 @@ import { HYDRATE } from "next-redux-wrapper";
 // Type for our state
 export interface FilterState {
   activeTypes: String[];
+  query: String;
 }
 
 // Initial state
 const initialState: FilterState = {
   activeTypes: [
-    'bewaakt',
-    'geautomatiseerd',
-    'onbewaakt',
-    'toezicht',
-    'buurtstalling',
-    'fietstrommel',
-    'fietskluizen'
+    "bewaakt",
+    "geautomatiseerd",
+    "onbewaakt",
+    "toezicht",
+    "buurtstalling",
+    "fietstrommel",
+    "fietskluizen",
   ],
+  query: "",
 };
 
 // Actual Slice
@@ -37,6 +39,9 @@ export const filterSlice = createSlice({
         state.activeTypes.splice(index, 1);
       }
     },
+    setQuery(state, action) {
+      state.query = action.payload;
+    },
   },
 
   // Special reducer for hydrating the state. Special case for next-redux-wrapper
@@ -50,4 +55,4 @@ export const filterSlice = createSlice({
   },
 });
 
-export const { toggleType } = filterSlice.actions;
+export const { toggleType, setQuery } = filterSlice.actions;

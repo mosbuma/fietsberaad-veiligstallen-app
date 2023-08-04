@@ -1,60 +1,165 @@
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import {getParkingColor} from '~/utils/theme';
+import { getParkingColor } from "~/utils/theme";
 
-import Styles from './ParkingFacilityBlock.module.css';
+import Styles from "./ParkingFacilityBlock.module.css";
+
+const isOpen = (openingTime: Date, closingTime: Date): boolean => {
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const opening = openingTime.getHours() * 60 + openingTime.getMinutes();
+  let closing = closingTime.getHours() * 60 + closingTime.getMinutes();
+
+  if (closing < opening) {
+    // Closing time is on the next day, add 24 hours to closing time
+    closing += 24 * 60;
+  }
+
+  return currentTime >= opening && currentTime <= closing;
+};
+
+const formatTime = (time: Date): string => {
+  const hours = time.getHours().toString().padStart(2, "0");
+  const minutes = time.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const formatOpeningToday = (parkingdata: any): string => {
+  const dayidx = new Date().getDay();
+  const daytxt = ["za", "zo", "ma", "di", "wo", "do", "vr"];
+
+  const openstr = parkingdata["Open_" + daytxt[dayidx]];
+  const closestr = parkingdata["Dicht_" + daytxt[dayidx]];
+
+  // console.log(parkingdata.Title, parkingdata.Type, openstr, closestr);
+
+  if (null === openstr || null === closestr) {
+    return "";
+  }
+
+  const openinfo = new Date(openstr);
+  const closeinfo = new Date(closestr);
+
+  // console.log(
+  //   parkingdata.Title,
+  //   parkingdata.Type,
+  //   "valid open/close info",
+  //   openinfo,
+  //   closeinfo,
+  //   parkingdata.Openingstijden
+  // );
+
+  if (isOpen(openinfo, closeinfo)) {
+    return `open, sluit om ${formatTime(closeinfo)}`;
+  } else {
+    return "gesloten";
+  }
+};
 
 function ParkingFacilityBlock({
   parking,
   compact,
   openParkingHandler,
-  expandParkingHandler
+  expandParkingHandler,
 }: {
   parking: {
-    ID: string,
-    Title: string,
-    Plaats?: string,
-    Postcode?: any,
-    Status?: any,
-    Coordinaten?: any,
-    Type?: any
-  },
-  compact?: boolean,
-  expandParkingHandler?: Function
-  openParkingHandler?: Function
+    ID: string;
+    Title: string;
+    Plaats?: string;
+    Location?: string;
+    Postcode?: any;
+    Status?: any;
+    Coordinaten?: any;
+    Type?: any;
+    Tariefcode?: number;
+    Openingstijden?: string;
+    Open_ma?: string;
+    Dicht_ma?: string;
+    Open_di?: string;
+    Dicht_di?: string;
+    Open_wo?: string;
+    Dicht_wo?: string;
+    Open_do?: string;
+    Dicht_do?: string;
+    Open_vr?: string;
+    Dicht_vr?: string;
+    Open_za?: string;
+    Dicht_za?: string;
+    Open_zo?: string;
+    Dicht_zo?: string;
+  };
+  openParkingHandler?: Function;
 }) {
   const { push } = useRouter();
 
+  const locationDescription = `${parking.Location || ""}${
+    parking.Location && parking.Plaats ? ", " : ""
+  }${parking.Plaats}`;
+
+  let costDescription: string | undefined = "";
+  switch (parking.Tariefcode) {
+    case 1:
+      costDescription = "betaald";
+      break;
+    case 2:
+      costDescription = "gratis";
+      break;
+    case 3:
+      // lijkt een testwaarde
+      costDescription = "";
+      break;
+    case 4:
+      costDescription = "gratis";
+      break;
+    case 5:
+      costDescription = "gratis";
+      break;
+    case null:
+      costDescription = "";
+      break;
+    default:
+      costDescription = `tariefcode ${parking.Tariefcode}`;
+      break;
+  }
+
+  const openingDescription = formatOpeningToday(parking);
+
+  const detailsLine = `${costDescription}${
+    costDescription && openingDescription ? "| " : ""
+  }${openingDescription}`;
+
   return (
-    <div className="
+    <div
+      className="
       ParkingFacilityBlock
-      w-full bg-white
-      px-5
+      flex w-full
+      cursor-pointer
+      justify-between
       border-b
       border-solid
       border-gray-300
-      pb-5
+      bg-white
+      px-5 pb-5
       pt-5
-      flex justify-between
-      cursor-pointer
       "
       onClick={() => {
         // Expand parking if expandParkingHandler was given
-        if(expandParkingHandler) expandParkingHandler(parking.ID);
+        if (expandParkingHandler) expandParkingHandler(parking.ID);
         // Open parking if no expand handler was given
-        if(! expandParkingHandler && openParkingHandler) openParkingHandler(parking.ID);
+        if (!expandParkingHandler && openParkingHandler)
+          openParkingHandler(parking.ID);
       }}
     >
       <div
         data-name="left"
         className={`
-          hidden sm:inline-block
-          mr-2
-          align-middle ${Styles['icon-type']}
+          mr-2 hidden
+          align-middle
+          sm:inline-block ${Styles["icon-type"]}
         `}
         style={{
-          marginTop: '5px',
-          borderColor: getParkingColor(parking.Type)
+          marginTop: "5px",
+          borderColor: getParkingColor(parking.Type),
         }}
       />
       <div data-name="right" className="flex-1">
@@ -62,49 +167,52 @@ function ParkingFacilityBlock({
           <div>
             <b className="text-base">{parking.Title}</b>
           </div>
-          <div className="text-sm text-gray-500">
-            Catharijnesingel 28
-          </div>
+          <div className="text-sm text-gray-500">{locationDescription}</div>
         </div>
-        <div className="
+        <div
+          className="
           mt-2 flex justify-between
           text-sm text-gray-500
-        ">
-          <div className="flex-1">
-            Eerste 24 uur gratis
-          </div>
-          <div className="hidden sm:inline-block">
-            |
-          </div>
-          <div className="flex-1 text-right">
-            open, sluit om 1:00
-          </div>
+        "
+        >
+          <div className="flex-1">{costDescription}</div>
+          {costDescription && openingDescription ? (
+            <div className="hidden sm:inline-block">|</div>
+          ) : null}
+          <div className="flex-1 text-right">{openingDescription}</div>
         </div>
-        {! compact && <>
-          <figure className="mt-4">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Bicycle_parking_at_Alewife_station%2C_August_2001.jpg/330px-Bicycle_parking_at_Alewife_station%2C_August_2001.jpg" style={{
-              borderRadius: '7px'
-            }} />
-          </figure>
-          <div className="mt-4 flex justify-between">
-            <div className="flex text-sm text-gray-500">
-              <span className="mr-2">icoon1</span>
-              <span>icoon2</span>
-            </div>
-            <div>
-              <a
-               onClick={() => {
-                  if(openParkingHandler) openParkingHandler(parking.ID);
+        {!compact && (
+          <>
+            <figure className="mt-4">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Bicycle_parking_at_Alewife_station%2C_August_2001.jpg/330px-Bicycle_parking_at_Alewife_station%2C_August_2001.jpg"
+                style={{
+                  borderRadius: "7px",
                 }}
-                href="#"
-                className="underline text-sm text-gray-500"
-              >meer informatie</a>
+              />
+            </figure>
+            <div className="mt-4 flex justify-between">
+              <div className="flex text-sm text-gray-500">
+                <span className="mr-2">icoon1</span>
+                <span>icoon2</span>
+              </div>
+              <div>
+                <a
+                  onClick={() => {
+                    if (openParkingHandler) openParkingHandler(parking.ID);
+                  }}
+                  href="#"
+                  className="text-sm text-gray-500 underline"
+                >
+                  meer informatie
+                </a>
+              </div>
             </div>
-          </div>
-        </>}
+          </>
+        )}
       </div>
     </div>
   );
-};
+}
 
 export default ParkingFacilityBlock;

@@ -1,8 +1,6 @@
 // ActiveFilters.tsx - Location specific logo
 import * as React from "react";
-import {
-  useDispatch, useSelector
-} from "react-redux";
+import { useSelector } from "react-redux";
 import { AppState } from "~/store/store";
 
 import FilterBoxList, {
@@ -14,7 +12,7 @@ const ALL_PARKING_TYPES = [
     id: "bewaakt",
     name: "bewaakt",
     title: "Bewaakte stalling",
-    active: true
+    active: true,
   },
   {
     id: "geautomatiseerd",
@@ -54,9 +52,7 @@ const ALL_PARKING_TYPES = [
   },
 ];
 
-function ActiveFilters({
-}: {
-}) {
+function ActiveFilters({}: {}) {
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
@@ -66,8 +62,6 @@ function ActiveFilters({
   );
 
   const parkingTypes = updateActiveTypeStates(ALL_PARKING_TYPES, activeTypes);
-
-  console.log(activeTypes);
 
   return (
     <>

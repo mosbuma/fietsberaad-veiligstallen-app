@@ -37,17 +37,18 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
   //   )
   // );
 
-  let cards: CardData[] = [];
+  // let cards: CardData[] = [];
   let filteredFietsenstallingen: any[] = [];
 
   if (fietsenstallingen) {
-    cards = fietsenstallingen.map((x: any, idx: number) => {
-      return {
-        ID: x.ID,
-        title: x.Title,
-        description: x.Description,
-      };
-    });
+    // cards = fietsenstallingen.map((x: any, idx: number) => {
+    //   return {
+    //     ID: x.ID,
+    //     title: x.Title,
+    //     location: x.Location,
+    //     description: x.Description,
+    //   };
+    // });
 
     filteredFietsenstallingen = fietsenstallingen.filter(
       (x: any) => activeTypes.indexOf(x.Type) > -1
@@ -68,7 +69,7 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
         ) : (
           <div className="mx-5 pt-24">
             {filteredFietsenstallingen.map((x: any) => {
-              return <ParkingFacilityBlock key={x.title} parking={x} />;
+              return <ParkingFacilityBlock key={x.Title} parking={x} />;
             })}
           </div>
         )}
@@ -103,7 +104,6 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
         MAPLIST
       </div>
       */}
-
 
       <div data-comment="Show only on desktop" className="hidden sm:flex">
         <div

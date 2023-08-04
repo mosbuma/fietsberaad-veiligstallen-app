@@ -8,7 +8,7 @@ import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 function ParkingFacilityBrowser({
   fietsenstallingen,
   activeParkingId,
-  onShowStallingDetails
+  onShowStallingDetails,
 }: {
   fietsenstallingen: any;
   activeParkingId?: any;
@@ -16,6 +16,7 @@ function ParkingFacilityBrowser({
 }) {
   const [selectedParkingId, setSelectedParkingId] = useState(activeParkingId);
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
+  const [filterQuery, setFilterQuery] = useState("");
 
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
@@ -23,20 +24,30 @@ function ParkingFacilityBrowser({
 
   // If mapVisibleFeatures change: Filter parkings
   useEffect(() => {
-    if(! fietsenstallingen) return;
-    if(! mapVisibleFeatures) return;
+    if (!fietsenstallingen) return;
+    if (!mapVisibleFeatures) return;
 
     const allParkings = fietsenstallingen;
-    const visibleParkingIds = mapVisibleFeatures.map(x => x.id);
+    const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
     // Only keep parkings that are visible on the map
-    const filtered = allParkings.filter((x) => visibleParkingIds.indexOf(x.ID) > -1);
+    const filtered = allParkings.filter((p) => {
+      const inFilter =
+        filterQuery === "" ||
+        p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+        p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+        p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
+      activeParkingId ? p.ID === activeParkingId : true;
+      const showParking = visibleParkingIds.indexOf(p.ID) > -1 && inFilter;
+      return showParking;
+    });
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
   }, [
     fietsenstallingen,
     mapVisibleFeatures,
-    mapVisibleFeatures.length
-  ])
+    mapVisibleFeatures.length,
+    filterQuery,
+  ]);
 
   const expandParking = (id: string) => {
     // Set active parking ID
@@ -51,7 +62,11 @@ function ParkingFacilityBrowser({
     // Set active parking ID
     setSelectedParkingId(id);
 
-    onShowStallingDetails && onShowStallingDetails(id);
+    onShowStallingDetails && onShowStallingDetails(Number(id));
+  };
+
+  const updateFilter = (query: string) => {
+    setFilterQuery(query);
   };
 
   return (
@@ -71,12 +86,12 @@ function ParkingFacilityBrowser({
         overflow: "auto",
       }}
     >
-      <SearchBar />
+      <SearchBar filterChanged={updateFilter} />
 
       <div className="px-0">
         {visibleParkings.map((x: any) => {
           return (
-            <div className="mr-0 mb-0 ml-0">
+            <div className="mb-0 ml-0 mr-0">
               <ParkingFacilityBlock
                 key={x.ID}
                 parking={x}
