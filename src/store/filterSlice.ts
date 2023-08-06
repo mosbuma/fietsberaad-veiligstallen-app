@@ -40,7 +40,7 @@ export const filterSlice = createSlice({
       }
     },
     setQuery(state, action) {
-      state.query = action.payload;
+      state.query = action.payload.toLowerCase();
     },
   },
 
