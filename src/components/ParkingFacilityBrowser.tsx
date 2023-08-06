@@ -62,7 +62,7 @@ function ParkingFacilityBrowser({
     // Set active parking ID
     setSelectedParkingId(id);
 
-    onShowStallingDetails && onShowStallingDetails(Number(id));
+    onShowStallingDetails && onShowStallingDetails(id);
   };
 
   const updateFilter = (query: string) => {
