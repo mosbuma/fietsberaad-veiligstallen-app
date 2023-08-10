@@ -251,11 +251,16 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     mapboxMap.on("idle", function () {
       onMoved(mapboxMap);
     });
+    // Show parking info on click
     mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
-      console.log('e', e.features[0])
+      console.log('e', e.features[0].properties)
       // Make clicked parking active
       dispatch(setSelectedParkingId(e.features[0].properties.id));
-
+    });
+    // Enlarge parking icon on click
+    mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
+      mapboxMap.setPaintProperty("fietsenstallingen-markers", 'circle-radius', ["case", ["==", ["get", "id"], e.features[0].properties.id], 10, 5]);
+      mapboxMap.setPaintProperty("fietsenstallingen-markers", 'circle-stroke-width', ["case", ["==", ["get", "id"], e.features[0].properties.id], 3, 4]);
     });
   };
 
