@@ -7,6 +7,7 @@ import {
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
+  setSelectedParkingId
 } from "~/store/mapSlice";
 
 import { AppState } from "~/store/store";
@@ -202,8 +203,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   React.useEffect(() => {
     if (!stateMap) return;
 
-    // const geojson = createGeoJson(fietsenstallingen);
-
     let filter = [
       "all",
       ["in", ["get", "type"], ["literal", filterActiveTypes]],
@@ -251,6 +250,12 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // This function is called when all rendering has been done
     mapboxMap.on("idle", function () {
       onMoved(mapboxMap);
+    });
+    mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
+      console.log('e', e.features[0])
+      // Make clicked parking active
+      dispatch(setSelectedParkingId(e.features[0].properties.id));
+
     });
   };
 

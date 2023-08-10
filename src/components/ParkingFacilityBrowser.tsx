@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { setSelectedParkingId } from "~/store/mapSlice";
+
 import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
@@ -14,12 +16,17 @@ function ParkingFacilityBrowser({
   activeParkingId?: any;
   onShowStallingDetails?: (id: number) => void;
 }) {
-  const [selectedParkingId, setSelectedParkingId] = useState(activeParkingId);
+  const dispatch = useDispatch();
+
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
   const [filterQuery, setFilterQuery] = useState("");
 
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
+  );
+
+  const selectedParkingId = useSelector(
+    (state: AppState) => state.map.selectedParkingId
   );
 
   // If mapVisibleFeatures change: Filter parkings
@@ -49,9 +56,23 @@ function ParkingFacilityBrowser({
     filterQuery,
   ]);
 
+  // Scroll to selected parking if selected parking changes
+  useEffect(() => {
+    // Stop if no parking was selected
+    if(! selectedParkingId) return;
+    const container = document.getElementsByClassName('ParkingFacilityBrowser')[0];
+    const elToScrollTo = document.getElementById('parking-facility-block-'+selectedParkingId);
+    // Stop if no parking element was found
+    if(! elToScrollTo) return;
+    container.scrollTo({
+      top: elToScrollTo.offsetTop - 135,
+      behavior: "smooth"
+    });
+  }, [selectedParkingId]);
+
   const expandParking = (id: string) => {
     // Set active parking ID
-    setSelectedParkingId(id);
+    dispatch(setSelectedParkingId(id));
   };
 
   const clickParking = (id: string) => {
@@ -60,7 +81,7 @@ function ParkingFacilityBrowser({
     // push(`/stalling/${id}`);// Redirect
 
     // Set active parking ID
-    setSelectedParkingId(id);
+    expandParking(id);
 
     onShowStallingDetails && onShowStallingDetails(id);
   };
@@ -94,6 +115,7 @@ function ParkingFacilityBrowser({
             <div className="mb-0 ml-0 mr-0">
               <ParkingFacilityBlock
                 key={x.ID}
+                id={'parking-facility-block-'+x.ID}
                 parking={x}
                 compact={x.ID !== selectedParkingId}
                 expandParkingHandler={expandParking}

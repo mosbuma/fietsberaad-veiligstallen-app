@@ -58,10 +58,12 @@ const formatOpeningToday = (parkingdata: any): string => {
 
 function ParkingFacilityBlock({
   parking,
+  id,
   compact,
   openParkingHandler,
   expandParkingHandler,
 }: {
+  id?: any,
   parking: {
     ID: string;
     Title: string;
@@ -130,6 +132,7 @@ function ParkingFacilityBlock({
 
   return (
     <div
+      id={id}
       className="
       ParkingFacilityBlock
       flex w-full
