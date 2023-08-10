@@ -87,13 +87,15 @@ export const IconButton = ({
   children,
   htmlBefore,
   className,
-  iconUrl
+  iconUrl,
+  style
 }: {
   onClick?: Function,
   children: any
   htmlBefore?: any,
   className?: string
   iconUrl?: string
+  style?: any
 }) => {
   return (
     <button
@@ -116,12 +118,12 @@ export const IconButton = ({
       onClick={() => {
         if(onClick) onClick()
       }}
-      style={{
+      style={Object.assign({}, {
         userSelect: "none", // disable highlighting
         backgroundColor: '#FFFFFF',
         backgroundImage: `url('${iconUrl}')`,
         backgroundSize: '20px'
-      }}
+      }, style)}
     >
       {htmlBefore}
       {children}

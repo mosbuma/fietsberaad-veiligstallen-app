@@ -2,8 +2,6 @@ import { SetStateAction, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { Prisma } from "@prisma/client";
-import { prisma } from "~/server/db";
 import superjson from "superjson";
 
 // import { setMunicipalities } from "~/store/geoSlice";
@@ -18,6 +16,8 @@ import CardList from "~/components/CardList";
 import Logo from "~/components/Logo";
 import ActiveFilters from "~/components/ActiveFilters";
 import { IconButton } from "~/components/Button";
+
+import { getParkingsFromDatabase } from "~/utils/prisma";
 
 export async function getStaticProps() {
   try {
@@ -41,85 +41,6 @@ export async function getStaticProps() {
     };
   }
 }
-
-const getParkingsFromDatabase = async () => {
-  const fietsenstallingen = await prisma.fietsenstallingen.findMany({
-    where: {
-      Plaats: {
-        not: "",
-      },
-    },
-    // select: {
-    //   StallingsID: true,
-    //   Title: true,
-    //   Location: true,
-    //   Coordinaten: true,
-    //   DateCreated: true,
-    // },
-  });
-
-  fietsenstallingen.forEach((stalling: any) => {
-    Object.entries(stalling).forEach(([key, prop]) => {
-      if (prop instanceof Date) {
-        stalling[key] = new Date(stalling[key]).toISOString();
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-        // );
-      }
-      if (prop instanceof BigInt) {
-        stalling[key] = stalling.toString();
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-        // );
-      }
-      if (prop instanceof Prisma.Decimal) {
-        // stalling[key] = stalling.toString();
-        // console.log(
-        //   `@@@@ delete ${key} [${typeof prop}]`
-        // );
-        delete stalling[key];
-      }
-    });
-
-    delete stalling.reservationCostPerDay;
-    delete stalling.wachtlijst_Id;
-  });
-
-  fietsenstallingen.filter((x: any) => x.Plaats !== "");
-
-  return fietsenstallingen;
-};
-
-// const getMunicipalities = async () => {
-//   const municipalities = await prisma.zones.findMany({
-//     where: {
-//       zone_type: 'municipality'
-//     },
-//     // select: {
-//     //   StallingsID: true,
-//     //   Title: true,
-//     //   Location: true,
-//     //   Coordinaten: true,
-//     //   DateCreated: true,
-//     // },
-//   });
-
-//   municipalities.forEach((x: any) => {
-//     Object.entries(x).forEach(([key, prop]) => {
-//       if (prop instanceof Date) {
-//         x[key] = new Date(x[key]).toISOString();
-//       }
-//       if (prop instanceof BigInt) {
-//         stalling[key] = stalling.toString();
-//       }
-//       if (prop instanceof Prisma.Decimal) {
-//         delete stalling[key];
-//       }
-//     });
-//   });
-
-//   return municipalities;
-// }
 
 const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
@@ -154,6 +75,8 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
       </>
     );
   }
+
+  console.log(fietsenstallingen);
 
   return (
     <>

@@ -198,7 +198,7 @@ function ParkingFacilityBlock({
           <>
             <figure className="mt-4     mx-auto p-2">
               <img
-                class="mx-auto"
+                className="mx-auto"
                 src={parkingImageUrl}
                 style={{
                   borderRadius: "7px",

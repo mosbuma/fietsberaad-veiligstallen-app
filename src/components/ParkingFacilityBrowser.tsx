@@ -112,9 +112,8 @@ function ParkingFacilityBrowser({
       <div className="px-0">
         {visibleParkings.map((x: any) => {
           return (
-            <div className="mb-0 ml-0 mr-0">
+            <div className="mb-0 ml-0 mr-0" key={x.ID}>
               <ParkingFacilityBlock
-                key={x.ID}
                 id={'parking-facility-block-'+x.ID}
                 parking={x}
                 compact={x.ID !== selectedParkingId}

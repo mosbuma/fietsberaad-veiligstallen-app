@@ -26,10 +26,6 @@ import nine3030 from "../mapStyles/nine3030";
 // Import component styles, i.e. for the markers
 import styles from "./MapComponent.module.css";
 
-const didClickMarker = (e: any) => {
-  console.log("Clicked marker", e);
-};
-
 // Add custom markers
 const addMarkerImages = (map: any) => {
   const addMarkerImage = async (parkingType: string) => {

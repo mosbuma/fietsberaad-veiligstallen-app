@@ -4,7 +4,8 @@ import React from "react";
 import PageTitle from "~/components/PageTitle";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
-import { Button } from "~/components/Button";
+import { Button, IconButton } from "~/components/Button";
+import ParkingOnTheMap from "~/components/ParkingOnTheMap";
 
 const Parking = ({ parkingdata }: { parkingdata: any }) => {
   const formatOpening = (
@@ -65,7 +66,7 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
             <p>
               <b>{parkingdata.Title}</b>
               <br />
-              {Location}
+              {parkingdata.Location}
               <br />
               {parkingdata.Postcode} {parkingdata.Plaats}
             </p>
@@ -233,12 +234,27 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
         </div>
 
         <div data-name="content-right" className="ml-12">
-          <img
-            src="/images/kaart-voorbeeld.png"
-            alt="Kaart"
-            width="414"
-            className="rounded-3xl"
-          />
+          <div className="relative">
+
+            <ParkingOnTheMap parking={parkingdata} />
+
+            <Button className="
+              absolute bottom-0 right-3
+              z-10
+            "
+            onClick={() => {
+              // Get coords from parking variable
+              const coords = parkingdata.Coordinaten.split(",").map((coord: any) => Number(coord)); // E.g.: 52.508011,5.473280;
+              const coordsString = "" + coords[0] + ',' + coords[1]; // E.g. 51.9165409,4.4480073
+              // Generate route URL
+              // dirflg: b=bicycling. Source: https://webapps.stackexchange.com/a/67255
+              const url = `https://www.google.com/maps/dir/?saddr=My+Location&daddr=${coordsString}&z=17&dirflg=b`;
+              window.open(url, '_blank');
+            }}>
+              Breng mij hier naartoe
+            </Button>
+
+          </div>
         </div>
       </div>
     </div>
