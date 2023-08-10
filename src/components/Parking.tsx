@@ -248,8 +248,16 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
               const coordsString = "" + coords[0] + ',' + coords[1]; // E.g. 51.9165409,4.4480073
               // Generate route URL
               // dirflg: b=bicycling. Source: https://webapps.stackexchange.com/a/67255
-              const url = `https://www.google.com/maps/dir/?saddr=My+Location&daddr=${coordsString}&z=17&dirflg=b`;
-              window.open(url, '_blank');
+              const url = `https://www.google.com/maps/dir/?api=1&travelmode=bicycling&destination=${coordsString}&z=17&dirflg=b`;
+              // window.open(url, '_blank');
+              // If it's an iPhone..
+              if( (navigator.platform.indexOf("iPhone") != -1) 
+                  || (navigator.platform.indexOf("iPod") != -1)
+                  || (navigator.platform.indexOf("iPad") != -1))
+                   window.open(`maps://www.google.com/maps/dir/?api=1&layer=traffic&destination=${coordsString}`);
+              else
+                   window.open(url);
+
             }}>
               Breng mij hier naartoe
             </Button>
