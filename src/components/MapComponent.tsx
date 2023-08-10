@@ -111,10 +111,20 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     (state: AppState) => state.geo.municipalities
   );
 
+  const selectedParkingId = useSelector(
+    (state: AppState) => state.map.selectedParkingId
+  );
+
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
   // will contain `null` by default
   const mapNode = React.useRef(null);
+
+  React.useEffect(() => {
+    if(! stateMap) return;
+    if(! selectedParkingId) return;
+    highlighMarker(stateMap, selectedParkingId)
+  }, [stateMap, selectedParkingId]);
 
   React.useEffect(() => {
     const node = mapNode.current;
@@ -234,6 +244,11 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
   }, [stateMap, filterActiveTypes]);
 
+  const highlighMarker = (map: any, id: string) => {
+    map.setPaintProperty("fietsenstallingen-markers", 'circle-radius', ["case", ["==", ["get", "id"], id], 10, 5]);
+    map.setPaintProperty("fietsenstallingen-markers", 'circle-stroke-width', ["case", ["==", ["get", "id"], id], 3, 4]);
+  }
+
   // Function that's called if map is loaded
   const onMapLoaded = (mapboxMap) => {
     // Save map as local variabele
@@ -259,8 +274,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
     // Enlarge parking icon on click
     mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
-      mapboxMap.setPaintProperty("fietsenstallingen-markers", 'circle-radius', ["case", ["==", ["get", "id"], e.features[0].properties.id], 10, 5]);
-      mapboxMap.setPaintProperty("fietsenstallingen-markers", 'circle-stroke-width', ["case", ["==", ["get", "id"], e.features[0].properties.id], 3, 4]);
+      highlighMarker(mapboxMap, e.features[0].properties.id);
     });
   };
 

@@ -4,6 +4,33 @@ import { getParkingColor } from "~/utils/theme";
 
 import Styles from "./ParkingFacilityBlock.module.css";
 
+type ParkingType = {
+  ID: string;
+  Title: string;
+  Plaats?: string;
+  Location?: string;
+  Postcode?: any;
+  Status?: any;
+  Coordinaten?: any;
+  Type?: any;
+  Tariefcode?: number;
+  Openingstijden?: string;
+  Open_ma?: string;
+  Dicht_ma?: string;
+  Open_di?: string;
+  Dicht_di?: string;
+  Open_wo?: string;
+  Dicht_wo?: string;
+  Open_do?: string;
+  Dicht_do?: string;
+  Open_vr?: string;
+  Dicht_vr?: string;
+  Open_za?: string;
+  Dicht_za?: string;
+  Open_zo?: string;
+  Dicht_zo?: string;
+}
+
 const isOpen = (openingTime: Date, closingTime: Date): boolean => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -64,32 +91,7 @@ function ParkingFacilityBlock({
   expandParkingHandler,
 }: {
   id?: any,
-  parking: {
-    ID: string;
-    Title: string;
-    Plaats?: string;
-    Location?: string;
-    Postcode?: any;
-    Status?: any;
-    Coordinaten?: any;
-    Type?: any;
-    Tariefcode?: number;
-    Openingstijden?: string;
-    Open_ma?: string;
-    Dicht_ma?: string;
-    Open_di?: string;
-    Dicht_di?: string;
-    Open_wo?: string;
-    Dicht_wo?: string;
-    Open_do?: string;
-    Dicht_do?: string;
-    Open_vr?: string;
-    Dicht_vr?: string;
-    Open_za?: string;
-    Dicht_za?: string;
-    Open_zo?: string;
-    Dicht_zo?: string;
-  };
+  parking: ParkingType;
   openParkingHandler?: Function;
 }) {
   const { push } = useRouter();
@@ -129,6 +131,14 @@ function ParkingFacilityBlock({
   const detailsLine = `${costDescription}${
     costDescription && openingDescription ? "| " : ""
   }${openingDescription}`;
+
+  if(parking.ExtraServices) {
+    // console.log('parking', parking)
+  }
+
+  const parkingImageUrl = parking.Image
+    ? `https://static.veiligstallen.nl/library/fietsenstallingen/${parking.Image}`
+    : `/images/bike-blue-green.png`;
 
   return (
     <div
@@ -186,18 +196,28 @@ function ParkingFacilityBlock({
         </div>
         {!compact && (
           <>
-            <figure className="mt-4">
+            <figure className="mt-4     mx-auto p-2">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Bicycle_parking_at_Alewife_station%2C_August_2001.jpg/330px-Bicycle_parking_at_Alewife_station%2C_August_2001.jpg"
+                class="mx-auto"
+                src={parkingImageUrl}
                 style={{
                   borderRadius: "7px",
+                  maxHeight: '150px'
                 }}
               />
             </figure>
             <div className="mt-4 flex justify-between">
               <div className="flex text-sm text-gray-500">
-                <span className="mr-2">icoon1</span>
-                <span>icoon2</span>
+                {/*
+                <span className="mr-2">buggy-uitleen</span>
+                <span className="mr-2">fietspomp</span>
+                <span className="mr-2">fietsverhuur</span>
+                <span className="mr-2">kluisjes</span>
+                <span className="mr-2">opladen e-fiets</span>
+                <span className="mr-2">toilet</span>
+                <span>nog een icoon</span>
+                */}
+                <span>{parking.ExtraServices}</span>
               </div>
               <div>
                 <a

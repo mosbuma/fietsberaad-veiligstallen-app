@@ -23,6 +23,7 @@ export async function getStaticProps() {
   try {
     // console.log("index.getStaticProps - start");
     const fietsenstallingen = await getParkingsFromDatabase();
+    // TODO: Don't include: EditorCreated, EditorModified
 
     return {
       props: {
