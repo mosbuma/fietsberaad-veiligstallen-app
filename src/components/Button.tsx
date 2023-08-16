@@ -47,12 +47,14 @@ export const Button = ({
   onClick,
   children,
   htmlBefore,
-  className
+  className,
+  style
 }: {
   onClick?: Function,
   children: any
   htmlBefore?: any,
-  className?: string
+  className?: string,
+  style?: object
 }) => {
   return (
     <button
@@ -71,10 +73,10 @@ export const Button = ({
       onClick={() => {
         if(onClick) onClick()
       }}
-      style={{
+      style={Object.assign({}, {
         userSelect: "none", // disable highlighting
         backgroundColor: '#CC0000'
-      }}
+      }, style)}
     >
       {htmlBefore}
       {children}
