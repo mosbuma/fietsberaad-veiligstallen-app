@@ -252,12 +252,14 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
               // window.open(url, '_blank');
               // If it's an iPhone..
               if( (navigator.platform.indexOf("iPhone") != -1) 
-                  || (navigator.platform.indexOf("iPod") != -1)
-                  || (navigator.platform.indexOf("iPad") != -1))
-                   window.open(`maps://www.google.com/maps/dir/?api=1&layer=traffic&destination=${coordsString}`);
-              else
-                   window.open(url);
-
+                || (navigator.platform.indexOf("iPod") != -1)
+                || (navigator.platform.indexOf("iPad") != -1)
+              ) {
+                window.open(url.replace('https://', 'maps://'));
+              }
+              else {
+                window.open(url);
+              }
             }}>
               Breng mij hier naartoe
             </Button>
