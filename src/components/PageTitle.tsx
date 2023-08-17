@@ -10,7 +10,8 @@ function PageTitle({
 }) {
   return (
     <h1 className={`
-      text-3xl
+      text-xl
+      sm:text-3xl
       font-poppinssemibold
       mb-6
       ${className}

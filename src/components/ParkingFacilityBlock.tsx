@@ -177,10 +177,12 @@ function ParkingFacilityBlock({
       />
       <div data-name="right" className="flex-1">
         <div className="">
-          <div>
+          <div className="h-6 overflow-hidden sm:h-auto">
             <b className="text-base">{parking.Title}</b>
           </div>
-          <div className="text-sm text-gray-500">{locationDescription}</div>
+          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={{locationDescription}}>
+            {locationDescription}
+          </div>
         </div>
         <div
           className="
@@ -188,11 +190,11 @@ function ParkingFacilityBlock({
           text-sm text-gray-500
         "
         >
-          <div className="flex-1">{costDescription}</div>
+          <div className="">{costDescription+' '}</div>
           {costDescription && openingDescription ? (
             <div className="hidden sm:inline-block">|</div>
           ) : null}
-          <div className="flex-1 text-right">{openingDescription}</div>
+          <div className="text-right">{openingDescription+' '}</div>
         </div>
         {!compact && (
           <>

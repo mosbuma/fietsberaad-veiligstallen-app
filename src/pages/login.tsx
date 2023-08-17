@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from 'next/navigation'
 
 // Import utils
 // import { getParkingsFromDatabase } from "~/utils/prisma";
@@ -17,6 +18,8 @@ import { Button } from "~/components/Button";
 import Styles from "./login.module.css";
 
 const Login: NextPage = () => {
+  const router = useRouter()
+
   return (
     <>
 			<div data-comment="Show only on desktop" className="hidden sm:flex">
@@ -105,7 +108,9 @@ const Login: NextPage = () => {
 									</FormCheckbox>
 								</div>
 								<div className="flex flex-col justify-center">
-									<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}}>
+									<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}} onClick={() => {
+										router.push('/')
+									}}>
 										Inloggen
 									</Button>
 								</div>

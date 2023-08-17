@@ -8,3 +8,14 @@ export const parkingTypes: string[] = [
   "geautomatiseerd",
   "unknown",
 ];
+
+export const findParkingIndex = (parkings, parkingId) => {
+  let index = 0, foundIndex;
+  parkings.forEach((x) => {
+    if(x.ID === parkingId) {
+      foundIndex = index;
+    }
+    index++;
+  });
+  return foundIndex;
+}
