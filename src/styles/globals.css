@@ -124,3 +124,9 @@ body {
 .modal-close-button:hover {
   color: #ff0000;
 }
+
+@media(min-width: 641px) {
+  .sm\:flex-nowrap {
+    flex:nowrap;
+  }
+}

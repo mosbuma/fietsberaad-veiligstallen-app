@@ -7,6 +7,47 @@ import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import ParkingOnTheMap from "~/components/ParkingOnTheMap";
 
+const SectionBlock = ({
+  heading,
+  children,
+  contentClasses
+}: {
+  heading: string,
+  children: any
+  contentClasses?: string
+}) => {
+  return (
+    <div className="flex justify-between flex-wrap sm:flex-nowrap">
+      <div
+        className="
+          w-full
+          sm:w-48
+          font-bold
+        "
+      >
+        {heading}
+      </div>
+      <div className={`
+        mt-4
+        sm:mt-0
+        ml-4
+        sm:ml-0
+
+        sm:flex-1
+
+        text-sm
+        sm:text-base
+
+        w-full
+        sm:w-auto
+        ${contentClasses ? contentClasses : ''}
+      `}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 const Parking = ({ parkingdata }: { parkingdata: any }) => {
   const formatOpening = (
     dayidx: number,
@@ -54,13 +95,15 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
       </div>
 
       <div className="flex justify-between">
-        <div data-name="content-left" className="mr-12">
+        <div data-name="content-left" className="sm:mr-12">
           <ImageSlider />
 
           <section
             className="
               mt-8
               flex justify-between
+              text-sm
+              sm:text-base
             "
           >
             <p>
@@ -77,72 +120,46 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Openingstijden
-            </div>
-            <div className="grid flex-1 grid-cols-2">
-              {formatOpening(2, "ma", "Maandag")}
-              {formatOpening(3, "di", "Dinsdag")}
-              {formatOpening(4, "wo", "Woensdag")}
-              {formatOpening(5, "do", "Donderdag")}
-              {formatOpening(6, "vr", "Vrijdag")}
-              {formatOpening(0, "za", "Zaterdag")}
-              {formatOpening(1, "zo", "Zondag")}
-              {parkingdata.Openingstijden !== "" && (
-                <div className="col-span-2">
-                  <div>
-                    <br />
-                    {parkingdata.Openingstijden}
-                  </div>
+          <SectionBlock heading="Openingstijden"
+            contentClasses="grid grid-cols-2"
+          >
+            {formatOpening(2, "ma", "Maandag")}
+            {formatOpening(3, "di", "Dinsdag")}
+            {formatOpening(4, "wo", "Woensdag")}
+            {formatOpening(5, "do", "Donderdag")}
+            {formatOpening(6, "vr", "Vrijdag")}
+            {formatOpening(0, "za", "Zaterdag")}
+            {formatOpening(1, "zo", "Zondag")}
+            {parkingdata.Openingstijden !== "" && (
+              <div className="col-span-2">
+                <div>
+                  <br />
+                  {parkingdata.Openingstijden}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Tarief
+          <SectionBlock heading="Tarief">
+            <div className="font-bold">Fietsen</div>
+            <div className="ml-2 grid grid-cols-2 w-full">
+              <div>Eerste 24 uur:</div>
+              <div className="text-right sm:text-center">gratis</div>
+              <div>Daarna per 24 uur:</div>
+              <div className="text-right sm:text-center">&euro;0,60</div>
             </div>
-            <div className="flex-1">
-              <div className="font-bold">Fietsen</div>
-              <div className="ml-2 grid grid-cols-2">
-                <div>Eerste 24 uur:</div>
-                <div className="text-center">gratis</div>
-                <div>Daarna per 24 uur:</div>
-                <div className="text-center">&euro;0,60</div>
-              </div>
-              <div className="font-bold">Bromfietsen</div>
-              <div className="ml-2 grid grid-cols-2">
-                <div>Eerste 24 uur:</div>
-                <div className="text-center">&euro;0,60</div>
-              </div>
+            <div className="font-bold mt-4">Bromfietsen</div>
+            <div className="ml-2 grid grid-cols-2 w-full">
+              <div>Eerste 24 uur:</div>
+              <div className="text-right sm:text-center">&euro;0,60</div>
             </div>
-          </div>
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Services
-            </div>
+          <SectionBlock heading="Services">
             <div className="flex-1">
               <div>
                 <div>Buggy uitleen/verhuur</div>
@@ -152,88 +169,56 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
                 <div>Toilet</div>
               </div>
             </div>
-          </div>
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Capaciteit
+          <SectionBlock heading="Capaciteit">
+            <div className="ml-2 grid grid-cols-3">
+              <div className="col-span-2">Bromfietsen</div>
+              <div className="text-right sm:text-center">32</div>
+              <div className="col-span-2">Afwijkende maten</div>
+              <div className="text-right sm:text-center">7</div>
+              <div className="col-span-2">Elektrische fietsen</div>
+              <div className="text-right sm:text-center">19</div>
+              <div className="col-span-2">Bakfietsen</div>
+              <div className="text-right sm:text-center">12</div>
             </div>
-            <div className="flex-1">
-              <div className="ml-2 grid grid-cols-2">
-                <div>Bromfietsen</div>
-                <div className="text-center">32</div>
-                <div>Afwijkende maten</div>
-                <div className="text-center">7</div>
-                <div>Elektrische fietsen</div>
-                <div className="text-center">19</div>
-                <div>Bakfietsen</div>
-                <div className="text-center">12</div>
-              </div>
-            </div>
-          </div>
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Abonnementen
+          <SectionBlock heading="Abonnementen">
+            <div className="ml-2 grid grid-cols-3">
+              <div className="col-span-2">Jaarbonnement fiets</div>
+              <div className="text-right sm:text-center">&euro;80,90</div>
+              <div className="col-span-2">Jaarabonnement bromfiets</div>
+              <div className="text-right sm:text-center">&euro;262.97</div>
             </div>
-            <div className="flex-1">
-              <div className="ml-2 grid grid-cols-2">
-                <div>Jaarbonnement fiets</div>
-                <div className="text-center">&euro;80,90</div>
-                <div>Jaarabonnement bromfiets</div>
-                <div className="text-center">&euro;262.97</div>
-              </div>
-            </div>
-          </div>
+          </SectionBlock>
 
           {/*<button>Koop abonnement</button>*/}
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Soort stalling
-            </div>
-            <div className="flex-1">Bewaakte stalling</div>
-          </div>
+          <SectionBlock heading="Soort stalling">
+            Bewaakte stalling
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
-          <div className="flex justify-between">
-            <div
-              className="
-                w-48
-                font-bold
-              "
-            >
-              Beheerder
-            </div>
-            <div className="flex-1">U-stal</div>
-          </div>
+          <SectionBlock heading="Beheerder">
+            U-stal
+          </SectionBlock>
+
+          <p className="mb-10">
+            {/*Some spacing*/}
+          </p>
 
           {/*<button>Breng mij hier naartoe</button>*/}
         </div>
 
-        <div data-name="content-right" className="ml-12">
+        <div data-name="content-right" className="ml-12 hidden sm:block">
           <div className="relative">
 
             <ParkingOnTheMap parking={parkingdata} />
