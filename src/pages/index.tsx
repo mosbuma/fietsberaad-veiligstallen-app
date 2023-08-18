@@ -11,6 +11,7 @@ import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import Parking from "~/components/Parking";
 import Modal from "src/components/Modal";
+import Overlay from "src/components/Overlay";
 import SearchBar from "~/components/SearchBar";
 import CardList from "~/components/CardList";
 import Logo from "~/components/Logo";
@@ -60,6 +61,13 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
 
   // console.log("fietsenstallingen", fietsenstallingen);
 
+  const currentStalling = fietsenstallingen.find((stalling: any) => {
+    return stalling.ID === currentStallingId;
+  });
+
+  const isSm = typeof window !== "undefined" && window.innerWidth < 640;
+  const isLg = typeof window !== "undefined" && window.innerWidth < 768;
+
   if (online === false) {
     return (
       <>
@@ -92,7 +100,19 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
           <AppHeaderDesktop />
         </div>
 
-        {currentStallingId && (
+        {currentStallingId && isSm && (<>
+          <Overlay
+            title={currentStalling.Title}
+            onClose={() => setCurrentStallingId(undefined)}
+          >
+            <Parking
+              key={currentStallingId}
+              parkingdata={currentStalling}
+            />
+          </Overlay>
+        </>)}
+
+        {currentStallingId && ! isSm && (<>
           <Modal
             onClose={() => setCurrentStallingId(undefined)}
             clickOutsideClosesDialog={true}
@@ -104,7 +124,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               })}
             />
           </Modal>
-        )}
+        </>)}
 
         <div
           className="
