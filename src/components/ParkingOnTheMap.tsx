@@ -159,7 +159,6 @@ function ParkingOnTheMap({parking}) {
     setStateMap(mapboxMap);
     // Disable drag and zoom handlers.
     mapboxMap.scrollZoom.disable();
-    console.log('mapboxMap', mapboxMap)
   };
 
   const highlighMarker = (map: any, id: string) => {

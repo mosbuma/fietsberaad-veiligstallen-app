@@ -16,9 +16,16 @@ interface Props extends CardData {}
 
 const Card: React.FC<Props> = ({
   parking,
-  isActive,
+  compact,
   expandParking,
-  clickParking
+  clickParking,
+  showButtons
+}: {
+  parking: object,
+  compact?: true,
+  expandParking?: Function,
+  clickParking?: Function,
+  showButtons?: false
 }) => {
   return (
     <div
@@ -29,13 +36,13 @@ const Card: React.FC<Props> = ({
         flex
         flex-col
         rounded-lg
-        bg-white
       `}
     >
       <ParkingFacilityBlock
         parking={parking}
         key={parking.ID}
-        compact={true}
+        compact={compact}
+        showButtons={showButtons}
         expandParkingHandler={expandParking}
         openParkingHandler={clickParking}
       />

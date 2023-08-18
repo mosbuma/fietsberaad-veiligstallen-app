@@ -35,6 +35,8 @@ const CardList: React.FC<Props> = ({
     (state: AppState) => state.map.selectedParkingId
   );
 
+  const mapExtent = useSelector((state: AppState) => state.map.extent);
+
   // If mapVisibleFeatures change: Filter parkings
   useEffect(() => {
     if(! fietsenstallingen) return;
@@ -46,25 +48,47 @@ const CardList: React.FC<Props> = ({
     const filtered = allParkings.filter((x) => visibleParkingIds.indexOf(x.ID) > -1);
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
-    setTimeout(() => {
-      slider.current.update(sliderProps, 0)
-    }, 10);
   }, [
     fietsenstallingen,
-    mapVisibleFeatures,
     mapVisibleFeatures.length
   ])
 
-  // Scroll to selected parking if selected parking changes
+  // If map extent changes: Move to correct parking slide if needed
   useEffect(() => {
-    // Stop if no parking was selected
-    if(! selectedParkingId) return;
-    if(! slider) return;
+    if(! visibleParkings) return;
 
-    // Find index of selected parking
-    const idx = findParkingIndex(visibleParkings, selectedParkingId);
-    slider.current.moveToIdx(idx);
-  }, [selectedParkingId]);
+    // After map update: Is selectedParkingId still visible? If so: Slide to parking card
+    let isSelectedParkingStillVisible = false, selectedParkingIndex: number;
+    visibleParkings.forEach((x, idx) => {
+      if(x.ID === selectedParkingId) {
+        isSelectedParkingStillVisible = true;
+        selectedParkingIndex = idx;
+      }
+    });
+    // Wait 50 ms so that the map flyTo animation is fully done before sliding to the right card
+    setTimeout(() => {
+      const cardToSlideTo = isSelectedParkingStillVisible ? selectedParkingIndex : 0;
+      slider.current.update(sliderProps, cardToSlideTo)
+    }, 50)
+  }, [
+    mapExtent,
+    visibleParkings
+  ])
+
+  // Scroll to selected parking if selected parking changes
+  // useEffect(() => {
+  //   // Stop if no parking was selected
+  //   if(! selectedParkingId) return;
+  //   if(! slider) return;
+
+  //   // Find index of selected parking
+  //   // Move to current slide, but wait on the flyTo animation first.
+  //   // curve: 1 & speed: 0.2 => 1*0.2 = 0.2s
+  //   if(selectedParkingId) {
+  //     const idx = findParkingIndex(visibleParkings, selectedParkingId);
+  //     slider.current.moveToIdx(idx);
+  //   }
+  // }, [selectedParkingId]);
 
   const sliderProps = {
     slides: {
@@ -74,10 +98,13 @@ const CardList: React.FC<Props> = ({
     dragStarted(event) {
     },
     dragEnded(event) {
-      const index: number = event.track.details.abs;
-      slideChangedHandler(index)
+    },
+    animationEnded(event) {
     },
     slideChanged(event) {
+      // We don't use this below, as we navigate to the Parking on first tap
+      // const index: number = event.track.details.abs;
+      // slideChangedHandler(index)
     }
   }
 
@@ -85,7 +112,7 @@ const CardList: React.FC<Props> = ({
 
   const expandParking = (id: string) => {
     // Set active parking ID
-    // dispatch(setSelectedParkingId(id));
+    dispatch(setSelectedParkingId(id));
   };
 
   const clickParking = (id: string) => {
@@ -108,15 +135,18 @@ const CardList: React.FC<Props> = ({
   return (
     <div className="card-list">
       <div ref={sliderRef} className={`card-list__slides keen-slider px-5`}>
-        {visibleParkings.map((parking, index) => (
-          <Card
-            key={"c-" + parking.ID}
-            parking={parking}
-            isActive={parking.ID === selectedParkingId}
-            expandParking={null}
-            clickParking={clickParking}
-          />
-        ))}
+        {visibleParkings.map((parking, index) => {
+          return (
+            <Card
+              key={"c-" + parking.ID}
+              parking={parking}
+              compact={true}
+              showButtons={selectedParkingId === parking.ID}
+              expandParking={expandParking}
+              clickParking={clickParking}
+            />
+          )
+        })}
       </div>
     </div>
   );

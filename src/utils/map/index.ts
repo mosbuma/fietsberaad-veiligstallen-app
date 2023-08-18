@@ -97,7 +97,38 @@ const isPointInsidePolygon = (point, vs) => {
   return inside;
 };
 
+const convertCoordinatenToCoords = (Coordinaten) => {
+  if(! Coordinaten) return;
+
+  const coords = Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
+
+  return [coords[1], coords[0]];
+}
+
+const openRoute = (Coordinaten) => {
+  if(! Coordinaten) return;
+  // Get coords from parking variable
+  const coords = convertCoordinatenToCoords(Coordinaten);
+  const coordsString = "" + coords[1] + ',' + coords[0]; // E.g. 51.9165409,4.4480073
+  // Generate route URL
+  // dirflg: b=bicycling. Source: https://webapps.stackexchange.com/a/67255
+  const url = `https://www.google.com/maps/dir/?api=1&travelmode=bicycling&destination=${coordsString}&z=17&dirflg=b`;
+  // window.open(url, '_blank');
+  // If it's an iPhone..
+  if( (navigator.platform.indexOf("iPhone") != -1) 
+    || (navigator.platform.indexOf("iPod") != -1)
+    || (navigator.platform.indexOf("iPad") != -1)
+  ) {
+    window.open(url.replace('https://', 'maps://'));
+  }
+  else {
+    window.open(url);
+  }
+}
+
 export {
   getParkingMarker,
-  isPointInsidePolygon
+  isPointInsidePolygon,
+  convertCoordinatenToCoords,
+  openRoute
 }

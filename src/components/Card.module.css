@@ -2,5 +2,9 @@
 /*  min-width: 80vw !Important;*/
 /*  max-width: 80vw !Important;*/
 /*  width: 80vw !Important;*/
-  height: 100%;
+/*  height: 334px;*/
+/*  height: 100%;*/
+  height: 113px;
+  display: flex;
+  justify-content: flex-end;
 }

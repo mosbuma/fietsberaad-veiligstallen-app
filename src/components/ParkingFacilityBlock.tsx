@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 
 import { getParkingColor } from "~/utils/theme";
+import { openRoute } from "~/utils/map/index";
 
 import Styles from "./ParkingFacilityBlock.module.css";
 
@@ -89,10 +90,12 @@ function ParkingFacilityBlock({
   compact,
   openParkingHandler,
   expandParkingHandler,
+  showButtons,
 }: {
   id?: any,
-  parking: ParkingType;
-  openParkingHandler?: Function;
+  parking: ParkingType,
+  openParkingHandler?: Function,
+  showButtons?: false
 }) {
   const { push } = useRouter();
 
@@ -145,6 +148,7 @@ function ParkingFacilityBlock({
       id={id}
       className="
       ParkingFacilityBlock
+      relative
       flex w-full
       cursor-pointer
       justify-between
@@ -190,11 +194,43 @@ function ParkingFacilityBlock({
           text-sm text-gray-500
         "
         >
-          <div className="">{costDescription+' '}</div>
+          <div className="">
+
+            {! showButtons && costDescription+' '}
+
+            {showButtons && <div>
+              <a
+                onClick={() => {
+                  if (openParkingHandler) openParkingHandler(parking.ID);
+                }}
+                href="#"
+                className="text-sm text-gray-500 underline"
+              >
+                meer informatie
+              </a>
+            </div>}
+          </div>
           {costDescription && openingDescription ? (
             <div className="hidden sm:inline-block">|</div>
           ) : null}
-          <div className="text-right">{openingDescription+' '}</div>
+          <div className="text-right">
+            {! showButtons && openingDescription+' '}
+          </div>
+
+          {(showButtons && parking.Coordinaten) && (<>
+            <a href="" className="
+              absolute right-5 bottom-5
+              inline-block
+              rounded-full shadow
+              p-2
+            " onClick={(e) => {
+                e.preventDefault();
+                openRoute(parking.Coordinaten)
+              }}>
+              <img src="/images/icon-route.png" alt="Open route" className="w-5" />
+            </a>
+          </>)}
+
         </div>
         {!compact && (
           <>

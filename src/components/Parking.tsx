@@ -7,6 +7,8 @@ import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import ParkingOnTheMap from "~/components/ParkingOnTheMap";
 
+// 
+
 const SectionBlock = ({
   heading,
   children,
@@ -223,29 +225,16 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
             <ParkingOnTheMap parking={parkingdata} />
 
-            <Button className="
-              absolute bottom-0 right-3
-              z-10
-            "
-            onClick={() => {
-              // Get coords from parking variable
-              const coords = parkingdata.Coordinaten.split(",").map((coord: any) => Number(coord)); // E.g.: 52.508011,5.473280;
-              const coordsString = "" + coords[0] + ',' + coords[1]; // E.g. 51.9165409,4.4480073
-              // Generate route URL
-              // dirflg: b=bicycling. Source: https://webapps.stackexchange.com/a/67255
-              const url = `https://www.google.com/maps/dir/?api=1&travelmode=bicycling&destination=${coordsString}&z=17&dirflg=b`;
-              // window.open(url, '_blank');
-              // If it's an iPhone..
-              if( (navigator.platform.indexOf("iPhone") != -1) 
-                || (navigator.platform.indexOf("iPod") != -1)
-                || (navigator.platform.indexOf("iPad") != -1)
-              ) {
-                window.open(url.replace('https://', 'maps://'));
-              }
-              else {
-                window.open(url);
-              }
-            }}>
+            <Button
+              className="
+                absolute bottom-0 right-3
+                z-10
+              "
+              onClick={(e) => {
+                e.preventDefault();
+                openRoute(parkingdata.Coordinaten)
+              }}
+            >
               Breng mij hier naartoe
             </Button>
 

@@ -14,7 +14,7 @@ import { AppState } from "~/store/store";
 
 // Import utils
 import { getParkingColor } from "~/utils/theme";
-import { getParkingMarker, isPointInsidePolygon } from "~/utils/map/index";
+import { getParkingMarker, isPointInsidePolygon, convertCoordinatenToCoords } from "~/utils/map/index";
 import { getActiveMunicipality } from "~/utils/map/active_municipality";
 import { mapMoveEndEvents } from "~/utils/map/parkingsFilteringBasedOnExtent";
 import { parkingTypes } from "~/utils/parkings";
@@ -62,13 +62,13 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
   input.forEach((x: any) => {
     if (!x.Coordinaten) return;
 
-    const coords = x.Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
+    const coords = convertCoordinatenToCoords(x.Coordinaten)
 
     features.push({
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: [coords[1], coords[0]],
+        coordinates: coords,
       },
       properties: {
         id: x.ID,
@@ -119,7 +119,22 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   React.useEffect(() => {
     if(! stateMap) return;
     if(! selectedParkingId) return;
-    highlighMarker(stateMap, selectedParkingId)
+    // Highlight marker
+    highlighMarker(stateMap, selectedParkingId);
+    // Center map to selected parking
+    const selectedParking = fietsenstallingen.find(x => x.ID === selectedParkingId);
+    if(selectedParking) {
+      const coords = convertCoordinatenToCoords(selectedParking.Coordinaten);
+      stateMap.flyTo({
+        center: coords,
+        curve: 1,
+        speed: 0.2,
+        // zoom: 9,
+        // easing(t) {
+        //   return t;
+        // }
+      });
+    }
   }, [stateMap, selectedParkingId]);
 
   React.useEffect(() => {
@@ -264,7 +279,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
     // Show parking info on click
     mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
-      console.log('e', e.features[0].properties)
       // Make clicked parking active
       dispatch(setSelectedParkingId(e.features[0].properties.id));
     });
