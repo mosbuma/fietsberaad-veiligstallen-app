@@ -26,6 +26,7 @@ const CardList: React.FC<Props> = ({
   const dispatch = useDispatch();
 
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
+  const [isCardListVisible, setIsCardListVisible] = useState(true);
 
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
@@ -65,10 +66,12 @@ const CardList: React.FC<Props> = ({
         selectedParkingIndex = idx;
       }
     });
+
     // Wait 50 ms so that the map flyTo animation is fully done before sliding to the right card
     setTimeout(() => {
+      // Slide to card
       const cardToSlideTo = isSelectedParkingStillVisible ? selectedParkingIndex : 0;
-      slider.current.update(sliderProps, cardToSlideTo)
+      slider.current.update(sliderProps, cardToSlideTo);
     }, 50)
   }, [
     mapExtent,
@@ -133,7 +136,11 @@ const CardList: React.FC<Props> = ({
   }
 
   return (
-    <div className="card-list">
+    <div className={`
+      card-list
+      transition-opacity
+      ${isCardListVisible ? 'opacity-100' : 'opacity-0'}
+    `}>
       <div ref={sliderRef} className={`card-list__slides keen-slider px-5`}>
         {visibleParkings.map((parking, index) => {
           return (

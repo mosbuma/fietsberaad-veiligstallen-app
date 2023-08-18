@@ -1,5 +1,7 @@
 import React from "react";
 
+import { openRoute } from "~/utils/map/index";
+
 // Import components
 import PageTitle from "~/components/PageTitle";
 import ImageSlider from "~/components/ImageSlider";
@@ -19,11 +21,11 @@ const SectionBlock = ({
   contentClasses?: string
 }) => {
   return (
-    <div className="flex justify-between flex-wrap sm:flex-nowrap">
+    <div className="flex justify-between flex-wrap xl:flex-nowrap">
       <div
         className="
           w-full
-          sm:w-48
+          xl:w-48
           font-bold
         "
       >
@@ -31,17 +33,17 @@ const SectionBlock = ({
       </div>
       <div className={`
         mt-4
-        sm:mt-0
+        xl:mt-0
         ml-4
-        sm:ml-0
+        xl:ml-0
 
-        sm:flex-1
+        xl:flex-1
 
         text-sm
-        sm:text-base
+        xl:text-base
 
         w-full
-        sm:w-auto
+        xl:w-auto
         ${contentClasses ? contentClasses : ''}
       `}>
         {children}
@@ -231,7 +233,7 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
                 z-10
               "
               onClick={(e) => {
-                e.preventDefault();
+                if(e) e.preventDefault();
                 openRoute(parkingdata.Coordinaten)
               }}
             >

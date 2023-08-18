@@ -146,19 +146,19 @@ function ParkingFacilityBlock({
   return (
     <div
       id={id}
-      className="
-      ParkingFacilityBlock
-      relative
-      flex w-full
-      cursor-pointer
-      justify-between
-      border-b
-      border-solid
-      border-gray-300
-      bg-white
-      px-5 pb-5
-      pt-5
-      "
+      className={`
+        ParkingFacilityBlock
+        relative
+        flex w-full
+        justify-between
+        border-b
+        border-solid
+        border-gray-300
+        bg-white
+        px-5 pb-5
+        pt-5
+        ${compact ? 'cursor-pointer' : ''}
+      `}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
         if (expandParkingHandler) expandParkingHandler(parking.ID);
