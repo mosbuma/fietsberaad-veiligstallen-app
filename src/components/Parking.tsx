@@ -85,26 +85,33 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
   // console.log("@@ stallingdata has %s items", parkingdata.length);
 
   return (
-    <div className="ml-10 mr-10 mt-10">
+    <div className="
+      ml-5 mr-5 mt-5
+      sm:ml-10 sm:mr-10 sm:mt-10
+    ">
       <div
         className="
           mr-8 flex
           justify-between
         "
       >
-        <PageTitle className="flex justify-center">
-          {parkingdata.Title}
-          <Button className="ml-4">bewerken</Button>
+        <PageTitle className="w-full flex justify-center">
+          <div className="hidden sm:block mr-4">{parkingdata.Title}</div>
+          <Button className="mt-3 sm:mt-0">bewerken</Button>
         </PageTitle>
       </div>
 
       <div className="flex justify-between">
         <div data-name="content-left" className="sm:mr-12">
-          <ImageSlider />
+          {parkingdata.Image && <div className="mb-8">
+              <ImageSlider images={[
+                parkingdata.Image
+              ]} />
+            </div>
+          }
 
           <section
             className="
-              mt-8
               flex justify-between
               text-sm
               sm:text-base

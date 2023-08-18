@@ -155,6 +155,7 @@ class MainDocument extends Document {
           <Main />
           <NextScript />
           <div id="modal-root" className="z-20"></div>
+          <div id="overlay-root" className="z-20 fixed top-0 h-full overflow-auto"></div>
         </body>
       </Html>
     );
