@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useRouter } from 'next/navigation'
+import useQueryParam from '../hooks/useQueryParam';
+// import bcrypt from 'bcrypt'
 
 // Import utils
 // import { getParkingsFromDatabase } from "~/utils/prisma";
@@ -10,6 +12,8 @@ import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import { Button } from "~/components/Button";
+import { signIn } from "next-auth/react";
+
 // import ImageSlider from "~/components/ImageSlider";
 // import HorizontalDivider from "~/components/HorizontalDivider";
 // import CloseButton from "~/components/CloseButton";
@@ -18,7 +22,36 @@ import { Button } from "~/components/Button";
 import Styles from "./login.module.css";
 
 const Login: NextPage = () => {
-  const router = useRouter()
+	const emailRef = useRef<HTMLInputElement | null>(null);
+	const passwordRef = useRef<HTMLInputElement | null>(null);
+  
+  	const router = useRouter()
+	const error = useQueryParam("error")[0];
+
+
+  const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
+	console.log(emailRef.current, passwordRef.current)
+	if(emailRef.current && emailRef.current.value!=='' &&
+	   passwordRef.current&& passwordRef.current.value!=='') {
+
+	// const password_hash = await bcrypt.hash(passwordRef.current.value, 10)
+	// alert(password_hash);
+
+    signIn("credentials", {
+      email: emailRef.current.value,
+      password: passwordRef.current.value,
+      callbackUrl: "/",
+    });
+
+// 	router.push('/')
+	} else {
+		alert('no email of password given');
+	}
+
+
+  };
+
+  const allowLogin = emailRef.current?.value !=='' && passwordRef.current?.value !=='';
 
   return (
     <>
@@ -85,6 +118,7 @@ const Login: NextPage = () => {
 
 							<div>
 								<FormInput
+									innerRef={emailRef}
 									type="email"
 									placeholder="E-mail"
 									required
@@ -94,6 +128,7 @@ const Login: NextPage = () => {
 
 							<div>
 								<FormInput
+									innerRef={passwordRef}
 									type="password"
 									placeholder="Wachtwoord"
 									required
@@ -108,9 +143,7 @@ const Login: NextPage = () => {
 									</FormCheckbox>
 								</div>
 								<div className="flex flex-col justify-center">
-									<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}} onClick={() => {
-										router.push('/')
-									}}>
+									<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}} onClick={onSignIn}>
 										Inloggen
 									</Button>
 								</div>

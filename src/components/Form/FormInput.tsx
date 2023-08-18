@@ -2,11 +2,13 @@
 import * as React from "react";
 
 function FormInput({
+  innerRef,
   type,
   required,
   placeholder,
   classes,
 }: {
+  innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
   required?: boolean,
   placeholder?: string,
@@ -15,6 +17,7 @@ function FormInput({
   return (
     <>
   		<input
+        ref={innerRef} 
         type={type || 'text'}
         placeholder={placeholder}
         required={required || false}

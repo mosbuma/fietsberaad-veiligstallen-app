@@ -1,8 +1,8 @@
 // @ts-nocheck
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setAuthState } from "~/store/authSlice";
-import { AppState } from "~/store/store";
+import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react"
 
 import Logo from './Logo';
 
@@ -34,14 +34,19 @@ function AppHeaderDesktop({
   children?: any
 }) {
   const dispatch = useDispatch();
-
+  const { push } = useRouter();
+  const { data: session } = useSession()
+  
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
   );
-
   const handleLoginClick = () => {
-    const authState = isAuthenticated ? false : true;
-    dispatch(setAuthState(authState));
+    if(!session) {
+      push('/login');
+    } else {
+      // sign out
+      signOut();
+    }
   };
 
   const primaryMenuItems = [
@@ -83,7 +88,6 @@ function AppHeaderDesktop({
           {secundaryMenuItems.map(x => <SecundaryMenuItem key={x} item={x} />)}
           <button
             className="
-              hidden
               mx-2
               h-10
               rounded-md
@@ -96,7 +100,7 @@ function AppHeaderDesktop({
             "
             onClick={handleLoginClick}
           >
-            {isAuthenticated ? "Logout" : "Login"}
+            {session ? "Logout" : "Login"}
           </button>
         </div>
       </div>

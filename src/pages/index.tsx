@@ -76,7 +76,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
     );
   }
 
-  console.log(fietsenstallingen);
+  //console.log(fietsenstallingen);
 
   return (
     <>

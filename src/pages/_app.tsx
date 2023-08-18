@@ -1,3 +1,4 @@
+import { SessionProvider } from "next-auth/react"
 import { type AppType } from "next/app";
 import { wrapper } from "../store/store";
 import Head from "next/head";
@@ -13,16 +14,19 @@ import "~/styles/globals.css";
 
 import '~/styles/components/AppHeader.css';
 
-const MyApp: AppType = ({ Component, pageProps }) => {
-  return <>
+const MyApp: AppType = ({ Component, pageProps: {session, ...pageProps} }) => {
+  return (
+  <>
     <Head>
       <meta
         name='viewport'
         content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no, viewport-fit=cover'
       />
     </Head>
-    <Component {...pageProps} />
-  </>
+    <SessionProvider session={pageProps.session}>
+      <Component {...pageProps} />
+    </SessionProvider>
+  </>)
 };
 
 export default api.withTRPC(wrapper.withRedux(MyApp));
