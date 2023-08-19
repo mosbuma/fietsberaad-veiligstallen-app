@@ -13,6 +13,8 @@ export default async function handle(req, res) {
       ThemeColor1: true,
       ThemeColor2: true,
       UrlName: true,
+      CompanyLogo: true,
+      CompanyLogo2: true
     }
   });
   res.json(municipality)
