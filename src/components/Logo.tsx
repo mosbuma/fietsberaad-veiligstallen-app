@@ -1,14 +1,12 @@
 // Logo.tsx - Location specific logo
 import * as React from "react";
-import {
-  useDispatch, useSelector
-} from "react-redux";
 
 function Logo({
   imageUrl
 }: {
   imageUrl?: string
 }) {
+  console.log('imageUrl', imageUrl)
   return (
     <>
   		<img

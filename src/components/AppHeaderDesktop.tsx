@@ -95,7 +95,7 @@ function AppHeaderDesktop({
         "
         style={{height: '64px'}}
       >
-        <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo) ? `https://static.veiligstallen.nl/library/logo/${activeMunicipalityInfo.CompanyLogo}` : undefined} />
+        <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         <div className="flex-1 flex flex-start">
           {primaryMenuItems.map(x => <PrimaryMenuItem key={x} item={x} />)}
         </div>
