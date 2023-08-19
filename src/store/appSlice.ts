@@ -10,9 +10,11 @@ export const appSlice = createSlice({
   name: "app",
   initialState,
   reducers: {
-    // Action to set the authentication status
     setIsParkingListVisible(state, action) {
       state.isParkingListVisible = action.payload;
+    },
+    setIsFilterBoxVisible(state, action) {
+      state.isFilterBoxVisible = action.payload;
     },
   },
 
@@ -28,5 +30,6 @@ export const appSlice = createSlice({
 });
 
 export const {
-  setIsParkingListVisible
+  setIsParkingListVisible,
+  setIsFilterBoxVisible
 } = appSlice.actions;

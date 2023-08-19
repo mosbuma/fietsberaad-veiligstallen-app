@@ -95,12 +95,13 @@ function ParkingFacilityBrowser({
   return (
     <div
       className="
-      ParkingFacilityBrowser
-      rounded-3xl
-      bg-white
-      py-0
-      shadow-lg
-    "
+        ParkingFacilityBrowser
+        rounded-3xl
+        bg-white
+        py-0
+        text-left
+        shadow-lg
+      "
       style={{
         maxWidth: "100%",
         height: "100%",

@@ -5,7 +5,10 @@ import Head from "next/head";
 import superjson from "superjson";
 
 // import { setMunicipalities } from "~/store/geoSlice";
-import { setIsParkingListVisible } from "~/store/appSlice";
+import {
+  setIsParkingListVisible,
+  setIsFilterBoxVisible
+} from "~/store/appSlice";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
@@ -66,6 +69,10 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
     (state: AppState) => state.app.isParkingListVisible
   );
 
+  const isFilterBoxVisible = useSelector(
+    (state: AppState) => state.app.isFilterBoxVisible
+  );
+
   // console.log("fietsenstallingen", fietsenstallingen);
 
   const currentStalling = fietsenstallingen.find((stalling: any) => {
@@ -75,7 +82,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
-  const isCardListVisible = ! isParkingListVisible;
+  const isCardListVisible = ! isParkingListVisible && ! isFilterBoxVisible;
 
   if (online === false) {
     return (
@@ -226,6 +233,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               }
               onClick={() => {
                 dispatch(setIsParkingListVisible(! isParkingListVisible));
+                // dispatch(setIsFilterBoxVisible(false));
               }}
             ></IconButton>
 
@@ -236,21 +244,55 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               iconUrl={
                 "https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"
               }
+              onClick={() => {
+                dispatch(setIsFilterBoxVisible(! isFilterBoxVisible));
+                // dispatch(setIsParkingListVisible(false));
+              }}
             ></IconButton>
 
             {/*Overlays on same level as icon buttons,
                so we can show icon buttons above overlays
             */}
-            <div
+            {isFilterBoxVisible && <div
               data-comment="Filter overlay - Show only on mobile"
               className="
                 fixed bottom-0 left-0
-                z-10
-                block
+                z-20
                 w-full
+                h-full
+                block
                 sm:hidden
               "
-            ></div>
+            >
+              <div className="
+                absolute
+                top-0
+                right-0
+                bottom-0
+                left-0
+              "
+              style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              }}
+              onClick={() => {
+                dispatch(setIsFilterBoxVisible(false));
+              }}
+              />
+              <div
+                className="
+                absolute
+                bottom-0
+                bg-white
+                rounded-3xl
+                rounded-b-none
+                shadow-lg
+                text-left
+                p-4
+              "
+              >
+                <ActiveFilters />
+              </div>
+            </div>}
             <div
               data-comment="Parking list overlay - Show only on mobile"
               className="
