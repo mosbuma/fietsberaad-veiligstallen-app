@@ -17,6 +17,10 @@ const ImageSlider = ({
   //   },
   // });
 
+  if(!images) {
+    return <></>;
+  }
+
   return (
     <div className="card-list">
       {/*<div ref={ref} className="card-list__slides keen-slider">*/}
