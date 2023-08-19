@@ -1,9 +1,37 @@
-import {isPointInsidePolygon} from './index';
+let controller;
 
-export const getActiveMunicipality = (center: Array) => {
-  // var polygon = [ [ 1, 1 ], [ 1, 2 ], [ 2, 2 ], [ 2, 1 ] ];
-  // isPointInsidePolygon([ 1.5, 1.5 ], polygon); // true
-  const allMunicipalities = []
+export const getMunicipalityBasedOnLatLng = async (latLng: Array) => {
+  // Abort active fetch call, if any
+  if(controller) controller.abort();
 
-  return false;
+  // Create AbortController
+  controller = new AbortController();
+  const signal = controller.signal;
+
+  if(! latLng) {
+    console.log('No latLng given');
+    return;
+  }
+  if(! latLng[0] || ! latLng[1]) {
+    console.log('No correct latLng given. Given: ', latLng);
+    return;
+  }
+
+  try {
+    // Get municipality based on request
+    let response = await fetch(
+      `https://api.dashboarddeelmobiliteit.nl/dashboard-api/public/get_municipality_based_on_latlng?location=${latLng[0]},${latLng[1]}`,
+      { signal }
+    )
+    let json = await response.json();
+
+    if(json && json.message && json.message === 'No municipality found for these coordinates') {
+      console.error(json.message);
+      return;
+    }
+
+    return json;
+  } catch (err) {
+    // console.error('err', err)
+  }
 }

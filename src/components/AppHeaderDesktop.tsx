@@ -1,5 +1,5 @@
 // @ts-nocheck
-import * as React from "react";
+import React, {useEffect} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
@@ -40,6 +40,11 @@ function AppHeaderDesktop({
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
   );
+
+  const activeMunicipalityInfo = useSelector(
+    (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
   const handleLoginClick = () => {
     if(!session) {
       push('/login');
@@ -48,6 +53,16 @@ function AppHeaderDesktop({
       signOut();
     }
   };
+
+  const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
+  const themeColor1 = mapZoom > 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+    ? `#${activeMunicipalityInfo.ThemeColor1}`
+    : '#15aeef';
+
+  const themeColor2 = mapZoom > 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+    ? `#${activeMunicipalityInfo.ThemeColor2}`
+    : '#15aeef';
 
   const primaryMenuItems = [
     'ICN',
@@ -91,13 +106,14 @@ function AppHeaderDesktop({
               mx-2
               h-10
               rounded-md
-              bg-blue-500
               px-4
               font-bold
               text-white
               shadow-lg
-              hover:bg-blue-700
             "
+            style={{
+              backgroundColor: themeColor1,
+            }}
             onClick={handleLoginClick}
           >
             {session ? "Logout" : "Login"}

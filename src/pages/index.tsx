@@ -4,11 +4,15 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import superjson from "superjson";
 
-// import { setMunicipalities } from "~/store/geoSlice";
 import {
   setIsParkingListVisible,
   setIsFilterBoxVisible
 } from "~/store/appSlice";
+import {
+  setActiveMunicipalityInfo,
+} from "~/store/mapSlice";
+
+import { getMunicipalityBasedOnCbsCode } from "~/utils/municipality";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
@@ -74,7 +78,36 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
     (state: AppState) => state.app.isFilterBoxVisible
   );
 
-  // console.log("fietsenstallingen", fietsenstallingen);
+  const activeMunicipality = useSelector(
+    (state: AppState) => state.map.activeMunicipality
+  );
+
+  const activeMunicipalityInfo = useSelector(
+    (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
+  // console.log("activeMunicipalityInfo", activeMunicipalityInfo);
+
+  // Get municipality theme info
+  useEffect(() => {
+    if(! activeMunicipality) return;
+    if(! activeMunicipality.municipality) return;
+
+    (async () => {
+      // Convert municipality code of DD to VS
+      let cbsCode = activeMunicipality.municipality.replace('GM', '');
+      while(cbsCode.charAt(0) === '0') {
+        cbsCode = cbsCode.substring(1);
+      }
+      cbsCode = Number(cbsCode);
+      // Get the municipality info from the database
+      const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
+      // Set the municipality info in redux
+      dispatch(setActiveMunicipalityInfo(municipalityInfo))      
+    })();
+  }, [
+    activeMunicipality
+  ])
 
   const currentStalling = fietsenstallingen.find((stalling: any) => {
     return stalling.ID === currentStallingId;
@@ -100,8 +133,6 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
       </>
     );
   }
-
-  //console.log(fietsenstallingen);
 
   return (
     <>

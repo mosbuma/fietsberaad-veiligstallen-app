@@ -7,6 +7,7 @@ import {
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
+  setActiveMunicipality,
   setSelectedParkingId
 } from "~/store/mapSlice";
 
@@ -15,7 +16,7 @@ import { AppState } from "~/store/store";
 // Import utils
 import { getParkingColor } from "~/utils/theme";
 import { getParkingMarker, isPointInsidePolygon, convertCoordinatenToCoords } from "~/utils/map/index";
-import { getActiveMunicipality } from "~/utils/map/active_municipality";
+import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 import { mapMoveEndEvents } from "~/utils/map/parkingsFilteringBasedOnExtent";
 import { parkingTypes } from "~/utils/parkings";
 
@@ -120,6 +121,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   // will contain `null` by default
   const mapNode = React.useRef(null);
 
+  // Highlight marker if selectedParkingId changes
   React.useEffect(() => {
     if(! stateMap) return;
     if(! selectedParkingId) return;
@@ -353,9 +355,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
     // Call onMoveEnd if map is loaded, as initialization
     // This function is called when all rendering has been done
-    mapboxMap.on("idle", function () {
+    // mapboxMap.on("idle", function () {
       onMoved(mapboxMap);
-    });
+    // });
     // Show parking info on click
     mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
       // Make clicked parking active
@@ -385,6 +387,13 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
   };
 
+  const getActiveMunicipality = async (center) => {
+    const municipality = await getMunicipalityBasedOnLatLng(center);
+    if(! municipality) return;
+
+    dispatch(setActiveMunicipality(municipality));
+  }
+
   const registerMapView = React.useCallback((theMap) => {
     // Set map boundaries
     const bounds = theMap.getBounds();
@@ -401,9 +410,13 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     ]);
     // Calculate the center of this map view
     const center = turf.center(polygon);
-    const activeMunicipality = getActiveMunicipality(center);
-    // console.log('municipalities', municipalities)
-    // console.log('activeMunicipality', activeMunicipality);
+    // Get active municipality
+    (async () => {
+      if(! center) return;
+      const activeMunicipality = await getActiveMunicipality(center.geometry.coordinates);
+      setActiveMunicipality(activeMunicipality);
+    })();
+
     // Set values in state
     dispatch(setMapExtent(extent));
     dispatch(setMapZoom(theMap.getZoom()));
