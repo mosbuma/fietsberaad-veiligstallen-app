@@ -99,6 +99,7 @@ const Stalling: NextPage = ({ fietsenstallingen }: any) => {
         >
           <ParkingFacilityBrowser
             fietsenstallingen={fietsenstallingen}
+            showSearchBar={true}
             activeParkingId={router.query.id}
           />
         </div>

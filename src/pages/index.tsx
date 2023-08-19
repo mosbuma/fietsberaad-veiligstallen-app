@@ -45,6 +45,7 @@ export async function getStaticProps() {
 
 const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
+  const [isParkingListVisible, setIsParkingListVisible] = useState(true);
 
   // On app load: Load municipalities in state
   // useEffect(() => {
@@ -67,6 +68,8 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
+
+  const isCardListVisible = ! isParkingListVisible;
 
   if (online === false) {
     return (
@@ -149,8 +152,13 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
             className="
               hidden sm:inline-block
             "
+            style={{
+              width: "414px",
+              maxHeight: "60vh",
+            }}
           >
             <ParkingFacilityBrowser
+              showSearchBar={true}
               fietsenstallingen={fietsenstallingen}
               onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
             />
@@ -228,6 +236,28 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
         ></div>
 
         <div
+          data-comment="Parking list overlay - Show only on mobile"
+          className="
+            absolute
+            bottom-0
+            z-10
+            block
+            w-full
+            sm:hidden
+          "
+        >
+          {isParkingListVisible && (
+            <Overlay>
+              <ParkingFacilityBrowser
+                showSearchBar={false}
+                fietsenstallingen={fietsenstallingen}
+                onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
+              />
+            </Overlay>
+          )}
+        </div>
+
+        {isCardListVisible && <div
           data-comment="Parkings cards - Show only on mobile"
           className="
             absolute bottom-9
@@ -241,7 +271,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
             fietsenstallingen={fietsenstallingen}
             onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
           />
-        </div>
+        </div>}
 
         <ParkingFacilities fietsenstallingen={fietsenstallingen} />
       </main>

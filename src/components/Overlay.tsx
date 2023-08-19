@@ -7,11 +7,20 @@ import ReactDOM from "react-dom";
 import AppHeaderMobile from "~/components/AppHeaderMobile";
 
 interface OverlayProps {
-  onClose: () => void;
+  onClose?: () => void;
   children: React.ReactNode;
   title?: string;
 }
 
+/*
+  Overlay component
+  If onClose param is given:
+  - Fullscreen
+  - Close button is shown
+  If onClose param is _not_ given:
+  - Overlay starts below AppHeader
+  - Close button isn't shown
+*/
 const Overlay: React.FC<OverlayProps> = ({
   onClose,
   children,
@@ -25,7 +34,7 @@ const Overlay: React.FC<OverlayProps> = ({
         overlayWrapperRef.current &&
         !overlayWrapperRef.current.contains(e.target as Node)
       ) {
-        onClose();
+        if(onClose) onClose();
       }
     },
     [onClose]
@@ -46,30 +55,36 @@ const Overlay: React.FC<OverlayProps> = ({
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
     e.preventDefault();
-    onClose();
+    if(onClose) onClose();
   };
 
   const overlayContent = (
-    <div className="bg-white">
-      <div ref={overlayWrapperRef} className="overlay-wrapper">
-        <div className="overlay">
-          <AppHeaderMobile
-            title={title}
-            showCloseButton={true}
-            handleCloseClick={handleCloseClick}
-          />
-          <div className="overlay-body">
-            {children}
+    <div className={`
+      z-20 fixed w-full overflow-auto
+      ${onClose ? 'top-0' : 'top-20'}
+    `}
+    style={{
+      height: onClose ? '100%' : 'calc(100% - 80px)' // topbar with logo and search = 80px
+    }}
+    >
+      <div className="bg-white h-full">
+        <div ref={overlayWrapperRef} className="overlay-wrapper h-full">
+          <div className="overlay h-full">
+            {onClose ? <AppHeaderMobile
+              title={title}
+              showCloseButton={true}
+              handleCloseClick={handleCloseClick}
+            /> : ''}
+            <div className="overlay-body h-full">
+              {children}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
-  return ReactDOM.createPortal(
-    overlayContent,
-    document.getElementById("overlay-root") as HTMLElement
-  );
+  return overlayContent;
 };
 
 export default Overlay;

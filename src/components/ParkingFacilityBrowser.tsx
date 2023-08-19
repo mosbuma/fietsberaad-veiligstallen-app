@@ -11,10 +11,12 @@ function ParkingFacilityBrowser({
   fietsenstallingen,
   activeParkingId,
   onShowStallingDetails,
+  showSearchBar
 }: {
   fietsenstallingen: any;
   activeParkingId?: any;
   onShowStallingDetails?: (id: number) => void;
+  showSearchBar?: false
 }) {
   const dispatch = useDispatch();
 
@@ -100,14 +102,12 @@ function ParkingFacilityBrowser({
       shadow-lg
     "
       style={{
-        width: "414px",
-        maxWidth: "calc(100%)",
-        maxHeight: "60vh",
+        maxWidth: "100%",
         height: "100%",
         overflow: "auto",
       }}
     >
-      <SearchBar filterChanged={updateFilter} />
+      {showSearchBar ? <SearchBar filterChanged={updateFilter} /> : ''}
 
       <div className="px-0">
         {visibleParkings.map((x: any) => {
