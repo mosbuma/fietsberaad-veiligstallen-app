@@ -56,7 +56,7 @@ function AppHeaderDesktop({
         const response = await fetch(`/api/articles/?SiteID=${activeMunicipalityInfo.ID}`);
         const json = await response.json();
 
-        setArticles(json);
+        setArticles(json.filter(x.ShowInNav === "1"));
       } catch(err) {
         console.error(err);
       }
