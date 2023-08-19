@@ -30,6 +30,11 @@ const config = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    domains: [
+      'static.veiligstallen.nl'
+    ]
+  }
 };
 
 const nextConfig = withPWA({
