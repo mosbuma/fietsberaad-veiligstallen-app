@@ -66,3 +66,13 @@ Deployment is configured like this:
 ## Exporting postgresql table as MySQL compatible statements
 
     pg_dump -h localhost -U deelfietsdashboard -d deelfietsdashboard -t zones --port 5431 --format=c --inserts > zones.sql
+
+## Using Dashboard Deelmobiliteit API call for getting municipality
+
+Get municipality based on latitude/longitude:
+
+    https://api.dashboarddeelmobiliteit.nl/dashboard-api/public/get_municipality_based_on_latlng?location=52.0,4.5
+
+Error response:
+
+    https://api.dashboarddeelmobiliteit.nl/dashboard-api/public/get_municipality_based_on_latlng?location=52.0,7.5
