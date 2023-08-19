@@ -215,7 +215,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               flex sm:hidden
             "
           >
-            <Logo />
+            <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             <SearchBar />
             {/*HAMB.*/}
           </div>

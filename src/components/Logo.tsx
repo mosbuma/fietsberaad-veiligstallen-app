@@ -6,7 +6,6 @@ function Logo({
 }: {
   imageUrl?: string
 }) {
-  console.log('imageUrl', imageUrl)
   return (
     <>
   		<img
