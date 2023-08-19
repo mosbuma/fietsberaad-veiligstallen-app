@@ -20,6 +20,7 @@ import SearchBar from "~/components/SearchBar";
 import CardList from "~/components/CardList";
 import Logo from "~/components/Logo";
 import ActiveFilters from "~/components/ActiveFilters";
+import FilterBox from "~/components/FilterBox";
 import { IconButton } from "~/components/Button";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
@@ -290,7 +291,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
                 p-4
               "
               >
-                <ActiveFilters />
+                <FilterBox />
               </div>
             </div>}
             <div
