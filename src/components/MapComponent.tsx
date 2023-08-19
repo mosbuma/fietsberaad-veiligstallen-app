@@ -182,26 +182,41 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // Create geojson
     const geojson: any = createGeoJson(fietsenstallingen);
 
-    // Add or update fietsenstallingen data
-    const source: maplibregl.GeoJSONSource = stateMap.getSource(
-      "fietsenstallingen"
-    ) as maplibregl.GeoJSONSource;
-    if (source) {
-      source.setData(geojson);
-    } else {
-      stateMap.addSource("fietsenstallingen", {
-        type: "geojson",
-        data: geojson,
-      });
+    // Add or update fietsenstallingen data as sources
+    const addOrUpdateSource = (sourceKey) => {
+      const source: maplibregl.GeoJSONSource = stateMap.getSource(
+        sourceKey
+      ) as maplibregl.GeoJSONSource;
+      if (source) {
+        source.setData(geojson);
+      } else {
+        const sourceConfig = {
+          type: "geojson",
+          data: geojson
+        };
+        if(sourceKey === 'fietsenstallingen-clusters') {
+          // We want to cluster
+          sourceConfig.cluster = true;
+          // Max zoom to cluster points on
+          // clusterMaxZoom: 18,
+          // Radius of each cluster when clustering points (defaults to 50)
+          sourceConfig.clusterRadius = 40;
+          sourceConfig.clusterMaxZoom = 12
+        }
+        stateMap.addSource(sourceKey, sourceConfig);
+      }
     }
+    addOrUpdateSource('fietsenstallingen');
+    addOrUpdateSource('fietsenstallingen-clusters');
 
-    // Add markers layer
+    // Add MARKERS layer
     if (!stateMap.getLayer("fietsenstallingen-markers")) {
       stateMap.addLayer({
         id: "fietsenstallingen-markers",
         source: "fietsenstallingen",
         type: "circle",
-        filter: ["all"],
+        // filter: ["all"],
+        filter: ['!', ['has', 'point_count']],
         paint: {
           "circle-color": "#fff",
           "circle-radius": 5,
@@ -224,6 +239,63 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
             "#00CE83",
           ],
         },
+        'icon-allow-overlap': true,
+        'minzoom': 12,
+      });
+    }
+
+    // Add CLUSTERS layer
+    if (!stateMap.getLayer("fietsenstallingen-clusters")) {
+      stateMap.addLayer({
+        id: "fietsenstallingen-clusters",
+        source: "fietsenstallingen-clusters",
+        type: "circle",
+        filter: ['has', 'point_count'],
+        paint: {
+          // Use step expressions (https://maplibre.org/maplibre-gl-js-docs/style-spec/#expressions-step)
+          // with three steps to implement three types of circles:
+          //   * Blue, 20px circles when point count is less than 100
+          //   * Yellow, 30px circles when point count is between 100 and 750
+          //   * Pink, 40px circles when point count is greater than or equal to 750
+          'circle-color': '#fff',
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20, 100,
+            30, 750,
+            40
+          ],
+          "circle-stroke-width": 3,
+          "circle-stroke-color": '#15AEEF'
+        },
+        'maxzoom': 12
+      });
+    }
+
+    // Add CLUSTERS COUNT layer
+    if (!stateMap.getLayer("fietsenstallingen-clusters-count")) {
+      stateMap.addLayer({
+        id: "fietsenstallingen-clusters-count",
+        source: "fietsenstallingen-clusters",
+        type: "symbol",
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': [
+            'step',
+            ['get', 'point_count'],
+            16, 100,
+            20, 750,
+            30
+          ],
+        },
+        paint: {
+          'text-color': '#333333',
+          // 'text-halo-color': '#fff',
+          // 'text-halo-width': 2
+        },
+        'maxzoom': 12
       });
     }
   }, [stateMap, fietsenstallingen]);
@@ -250,7 +322,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         ],
       ];
     }
-
     stateMap.setFilter("fietsenstallingen-markers", filter);
   }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery]);
 
@@ -293,6 +364,15 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // Enlarge parking icon on click
     mapboxMap.on('click', 'fietsenstallingen-markers', (e) => {
       highlighMarker(mapboxMap, e.features[0].properties.id);
+    });
+    // Zoom in on cluster click
+    mapboxMap.on('click', 'fietsenstallingen-clusters', (e) => {
+      // Zoom in
+      mapboxMap.flyTo({
+        center: e.lngLat,
+        speed: 0.75,
+        zoom: mapboxMap.getZoom() + 4,
+      });
     });
   };
 
