@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
@@ -12,7 +12,7 @@ const PrimaryMenuItem = (props: any) => {
     px-5
   ">
     <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
+      {props.title}
     </a>
   </div>
 }
@@ -23,7 +23,7 @@ const SecundaryMenuItem = (props: any) => {
     px-2
   ">
     <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
+      {props.title}
     </a>
   </div>
 }
@@ -37,6 +37,8 @@ function AppHeaderDesktop({
   const { push } = useRouter();
   const { data: session } = useSession()
   
+  const [articles, setArticles] = useState();
+
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
   );
@@ -44,6 +46,25 @@ function AppHeaderDesktop({
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
   );
+
+  // Get menu items based on active municipality
+  useEffect(() => {
+    if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
+
+    (async () => {
+      try {
+        const response = await fetch(`/api/articles/?SiteID=${activeMunicipalityInfo.ID}`);
+        const json = await response.json();
+
+        setArticles(json);
+      } catch(err) {
+        console.error(err);
+      }
+    })();
+  }, [
+    activeMunicipalityInfo,
+    activeMunicipalityInfo.ID
+  ]);
 
   const handleLoginClick = () => {
     if(!session) {
@@ -64,13 +85,7 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  const primaryMenuItems = [
-    'ICN',
-    'Koop abonnement',
-    'Over Utrecht Fietst!',
-    'Buurtstallingen',
-    'Fietstrommels'
-  ];
+  const primaryMenuItems = articles;
 
   const secundaryMenuItems = [
     'FAQ',
@@ -97,10 +112,10 @@ function AppHeaderDesktop({
       >
         <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         <div className="flex-1 flex flex-start">
-          {primaryMenuItems.map(x => <PrimaryMenuItem key={x} item={x} />)}
+          {primaryMenuItems.map(x => <PrimaryMenuItem key={x} title={x.DisplayTitle} />)}
         </div>
         <div className="flex flex-end">
-          {secundaryMenuItems.map(x => <SecundaryMenuItem key={x} item={x} />)}
+          {secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}
           <button
             className="
               mx-2

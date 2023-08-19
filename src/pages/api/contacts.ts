@@ -9,6 +9,7 @@ export default async function handle(req, res) {
       Gemeentecode: Number(req.query.cbsCode)
     },
     select: {
+      ID: true,
       CompanyName: true,
       ThemeColor1: true,
       ThemeColor2: true,
