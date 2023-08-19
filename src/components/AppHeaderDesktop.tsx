@@ -47,6 +47,8 @@ function AppHeaderDesktop({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
   // Get menu items based on active municipality
   useEffect(() => {
     if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
@@ -56,7 +58,7 @@ function AppHeaderDesktop({
         const response = await fetch(`/api/articles/?SiteID=${activeMunicipalityInfo.ID}`);
         const json = await response.json();
 
-        setArticles(json.filter(x.ShowInNav === "1"));
+        setArticles(json.filter((x) => x.ShowInNav === "1"));
       } catch(err) {
         console.error(err);
       }
@@ -74,13 +76,11 @@ function AppHeaderDesktop({
     }
   };
 
-  const mapZoom = useSelector((state: AppState) => state.map.zoom);
-
-  const themeColor1 = mapZoom > 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+  const themeColor1 = mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
     ? `#${activeMunicipalityInfo.ThemeColor1}`
     : '#15aeef';
 
-  const themeColor2 = mapZoom > 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+  const themeColor2 = mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
@@ -109,7 +109,7 @@ function AppHeaderDesktop({
         "
         style={{height: '64px'}}
       >
-        <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+        <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         <div className="flex-1 flex flex-start">
           {primaryMenuItems.map(x => <PrimaryMenuItem key={x} title={x.DisplayTitle} />)}
         </div>

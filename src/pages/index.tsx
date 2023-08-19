@@ -86,7 +86,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
-  // console.log("activeMunicipalityInfo", activeMunicipalityInfo);
+  const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
   // Get municipality theme info
   useEffect(() => {
@@ -144,7 +144,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
       </Head>
 
       <main className="flex-grow">
-        <div data-comment="Show only on desktop" className="hidden sm:flex">
+        <div data-comment="Show only on desktop" className="z-10 relative sm:h-16 hidden sm:flex">
           <AppHeaderDesktop />
         </div>
 
@@ -184,6 +184,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
             sm:w-auto
           "
         >
+          {/*
           <div
             data-comment="Spacer - Show only on desktop"
             className="
@@ -191,6 +192,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               w-full sm:block
             "
           ></div>
+          */}
 
           <div
             data-comment="Parkings list - Show only on desktop"
@@ -215,7 +217,7 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
               flex sm:hidden
             "
           >
-            <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             <SearchBar />
             {/*HAMB.*/}
           </div>

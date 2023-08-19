@@ -49,6 +49,8 @@ function AppHeaderMobile({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
   const handleLoginClick = () => {
     const authState = isAuthenticated ? false : true;
     dispatch(setAuthState(authState));
@@ -92,7 +94,7 @@ function AppHeaderMobile({
           justify-between
         ">
           <div className="flex flex-col justify-center">
-            <Logo imageUrl={(activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
           </div>
           <div className="mx-3 flex-1 flex flex-col justify-center">
             <PageTitle className="mb-0">{title}</PageTitle>
