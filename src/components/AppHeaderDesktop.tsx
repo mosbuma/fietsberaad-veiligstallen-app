@@ -37,7 +37,7 @@ function AppHeaderDesktop({
   const { push } = useRouter();
   const { data: session } = useSession()
   
-  const [articles, setArticles] = useState();
+  const [articles, setArticles] = useState([]);
 
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
@@ -63,7 +63,6 @@ function AppHeaderDesktop({
     })();
   }, [
     activeMunicipalityInfo,
-    activeMunicipalityInfo.ID
   ]);
 
   const handleLoginClick = () => {
