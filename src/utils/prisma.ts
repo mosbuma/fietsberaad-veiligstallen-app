@@ -4,6 +4,7 @@ import { prisma } from "~/server/db";
 const getParkingsFromDatabase = async () => {
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
     where: {
+      Status: "1",
       Plaats: {
         not: "",
       },
@@ -50,5 +51,5 @@ const getParkingsFromDatabase = async () => {
 };
 
 export {
-  getParkingsFromDatabase
+  getParkingsFromDatabase,
 }
