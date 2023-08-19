@@ -2,11 +2,15 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 
 export default async function handle(req, res) {
-  const articles = await prisma.articles.findMany({
+  if(! req.query.ID) return;
+
+  const articles = await prisma.articles.findFirst({
     where: {
-      Status: "1"
+      ID: req.query.ID,
+      Status: "1",
     },
     select: {
+      SiteID: true,
       Title: true,
       DisplayTitle: true,
       Abstract: true,
@@ -16,7 +20,15 @@ export default async function handle(req, res) {
       SortOrder: true,
       ShowInNav: true,
       ModuleID: true
-    }
+    },
+    orderBy: [
+      {
+        SiteID: 'asc',
+      },
+      {
+        SortOrder: 'asc',
+      },
+    ],
   });
   res.json(articles)
 }
