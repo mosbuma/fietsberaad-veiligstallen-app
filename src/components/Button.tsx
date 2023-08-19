@@ -16,7 +16,7 @@ export const RadioButton = ({
   return (
     <button
       className={`
-        py-1 px-2 mb-3
+        px-2 mb-3
         text-left rounded-md
         whitespace-nowrap text-ellipsis overflow-hidden
         font-poppinsmedium
@@ -25,6 +25,7 @@ export const RadioButton = ({
         hover:shadow
         transition-all
         bg-white
+        ${className && className.indexOf('py-') > -1 ? '' : 'py-1'}
         ${
           isActive
             ? "border border-gray-700 shadow shadow-md"

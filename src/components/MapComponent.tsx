@@ -127,9 +127,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       const coords = convertCoordinatenToCoords(selectedParking.Coordinaten);
       stateMap.flyTo({
         center: coords,
-        curve: 1,
-        speed: 0.2,
-        // zoom: 9,
+        // curve: 1,
+        speed: 0.75,
+        zoom: 14,
         // easing(t) {
         //   return t;
         // }

@@ -234,22 +234,29 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
             <ParkingOnTheMap parking={parkingdata} />
 
-            <Button
-              className="
-                absolute bottom-0 right-3
-                z-10
-              "
-              onClick={(e) => {
-                if(e) e.preventDefault();
-                openRoute(parkingdata.Coordinaten)
-              }}
-            >
-              Breng mij hier naartoe
-            </Button>
-
           </div>
         </div>
       </div>
+
+      <Button
+        className="
+          fixed bottom-3
+          sm:absolute sm:bottom-1
+          right-3
+          z-10
+          flex
+          py-3
+        "
+        onClick={(e) => {
+          if(e) e.preventDefault();
+          openRoute(parkingdata.Coordinaten)
+        }}
+        htmlBefore=<img src="/images/icon-route-white.png" alt="Route" className="w-5 mr-3" />
+      >
+
+        Breng mij hier naartoe
+      </Button>
+
     </div>
   );
 };
