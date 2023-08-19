@@ -111,6 +111,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     (state: AppState) => state.map.selectedParkingId
   );
 
+  const isParkingListVisible = useSelector(
+    (state: AppState) => state.app.isParkingListVisible
+  );
+
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
   // will contain `null` by default
@@ -121,6 +125,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     if(! selectedParkingId) return;
     // Highlight marker
     highlighMarker(stateMap, selectedParkingId);
+    // Stop if parking list is full screen
+    // If we would continue the parking list would be filtered on click
+    // That would result in e.g. only 1 parking in the parking list
+    if(isParkingListVisible) return;
     // Center map to selected parking
     const selectedParking = fietsenstallingen.find(x => x.ID === selectedParkingId);
     if(selectedParking) {

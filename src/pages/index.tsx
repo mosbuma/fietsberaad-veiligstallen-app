@@ -1,10 +1,11 @@
 import { SetStateAction, useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
 import Head from "next/head";
 import superjson from "superjson";
 
 // import { setMunicipalities } from "~/store/geoSlice";
+import { setIsParkingListVisible } from "~/store/appSlice";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
@@ -44,8 +45,9 @@ export async function getStaticProps() {
 }
 
 const Home: NextPage = ({ fietsenstallingen, online }: any) => {
+  const dispatch = useDispatch();
+
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
-  const [isParkingListVisible, setIsParkingListVisible] = useState(true);
 
   // On app load: Load municipalities in state
   // useEffect(() => {
@@ -58,6 +60,10 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
+  );
+
+  const isParkingListVisible = useSelector(
+    (state: AppState) => state.app.isParkingListVisible
   );
 
   // console.log("fietsenstallingen", fietsenstallingen);
@@ -178,13 +184,14 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
 
         <div
           data-comment="Floating buttons: Filter & Toggle buttons"
-          className="
-            absolute bottom-56
+          className={`
+            absolute
+            ${isCardListVisible ? 'bottom-44' : 'bottom-5'}
             z-10
             block
             w-full
             sm:hidden
-          "
+          `}
         >
           <div
             data-comment="Active parking types - Only show if <= 2 selected"
@@ -209,52 +216,64 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
             "
           >
             <IconButton
-              className="mb-5"
+              className="
+                mb-5 z-20 relative
+              "
               iconUrl={
-                "https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png"
+                isParkingListVisible
+                  ? `/images/icon-map.png`
+                  : `https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png`
               }
+              onClick={() => {
+                dispatch(setIsParkingListVisible(! isParkingListVisible));
+              }}
             ></IconButton>
 
             <IconButton
-              className="mb-0"
+              className="
+                mb-0 z-20 relative
+              "
               iconUrl={
                 "https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"
               }
             ></IconButton>
+
+            {/*Overlays on same level as icon buttons,
+               so we can show icon buttons above overlays
+            */}
+            <div
+              data-comment="Filter overlay - Show only on mobile"
+              className="
+                fixed bottom-0 left-0
+                z-10
+                block
+                w-full
+                sm:hidden
+              "
+            ></div>
+            <div
+              data-comment="Parking list overlay - Show only on mobile"
+              className="
+                fixed
+                bottom-0 left-0
+                z-10
+                block
+                w-full
+                sm:hidden
+              "
+            >
+              {isParkingListVisible && (
+                <Overlay>
+                  <ParkingFacilityBrowser
+                    showSearchBar={false}
+                    fietsenstallingen={fietsenstallingen}
+                    onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
+                  />
+                </Overlay>
+              )}
+            </div>
+
           </div>
-        </div>
-
-        <div
-          data-comment="Filter overlay - Show only on mobile"
-          className="
-            absolute bottom-0
-            z-10
-            block
-            w-full
-            sm:hidden
-          "
-        ></div>
-
-        <div
-          data-comment="Parking list overlay - Show only on mobile"
-          className="
-            absolute
-            bottom-0
-            z-10
-            block
-            w-full
-            sm:hidden
-          "
-        >
-          {isParkingListVisible && (
-            <Overlay>
-              <ParkingFacilityBrowser
-                showSearchBar={false}
-                fietsenstallingen={fietsenstallingen}
-                onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
-              />
-            </Overlay>
-          )}
         </div>
 
         {isCardListVisible && <div

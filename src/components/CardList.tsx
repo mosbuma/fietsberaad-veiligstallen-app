@@ -69,6 +69,8 @@ const CardList: React.FC<Props> = ({
 
     // Wait 50 ms so that the map flyTo animation is fully done before sliding to the right card
     setTimeout(() => {
+      // Check if slider (still) exists
+      if(! slider || ! slider.current) return;
       // Slide to card
       const cardToSlideTo = isSelectedParkingStillVisible ? selectedParkingIndex : 0;
       slider.current.update(sliderProps, cardToSlideTo);

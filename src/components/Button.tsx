@@ -113,8 +113,8 @@ export const IconButton = ({
         text-white
         bg-center
         bg-no-repeat
-        w-10
-        h-10
+        w-12
+        h-12
         shadow-md
         ${className}
       `}

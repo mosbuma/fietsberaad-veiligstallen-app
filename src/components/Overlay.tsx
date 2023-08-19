@@ -67,15 +67,15 @@ const Overlay: React.FC<OverlayProps> = ({
       height: onClose ? '100%' : 'calc(100% - 80px)' // topbar with logo and search = 80px
     }}
     >
-      <div className="bg-white h-full">
-        <div ref={overlayWrapperRef} className="overlay-wrapper h-full">
-          <div className="overlay h-full">
+      <div className="bg-white min-h-full">
+        <div ref={overlayWrapperRef} className="overlay-wrapper min-h-full">
+          <div className="overlay min-h-full">
             {onClose ? <AppHeaderMobile
               title={title}
               showCloseButton={true}
               handleCloseClick={handleCloseClick}
             /> : ''}
-            <div className="overlay-body h-full">
+            <div className="overlay-body min-h-full">
               {children}
             </div>
           </div>
