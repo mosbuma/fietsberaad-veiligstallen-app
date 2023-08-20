@@ -69,6 +69,8 @@ const Home: NextPage = ({
   online,
 }: any) => {
   const router = useRouter();
+  const { query} = useRouter();
+
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
