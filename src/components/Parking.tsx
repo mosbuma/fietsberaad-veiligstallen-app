@@ -119,7 +119,12 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
       return <></>;
     }
 
-    const value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
+    let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
+
+    let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
+    if(diff>=86340) {
+      value = '24h'
+    }
 
     return (
       <>
@@ -188,6 +193,8 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
                 <b>{parkingdata.Title}</b> 
               :
                 <input key='i-title' className="border-2 border-black mb-1" placeholder="titel" onChange={e=>{ setNewTitle(e.target.value)}} value={newTitle!==undefined?newTitle:parkingdata.Title} />}
+              <br />
+              {parkingdata.Type}
               <br />
               {editMode === false ? 
                 parkingdata.Location
