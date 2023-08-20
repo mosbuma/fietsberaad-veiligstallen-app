@@ -7,7 +7,10 @@ export default async function handle(req, res) {
   }
 
   if(req.query.SiteID) {
-    where.SiteID = req.query.SiteID;
+    where.OR = [
+      { SiteID: req.query.SiteID },
+      { SiteID: "1" }// 1 = Default site / menu items
+    ]
   }
   if(req.query.Title) {
     where.Title = {

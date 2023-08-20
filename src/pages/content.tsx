@@ -69,7 +69,9 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
     (async () => {
       try {
-        const response = await fetch(`/api/articles/?Title=${pageSlug}&findFirst=true`);
+        const response = await fetch(
+        	`/api/articles/?Title=${pageSlug}&SiteID=${activeMunicipalityInfo.ID}&findFirst=true`
+      	);
         const json = await response.json();
         if(! json) return;
         // If result is an array with 1 node: Get node only

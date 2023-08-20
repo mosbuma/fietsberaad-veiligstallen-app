@@ -65,7 +65,8 @@ function AppHeaderDesktop({
         const response = await fetch(`/api/articles/?SiteID=${activeMunicipalityInfo.ID}`);
         const json = await response.json();
 
-        setArticles(json.filter((x) => x.ShowInNav === "1"));
+        // setArticles(json.filter((x) => x.ShowInNav === "1"));
+        setArticles(json);
       } catch(err) {
         console.error(err);
       }
@@ -97,7 +98,7 @@ function AppHeaderDesktop({
     'FAQ',
     'Tips',
     'Contact'
-  ];
+  ];// SiteID = 1
 
   return (
     <>
