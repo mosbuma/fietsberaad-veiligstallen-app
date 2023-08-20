@@ -173,8 +173,9 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 					{parkingTypesToFilterOn && <ParkingFacilityBrowser
 						customFilter={(x) => {
 							console.log('x.Plaats', x.Plaats?.toLowerCase(), 'activeMunicipalityInfo.CompanyName', activeMunicipalityInfo.CompanyName?.toLowerCase(), 'D', activeMunicipalityInfo.CompanyName?.toLowerCase().indexOf(x.Plaats?.toLowerCase()), parkingTypesToFilterOn, x.Type)
-              return
-                parkingTypesToFilterOn.indexOf(x.Type) > -1;
+              return true;
+                // parkingTypesToFilterOn.indexOf(x.Type) > -1;
+                // && activeMunicipalityInfo.CompanyName?.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1;
 						}}
             onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
 						fietsenstallingen={fietsenstallingen}
