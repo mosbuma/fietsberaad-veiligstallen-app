@@ -94,17 +94,17 @@ const Content: NextPage = ({ fietsenstallingen }) => {
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
   let parkingTypesToFilterOn;
-  if(pageContent.title === 'Stallingen') {
+  if(pageContent.Title === 'Stallingen') {
   	parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
   }
-  else if(pageContent.title === 'Buurtstallingen') {
-  	parkingTypesToFilterOn = 'buurtstalling';
+  else if(pageContent.Title === 'Buurtstallingen') {
+  	parkingTypesToFilterOn = ['buurtstalling'];
   }
-  else if(pageContent.title === 'Fietstrommels') {
-  	parkingTypesToFilterOn = 'fietstrommel';
+  else if(pageContent.Title === 'Fietstrommels' || pageContent.Title === 'fietstrommels') {
+  	parkingTypesToFilterOn = ['fietstrommel'];
   }
-  else if(pageContent.title === 'Fietskluizen') {
-  	parkingTypesToFilterOn = 'fietskluizen';
+  else if(pageContent.Title === 'Fietskluizen') {
+  	parkingTypesToFilterOn = ['fietskluizen'];
   }
 
   return (
@@ -172,9 +172,10 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 				>
 					{parkingTypesToFilterOn && <ParkingFacilityBrowser
 						customFilter={(x) => {
-							if(parkingTypesToFilterOn) {
-								return parkingTypeToFilterOn.indexOf(x.type) >= -1;
-							}
+							console.log('x.Plaats', x.Plaats?.toLowerCase(), 'activeMunicipalityInfo.CompanyName', activeMunicipalityInfo.CompanyName?.toLowerCase())
+              return
+                parkingTypesToFilterOn.indexOf(x.Type) > -1
+                && x.Plaats?.toLowerCase() === activeMunicipalityInfo.CompanyName?.toLowerCase();
 						}}
             onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
 						fietsenstallingen={fietsenstallingen}

@@ -185,7 +185,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
     stateMap.flyTo({
       center: initialLatLng,
-      speed: 0.75,
+      // speed: 0.75,
+      duration: 1500,
+      essential: true,
       zoom: 13,
     });
   }, [

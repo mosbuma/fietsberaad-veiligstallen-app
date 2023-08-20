@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
+import { usePathname } from 'next/navigation';
 import Link from 'next/link'
 
 import Logo from './Logo';
@@ -42,6 +43,7 @@ function AppHeaderDesktop({
 }) {
   const dispatch = useDispatch();
   const { push } = useRouter();
+  const pathName = usePathname();
   const { data: session } = useSession()
   
   const [articles, setArticles] = useState([]);
@@ -72,7 +74,10 @@ function AppHeaderDesktop({
     })();
   }, [
     activeMunicipalityInfo,
+    pathName
   ]);
+
+  console.log('activeMunicipalityInfo', activeMunicipalityInfo)
 
   const handleLoginClick = () => {
     if(!session) {

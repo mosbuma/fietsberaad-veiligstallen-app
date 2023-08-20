@@ -41,7 +41,7 @@ function ParkingFacilityBrowser({
     let filtered = fietsenstallingen;
 
     if(customFilter) {
-      filtered = allParkings.filter(customFilter);
+      filtered = filtered.filter(customFilter);
     }
     // Default filter:
     else {
@@ -65,6 +65,7 @@ function ParkingFacilityBrowser({
     mapVisibleFeatures,
     mapVisibleFeatures.length,
     filterQuery,
+    customFilter
   ]);
 
   // Scroll to selected parking if selected parking changes
