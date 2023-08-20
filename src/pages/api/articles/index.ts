@@ -21,6 +21,7 @@ export default async function handle(req, res) {
   const query = {
     where: where,
     select: {
+      ID: true,
       SiteID: true,
       Title: true,
       DisplayTitle: true,
@@ -33,9 +34,6 @@ export default async function handle(req, res) {
       ModuleID: true
     },
     orderBy: [
-      {
-        SiteID: 'asc',
-      },
       {
         SortOrder: 'asc',
       },
