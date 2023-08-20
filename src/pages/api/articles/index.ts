@@ -17,6 +17,9 @@ export default async function handle(req, res) {
       equals: req.query.Title,
     }
   }
+  if(req.query.Navigation) {
+    where.Navigation = req.query.Navigation;
+  }
 
   const query = {
     where: where,

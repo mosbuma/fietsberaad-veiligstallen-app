@@ -217,17 +217,17 @@ const Home: NextPage = ({
         </>)}
 
         <div
-          className="
+          className={`
             l-0
             absolute
-            bottom-0
+            _bottom-0
             z-10
             w-full
             p-4
             sm:w-auto
             top-0
             sm:top-16
-          "
+          `}
         >
           {/*
           <div
@@ -261,6 +261,10 @@ const Home: NextPage = ({
             data-comment="Mobile topbar - Show only on mobile"
             className="
               flex sm:hidden
+              top-5
+              right-5
+              left-5
+              fixed
             "
           >
             <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />

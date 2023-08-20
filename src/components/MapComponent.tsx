@@ -439,7 +439,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     dispatch(setMapZoom(theMap.getZoom()));
   }, []);
 
-  return <div ref={mapNode} style={{ width: "100vw", height: "100vh" }} />;
+  const isSm = typeof window !== "undefined" && window.innerWidth < 640;
+
+  return <div ref={mapNode} style={{ width: "100vw", height: "100dvh", 'overflow-y': 'hidden' }} />;
 }
 
 export default MapboxMap;

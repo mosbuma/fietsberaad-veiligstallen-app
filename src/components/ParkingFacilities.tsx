@@ -48,7 +48,7 @@ const ParkingFacilities = ({
     <div data-name="parking-facilities">
       <div
         className="
-        flex flex min-h-screen flex-col items-center justify-center
+        flex flex flex-col items-center justify-center
       "
       >
         {mapmode ? (
