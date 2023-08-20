@@ -43,7 +43,7 @@ export const CrudRouteHandler = async <T>(
   if ((request.method as HttpMethod) === "PUT") {
     const data = request.body as T;
     const updateResponse = await service.update(id, data);
-    return response.status(200);
+    return response.status(200).json(updateResponse);
   }
 
   if ((request.method as HttpMethod) === "DELETE") {

@@ -97,11 +97,16 @@ const Home: NextPage = ({
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
-  useEffect(()=>{
-    setCurrentStallingId(router.query.stallingid);
-  }, [
-    router.query.stallingid
-  ]);
+  useEffect(() => {
+    if (
+      fietsenstallingen.find(
+        (stalling: any) => stalling.ID === router.query.stallingid
+      )
+    ) {
+      // can happen when the logged in user does not have access to the parking
+      setCurrentStallingId(router.query.stallingid);
+    }
+  }, [router.query.stallingid]);
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
@@ -211,7 +216,7 @@ const Home: NextPage = ({
         {currentStallingId && ! isSm && (<>
           <Modal
             onClose={() => {updateStallingId(undefined)}}
-            clickOutsideClosesDialog={true}
+            clickOutsideClosesDialog={false}
           >
             <Parking
               key={currentStallingId}

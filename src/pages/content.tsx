@@ -198,7 +198,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
       {currentStallingId && ! isSm && (<>
         <Modal
           onClose={() => setCurrentStallingId(undefined)}
-          clickOutsideClosesDialog={true}
+          clickOutsideClosesDialog={false}
         >
           <Parking
             key={currentStallingId}

@@ -1,6 +1,8 @@
 import React from "react";
 
 import { openRoute } from "~/utils/map/index";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -9,50 +11,95 @@ import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import ParkingOnTheMap from "~/components/ParkingOnTheMap";
 
-// 
+//
 
 const SectionBlock = ({
   heading,
   children,
-  contentClasses
+  contentClasses,
 }: {
-  heading: string,
-  children: any
-  contentClasses?: string
+  heading: string;
+  children: any;
+  contentClasses?: string;
 }) => {
   return (
-    <div className="flex justify-between flex-wrap xl:flex-nowrap">
+    <div className="flex flex-wrap justify-between xl:flex-nowrap">
       <div
         className="
           w-full
-          xl:w-48
           font-bold
+          xl:w-48
         "
       >
         {heading}
       </div>
-      <div className={`
-        mt-4
-        xl:mt-0
+      <div
+        className={`
         ml-4
+        mt-4
+        w-full
+        text-sm
+
         xl:ml-0
 
-        xl:flex-1
-
-        text-sm
-        xl:text-base
-
-        w-full
+        xl:mt-0
         xl:w-auto
-        ${contentClasses ? contentClasses : ''}
-      `}>
+
+        xl:flex-1
+        xl:text-base
+        ${contentClasses ? contentClasses : ""}
+      `}
+      >
         {children}
       </div>
     </div>
   );
-}
+};
 
 const Parking = ({ parkingdata }: { parkingdata: any }) => {
+  const router = useRouter();
+  const session = useSession();
+
+  const [editMode, setEditMode] = React.useState(false);
+
+  const [newTitle, setNewTitle ] = React.useState(undefined);
+  const [newLocation, setNewLocation ] = React.useState(undefined);
+  const [newPostcode, setNewPostcode ] = React.useState(undefined);
+  const [newPlaats, setNewPlaats ] = React.useState(undefined);
+
+  const updateParking = async () => {
+    if(newTitle === undefined &&
+       newPostcode === undefined &&
+       newLocation === undefined &&
+       newPlaats === undefined) {
+      return;
+    }
+
+
+    let newParking = {
+    };
+
+    if(newTitle !== undefined) { newParking.Title = newTitle; }
+    if(newLocation !== undefined) { newParking.Location = newLocation; }
+    if(newPostcode !== undefined) { newParking.Postcode = newPostcode; }
+    if(newPlaats !== undefined) { newParking.Plaats = newPlaats; }
+
+    console.log("updateParking", newParking);
+
+    const response = await fetch(
+      "/api/fietsenstallingen?id=" + parkingdata.ID,
+      {
+        method: "PUT",
+        body: JSON.stringify(newParking),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    router.push("?stallingid=" + parkingdata.ID); // refreshes the page to show the edits
+  };
+
   const formatOpening = (
     dayidx: number,
     day: string,
@@ -84,31 +131,50 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
   // console.log("@@ stallingdata has %s items", parkingdata.length);
 
+  const label = editMode ? "opslaan" : "bewerken";
+
+  console.log("@@@ parkingdata", parkingdata.Title);
+
   return (
-    <div className="
+    <div
+      className="
       ml-5 mr-5 mt-5
       sm:ml-10 sm:mr-10 sm:mt-10
-    ">
+    "
+    >
       <div
         className="
           mr-8 flex
           justify-between
         "
       >
-        <PageTitle className="w-full flex justify-center sm:justify-start">
-          <div className="hidden sm:block mr-4">{parkingdata.Title}</div>
-          <Button className="mt-3 sm:mt-0">bewerken</Button>
+        <PageTitle className="flex w-full justify-center sm:justify-start">
+          <div className="mr-4 hidden sm:block">{parkingdata.Title}</div>
+          {session.status === "authenticated" ? (
+            <Button
+              key="b-1"
+              className="mt-3 sm:mt-0"
+              onClick={(e) => {
+                if (e) e.preventDefault();
+                if (editMode) {
+                  updateParking();
+                }
+                setEditMode(editMode === false);
+              }}
+            >
+              {label}
+            </Button>
+          ) : null}
         </PageTitle>
       </div>
 
       <div className="flex justify-between">
         <div data-name="content-left" className="sm:mr-12">
-          {parkingdata.Image && <div className="mb-8">
-              <ImageSlider images={[
-                parkingdata.Image
-              ]} />
+          {parkingdata.Image && (
+            <div className="mb-8">
+              <ImageSlider images={[parkingdata.Image]} />
             </div>
-          }
+          )}
 
           <section
             className="
@@ -118,20 +184,34 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
             "
           >
             <p>
-              <b>{parkingdata.Title}</b>
+              {editMode === false ? 
+                <b>{parkingdata.Title}</b> 
+              :
+                <input key='i-title' className="border-2 border-black mb-1" placeholder="titel" onChange={e=>{ setNewTitle(e.target.value)}} value={newTitle!==undefined?newTitle:parkingdata.Title} />}
               <br />
-              {parkingdata.Location}
+              {editMode === false ? 
+                parkingdata.Location
+              :
+                <input key='i-location' className="border-2 border-black mb-1" placeholder="adres" onChange={e=>{ setNewLocation(e.target.value)}} value={newLocation!==undefined?newLocation:parkingdata.Location} />}
               <br />
-              {parkingdata.Postcode} {parkingdata.Plaats}
+              {editMode === false ? 
+                ((parkingdata.Postcode||'') + ' ' +parkingdata.Plaats).trim()
+              :
+                <>
+                  <input key='i-postcode' className="border-2 border-black mb-1" placeholder="postcode" onChange={e=>{ setNewPostcode(e.target.value)}} value={newPostcode!==undefined?newPostcode:parkingdata.Postcode} />
+                  <input key='i-plaats' className="border-2 border-black mb-1" placeholder="plaats" onChange={e=>{ setNewPlaats(e.target.value)}} value={newPlaats!==undefined?newPlaats:parkingdata.Plaats} />
+                </>
+              }
             </p>
-            <p>
-              <b>0.3km</b>
-            </p>
+            {/* <p>
+              <b>0.3km</b
+            </p> */}
           </section>
 
           <HorizontalDivider className="my-4" />
 
-          <SectionBlock heading="Openingstijden"
+          <SectionBlock
+            heading="Openingstijden"
             contentClasses="grid grid-cols-2"
           >
             {formatOpening(2, "ma", "Maandag")}
@@ -155,14 +235,14 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
           <SectionBlock heading="Tarief">
             <div className="font-bold">Fietsen</div>
-            <div className="ml-2 grid grid-cols-2 w-full">
+            <div className="ml-2 grid w-full grid-cols-2">
               <div>Eerste 24 uur:</div>
               <div className="text-right sm:text-center">gratis</div>
               <div>Daarna per 24 uur:</div>
               <div className="text-right sm:text-center">&euro;0,60</div>
             </div>
-            <div className="font-bold mt-4">Bromfietsen</div>
-            <div className="ml-2 grid grid-cols-2 w-full">
+            <div className="mt-4 font-bold">Bromfietsen</div>
+            <div className="ml-2 grid w-full grid-cols-2">
               <div>Eerste 24 uur:</div>
               <div className="text-right sm:text-center">&euro;0,60</div>
             </div>
@@ -218,22 +298,16 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
           <HorizontalDivider className="my-4" />
 
-          <SectionBlock heading="Beheerder">
-            U-stal
-          </SectionBlock>
+          <SectionBlock heading="Beheerder">U-stal</SectionBlock>
 
-          <p className="mb-10">
-            {/*Some spacing*/}
-          </p>
+          <p className="mb-10">{/*Some spacing*/}</p>
 
           {/*<button>Breng mij hier naartoe</button>*/}
         </div>
 
         <div data-name="content-right" className="ml-12 hidden sm:block">
           <div className="relative">
-
             <ParkingOnTheMap parking={parkingdata} />
-
           </div>
         </div>
       </div>
@@ -241,22 +315,24 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
       <Button
         className="
           fixed bottom-3
-          sm:absolute sm:bottom-1
-          right-3
-          z-10
+          right-3 z-10
           flex
           py-3
+          sm:absolute
+          sm:bottom-1
         "
         onClick={(e) => {
-          if(e) e.preventDefault();
-          openRoute(parkingdata.Coordinaten)
+          if (e) e.preventDefault();
+          openRoute(parkingdata.Coordinaten);
         }}
-        htmlBefore=<img src="/images/icon-route-white.png" alt="Route" className="w-5 mr-3" />
+        htmlBefore=<img
+          src="/images/icon-route-white.png"
+          alt="Route"
+          className="mr-3 w-5"
+        />
       >
-
         Breng mij hier naartoe
       </Button>
-
     </div>
   );
 };

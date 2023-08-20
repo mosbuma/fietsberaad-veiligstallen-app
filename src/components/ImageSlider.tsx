@@ -25,9 +25,10 @@ const ImageSlider = ({
     <div className="card-list">
       {/*<div ref={ref} className="card-list__slides keen-slider">*/}
       <div className="card-list__slides keen-slider">
-        {images.map((imgUrl) => <Image
+        {images.map((imgUrl, idx) => <Image
+          key={'img-'+idx}
           src={`https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`}
-          alt="Image 1"
+          alt={"Image " + idx}
           width={203}
           height={133}
           className="keen-slider__slide mr-3 rounded-lg"
