@@ -92,7 +92,7 @@ function AppHeaderDesktop({
           'ED145DD3-E403-6B76-E533897744968FFD'
 
         ]
-        filteredJson.filter((x) => hideTheseIds.indexOf(x.ID) > -1)
+        filteredJson.filter((x) => hideTheseIds.indexOf(x.ID) <= -1)
         setArticles(filteredJson);
       } catch(err) {
         console.error(err);

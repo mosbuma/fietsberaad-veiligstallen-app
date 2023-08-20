@@ -227,7 +227,7 @@ const Home: NextPage = ({
             "
             style={{
               width: "414px",
-              height: "60vh",
+              height: mapZoom >= 12 ? "60vh" : 'auto',
               maxHeight: 'calc(100vh - 64px)'
             }}
           >
