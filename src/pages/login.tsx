@@ -145,7 +145,7 @@ const Login: NextPage = () => {
 								</div>
 							</div>
 
-							<div className="text-center sm:text-right my-2 text-sm">
+							<div className="text-center sm:text-right my-2 text-sm hidden">
 								Nog geen account? <a href="/register" className="underline">
 									Registreren
 								</a>
@@ -154,10 +154,10 @@ const Login: NextPage = () => {
 
 						<div data-name="Footer: Password forgotten & Contact helpdesk">
 							<div className="text-center">
-								<a href="/reset-password" className="underline text-sm mr-5">
+								<a href="/reset-password" className="underline text-sm mr-5 hidden">
 									Wachtwoord vergeten?
 								</a>
-								<a href="/contact" className="underline text-sm">
+								<a href="/contact" className="underline text-sm hidden">
 									Contact helpdesk
 								</a>
 							</div>
