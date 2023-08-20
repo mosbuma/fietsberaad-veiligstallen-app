@@ -1,16 +1,19 @@
 // @ts-nocheck
 
 const FooterNavItem = ({
+  url,
   children,
   className
 }: {
+  url?: stirng,
   children: any,
   className?: string
 }) => {
-  return <a href="#" className={`
+  return <a href={url} className={`
     ${className}
     mx-2
-  `}>
+  `}
+  >
     {children}
   </a>
 }
@@ -42,6 +45,7 @@ const FooterNav = () => {
     ">
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
+        url={x.url}
         className="font-bold"
       >
         {x.title}        
@@ -49,6 +53,7 @@ const FooterNav = () => {
 
       {navItemsSecundary.map(x => <FooterNavItem
         key={x.title}
+        url={x.url}
       >
         {x.title}        
       </FooterNavItem>)}

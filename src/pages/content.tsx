@@ -82,7 +82,9 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         console.error(err);
       }
 		})();
-  }, []) 
+  }, [
+  	pathName
+	]) 
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
