@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
 import Head from "next/head";
 import superjson from "superjson";
+import { useRouter } from 'next/router'
 
 import {
   setIsParkingListVisible,
@@ -10,9 +11,15 @@ import {
 } from "~/store/appSlice";
 import {
   setActiveMunicipalityInfo,
+  setInitialLatLng
 } from "~/store/mapSlice";
 
-import { getMunicipalityBasedOnCbsCode } from "~/utils/municipality";
+import {
+  getMunicipalityBasedOnCbsCode,
+  getMunicipalityBasedOnUrlName
+} from "~/utils/municipality";
+
+import { convertCoordinatenToCoords } from "~/utils/map/index";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
@@ -52,19 +59,14 @@ export async function getStaticProps() {
   }
 }
 
-const Home: NextPage = ({ fietsenstallingen, online }: any) => {
+const Home: NextPage = ({
+  fietsenstallingen,
+  online,
+}: any) => {
+  const router = useRouter();
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
-
-  // On app load: Load municipalities in state
-  // useEffect(() => {
-  //   (async () => {
-  //     const municipalities = await getMunicipalities();
-  //     setMunicipalities(municipalities);
-  //     console.log('municipalities SET', municipalities)
-  //   })();
-  // }, [])
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -87,6 +89,22 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
   );
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
+  // Scroll to municipality if municipality is given
+  useEffect(() => {
+    if(! router.query.urlName) return;
+
+    // Get municipality based on urlName
+    (async () => {
+      const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
+      const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
+      if(initialLatLng) {
+        dispatch(setInitialLatLng(initialLatLng));
+      }
+    })();
+  }, [
+    router.query.urlName
+  ]);
 
   // Get municipality theme info
   useEffect(() => {
@@ -178,11 +196,15 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
           className="
             l-0
             absolute
+            bottom-0
             z-10
             w-full
             p-4
             sm:w-auto
           "
+          style={{
+            top: '64px'
+          }}
         >
           {/*
           <div
@@ -201,7 +223,8 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
             "
             style={{
               width: "414px",
-              maxHeight: "60vh",
+              height: "60vh",
+              maxHeight: 'calc(100vh - 64px)'
             }}
           >
             <ParkingFacilityBrowser
@@ -368,7 +391,9 @@ const Home: NextPage = ({ fietsenstallingen, online }: any) => {
           />
         </div>}
 
-        <ParkingFacilities fietsenstallingen={fietsenstallingen} />
+        <ParkingFacilities
+          fietsenstallingen={fietsenstallingen}
+        />
       </main>
     </>
   );
