@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useRouter } from "next/navigation";
 
 const FooterNavItem = ({
   url,
@@ -9,10 +10,17 @@ const FooterNavItem = ({
   children: any,
   className?: string
 }) => {
+  const { push } = useRouter();
+
   return <a href={url} className={`
     ${className}
     mx-2
   `}
+  onClick={(e) => {
+    e.preventDefault();
+
+    push(url);
+  }}
   >
     {children}
   </a>
@@ -20,7 +28,7 @@ const FooterNavItem = ({
 
 const FooterNav = () => {
   const navItemsPrimary = [
-    { title: 'Stalling toevoegen' },
+    // { title: 'Stalling toevoegen' },
     { title: 'Over Veilig Stallen', url: '/fietsberaad/Copyright' },
   ];
 

@@ -26,11 +26,17 @@ const PrimaryMenuItem = (props: any) => {
 }
 
 const SecundaryMenuItem = (props: any) => {
+  const { push } = useRouter();
+
   return <div className="
     SecundaryMenuItem
     px-2
   ">
-    <a href="#" className="flex flex-col justify-center h-full">
+    <a href="#" className="flex flex-col justify-center h-full" onClick={(e) => {
+      e.preventDefault();
+
+      push(props.url);
+    }}>
       {props.title}
     </a>
   </div>
