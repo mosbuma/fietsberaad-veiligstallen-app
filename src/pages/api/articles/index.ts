@@ -35,7 +35,8 @@ export default async function handle(req, res) {
       SortOrder: true,
       ShowInNav: true,
       ModuleID: true,
-      Navigation: true
+      Navigation: true,
+      ModuleID: true
     },
     orderBy: [
       {

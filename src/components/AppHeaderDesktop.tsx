@@ -91,7 +91,13 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  const primaryMenuItems = articles.filter(x => x.Navigation === 'main');
+  let primaryMenuItems = articles;
+  // Only include 'main' items
+  primaryMenuItems = primaryMenuItems.filter(x => x.Navigation === 'main');
+  // Exclude articles with title: Home
+  primaryMenuItems = primaryMenuItems.filter(x => x.Title !== 'Home');
+  // Only keep items for veiligstallen
+  primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
 
   const secundaryMenuItems = [
     'FAQ',
@@ -123,7 +129,7 @@ function AppHeaderDesktop({
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle}
-            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}`}
+            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}`}
           />)}
         </div>
         <div className="flex flex-end">

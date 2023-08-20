@@ -18,14 +18,13 @@ const FooterNavItem = ({
 const FooterNav = () => {
   const navItemsPrimary = [
     { title: 'Stalling toevoegen' },
-    { title: 'Over Veilig Stallen' },
+    { title: 'Over Veilig Stallen', url: '/fietsberaad/Copyright' },
   ];
 
   const navItemsSecundary = [
-    { title: 'Disclaimer', url: '/fietsberaad/disclaimer' },
-    { title: 'Privacy', url: '/fietsberaad/privacy' },
-    { title: 'Algemene voorwaarden', url: '/fietsberaad/algemene_voorwaarden' },
-    { title: 'Algemene voorwaarden', url: '/fietsberaad/copyright' },
+    { title: 'Disclaimer', url: '/fietsberaad/Disclaimer' },
+    { title: 'Privacy', url: '/fietsberaad/Privacy' },
+    { title: 'Algemene voorwaarden', url: '/fietsberaad/Algemene_voorwaarden' },
   ];
 
   return (
