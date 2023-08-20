@@ -11,12 +11,14 @@ function ParkingFacilityBrowser({
   fietsenstallingen,
   activeParkingId,
   onShowStallingDetails,
-  showSearchBar
+  showSearchBar,
+  customFilter,
 }: {
   fietsenstallingen: any;
   activeParkingId?: any;
   onShowStallingDetails?: (id: number) => void;
   showSearchBar?: false
+  customFilter?: Function
 }) {
   const dispatch = useDispatch();
 
@@ -35,20 +37,27 @@ function ParkingFacilityBrowser({
   useEffect(() => {
     if (!fietsenstallingen) return;
     if (!mapVisibleFeatures) return;
-
     const allParkings = fietsenstallingen;
-    const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
-    // Only keep parkings that are visible on the map
-    const filtered = allParkings.filter((p) => {
-      const inFilter =
-        filterQuery === "" ||
-        p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-        p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-        p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
-      activeParkingId ? p.ID === activeParkingId : true;
-      const showParking = visibleParkingIds.indexOf(p.ID) > -1 && inFilter;
-      return showParking;
-    });
+    let filtered = fietsenstallingen;
+
+    if(customFilter) {
+
+    }
+    // Default filter:
+    else {
+      const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
+      // Only keep parkings that are visible on the map
+      filtered = allParkings.filter((p) => {
+        const inFilter =
+          filterQuery === "" ||
+          p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+          p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+          p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
+        activeParkingId ? p.ID === activeParkingId : true;
+        const showParking = visibleParkingIds.indexOf(p.ID) > -1 && inFilter;
+        return showParking;
+      });
+    }
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
   }, [

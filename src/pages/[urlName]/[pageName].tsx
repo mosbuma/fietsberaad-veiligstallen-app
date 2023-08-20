@@ -1,13 +1,35 @@
 import React from "react";
-import { useRouter } from 'next/router'
+import Head from "next/head";
+import Content from '../content';
 
-const MunicipalityPage: React.FC = () => {
-  const router = useRouter()
-  return (
-    <div className="flex h-screen w-screen items-center justify-center bg-blue-500 text-xl font-bold text-white">
-      VEILIGSTALLEN.NL SUB {router.query.municipalityName} {router.query.pageName}
-    </div>
-  );
-};
+import { getParkingsFromDatabase } from "~/utils/prisma";
 
-export default MunicipalityPage;
+export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
+  return {
+    paths: [], //indicates that no page needs be created at build time
+    fallback: 'blocking' //indicates the type of fallback
+  }
+}
+
+export async function getStaticProps() {
+  try {
+    // console.log("index.getStaticProps - start");
+    const fietsenstallingen = await getParkingsFromDatabase();
+    // TODO: Don't include: EditorCreated, EditorModified
+
+    return {
+      props: {
+        fietsenstallingen: fietsenstallingen,
+      },
+    };
+  } catch (ex: any) {
+    // console.error("index.getStaticProps - error: ", ex.message);
+    return {
+      props: {
+        fietsenstallingen: [],
+      },
+    };
+  }
+}
+
+export default Content;
