@@ -66,33 +66,31 @@ function AppHeaderDesktop({
         const json = await response.json();
 
         // setArticles(json.filter((x) => x.ShowInNav === "1"));
-        // setArticles(json);
         let filteredJson = json;
         // Hide items without Title
-        filteredJson.filter((x) => x.Title !== "")
-        // Hide SiteID=1 items we don't want
-        const hideTheseIds = [
-          '0B629CF2-FD1A-466E-97E11BA0ADA634BD',
-          '143047C3-D88E-FBC4-D82BA12CFCC645EC',
-          '1657B38F-D366-26D3-5B4DF36022E43795',
-          '28042394-C9E0-EB7E-30712AF6492CF8AE',
-          '385EF518-BF4F-6974-A712E6B2AE25464F',
-          '387A6195-B727-FCC4-0DB0E25034A85E36',
-          '394C0A9E-0489-66B3-F2853D8239736114',
-          '394C0AA0-9F80-E022-6154B5E11DB37CE4',
-          '5EFAD922-6E47-4A29-9BD401EBDC6E9C9A',
-          '6C50D3A3-AADD-4819-892084BB08FEB3A6',
-          '73DC0A2B-0C67-25F0-AA1B389FB9B15F06',
-          'B4F74452-E882-4CA4-8258356ACC587FD2',
-          'B9A7955A-306B-4CBF-B711CB2D6D0B974F',
-          'C3B8CBA5-291E-49B6-837C5469FCA7EADD',
-          'CE5A5874-9A72-447F-8806E81C3422300B',
-          'D71457FD-B9A0-950F-492C43E9A1EEC18D',
-          'E7473EEA-E977-84D5-6595009CFE13AB6E',
-          'ED145DD3-E403-6B76-E533897744968FFD'
-
-        ]
-        filteredJson.filter((x) => hideTheseIds.indexOf(x.ID) <= -1)
+        // filteredJson.filter((x) => x.Title !== "")
+        // // Hide SiteID=1 items we don't want
+        // const hideTheseIds = [
+        //   '0B629CF2-FD1A-466E-97E11BA0ADA634BD',
+        //   '143047C3-D88E-FBC4-D82BA12CFCC645EC',
+        //   '1657B38F-D366-26D3-5B4DF36022E43795',
+        //   '28042394-C9E0-EB7E-30712AF6492CF8AE',
+        //   '385EF518-BF4F-6974-A712E6B2AE25464F',
+        //   '387A6195-B727-FCC4-0DB0E25034A85E36',
+        //   '394C0A9E-0489-66B3-F2853D8239736114',
+        //   '394C0AA0-9F80-E022-6154B5E11DB37CE4',
+        //   '5EFAD922-6E47-4A29-9BD401EBDC6E9C9A',
+        //   '6C50D3A3-AADD-4819-892084BB08FEB3A6',
+        //   '73DC0A2B-0C67-25F0-AA1B389FB9B15F06',
+        //   'B4F74452-E882-4CA4-8258356ACC587FD2',
+        //   'B9A7955A-306B-4CBF-B711CB2D6D0B974F',
+        //   'C3B8CBA5-291E-49B6-837C5469FCA7EADD',
+        //   'CE5A5874-9A72-447F-8806E81C3422300B',
+        //   'D71457FD-B9A0-950F-492C43E9A1EEC18D',
+        //   'E7473EEA-E977-84D5-6595009CFE13AB6E',
+        //   'ED145DD3-E403-6B76-E533897744968FFD'
+        // ]
+        // filteredJson.filter((x) => hideTheseIds.indexOf(x.ID) <= -1)
         setArticles(filteredJson);
       } catch(err) {
         console.error(err);
@@ -119,7 +117,7 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  const primaryMenuItems = articles;
+  const primaryMenuItems = articles.filter(x => x.Navigation === 'main');
 
   const secundaryMenuItems = [
     'FAQ',
@@ -151,7 +149,7 @@ function AppHeaderDesktop({
           {primaryMenuItems.map(x => <PrimaryMenuItem
             key={x}
             title={x.DisplayTitle}
-            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle ? x.DisplayTitle.toLowerCase() : (x.Title ? x.Title.toLowerCase() : '')}`}
+            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}`}
           />)}
         </div>
         <div className="flex flex-end">

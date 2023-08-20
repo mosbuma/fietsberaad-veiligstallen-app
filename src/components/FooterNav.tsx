@@ -22,9 +22,10 @@ const FooterNav = () => {
   ];
 
   const navItemsSecundary = [
-    { title: 'Disclaimer' },
-    { title: 'Privacy' },
-    { title: 'Algemene voorwaarden' },
+    { title: 'Disclaimer', url: '/fietsberaad/disclaimer' },
+    { title: 'Privacy', url: '/fietsberaad/privacy' },
+    { title: 'Algemene voorwaarden', url: '/fietsberaad/algemene_voorwaarden' },
+    { title: 'Algemene voorwaarden', url: '/fietsberaad/copyright' },
   ];
 
   return (
