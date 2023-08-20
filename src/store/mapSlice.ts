@@ -11,6 +11,7 @@ export interface MapState {
   selectedParkingId: string;
   activeMunicipality: any;
   activeMunicipalityInfo: any;
+  initialLatLng: Array;
 }
 
 // Initial state
@@ -21,7 +22,8 @@ const initialState: MapState = {
   municipality: [],
   selectedParkingId: undefined,
   activeMunicipality: undefined,
-  activeMunicipalityInfo: undefined
+  activeMunicipalityInfo: undefined,
+  initialLatLng: undefined
 };
 
 // Actual Slice
@@ -57,6 +59,10 @@ export const mapSlice = createSlice({
     setActiveMunicipalityInfo(state, action) {
       state.activeMunicipalityInfo = action.payload;
     },
+    // setInitialLatLng
+    setInitialLatLng(state, action) {
+      state.initialLatLng = action.payload;
+    },
   },
 
   // Special reducer for hydrating the state. Special case for next-redux-wrapper
@@ -76,5 +82,6 @@ export const {
   setMapVisibleFeatures,
   setSelectedParkingId,
   setActiveMunicipality,
-  setActiveMunicipalityInfo
+  setActiveMunicipalityInfo,
+  setInitialLatLng
 } = mapSlice.actions;

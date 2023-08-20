@@ -11,7 +11,10 @@ import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
 import FooterNav from "~/components/FooterNav";
 
-const ParkingFacilities = ({ fietsenstallingen }: any) => {
+const ParkingFacilities = ({
+  fietsenstallingen,
+  initialLatLng
+}: any) => {
   const [mapmode, setMapmode] = useState(true);
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(false);
 
@@ -22,20 +25,6 @@ const ParkingFacilities = ({ fietsenstallingen }: any) => {
   const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
   const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
   const resetFilter = () => {};
-
-  // console.log(
-  //   "@@@@ activeTypes",
-  //   JSON.stringify(
-  //     fietsenstallingen.map((x) => ({
-  //       n: x.Title,
-  //       t: x.Type,
-  //       a: activeTypes,
-  //       r: activeTypes.indexOf(x.Type) > -1,
-  //     })),
-  //     null,
-  //     2
-  //   )
-  // );
 
   // let cards: CardData[] = [];
   let filteredFietsenstallingen: any[] = [];

@@ -104,6 +104,8 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
+  const initialLatLng = useSelector((state: AppState) => state.map.initialLatLng);
+
   const municipalities = useSelector(
     (state: AppState) => state.geo.municipalities
   );
@@ -175,6 +177,21 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       mapboxMap.remove();
     };
   }, []);
+
+  // Fly to municipality if initial municipality is given
+  React.useEffect(() => {
+    if(! stateMap) return;
+    if(! initialLatLng) return;
+
+    stateMap.flyTo({
+      center: initialLatLng,
+      speed: 0.75,
+      zoom: 12,
+    });
+  }, [
+    stateMap,
+    initialLatLng
+  ]);
 
   // If 'fietsenstallingen' variable changes: Update source data
   React.useEffect(() => {
