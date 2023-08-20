@@ -128,8 +128,8 @@ function AppHeaderDesktop({
         <div className="flex-1 flex flex-start">
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
-            title={x.DisplayTitle}
-            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}`}
+            title={x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}
+            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.Title ? x.Title : ''}`}
           />)}
         </div>
         <div className="flex flex-end">
