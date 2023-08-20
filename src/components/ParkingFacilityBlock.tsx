@@ -200,7 +200,8 @@ function ParkingFacilityBlock({
 
             {showButtons && <div>
               <a
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (openParkingHandler) openParkingHandler(parking.ID);
                 }}
                 href="#"
@@ -259,7 +260,8 @@ function ParkingFacilityBlock({
               </div>
               <div>
                 <a
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     if (openParkingHandler) openParkingHandler(parking.ID);
                   }}
                   href="#"

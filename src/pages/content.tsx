@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import { useSelector } from "react-redux";
 import useQueryParam from '../hooks/useQueryParam';
@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { signIn } from "next-auth/react";
 import Head from "next/head";
+import { usePathname } from 'next/navigation';
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -19,7 +20,9 @@ import Modal from "src/components/Modal";
 import Overlay from "src/components/Overlay";
 import Parking from "~/components/Parking";
 
-// import Styles from "./login.module.css";
+import {
+  getMunicipalityBasedOnUrlName
+} from "~/utils/municipality";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
@@ -31,7 +34,6 @@ export async function getServerSideProps(context) {
 
     return {
       props: {
-      	sites: sites,
         fietsenstallingen: fietsenstallingen,
       },
     };
@@ -39,16 +41,18 @@ export async function getServerSideProps(context) {
     // console.error("index.getStaticProps - error: ", ex.message);
     return {
       props: {
-      	sites: sites,
         fietsenstallingen: [],
       },
     };
   }
 }
 
-const Content: NextPage = ({ fietsenstallingen, sites }) => {
+const Content: NextPage = ({ fietsenstallingen }) => {
   const { push } = useRouter();
+	const pathName = usePathname();
+  
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
+  const [pageContent, setPageContent] = useState({});
 
   const currentStalling = fietsenstallingen.find((stalling: any) => {
     return stalling.ID === currentStallingId;
@@ -57,6 +61,26 @@ const Content: NextPage = ({ fietsenstallingen, sites }) => {
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
   );
+
+  // Get article content based on slug
+  useEffect(() => {
+  	if(! pathName) return;
+		const pageSlug = pathName.split('/')[pathName.split('/').length-1];
+
+    (async () => {
+      try {
+        const response = await fetch(`/api/articles/?Title=${pageSlug}&findFirst=true`);
+        const json = await response.json();
+        if(! json) return;
+        // If result is an array with 1 node: Get node only
+        const pageContentToSet = json && json.SiteID ? json : json[0];
+        console.log(pageContentToSet)
+        setPageContent(pageContentToSet);
+      } catch(err) {
+        console.error(err);
+      }
+		})();
+  }, []) 
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
@@ -96,23 +120,22 @@ const Content: NextPage = ({ fietsenstallingen, sites }) => {
 					flex-1
 					lg:mr-24
 				">
-					<PageTitle>
-						Buurtstallingen
-					</PageTitle>
-					<div className="
+					{pageContent.DisplayTitle ? <PageTitle>
+						{pageContent.DisplayTitle}
+					</PageTitle> : ''}
+					{pageContent.Abstract ? <div className="
 						text-lg
 						my-4
-
-					">
-						Interesse in een plek in de buurtstalling? Lees dan onderstaande zorgvuldig door!
-					</div>
-					<div className="
+					"
+					dangerouslySetInnerHTML={{__html: pageContent.Abstract}}
+					/> : ''}
+					
+					{pageContent.Article ? <div className="
 						my-4
 						mt-12
-
-					">
-						Wij willen u graag attenderen op het feit dat de buurtstallingen niet gemaakt zijn voor fietsen met een ‘breed’ stuur, voor fietsen met een transportrekje met of zonder mandje of kratje voorop, voor fietsen met grote fietstassen achterop en voor fietsen met een kinderzitje voor- en/of achterop. Mocht u een plek bemachtigen in de buurtstalling en mocht u tegenkomen dat uw fiets niet past of hinder zal veroorzaken aan de andere huurders dan kunt u het abonnement kosteloos ontbinden. Wanneer uw het abonnement neemt en u geeft hinder aan de andere huurders door bovenstaande redenen dan hebben wij het recht om uw abonnement te ontbinden.
-					</div>
+					"
+					dangerouslySetInnerHTML={{__html: pageContent.Article}}
+					/> : ''}
 				</div>
 				<div className="
 					mt-10

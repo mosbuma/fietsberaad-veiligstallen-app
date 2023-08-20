@@ -5,11 +5,17 @@ export default async function handle(req, res) {
   const where = {
     Status: "1"
   }
+
   if(req.query.SiteID) {
     where.SiteID = req.query.SiteID;
   }
+  if(req.query.Title) {
+    where.Title = {
+      equals: req.query.Title,
+    }
+  }
 
-  const articles = await prisma.articles.findMany({
+  const query = {
     where: where,
     select: {
       SiteID: true,
@@ -31,6 +37,14 @@ export default async function handle(req, res) {
         SortOrder: 'asc',
       },
     ],
-  });
-  res.json(articles)
+  }
+
+  let result;
+  if(req.query.options && req.query.findFirst) {
+    result = await prisma.articles.findFirst(query);
+  }
+  else {
+    result = await prisma.articles.findMany(query);
+  }
+  res.json(result)
 }
