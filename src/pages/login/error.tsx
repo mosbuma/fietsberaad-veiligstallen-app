@@ -105,7 +105,7 @@ const Error: NextPage = () => {
 
 						<div data-name="Footer: Contact helpdesk">
 							<div className="text-center">
-								<a href="/contact" className="underline text-sm">
+								<a href="/contact" className="underline text-sm hidden">
 									Contact helpdesk
 								</a>
 							</div>

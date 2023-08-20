@@ -161,7 +161,7 @@ function AppHeaderDesktop({
             }}
             onClick={handleLoginClick}
           >
-            {session ? "Logout" : "Login"}
+            {session ? "Log uit" : "Log in"}
           </button>
         </div>
       </div>

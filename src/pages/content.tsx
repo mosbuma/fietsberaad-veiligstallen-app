@@ -175,7 +175,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 							console.log('x.Plaats', x.Plaats?.toLowerCase(), 'activeMunicipalityInfo.CompanyName', activeMunicipalityInfo.CompanyName?.toLowerCase())
               return
                 parkingTypesToFilterOn.indexOf(x.Type) > -1
-                && x.Plaats?.toLowerCase() === activeMunicipalityInfo.CompanyName?.toLowerCase();
+                && activeMunicipalityInfo.CompanyName?.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1;
 						}}
             onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
 						fietsenstallingen={fietsenstallingen}
