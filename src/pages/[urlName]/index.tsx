@@ -6,13 +6,6 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
-export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  return {
-    paths: [], //indicates that no page needs be created at build time
-    fallback: 'blocking' //indicates the type of fallback
-  }
-}
-
 export async function getServerSideProps(context) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)

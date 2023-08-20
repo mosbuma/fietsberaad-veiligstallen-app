@@ -114,7 +114,7 @@ function AppHeaderDesktop({
           {primaryMenuItems.map(x => <PrimaryMenuItem
             key={x}
             title={x.DisplayTitle}
-            url={`/${activeMunicipalityInfo.UrlName}/${x.Title.toLowerCase()}`}
+            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.Title ? x.Title.toLowerCase() : ''}`}
           />)}
         </div>
         <div className="flex flex-end">

@@ -206,10 +206,9 @@ const Home: NextPage = ({
             w-full
             p-4
             sm:w-auto
+            top-0
+            sm:top-16
           "
-          style={{
-            top: '64px'
-          }}
         >
           {/*
           <div

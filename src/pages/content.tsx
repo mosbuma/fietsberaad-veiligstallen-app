@@ -10,6 +10,7 @@ import PageTitle from "~/components/PageTitle";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
+import AppHeaderMobile from "~/components/AppHeaderMobile";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import { Button } from "~/components/Button";
 import Modal from "src/components/Modal";
@@ -59,18 +60,25 @@ const Content: NextPage = ({ fietsenstallingen, sites }) => {
 			<div data-comment="Show only on desktop" className="hidden sm:flex">
 			  <AppHeaderDesktop />
 			</div>
+			<div data-comment="Show only on mobile" className="block sm:hidden">
+			  <AppHeaderMobile
+			  	handleCloseClick={() => {
+			  		history.back();
+			  	}}
+			  />
+			</div>
 			<div className={`
-				mt-16
+				lg:mt-16
 				p-4
-				lg:pt-16
+				sm:pt-20
 				container
 				mx-auto
 
-				flex justify-between flex-wrap lg:flex-nowrap
+			 flex-wrap lg:flex justify-between lg:flex-nowrap
 			`}>
 				<div className="
 					flex-1
-					mr-24
+					lg:mr-24
 				">
 					<PageTitle>
 						Buurtstallingen
