@@ -146,8 +146,8 @@ function AppHeaderDesktop({
           <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         </Link>
         <div className="flex-1 flex flex-start">
-          {primaryMenuItems.map(x => <PrimaryMenuItem
-            key={x}
+          {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
+            key={'pmi-'+xidx}
             title={x.DisplayTitle}
             url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}`}
           />)}

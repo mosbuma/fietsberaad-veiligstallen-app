@@ -95,6 +95,12 @@ const Home: NextPage = ({
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
+  useEffect(()=>{
+    setCurrentStallingId(router.query.stallingid);
+  }, [
+    router.query.stallingid
+  ]);
+
   // Scroll to municipality if municipality is given
   useEffect(() => {
     if(! router.query.urlName) return;
@@ -157,6 +163,17 @@ const Home: NextPage = ({
     );
   }
 
+  const updateStallingId = (id: string | undefined): void => {
+    console.log(">>> update stallingId", id);
+    if(undefined===id) {
+      delete query.stallingid;
+      router.push({ query: { ...query}});
+    } else {
+      router.push({ query: { ...query, stallingid: id }}); 
+    }
+    setCurrentStallingId(id)
+  }
+
   return (
     <>
       <Head>
@@ -174,7 +191,7 @@ const Home: NextPage = ({
         {currentStallingId && isSm && (<>
           <Overlay
             title={currentStalling.Title}
-            onClose={() => setCurrentStallingId(undefined)}
+            onClose={() => {updateStallingId(undefined)}}
           >
             <Parking
               key={currentStallingId}
@@ -185,7 +202,7 @@ const Home: NextPage = ({
 
         {currentStallingId && ! isSm && (<>
           <Modal
-            onClose={() => setCurrentStallingId(undefined)}
+            onClose={() => {updateStallingId(undefined)}}
             clickOutsideClosesDialog={true}
           >
             <Parking
@@ -234,7 +251,7 @@ const Home: NextPage = ({
             <ParkingFacilityBrowser
               showSearchBar={true}
               fietsenstallingen={fietsenstallingen}
-              onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
+              onShowStallingDetails={(id: any) => {updateStallingId(id)}}
             />
           </div>
 
@@ -374,7 +391,7 @@ const Home: NextPage = ({
                   <ParkingFacilityBrowser
                     showSearchBar={false}
                     fietsenstallingen={fietsenstallingen}
-                    onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
+                    onShowStallingDetails={(id: any) => {updateStallingId(id)}}
                   />
                 </Overlay>
               )}
@@ -395,7 +412,7 @@ const Home: NextPage = ({
         >
           <CardList
             fietsenstallingen={fietsenstallingen}
-            onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
+            onShowStallingDetails={(id: any) => {updateStallingId(id)}}
           />
         </div>}
 
