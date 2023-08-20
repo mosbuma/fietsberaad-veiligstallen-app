@@ -20,6 +20,8 @@ import Modal from "src/components/Modal";
 import Overlay from "src/components/Overlay";
 import Parking from "~/components/Parking";
 
+import Styles from "./content.module.css";
+
 import {
   getMunicipalityBasedOnUrlName
 } from "~/utils/municipality";
@@ -119,13 +121,15 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 				mx-auto
 
 			 flex-wrap lg:flex justify-between lg:flex-nowrap
+
+				${Styles.ContentPage_Body}
 			`}>
 				<div className="
 					flex-1
 					lg:mr-24
 				">
 					{pageContent.DisplayTitle ? <PageTitle>
-						{pageContent.DisplayTitle}
+						{pageContent.DisplayTitle !== "" ? pageContent.DisplayTitle : pageContent.Title}
 					</PageTitle> : ''}
 					{pageContent.Abstract ? <div className="
 						text-lg

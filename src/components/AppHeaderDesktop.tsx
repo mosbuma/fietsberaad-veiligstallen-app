@@ -125,7 +125,10 @@ function AppHeaderDesktop({
         <Link href="/">
           <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         </Link>
-        <div className="flex-1 flex flex-start">
+        <div className="
+          flex-1 flex flex-start
+          flex-wrap overflow-hidden
+        ">
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}

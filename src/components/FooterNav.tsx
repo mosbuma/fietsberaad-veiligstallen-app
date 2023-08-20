@@ -5,7 +5,7 @@ const FooterNavItem = ({
   children,
   className
 }: {
-  url?: stirng,
+  url?: string,
   children: any,
   className?: string
 }) => {

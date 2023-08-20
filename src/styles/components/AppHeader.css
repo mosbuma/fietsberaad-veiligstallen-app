@@ -1,4 +1,5 @@
 .PrimaryMenuItem {
+  height: 100%;
   font: normal normal 600 18px/30px Poppins, sans-serif;
   color: #292929;
   border-right: 1px solid #707070;
