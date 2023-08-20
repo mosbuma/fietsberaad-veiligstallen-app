@@ -3,15 +3,22 @@ import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
+import Link from 'next/link'
 
 import Logo from './Logo';
 
 const PrimaryMenuItem = (props: any) => {
+  const { push } = useRouter();
+
   return <div className="
     PrimaryMenuItem
     px-5
   ">
-    <a href={props.url} className="flex flex-col justify-center h-full">
+    <a href={props.url} className="flex flex-col justify-center h-full" onClick={(e) => {
+      e.preventDefault();
+
+      push(props.url);
+    }}>
       {props.title}
     </a>
   </div>
@@ -109,7 +116,9 @@ function AppHeaderDesktop({
         "
         style={{height: '64px'}}
       >
-        <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+        <Link href="/">
+          <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+        </Link>
         <div className="flex-1 flex flex-start">
           {primaryMenuItems.map(x => <PrimaryMenuItem
             key={x}

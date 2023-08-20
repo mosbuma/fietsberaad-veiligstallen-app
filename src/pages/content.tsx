@@ -1,9 +1,11 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation'
+import { useSelector } from "react-redux";
 import useQueryParam from '../hooks/useQueryParam';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { signIn } from "next-auth/react";
+import Head from "next/head";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -52,11 +54,25 @@ const Content: NextPage = ({ fietsenstallingen, sites }) => {
     return stalling.ID === currentStallingId;
   });
 
+  const activeMunicipalityInfo = useSelector(
+    (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
   return (
     <>
+      <Head>
+        <title>
+        	{activeMunicipalityInfo
+	        	? `${activeMunicipalityInfo.CompanyName} - VeiligStallen`
+	        	: 'VeiligStallen'}
+      	</title>
+        <meta name="description" content="VeiligStallen" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
+      </Head>
 			<div data-comment="Show only on desktop" className="hidden sm:flex">
 			  <AppHeaderDesktop />
 			</div>

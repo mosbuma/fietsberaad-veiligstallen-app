@@ -95,7 +95,7 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
           justify-between
         "
       >
-        <PageTitle className="w-full flex justify-center">
+        <PageTitle className="w-full flex justify-center sm:justify-start">
           <div className="hidden sm:block mr-4">{parkingdata.Title}</div>
           <Button className="mt-3 sm:mt-0">bewerken</Button>
         </PageTitle>
