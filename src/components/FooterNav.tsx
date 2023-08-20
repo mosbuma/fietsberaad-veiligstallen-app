@@ -50,6 +50,7 @@ const FooterNav = () => {
       flex
       text-xs
       z-10
+      hidden
     ">
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
