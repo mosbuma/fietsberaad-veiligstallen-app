@@ -41,7 +41,7 @@ function ParkingFacilityBrowser({
     let filtered = fietsenstallingen;
 
     if(customFilter) {
-
+      // ...
     }
     // Default filter:
     else {

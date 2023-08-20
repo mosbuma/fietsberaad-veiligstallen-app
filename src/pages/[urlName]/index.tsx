@@ -1,6 +1,8 @@
 import React from "react";
 import Head from "next/head";
 import Home from '../index';
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
@@ -11,11 +13,11 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
   }
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps(context) {
   try {
-    // console.log("index.getStaticProps - start");
-    const fietsenstallingen = await getParkingsFromDatabase();
-    // TODO: Don't include: EditorCreated, EditorModified
+    const session = await getServerSession(context.req, context.res, authOptions)
+    const sites = session?.user?.sites || [];
+    const fietsenstallingen = await getParkingsFromDatabase(sites);
 
     return {
       props: {

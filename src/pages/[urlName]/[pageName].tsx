@@ -1,21 +1,16 @@
 import React from "react";
 import Head from "next/head";
 import Content from '../content';
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
-export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  return {
-    paths: [], //indicates that no page needs be created at build time
-    fallback: 'blocking' //indicates the type of fallback
-  }
-}
-
-export async function getStaticProps() {
+export async function getServerSideProps(context) {
   try {
-    // console.log("index.getStaticProps - start");
-    const fietsenstallingen = await getParkingsFromDatabase();
-    // TODO: Don't include: EditorCreated, EditorModified
+    const session = await getServerSession(context.req, context.res, authOptions)
+    const sites = session?.user?.sites || [];
+    const fietsenstallingen = await getParkingsFromDatabase(sites);
 
     return {
       props: {

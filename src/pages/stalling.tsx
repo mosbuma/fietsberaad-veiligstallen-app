@@ -1,4 +1,6 @@
 import React from "react";
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 // Import utils
 import { getParkingsFromDatabase } from "~/utils/prisma";
@@ -13,11 +15,11 @@ import CloseButton from "~/components/CloseButton";
 import { Button } from "~/components/Button";
 import Parking from "~/components/Parking";
 
-export async function getStaticProps() {
+export async function getServerSideProps(context) {
   try {
-    // console.log("index.getStaticProps - start");
-    const fietsenstallingen = await getParkingsFromDatabase([]);
-    // TODO: Don't include: EditorCreated, EditorModified
+    const session = await getServerSession(context.req, context.res, authOptions)
+    const sites = session?.user?.sites || [];
+    const fietsenstallingen = await getParkingsFromDatabase(sites);
 
     return {
       props: {

@@ -1,6 +1,9 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation'
 import useQueryParam from '../hooks/useQueryParam';
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
+import { signIn } from "next-auth/react";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -9,20 +12,23 @@ import FormCheckbox from "~/components/Form/FormCheckbox";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import { Button } from "~/components/Button";
-import { signIn } from "next-auth/react";
+import Modal from "src/components/Modal";
+import Overlay from "src/components/Overlay";
+import Parking from "~/components/Parking";
 
 // import Styles from "./login.module.css";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
-export async function getStaticProps() {
+export async function getServerSideProps(context) {
   try {
-    // console.log("index.getStaticProps - start");
-    const fietsenstallingen = await getParkingsFromDatabase();
-    // TODO: Don't include: EditorCreated, EditorModified
+    const session = await getServerSession(context.req, context.res, authOptions)
+    const sites = session?.user?.sites || [];
+    const fietsenstallingen = await getParkingsFromDatabase(sites);
 
     return {
       props: {
+      	sites: sites,
         fietsenstallingen: fietsenstallingen,
       },
     };
@@ -30,15 +36,23 @@ export async function getStaticProps() {
     // console.error("index.getStaticProps - error: ", ex.message);
     return {
       props: {
+      	sites: sites,
         fietsenstallingen: [],
       },
     };
   }
 }
 
-
-const Content: NextPage = ({ fietsenstallingen }) => {
+const Content: NextPage = ({ fietsenstallingen, sites }) => {
   const { push } = useRouter();
+  const [currentStallingId, setCurrentStallingId] = useState(undefined);
+
+  const currentStalling = fietsenstallingen.find((stalling: any) => {
+    return stalling.ID === currentStallingId;
+  });
+
+  const isSm = typeof window !== "undefined" && window.innerWidth < 640;
+  const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
   return (
     <>
@@ -54,22 +68,24 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
 				flex justify-between flex-wrap lg:flex-nowrap
 			`}>
-				<div>
+				<div className="
+					flex-1
+					mr-24
+				">
 					<PageTitle>
 						Buurtstallingen
 					</PageTitle>
 					<div className="
 						text-lg
 						my-4
-						lg:w-2/5
-						w-4/5
+
 					">
 						Interesse in een plek in de buurtstalling? Lees dan onderstaande zorgvuldig door!
 					</div>
 					<div className="
 						my-4
 						mt-12
-						lg:w-3/5
+
 					">
 						Wij willen u graag attenderen op het feit dat de buurtstallingen niet gemaakt zijn voor fietsen met een ‘breed’ stuur, voor fietsen met een transportrekje met of zonder mandje of kratje voorop, voor fietsen met grote fietstassen achterop en voor fietsen met een kinderzitje voor- en/of achterop. Mocht u een plek bemachtigen in de buurtstalling en mocht u tegenkomen dat uw fiets niet past of hinder zal veroorzaken aan de andere huurders dan kunt u het abonnement kosteloos ontbinden. Wanneer uw het abonnement neemt en u geeft hinder aan de andere huurders door bovenstaande redenen dan hebben wij het recht om uw abonnement te ontbinden.
 					</div>
@@ -77,17 +93,47 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 				<div className="
 					mt-10
 					p-4
-				">
+					max-w-full
+				"
+				style={{
+					width: '414px'
+				}}
+				>
 					<ParkingFacilityBrowser
 						customFilter={() => {  }}
-            onShowStallingDetails={(id: any) => {
-            	const stalling = fietsenstallingen.find(x => x.ID = id);
-            	push(`/stalling/${stalling.StallingsID}`);
-            }}
+            onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
 						fietsenstallingen={fietsenstallingen}
 					/>
 				</div>
 			</div>
+
+      {currentStallingId && isSm && (<>
+        <Overlay
+          title={currentStalling.Title}
+          onClose={() => setCurrentStallingId(undefined)}
+        >
+          <Parking
+            key={currentStallingId}
+            parkingdata={currentStalling}
+          />
+        </Overlay>
+      </>)}
+
+      {currentStallingId && ! isSm && (<>
+        <Modal
+          onClose={() => setCurrentStallingId(undefined)}
+          clickOutsideClosesDialog={true}
+        >
+          <Parking
+            key={currentStallingId}
+            parkingdata={fietsenstallingen.find((stalling: any) => {
+              return stalling.ID === currentStallingId;
+            })}
+          />
+        </Modal>
+      </>)}
+
+
 		</>
   );
 };

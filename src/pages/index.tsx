@@ -36,7 +36,7 @@ import { IconButton } from "~/components/Button";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
-import { authOptions } from './api/auth/[...nextauth]'
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 export async function getServerSideProps(context) {
   try {
