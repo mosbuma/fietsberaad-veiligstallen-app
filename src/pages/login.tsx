@@ -30,12 +30,8 @@ const Login: NextPage = () => {
 
 
   const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
-	console.log(emailRef.current, passwordRef.current)
 	if(emailRef.current && emailRef.current.value!=='' &&
 	   passwordRef.current&& passwordRef.current.value!=='') {
-
-	// const password_hash = await bcrypt.hash(passwordRef.current.value, 10)
-	// alert(password_hash);
 
     signIn("credentials", {
       email: emailRef.current.value,
@@ -138,9 +134,9 @@ const Login: NextPage = () => {
 
 							<div className="flex justify-between">
 								<div className="flex flex-col justify-center">
-									<FormCheckbox classes="text-gray-500 text-sm">
+									{/* <FormCheckbox classes="text-gray-500 text-sm">
 										Ingelogd blijven
-									</FormCheckbox>
+									</FormCheckbox> */}
 								</div>
 								<div className="flex flex-col justify-center">
 									<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}} onClick={onSignIn}>

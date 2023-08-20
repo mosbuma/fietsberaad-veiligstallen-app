@@ -28,11 +28,16 @@ import FilterBox from "~/components/FilterBox";
 import { IconButton } from "~/components/Button";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
+import { getServerSession } from "next-auth/next"
+import { authOptions } from './api/auth/[...nextauth]'
 
-export async function getStaticProps() {
+export async function getServerSideProps(context) {
   try {
-    // console.log("index.getStaticProps - start");
-    const fietsenstallingen = await getParkingsFromDatabase();
+    const session = await getServerSession(context.req, context.res, authOptions)
+    // console.log(">>>>> session", session);
+    const sites = session?.user?.sites || [];
+    const fietsenstallingen = await getParkingsFromDatabase(sites);
+
     // TODO: Don't include: EditorCreated, EditorModified
 
     return {

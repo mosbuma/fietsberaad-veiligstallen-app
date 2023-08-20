@@ -1,4 +1,4 @@
-// from: https://github.com/nextauthjs/next-auth-example/tree/main
+import { prisma } from "~/server/db";
 
 import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
@@ -33,16 +33,12 @@ providers.push(
       },
     },
     async authorize(
-      credentials: Record<"email" | "password", string> | undefined
+      credentials,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      // req
+      req
     ): Promise<Account | undefined> {
-      const account = getUserFromCredentials(credentials);
-      // console.log(
-      //   "authorize user credentials",
-      //   JSON.stringify(user, null, 2)
-      // );
-      return account;
+      const user = await getUserFromCredentials(credentials);
+      return user;
     },
   })
 );
@@ -53,36 +49,35 @@ export const authOptions: NextAuthOptions = {
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
     // augment jwt token with information that will be used on the server side
-    async jwt({ token, account: accountParam }) {
-      const creatingJwtToken = !!accountParam && token.email;
-
-      // only once, when creating a jwt token (signIn) (account !== null)
-      if (creatingJwtToken) {
-        // console.log("-------------------------------------------------------");
-        console.log("jwt account", JSON.stringify(accountParam, null, 2));
-        console.log("jwt token", JSON.stringify(token, null, 2));
-        console.log(
-          `"${token.name}" <${token.email}> signed in at "${new Date().toISOString()}" with account "${accountParam.email}"`
-        );
-
-        // const account_uuid =
-        //   getAccountUuidWithEmail(token.email as string) || "";
-        // token.account_uuid = account_uuid;
-
-        // console.log("jwt token created", JSON.stringify(token, null, 2));
+    async jwt({ user, token, account: accountParam }) {
+      if(token && 'OrgUserID' in token ===false && user) {
+        token.OrgUserID = user.OrgUserID;
       }
+
       return token;
     },
 
     // augment session with information that will be used on the client side
     async session({ session, token }) {
-      if (session?.user) {
-        // session.user.account_uuid = token.account_uuid;
-        // console.log(
-        //   "session",
-        //   JSON.stringify(session, null, 2),
-        //   JSON.stringify(token, null, 2)
-        // );
+      if (session?.user && token?.OrgUserID) {
+        const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
+        if(account) {
+          session.user.OrgUserID = token.orgUserID;
+          session.user.RoleID = account.RoleID;
+
+          const sites = await prisma.security_users_sites.findMany({ where: { UserID: token.OrgUserID } });
+          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID||-1 } });
+
+          session.user.sites = sites.map((s) => s.SiteID);
+          session.user.GroupID = role?.GroupID;
+          session.user.Role = role?.GroupID;
+
+          // console.log(
+          //   "session",
+          //   JSON.stringify(session, null, 2),
+          //   // JSON.stringify(token, null, 2)
+          // );
+        }
       }
       return session;
     },

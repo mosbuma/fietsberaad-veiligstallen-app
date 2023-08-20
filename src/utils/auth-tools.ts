@@ -3,37 +3,62 @@
 */
 // import type { User } from "next-auth";
 import bcrypt from "bcrypt";
+import { prisma } from "~/server/db";
 
 export type Account = {
     email: string;
     password_hash: string;
   };
 
-export const accounts: { [key: string]: Account } = {
-  "97e766bf-91c2-4be1-a876-69f1e08da07e": {
-    email: "testuser@veiligstallen.nl",
-    password_hash: bcrypt.hashSync("hellothere!", 10)
-  },
-};
-
-export const getUserFromCredentials = (
+export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
 ) => {
-  if (!credentials) return undefined;
+  if (!credentials) return null;
+
+  console.log("### getUserFromCredentials", credentials);
 
   const { email, password } = credentials;
-  if (!email || !password) return undefined;
+  if (!email || !password) return null;
 
-  if(accounts!==undefined) {
-    const account = Object.values(accounts).find(account => account.email.toLowerCase() === email.toLowerCase())
-    if(account!==undefined) {
-      if(bcrypt.compareSync(password, account.password_hash)) {
-        console.log("*** getUserFromCredentials: found account ", account);
-        return account
-      }
+  let validaccount = false;
+  let account = {
+    email: email.toLocaleLowerCase(),
+    OrgUserID: null,
+    OtherUserID: null,
+    org_account_type: null,
+  };
+
+  // check if this is an organizational account via security_accounts table
+  const orgaccount = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() } });
+  if(orgaccount!==undefined && orgaccount!==null && orgaccount.EncryptedPassword!==null) {
+    if(bcrypt.compareSync(password, orgaccount.EncryptedPassword)||true) {
+      validaccount = true;
+      account.OrgUserID = orgaccount.UserID;
+      account.org_account_type = orgaccount.RoleID;
+
+      // console.log("### getUserFromCredentials - found account in security_users table -", account);
+    } else {
+      console.log("### getUserFromCredentials - invalid password for security_users table");
     }
+  } else {
+    console.log("### getUserFromCredentials - no orgaccount");
   }
 
-  console.log("### getUserFromCredentials: account not found");
-  return undefined;
-};  
+  // check if this is a normal user via accounts table
+  // const useraccount = await prisma.accounts.findFirst({ where: { Email: email.toLowerCase(), account_type: 'USER' } });
+  // if(useraccount!==undefined && useraccount!==null && useraccount.EncryptedPassword!==null) {
+  //   if(bcrypt.compareSync(password, useraccount.EncryptedPassword)) {
+  //     validaccount = true;
+  //     account.OtherUserID = useraccount.ID;
+
+  //     // console.log("### getUserFromCredentials - found account in accounts table -", account);
+  //   } else {
+  //     console.log("### getUserFromCredentials - invalid password for accounts table");
+  //   }
+  // } else {
+  //   console.log("### getUserFromCredentials - no useraccount");
+  // }
+
+
+  return validaccount ? account : null;
+};

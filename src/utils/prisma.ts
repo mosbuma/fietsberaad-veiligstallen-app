@@ -1,22 +1,37 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 
-const getParkingsFromDatabase = async () => {
-  const fietsenstallingen = await prisma.fietsenstallingen.findMany({
-    where: {
-      Status: "1",
-      Plaats: {
-        not: "",
+const getParkingsFromDatabase = async (sites:any) => {
+
+  let fietsenstallingen;
+
+  if(sites.length===0) {
+    fietsenstallingen = await prisma.fietsenstallingen.findMany({
+      where: {
+        Status: "1",
+        Plaats: {
+          not: "",
+        }
       },
-    },
-    // select: {
-    //   StallingsID: true,
-    //   Title: true,
-    //   Location: true,
-    //   Coordinaten: true,
-    //   DateCreated: true,
-    // },
-  });
+      // select: {
+      //   StallingsID: true,
+      //   Title: true,
+      //   Location: true,
+      //   Coordinaten: true,
+      //   DateCreated: true,
+      // },
+    });
+  } else {
+    fietsenstallingen = await prisma.fietsenstallingen.findMany({
+      where: {
+        Status: "1",
+        Plaats: {
+          not: "",
+        },
+        SiteID: { in: sites },
+      },
+    });
+  }
 
   fietsenstallingen.forEach((stalling: any) => {
     Object.entries(stalling).forEach(([key, prop]) => {
