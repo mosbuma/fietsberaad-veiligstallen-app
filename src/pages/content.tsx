@@ -67,6 +67,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
   // Get article content based on slug
   useEffect(() => {
   	if(! pathName) return;
+  	if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
 		const pageSlug = pathName.split('/')[pathName.split('/').length-1];
 
     (async () => {

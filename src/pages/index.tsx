@@ -103,17 +103,21 @@ const Home: NextPage = ({
     router.query.stallingid
   ]);
 
-  // Scroll to municipality if municipality is given
+  // Do things is municipality if municipality is given by URL
   useEffect(() => {
     if(! router.query.urlName) return;
 
     // Get municipality based on urlName
     (async () => {
+      // Get municipality
       const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
+      // Fly to municipality, on the map
       const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
       if(initialLatLng) {
         dispatch(setInitialLatLng(initialLatLng));
       }
+      // Set municipality info in redux
+      dispatch(setActiveMunicipalityInfo(municipality))      
     })();
   }, [
     router.query.urlName
@@ -134,7 +138,7 @@ const Home: NextPage = ({
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
       // Set the municipality info in redux
-      dispatch(setActiveMunicipalityInfo(municipalityInfo))      
+      dispatch(setActiveMunicipalityInfo(municipalityInfo))
     })();
   }, [
     activeMunicipality

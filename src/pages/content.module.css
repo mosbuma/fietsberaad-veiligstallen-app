@@ -14,9 +14,8 @@
 }
 .ContentPage_Body li {
   display: list-item;
-	text-align: -webkit-match-parent;
 }
-.ContentPage_Body ul {
+.ContentPage_Body a {
 	text-decoration: underline;
 }
 .ContentPage_Body strong {

@@ -98,6 +98,8 @@ function AppHeaderDesktop({
   primaryMenuItems = primaryMenuItems.filter(x => x.Title !== 'Home');
   // Only keep items for veiligstallen
   primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
+  // Only keep items that are unique for this site
+  primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
 
   const secundaryMenuItems = [
     'FAQ',
@@ -125,7 +127,7 @@ function AppHeaderDesktop({
         <Link href="/">
           <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         </Link>
-        <div className="
+        {mapZoom >= 12 && <div className="
           flex-1 flex flex-start
           flex-wrap overflow-hidden
         ">
@@ -134,7 +136,7 @@ function AppHeaderDesktop({
             title={x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}
             url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.Title ? x.Title : ''}`}
           />)}
-        </div>
+        </div>}
         <div className="flex flex-end">
           {secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}
           <button
