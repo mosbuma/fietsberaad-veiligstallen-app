@@ -86,11 +86,26 @@ const Content: NextPage = ({ fietsenstallingen }) => {
       }
 		})();
   }, [
-  	pathName
+  	pathName,
+  	activeMunicipalityInfo
 	]) 
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
+
+  let parkingTypesToFilterOn;
+  if(pageContent.title === 'Stallingen') {
+  	parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
+  }
+  else if(pageContent.title === 'Buurtstallingen') {
+  	parkingTypesToFilterOn = 'buurtstalling';
+  }
+  else if(pageContent.title === 'Fietstrommels') {
+  	parkingTypesToFilterOn = 'fietstrommel';
+  }
+  else if(pageContent.title === 'Fietskluizen') {
+  	parkingTypesToFilterOn = 'fietskluizen';
+  }
 
   return (
     <>
@@ -129,8 +144,8 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 					flex-1
 					lg:mr-24
 				">
-					{pageContent.DisplayTitle ? <PageTitle>
-						{pageContent.DisplayTitle !== "" ? pageContent.DisplayTitle : pageContent.Title}
+					{(pageContent.DisplayTitle || pageContent.Title) ? <PageTitle>
+						{pageContent.DisplayTitle ? pageContent.DisplayTitle : pageContent.Title}
 					</PageTitle> : ''}
 					{pageContent.Abstract ? <div className="
 						text-lg
@@ -155,11 +170,15 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 					width: '414px'
 				}}
 				>
-					<ParkingFacilityBrowser
-						customFilter={() => {  }}
+					{parkingTypesToFilterOn && <ParkingFacilityBrowser
+						customFilter={(x) => {
+							if(parkingTypesToFilterOn) {
+								return parkingTypeToFilterOn.indexOf(x.type) >= -1;
+							}
+						}}
             onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
 						fietsenstallingen={fietsenstallingen}
-					/>
+					/>}
 				</div>
 			</div>
 

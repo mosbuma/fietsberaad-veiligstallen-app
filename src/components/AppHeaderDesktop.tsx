@@ -101,6 +101,8 @@ function AppHeaderDesktop({
   // Only keep items that are unique for this site
   primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
 
+  console.log('primaryMenuItems', primaryMenuItems)
+
   const secundaryMenuItems = [
     'FAQ',
     'Tips',
@@ -133,12 +135,12 @@ function AppHeaderDesktop({
         ">
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
-            title={x.DisplayTitle !== "" ? x.DisplayTitle : (x.Title !== "" ? x.Title : '')}
+            title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.Title ? x.Title : ''}`}
           />)}
         </div>}
         <div className="flex flex-end">
-          {secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}
+          {/*{secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}*/}
           <button
             className="
               mx-2
