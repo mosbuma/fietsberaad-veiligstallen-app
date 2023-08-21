@@ -83,8 +83,6 @@ function AppHeaderDesktop({
     pathName
   ]);
 
-  console.log('activeMunicipalityInfo', activeMunicipalityInfo)
-
   const handleLoginClick = () => {
     if(!session) {
       push('/login');
@@ -112,8 +110,6 @@ function AppHeaderDesktop({
   // Only keep items that are unique for this site
   primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
 
-  console.log('primaryMenuItems', primaryMenuItems)
-
   const secundaryMenuItems = [
     'FAQ',
     'Tips',
@@ -137,7 +133,7 @@ function AppHeaderDesktop({
         "
         style={{height: '64px'}}
       >
-        <Link href="/">
+        <Link href={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}`}>
           <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         </Link>
         {mapZoom >= 12 && <div className="
