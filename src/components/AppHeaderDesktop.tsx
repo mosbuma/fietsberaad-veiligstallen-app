@@ -117,6 +117,12 @@ function AppHeaderDesktop({
   if(mapZoom >= 12) {
     primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
   }
+  // Hide 'Stallingen' and 'Fietstrommels' for Fietsberaad site
+  if(mapZoom < 12) {
+    primaryMenuItems = primaryMenuItems.filter(x => {
+      return x.Title !== 'Stallingen' && x.Title !== 'Buurttrommels';
+    });
+  }
 
   const secundaryMenuItems = [
     'FAQ',
@@ -141,13 +147,23 @@ function AppHeaderDesktop({
         "
         style={{height: '64px'}}
       >
-        <Link href={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}`}>
-          <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+        <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
+          <Logo
+            imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined}
+            className={`
+              transition-opacity
+              duration-500
+              ${(activeMunicipalityInfo) ? 'opacity-100' : 'opacity-0'}
+            `}
+          />
         </Link>
-        <div className="
+        <div className={`
           flex-1 flex flex-start
           flex-wrap overflow-hidden
-        ">
+          transition-opacity
+          duration-500
+          ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
+        `}>
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
