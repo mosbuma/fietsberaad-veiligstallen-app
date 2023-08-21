@@ -1,10 +1,6 @@
 import React, { useRef } from "react";
 import { useRouter } from 'next/navigation'
 import useQueryParam from '../hooks/useQueryParam';
-// import bcrypt from 'bcrypt'
-
-// Import utils
-// import { getParkingsFromDatabase } from "~/utils/prisma";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -14,35 +10,29 @@ import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import { Button } from "~/components/Button";
 import { signIn } from "next-auth/react";
 
-// import ImageSlider from "~/components/ImageSlider";
-// import HorizontalDivider from "~/components/HorizontalDivider";
-// import CloseButton from "~/components/CloseButton";
-// import Parking from "~/components/Parking";
-
+// Import styles
 import Styles from "./login.module.css";
 
 const Login: NextPage = () => {
 	const emailRef = useRef<HTMLInputElement | null>(null);
 	const passwordRef = useRef<HTMLInputElement | null>(null);
   
-  	const router = useRouter()
+	const router = useRouter()
 	const error = useQueryParam("error")[0];
 
-
   const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
-	if(emailRef.current && emailRef.current.value!=='' &&
-	   passwordRef.current&& passwordRef.current.value!=='') {
-
-    signIn("credentials", {
-      email: emailRef.current.value.trim(),
-      password: passwordRef.current.value,
-      callbackUrl: "/",
-    });
-	} else {
-		alert('no email of password given');
-	}
-
-
+		if(
+			emailRef.current && emailRef.current.value!=='' &&
+	    passwordRef.current&& passwordRef.current.value!==''
+    ) {
+	    signIn("credentials", {
+	      email: emailRef.current.value.trim(),
+	      password: passwordRef.current.value,
+	      callbackUrl: "/",
+	    });
+		} else {
+			alert('no email of password given');
+		}
   };
 
   const allowLogin = emailRef.current?.value !=='' && passwordRef.current?.value !=='';

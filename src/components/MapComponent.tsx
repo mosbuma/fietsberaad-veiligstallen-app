@@ -351,7 +351,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     if (!stateMap) return;
 
     mapMoveEndEvents(stateMap, (visibleFeatures) => {
-      console.log('mapMoveEndEvents :: visibleFeatures', visibleFeatures)
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }, [stateMap, filterActiveTypes]);
@@ -403,7 +402,6 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     registerMapView(mapboxMap);
     // Set visible features into state
     mapMoveEndEvents(mapboxMap, (visibleFeatures) => {
-      console.log('onMoved :: visibleFeatures', visibleFeatures)
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   };

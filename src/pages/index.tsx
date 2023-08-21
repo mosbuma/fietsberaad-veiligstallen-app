@@ -110,7 +110,6 @@ const Home: NextPage = ({
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
-    console.log('router.query.urlName', router.query.urlName)
     if(! router.query.urlName) return;
 
     // Get municipality based on urlName
@@ -124,7 +123,6 @@ const Home: NextPage = ({
       }
       // Set municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipality));
-      console.log('setActiveMunicipalityInfo(municipality)', municipality)
     })();
   }, [
     router.query.urlName

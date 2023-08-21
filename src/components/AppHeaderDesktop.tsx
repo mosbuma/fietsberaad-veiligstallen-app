@@ -66,11 +66,17 @@ function AppHeaderDesktop({
 
   // Get menu items based on active municipality
   useEffect(() => {
-    if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
+    // Get menu items from SiteID 1 OR SiteID of the municipality
+    let SiteIdToGetArticlesFrom;
+    if(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
+      SiteIdToGetArticlesFrom = activeMunicipalityInfo.ID;
+    } else {
+      SiteIdToGetArticlesFrom = "1";
+    }
 
     (async () => {
       try {
-        const response = await fetch(`/api/articles/?SiteID=${activeMunicipalityInfo.ID}`);
+        const response = await fetch(`/api/articles/?SiteID=${SiteIdToGetArticlesFrom}`);
         const json = await response.json();
 
         setArticles(json);
@@ -108,7 +114,9 @@ function AppHeaderDesktop({
   // Only keep items for veiligstallen
   primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
   // Only keep items that are unique for this site
-  primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
+  if(mapZoom >= 12) {
+    primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
+  }
 
   const secundaryMenuItems = [
     'FAQ',
@@ -136,16 +144,16 @@ function AppHeaderDesktop({
         <Link href={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}`}>
           <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
         </Link>
-        {mapZoom >= 12 && <div className="
+        <div className="
           flex-1 flex flex-start
           flex-wrap overflow-hidden
         ">
           {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
-            url={`/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : ''}/${x.Title ? x.Title : ''}`}
+            url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />)}
-        </div>}
+        </div>
         <div className="flex flex-end">
           {/*{secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}*/}
           <button

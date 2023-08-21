@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import useQueryParam from '../hooks/useQueryParam';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
@@ -28,6 +28,10 @@ import {
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
+import {
+  setActiveMunicipalityInfo,
+} from "~/store/mapSlice";
+
 export async function getServerSideProps(context) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
@@ -50,9 +54,11 @@ export async function getServerSideProps(context) {
 }
 
 const Content: NextPage = ({ fietsenstallingen }) => {
+  const dispatch = useDispatch();
   const { push } = useRouter();
+  // const router = useRouter();
 	const pathName = usePathname();
-  
+
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
   const [pageContent, setPageContent] = useState({});
 
@@ -64,11 +70,28 @@ const Content: NextPage = ({ fietsenstallingen }) => {
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  // Do things is municipality if municipality is given by URL
+  useEffect(() => {
+    const municipalitySlug = pathName.split('/')[pathName.split('/').length-2];
+    if(! municipalitySlug) return;
+
+    // Get municipality based on urlName
+    (async () => {
+      // Get municipality
+      const municipality = await getMunicipalityBasedOnUrlName(municipalitySlug);
+      // Set municipality info in redux
+      dispatch(setActiveMunicipalityInfo(municipality));
+    })();
+  }, [
+    pathName
+  ]);
+
   // Get article content based on slug
   useEffect(() => {
   	if(! pathName) return;
   	if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
-		const pageSlug = pathName.split('/')[pathName.split('/').length-1];
+    const pageSlug = pathName.split('/')[pathName.split('/').length-1];
+    if(! pageSlug) return;
 
     (async () => {
       try {
@@ -79,7 +102,6 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         if(! json) return;
         // If result is an array with 1 node: Get node only
         const pageContentToSet = json && json.SiteID ? json : json[0];
-        console.log(pageContentToSet)
         setPageContent(pageContentToSet);
       } catch(err) {
         console.error(err);
