@@ -7,29 +7,42 @@ function FormInput({
   required,
   placeholder,
   classes,
+  onChange,
+  value,
+  label,
 }: {
   innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
   required?: boolean,
   placeholder?: string,
   classes?: string,
+  onChange?: Function
+  value?: any
+  label?: string,
 }) {
   return (
     <>
-  		<input
-        ref={innerRef} 
-        type={type || 'text'}
-        placeholder={placeholder}
-        required={required || false}
-        className={`
-          px-5
-          py-2
-          border
-          rounded-full
-          my-2
-          ${classes}
-        `}
-      />
+      <label>
+        {label ? <div>
+          <b>{label}</b>
+        </div> : ''}
+    		<input
+          ref={innerRef} 
+          type={type || 'text'}
+          placeholder={placeholder}
+          required={required || false}
+          onChange={onChange}
+          value={value}
+          className={`
+            px-5
+            py-2
+            border
+            rounded-full
+            my-2
+            ${classes}
+          `}
+        />
+      </label>
     </>
   );
 }
