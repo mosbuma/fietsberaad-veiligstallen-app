@@ -139,7 +139,7 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
 
   const label = editMode ? "opslaan" : "bewerken";
 
-  console.log("@@@ parkingdata", parkingdata.Title);
+  // console.log("@@@ parkingdata", parkingdata.Title);
 
   return (
     <div

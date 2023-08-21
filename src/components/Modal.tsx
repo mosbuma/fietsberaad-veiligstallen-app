@@ -56,7 +56,9 @@ const Modal: React.FC<ModalProps> = ({
           <a href="#" onClick={handleCloseClick} className="modal-close-button">
             x
           </a>
-          <div className="modal-body">{children}</div>
+          <div className="modal-body relative">
+            {children}
+          </div>
         </div>
       </div>
     </div>
