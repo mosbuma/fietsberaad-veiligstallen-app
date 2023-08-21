@@ -34,12 +34,10 @@ const Login: NextPage = () => {
 	   passwordRef.current&& passwordRef.current.value!=='') {
 
     signIn("credentials", {
-      email: emailRef.current.value,
+      email: emailRef.current.value.trim(),
       password: passwordRef.current.value,
       callbackUrl: "/",
     });
-
-// 	router.push('/')
 	} else {
 		alert('no email of password given');
 	}
