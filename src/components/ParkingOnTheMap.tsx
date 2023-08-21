@@ -76,7 +76,7 @@ function ParkingOnTheMap({parking}) {
     if (stateMap) return;
 
     // Get coords from parking variable
-    const coords = parking.Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
+    const coords = parking.Coordinaten ? parking.Coordinaten.split(",").map((coord: any) => Number(coord)) : null; // I.e.: 52.508011,5.473280;
 
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
@@ -84,7 +84,7 @@ function ParkingOnTheMap({parking}) {
       accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
       // style: "maplibre://styles/mapbox/streets-v11",
       style: nine3030,
-      center: [coords[1], coords[0]],
+      center: coords ? [coords[1], coords[0]] : [52.508011,5.473280],
       zoom: 16,
     });
 

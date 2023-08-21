@@ -41,7 +41,10 @@ function ParkingFacilityBrowser({
     let filtered = fietsenstallingen;
 
     if(customFilter) {
-      filtered = filtered.filter(customFilter);
+      filtered = filtered.filter((x) => {
+        // console.log('Going to filter x', x)
+        return customFilter(x)
+      });
     }
     // Default filter:
     else {
@@ -58,6 +61,7 @@ function ParkingFacilityBrowser({
         return showParking;
       });
     }
+    console.log('filtered', filtered)
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
   }, [
