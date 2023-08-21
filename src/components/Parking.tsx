@@ -189,29 +189,39 @@ const Parking = ({ parkingdata }: { parkingdata: any }) => {
               sm:text-base
             "
           >
-            <p>
+            <div className="w-full">
               {editMode === false ? 
                 <b>{parkingdata.Title}</b> 
               :
-                <FormInput key='i-title' label="Titel" className="border-2 border-black mb-1" placeholder="titel" onChange={e=>{ setNewTitle(e.target.value)}} value={newTitle!==undefined?newTitle:parkingdata.Title} />}
+                <FormInput
+                  key='i-title'
+                  label="Titel"
+                  className="border-2 border-black mb-1 w-full"
+                  placeholder="titel"
+                  onChange={e=>{ setNewTitle(e.target.value)}} value={newTitle!==undefined?newTitle:parkingdata.Title} />}
               <br />
               {editMode === false ? 
                 parkingdata.Location
               :
-                <FormInput key='i-location' label="Straat en huisnummer" className="border-2 border-black mb-1" placeholder="adres" onChange={e=>{ setNewLocation(e.target.value)}} value={newLocation!==undefined?newLocation:parkingdata.Location} />}
+                <FormInput
+                key='i-location'
+                label="Straat en huisnummer"
+                className="border-2 border-black mb-1 w-full"
+                placeholder="adres"
+                onChange={e=>{ setNewLocation(e.target.value)}} value={newLocation!==undefined?newLocation:parkingdata.Location} />}
               <br />
               {editMode === false ? 
                 ((parkingdata.Postcode||'') + ' ' +parkingdata.Plaats).trim()
               :
                 <>
-                  <FormInput key='i-postcode' label="Postcode" className="border-2 border-black mb-1" placeholder="postcode" onChange={e=>{ setNewPostcode(e.target.value)}} value={newPostcode!==undefined?newPostcode:parkingdata.Postcode} />
-                  <FormInput key='i-plaats' label="Plaats" className="border-2 border-black mb-1" placeholder="plaats" onChange={e=>{ setNewPlaats(e.target.value)}} value={newPlaats!==undefined?newPlaats:parkingdata.Plaats} />
+                  <FormInput key='i-postcode' label="Postcode" className="border-2 border-black mb-1 w-full" placeholder="postcode" onChange={e=>{ setNewPostcode(e.target.value)}} value={newPostcode!==undefined?newPostcode:parkingdata.Postcode} />
+                  <FormInput key='i-plaats' label="Plaats" className="border-2 border-black mb-1 w-full" placeholder="plaats" onChange={e=>{ setNewPlaats(e.target.value)}} value={newPlaats!==undefined?newPlaats:parkingdata.Plaats} />
                 </>
               }
               <br />
               <br />
               {parkingdata.Type}
-            </p>
+            </div>
             {/* <p>
               <b>0.3km</b
             </p> */}

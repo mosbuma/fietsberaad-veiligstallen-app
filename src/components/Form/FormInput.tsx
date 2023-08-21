@@ -6,7 +6,7 @@ function FormInput({
   type,
   required,
   placeholder,
-  classes,
+  className,
   onChange,
   value,
   label,
@@ -15,7 +15,7 @@ function FormInput({
   type?: string,
   required?: boolean,
   placeholder?: string,
-  classes?: string,
+  classNAme?: string,
   onChange?: Function
   value?: any
   label?: string,
@@ -39,7 +39,7 @@ function FormInput({
             border
             rounded-full
             my-2
-            ${classes}
+            ${className}
           `}
         />
       </label>

@@ -61,7 +61,6 @@ function ParkingFacilityBrowser({
         return showParking;
       });
     }
-    console.log('filtered', filtered)
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
   }, [
