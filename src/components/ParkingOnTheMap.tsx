@@ -132,7 +132,7 @@ function ParkingOnTheMap({parking}) {
             "match",
             ["get", "type"],
             "bewaakt",
-            "#028090",
+            "#00BDD5",
             "geautomatiseerd",
             "#028090",
             "fietskluizen",

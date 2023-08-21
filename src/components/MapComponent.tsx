@@ -246,7 +246,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
             "match",
             ["get", "type"],
             "bewaakt",
-            "#028090",
+            "#00BDD5",
             "geautomatiseerd",
             "#028090",
             "fietskluizen",
@@ -351,6 +351,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     if (!stateMap) return;
 
     mapMoveEndEvents(stateMap, (visibleFeatures) => {
+      console.log('mapMoveEndEvents :: visibleFeatures', visibleFeatures)
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }, [stateMap, filterActiveTypes]);
@@ -391,7 +392,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       // Zoom in
       mapboxMap.flyTo({
         center: e.lngLat,
-        speed: 0.75,
+        duration: 1000,
         zoom: mapboxMap.getZoom() + 4,
       });
     });
@@ -402,6 +403,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     registerMapView(mapboxMap);
     // Set visible features into state
     mapMoveEndEvents(mapboxMap, (visibleFeatures) => {
+      console.log('onMoved :: visibleFeatures', visibleFeatures)
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   };
