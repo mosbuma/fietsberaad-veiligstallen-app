@@ -103,7 +103,6 @@ const Home: NextPage = ({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
-
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
   useEffect(() => {

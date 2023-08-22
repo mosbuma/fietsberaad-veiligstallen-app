@@ -10,7 +10,9 @@ import {
 
 import {
   getNavigationItemsForMunicipality,
-  filterNavItemsBasedOnMapZoom
+  filterNavItemsBasedOnMapZoom,
+  getPrimary,
+  getSecundary
 } from "~/utils/navigation";
 
 import PageTitle from "~/components/PageTitle";
@@ -25,7 +27,7 @@ const NavSection = ({
 		border-t-solid
 		my-3
 		pt-3
-		pb-1
+		pb-0
 	">
 		{children}
 	</div>
@@ -39,7 +41,7 @@ const NavItem = ({
 }) => {
 	return <a className={`
 		flex
-		my-1
+		my-2
 		text-lg
 		cursor-pointer
 		${icon ? 'font-bold' : ''}
@@ -95,7 +97,9 @@ const AppNavigationMobile = ({
   	? `Welkom in ${activeMunicipalityInfo.CompanyName}`
   	: `Welkom bij VeiligStallen`;
 
-  const primaryMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
+  const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
+  const primaryMenuItems = getPrimary(allMenuItems)
+  const secundaryMenuItems = getSecundary(allMenuItems);
 
 	return (
 		<div className="
@@ -134,7 +138,9 @@ const AppNavigationMobile = ({
 				    dispatch(setIsParkingListVisible(true))
 					}} />
 				</NavSection>
-				<NavSection>
+
+				{/* Primary Nav Items */}
+				{primaryMenuItems && primaryMenuItems.length > 0 && <NavSection>
 					{primaryMenuItems.map((x, xidx) => <NavItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
@@ -144,12 +150,20 @@ const AppNavigationMobile = ({
             }}
             />
           )}
-				</NavSection>
-				<NavSection>
-					<NavItem title="FAQ" />
-					<NavItem title="Tips" />
-					<NavItem title="Contact" />
-				</NavSection>
+				</NavSection>}
+
+				{/* Secundary Nav Items */}
+				{secundaryMenuItems && secundaryMenuItems.length > 0 && <NavSection>
+					{secundaryMenuItems.map((x, xidx) => <NavItem
+            key={'pmi-'+xidx}
+            title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
+            onClick={(e) => {
+            	e.preventDefault();
+            	push(`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`);
+            }}
+            />
+          )}
+				</NavSection>}
 				<NavSection>
 					<NavItem title="Over VeiligStallen" />
 				</NavSection>

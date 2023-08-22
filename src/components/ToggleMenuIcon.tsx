@@ -19,6 +19,8 @@ export const ToggleMenuIcon = ({
 			flex-col
 			justify-center
 
+			cursor-pointer
+
 			${className}
 		`}
 		onClick={onClick}

@@ -10,7 +10,9 @@ import Logo from './Logo';
 
 import {
   getNavigationItemsForMunicipality,
-  filterNavItemsBasedOnMapZoom
+  filterNavItemsBasedOnMapZoom,
+  getPrimary,
+  getSecundary
 } from "~/utils/navigation";
 
 const PrimaryMenuItem = (props: any) => {
@@ -105,13 +107,9 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  const primaryMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
-
-  const secundaryMenuItems = [
-    'FAQ',
-    'Tips',
-    'Contact'
-  ];// SiteID = 1
+  const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
+  const primaryMenuItems = getPrimary(allMenuItems)
+  const secundaryMenuItems = getSecundary(allMenuItems);
 
   return (
     <>
@@ -147,14 +145,20 @@ function AppHeaderDesktop({
           duration-500
           ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
         `}>
-          {primaryMenuItems ? primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
-            key={'pmi-'+xidx}
+          {primaryMenuItems ? primaryMenuItems.map((x) => <PrimaryMenuItem
+            key={'pmi-'+x.UrlName}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
         </div>
         <div className="flex flex-end">
-          {/*{secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}*/}
+          {secundaryMenuItems.map(x => {
+            return <SecundaryMenuItem
+              key={'pmi-'+x.UrlName}
+              title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
+              url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
+            />
+          })}
           <button
             className="
               mx-2

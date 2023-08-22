@@ -34,3 +34,15 @@ export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
 
   return items;
 }
+
+export const getPrimary = (items) => {
+  return items.filter((x) => {
+    return x.Title !== 'Tips' && x.Title !== 'Contact' && x.Title !== 'FAQ';
+  });
+}
+
+export const getSecundary = (items) => {
+  return items.filter((x) => {
+    return x.Title === 'Tips' || x.Title === 'Contact' || x.Title === 'FAQ';
+  });
+}
