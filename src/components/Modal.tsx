@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 
+const isServer = typeof window === "undefined";
+
 interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;

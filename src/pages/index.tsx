@@ -33,6 +33,8 @@ import Logo from "~/components/Logo";
 import ActiveFilters from "~/components/ActiveFilters";
 import FilterBox from "~/components/FilterBox";
 import { IconButton } from "~/components/Button";
+import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
+import AppNavigationMobile from "~/components/AppNavigationMobile";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
@@ -74,6 +76,7 @@ const Home: NextPage = ({
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
+  const [doShowNavigation, setDoShowNavigation] = useState(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -277,7 +280,19 @@ const Home: NextPage = ({
             "
           >
             <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
-            <SearchBar />
+            <SearchBar afterHtml={
+              <ToggleMenuIcon className="
+                shadow-none
+                bg-transparent
+                absolute
+                right-2
+                z-10
+              "
+              onClick={() => {
+                setDoShowNavigation(true);
+              }}
+              />
+            } />
             {/*HAMB.*/}
           </div>
         </div>
@@ -431,6 +446,16 @@ const Home: NextPage = ({
           fietsenstallingen={fietsenstallingen}
         />
       </main>
+
+      {doShowNavigation && (<>
+        <Modal
+          onClose={() => {setDoShowNavigation(false)}}
+          clickOutsideClosesDialog={false}
+        >
+          <AppNavigationMobile />
+        </Modal>
+      </>)}
+
     </>
   );
 };
