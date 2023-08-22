@@ -15,11 +15,11 @@ import ParkingFacilities from "~/components/ParkingFacilities";
 // Fetch all posts (in /pages/index.tsx)
 export async function getStaticProps() {
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
-    where: {
-      Plaats: {
-        not: "",
-      },
-    },
+    // where: {
+    //   Plaats: {
+    //     not: "",
+    //   },
+    // },
     // select: {
     //   StallingsID: true,
     //   Title: true,

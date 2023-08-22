@@ -9,9 +9,9 @@ const getParkingsFromDatabase = async (sites:any) => {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
         Status: "1",
-        Plaats: {
-          not: "",
-        }
+        // Plaats: {
+        //   not: "",
+        // }
       },
       // select: {
       //   StallingsID: true,
@@ -25,9 +25,9 @@ const getParkingsFromDatabase = async (sites:any) => {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
         Status: "1",
-        Plaats: {
-          not: "",
-        },
+        // Plaats: {
+        //   not: "",
+        // },
         SiteID: { in: sites },
       },
     });
@@ -60,7 +60,7 @@ const getParkingsFromDatabase = async (sites:any) => {
     delete stalling.wachtlijst_Id;
   });
 
-  fietsenstallingen.filter((x: any) => x.Plaats !== "");
+  // fietsenstallingen.filter((x: any) => x.Plaats !== "");
 
   return fietsenstallingen;
 };
