@@ -410,7 +410,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     const municipality = await getMunicipalityBasedOnLatLng(center);
     if(! municipality) return;
 
-    dispatch(setActiveMunicipality(municipality));
+    return municipality;
   }
 
   const registerMapView = React.useCallback((theMap) => {
@@ -433,7 +433,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     (async () => {
       if(! center) return;
       const activeMunicipality = await getActiveMunicipality(center.geometry.coordinates);
-      setActiveMunicipality(activeMunicipality);
+      dispatch(setActiveMunicipality(activeMunicipality));
     })();
 
     // Set values in state

@@ -3,10 +3,12 @@ import * as React from "react";
 
 function PageTitle({
   children,
-  className
+  className,
+  style
 }: {
   children?: any,
-  className?: string
+  className?: string,
+  style?: string
 }) {
   return (
     <h1 className={`
@@ -15,7 +17,9 @@ function PageTitle({
       font-poppinssemibold
       ${className && className.indexOf('mb-') > -1 ? '' : 'mb-6'}
       ${className}
-    `}>
+    `}
+    style={style}
+    >
       {children}
     </h1>
   );

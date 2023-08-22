@@ -7,7 +7,8 @@ import { useRouter } from 'next/router'
 
 import {
   setIsParkingListVisible,
-  setIsFilterBoxVisible
+  setIsFilterBoxVisible,
+  setIsMobileNavigationVisible
 } from "~/store/appSlice";
 import {
   setActiveMunicipalityInfo,
@@ -76,7 +77,6 @@ const Home: NextPage = ({
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
-  const [doShowNavigation, setDoShowNavigation] = useState(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -90,6 +90,10 @@ const Home: NextPage = ({
     (state: AppState) => state.app.isFilterBoxVisible
   );
 
+  const isMobileNavigationVisible = useSelector(
+    (state: AppState) => state.app.isMobileNavigationVisible
+  );
+
   const activeMunicipality = useSelector(
     (state: AppState) => state.map.activeMunicipality
   );
@@ -97,6 +101,7 @@ const Home: NextPage = ({
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
   );
+
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
@@ -289,7 +294,7 @@ const Home: NextPage = ({
                 z-10
               "
               onClick={() => {
-                setDoShowNavigation(true);
+                dispatch(setIsMobileNavigationVisible(true))
               }}
               />
             } />
@@ -447,12 +452,17 @@ const Home: NextPage = ({
         />
       </main>
 
-      {doShowNavigation && (<>
+      {isMobileNavigationVisible && (<>
         <Modal
-          onClose={() => {setDoShowNavigation(false)}}
+          onClose={() => {
+            dispatch(setIsMobileNavigationVisible(false))
+          }}
           clickOutsideClosesDialog={false}
         >
-          <AppNavigationMobile />
+          <AppNavigationMobile
+            mapZoom={mapZoom}
+            activeMunicipalityInfo={activeMunicipalityInfo}
+          />
         </Modal>
       </>)}
 

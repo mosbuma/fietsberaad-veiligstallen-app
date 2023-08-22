@@ -8,6 +8,11 @@ import Link from 'next/link'
 
 import Logo from './Logo';
 
+import {
+  getNavigationItemsForMunicipality,
+  filterNavItemsBasedOnMapZoom
+} from "~/utils/navigation";
+
 const PrimaryMenuItem = (props: any) => {
   const { push } = useRouter();
 
@@ -75,16 +80,10 @@ function AppHeaderDesktop({
     }
 
     (async () => {
-      try {
-        const response = await fetch(`/api/articles/?SiteID=${SiteIdToGetArticlesFrom}`);
-        const json = await response.json();
-
-        setArticles(json);
-      } catch(err) {
-        console.error(err);
-      }
+      const response = await getNavigationItemsForMunicipality(SiteIdToGetArticlesFrom);
+      setArticles(response);
     })();
-  }, [
+   }, [
     activeMunicipalityInfo,
     pathName
   ]);
@@ -106,23 +105,7 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  let primaryMenuItems = articles;
-  // Only include 'main' items
-  primaryMenuItems = primaryMenuItems.filter(x => x.Navigation === 'main');
-  // Exclude articles with title: Home
-  primaryMenuItems = primaryMenuItems.filter(x => x.Title !== 'Home');
-  // Only keep items for veiligstallen
-  primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
-  // Only keep items that are unique for this site
-  if(mapZoom >= 12) {
-    primaryMenuItems = primaryMenuItems.filter(x => x.SiteID !== '1');
-  }
-  // Hide 'Stallingen' and 'Fietstrommels' for Fietsberaad site
-  if(mapZoom < 12) {
-    primaryMenuItems = primaryMenuItems.filter(x => {
-      return x.Title !== 'Stallingen' && x.Title !== 'Buurttrommels';
-    });
-  }
+  const primaryMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
 
   const secundaryMenuItems = [
     'FAQ',
@@ -164,11 +147,11 @@ function AppHeaderDesktop({
           duration-500
           ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
         `}>
-          {primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
+          {primaryMenuItems ? primaryMenuItems.map((x, xidx) => <PrimaryMenuItem
             key={'pmi-'+xidx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
-          />)}
+          />) : ''}
         </div>
         <div className="flex flex-end">
           {/*{secundaryMenuItems.map(x => <SecundaryMenuItem key={x} title={x} />)}*/}

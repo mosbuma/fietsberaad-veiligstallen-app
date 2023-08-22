@@ -3,6 +3,9 @@ import { HYDRATE } from "next-redux-wrapper";
 
 // Initial state
 const initialState: AuthState = {
+  isParkingListVisible: false,
+  setIsFilterBoxVisible: false,
+  isMobileNavigationVisible: false
 };
 
 // Actual Slice
@@ -15,6 +18,9 @@ export const appSlice = createSlice({
     },
     setIsFilterBoxVisible(state, action) {
       state.isFilterBoxVisible = action.payload;
+    },
+    setIsMobileNavigationVisible(state, action) {
+      state.isMobileNavigationVisible = action.payload;
     },
   },
 
@@ -31,5 +37,6 @@ export const appSlice = createSlice({
 
 export const {
   setIsParkingListVisible,
-  setIsFilterBoxVisible
+  setIsFilterBoxVisible,
+  setIsMobileNavigationVisible
 } = appSlice.actions;
