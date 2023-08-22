@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthState } from "~/store/authSlice";
 import { AppState } from "~/store/store";
+import Link from 'next/link'
 
 // Import components
 import Logo from './Logo';
@@ -94,7 +95,9 @@ function AppHeaderMobile({
           justify-between
         ">
           <div className="flex flex-col justify-center">
-            <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
+              <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            </Link>
           </div>
           <div className="mx-3 flex-1 flex flex-col justify-center">
             <PageTitle className="mb-0">{title}</PageTitle>

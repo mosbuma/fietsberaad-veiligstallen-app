@@ -4,6 +4,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import superjson from "superjson";
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 import {
   setIsParkingListVisible,
@@ -284,7 +285,9 @@ const Home: NextPage = ({
               fixed
             "
           >
-            <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
+              <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+            </Link>
             <SearchBar afterHtml={
               <ToggleMenuIcon className="
                 shadow-none
