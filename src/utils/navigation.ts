@@ -46,3 +46,9 @@ export const getSecundary = (items) => {
     return x.Title === 'Tips' || x.Title === 'Contact' || x.Title === 'FAQ';
   });
 }
+
+export const getFooter = (items) => {
+  return items.filter((x) => {
+    return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene voorwaarden';
+  });
+}

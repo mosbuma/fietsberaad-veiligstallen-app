@@ -12,7 +12,8 @@ import {
   getNavigationItemsForMunicipality,
   filterNavItemsBasedOnMapZoom,
   getPrimary,
-  getSecundary
+  getSecundary,
+  getFooter
 } from "~/utils/navigation";
 
 const PrimaryMenuItem = (props: any) => {
@@ -60,6 +61,7 @@ function AppHeaderDesktop({
   const { data: session } = useSession()
   
   const [articles, setArticles] = useState([]);
+  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
 
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState

@@ -1,5 +1,11 @@
 // @ts-nocheck
+import React, {useEffect, useState} from "react";
 import { useRouter } from "next/navigation";
+
+import {
+  getNavigationItemsForMunicipality,
+  getFooter
+} from "~/utils/navigation";
 
 const FooterNavItem = ({
   url,
@@ -27,6 +33,16 @@ const FooterNavItem = ({
 }
 
 const FooterNav = () => {
+  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+
+ // Get menu items for siteId 1 (Fietsberaad)
+  useEffect(() => {
+    (async () => {
+      const response = await getNavigationItemsForMunicipality(1);
+      setFietsberaadArticles(response);
+    })();
+   }, []);
+
   const navItemsPrimary = [
     // { title: 'Stalling toevoegen' },
     { title: 'Over Veilig Stallen', url: '/fietsberaad/Copyright' },
@@ -37,6 +53,8 @@ const FooterNav = () => {
     { title: 'Privacy', url: '/fietsberaad/Privacy' },
     { title: 'Algemene voorwaarden', url: '/fietsberaad/Algemene_voorwaarden' },
   ];
+
+  const footerMenuItems = getFooter(fietsberaadArticles);
 
   return (
     <div className="
@@ -50,7 +68,6 @@ const FooterNav = () => {
       flex
       text-xs
       z-10
-      hidden
     ">
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
@@ -60,12 +77,13 @@ const FooterNav = () => {
         {x.title}        
       </FooterNavItem>)}
 
-      {navItemsSecundary.map(x => <FooterNavItem
-        key={x.title}
-        url={x.url}
+      {footerMenuItems ? footerMenuItems.map((x) => <FooterNavItem
+        key={'pmi-'+x.UrlName}
+        url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
       >
-        {x.title}        
-      </FooterNavItem>)}
+        {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
+      </FooterNavItem>) : ''}
+
     </div>
   );
 }

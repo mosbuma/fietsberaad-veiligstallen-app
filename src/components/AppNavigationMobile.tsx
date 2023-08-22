@@ -12,7 +12,8 @@ import {
   getNavigationItemsForMunicipality,
   filterNavItemsBasedOnMapZoom,
   getPrimary,
-  getSecundary
+  getSecundary,
+  getFooter
 } from "~/utils/navigation";
 
 import PageTitle from "~/components/PageTitle";
@@ -68,6 +69,7 @@ const AppNavigationMobile = ({
   const dispatch = useDispatch();
 
   const [articles, setArticles] = useState([]);
+  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
 
   // Get menu items based on active municipality
   useEffect(() => {
@@ -87,6 +89,14 @@ const AppNavigationMobile = ({
     activeMunicipalityInfo
   ]);
 
+  // Get menu items for siteId 1 (Fietsberaad)
+  useEffect(() => {
+    (async () => {
+      const response = await getNavigationItemsForMunicipality(1);
+      setFietsberaadArticles(response);
+    })();
+   }, []);
+
   const clickItem = (url) => {
   	push(url);
     dispatch(setIsMobileNavigationVisible(false))
@@ -100,6 +110,7 @@ const AppNavigationMobile = ({
   const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
   const primaryMenuItems = getPrimary(allMenuItems)
   const secundaryMenuItems = getSecundary(allMenuItems);
+  const footerMenuItems = getFooter(fietsberaadArticles);
 
 	return (
 		<div className="
@@ -165,7 +176,16 @@ const AppNavigationMobile = ({
           )}
 				</NavSection>}
 				<NavSection>
-					<NavItem title="Over VeiligStallen" />
+					{/*<NavItem title="Over VeiligStallen" />*/}
+					{footerMenuItems.map((x, xidx) => <NavItem
+            key={'pmi-'+xidx}
+            title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
+            onClick={(e) => {
+            	e.preventDefault();
+            	push(`/fietsberaad/${x.Title ? x.Title : ''}`);
+            }}
+            />
+          )}
 				</NavSection>
 			</nav>
 
