@@ -79,7 +79,7 @@ const FooterNav = () => {
 
       {footerMenuItems ? footerMenuItems.map((x) => <FooterNavItem
         key={'pmi-'+x.UrlName}
-        url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
+        url={`/fietsberaad/${x.Title ? x.Title : ''}`}
       >
         {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
       </FooterNavItem>) : ''}
