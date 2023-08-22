@@ -5,8 +5,6 @@ export const getNavigationItemsForMunicipality = async (siteId) => {
       const articles = await response.json();
 
       let primaryMenuItems = articles;
-      // Only include 'main' items
-      primaryMenuItems = primaryMenuItems.filter(x => x.Navigation === 'main');
       // Exclude articles with title: Home
       primaryMenuItems = primaryMenuItems.filter(x => x.Title !== 'Home');
       // Only keep items for veiligstallen
@@ -36,13 +34,24 @@ export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
 }
 
 export const getPrimary = (items) => {
-  return items.filter((x) => {
+  let primaryItems = items;
+
+  // Only include 'main' items
+  primaryItems = primaryItems.filter(x => x.Navigation === 'main');
+
+  // Keep everything apart from Tips, Contact and FAQ
+  return primaryItems.filter((x) => {
     return x.Title !== 'Tips' && x.Title !== 'Contact' && x.Title !== 'FAQ';
   });
 }
 
 export const getSecundary = (items) => {
-  return items.filter((x) => {
+  let secundaryItems = items;
+
+  // Only include 'main' items
+  secundaryItems = secundaryItems.filter(x => x.Navigation === 'main');
+
+  return secundaryItems.filter((x) => {
     return x.Title === 'Tips' || x.Title === 'Contact' || x.Title === 'FAQ';
   });
 }
