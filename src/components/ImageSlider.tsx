@@ -25,14 +25,19 @@ const ImageSlider = ({
     <div className="card-list">
       {/*<div ref={ref} className="card-list__slides keen-slider">*/}
       <div className="card-list__slides keen-slider">
-        {images.map((imgUrl, idx) => <Image
-          key={'img-'+idx}
-          src={`https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`}
-          alt={"Image " + idx}
-          width={203}
-          height={133}
-          className="keen-slider__slide mr-3 rounded-lg"
-        />)}
+        {images.map((imgUrl, idx) => { 
+            const url= imgUrl.includes('http') ? imgUrl : `https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`;
+            return (
+              <Image
+                key={'img-'+idx}
+                src={url}
+                alt={"Image " + idx}
+                width={203}
+                height={133}
+                className="keen-slider__slide mr-3 rounded-lg" />
+                ) 
+            }
+          )}
       </div>
     </div>
   );

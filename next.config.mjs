@@ -33,7 +33,15 @@ const config = {
   images: {
     domains: [
       'static.veiligstallen.nl'
-    ]
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'places.ns-mlab.nl',
+        port: '',
+        pathname: '*/**',
+      },
+    ],
   }
 };
 
