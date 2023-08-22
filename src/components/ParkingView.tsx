@@ -39,6 +39,7 @@ const ParkingView = ({ parkingdata, onEdit = undefined }: { parkingdata: any, on
     }
 
     return (
+      <>
         <section className="Type">
           <div className="w-full">
             {location}
@@ -49,7 +50,9 @@ const ParkingView = ({ parkingdata, onEdit = undefined }: { parkingdata: any, on
           {/* <p>
             <b>0.3km</b
           </p> */}
-      </section>)
+      </section>
+      <HorizontalDivider className="my-4" />
+    </>)
   }
 
   const showOpening = ["bewaakt", "onbewaakt", "toezicht", "geautomatiseerd"].includes(parkingdata.Type)
@@ -92,8 +95,6 @@ const ParkingView = ({ parkingdata, onEdit = undefined }: { parkingdata: any, on
               <ImageSlider images={[parkingdata.Image]} />
             </div>
           )}
-
-          <HorizontalDivider className="my-4" />
   
           { renderAddress() }
 
