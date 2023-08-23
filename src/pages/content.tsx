@@ -145,11 +145,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 			  <AppHeaderDesktop />
 			</div>
 			<div data-comment="Show only on mobile" className="block sm:hidden">
-			  <AppHeaderMobile
-			  	handleCloseClick={() => {
-			  		history.back();
-			  	}}
-			  />
+			  <AppHeaderMobile />
 			</div>
 			<div className={`
 				lg:mt-16

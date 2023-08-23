@@ -98,9 +98,10 @@ const AppNavigationMobile = ({
    }, []);
 
   const clickItem = (url) => {
-  	push(url);
+  	console.log('sure')
     dispatch(setIsMobileNavigationVisible(false))
     dispatch(setIsParkingListVisible(false))
+  	push(url);
   }
 
   const title = (mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyName)
@@ -157,7 +158,7 @@ const AppNavigationMobile = ({
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             onClick={(e) => {
             	e.preventDefault();
-            	push(`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`);
+            	clickItem(`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`)
             }}
             />
           )}
@@ -170,7 +171,7 @@ const AppNavigationMobile = ({
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             onClick={(e) => {
             	e.preventDefault();
-            	push(`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`);
+            	clickItem(`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`)
             }}
             />
           )}
