@@ -6,6 +6,14 @@ import { AppState } from "~/store/store";
 import Link from 'next/link'
 
 // Import components
+import Modal from "src/components/Modal";
+import AppNavigationMobile from "~/components/AppNavigationMobile";
+
+import {
+  setIsMobileNavigationVisible
+} from "~/store/appSlice";
+
+// Import components
 import Logo from './Logo';
 import PageTitle from "~/components/PageTitle";
 
@@ -37,7 +45,7 @@ function AppHeaderMobile({
   children
 }: {
   title?: string,
-  handleCloseClick?: Function,
+  handleCloseClick?: Function  ,
   children?: any
 }) {
   const dispatch = useDispatch();
@@ -48,6 +56,10 @@ function AppHeaderMobile({
 
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
+  const isMobileNavigationVisible = useSelector(
+    (state: AppState) => state.app.isMobileNavigationVisible
   );
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
@@ -102,19 +114,39 @@ function AppHeaderMobile({
           <div className="mx-3 flex-1 flex flex-col justify-center">
             <PageTitle className="mb-0">{title}</PageTitle>
           </div>
-          <a href="#" onClick={handleCloseClick} className="
+          <a href="#" onClick={(e) => {
+            // Custom set action
+            if(handleCloseClick) handleCloseClick(e);
+            // Or default action
+            else dispatch(setIsMobileNavigationVisible(true));
+          }} className="
             overlay-close-button
-            flex
-            flex-col
-            justify-center
+            mt-4
             mr-2
-          ">
-            <img src="/images/icon-close.png" alt="Sluiten" className="w-6" />
+          "
+          >
+            <img
+              src={(handleCloseClick) ? `/images/icon-close.png` : `/images/icon-hamburger.png`}
+              alt={(handleCloseClick) ? `Sluiten` : 'Open menu'} className="w-6" />
           </a>
         </div>
       </div>
 
       {children}
+
+      {isMobileNavigationVisible && (<>
+        <Modal
+          onClose={() => {
+            dispatch(setIsMobileNavigationVisible(false))
+          }}
+          clickOutsideClosesDialog={false}
+        >
+          <AppNavigationMobile
+            mapZoom={mapZoom}
+            activeMunicipalityInfo={activeMunicipalityInfo}
+          />
+        </Modal>
+      </>)}
 
     </>
   );

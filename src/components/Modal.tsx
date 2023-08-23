@@ -45,9 +45,9 @@ const Modal: React.FC<ModalProps> = ({
   }, [backDropHandler]);
 
   const handleCloseClick = (
-    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    e?: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
-    e.preventDefault();
+    if(e) e.preventDefault();
     onClose();
   };
 

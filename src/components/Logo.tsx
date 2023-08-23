@@ -10,8 +10,8 @@ function Logo({
     <>
   		<img
         src={imageUrl ? imageUrl : `/images/logo-transparant.png`}
-        className="mr-2 h-12"
-        alt="logo Gemeente Utrecht"
+        className="block mr-2 h-12"
+        alt="logo Gemeente"
       />
     </>
   );

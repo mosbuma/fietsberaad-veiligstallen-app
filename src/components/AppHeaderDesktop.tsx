@@ -148,7 +148,7 @@ function AppHeaderDesktop({
           ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
         `}>
           {primaryMenuItems ? primaryMenuItems.map((x) => <PrimaryMenuItem
-            key={'pmi-'+x.UrlName}
+            key={'pmi-'+x.Title}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}

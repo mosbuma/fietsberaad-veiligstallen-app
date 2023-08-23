@@ -278,13 +278,13 @@ const Home: NextPage = ({
             data-comment="Mobile topbar - Show only on mobile"
             className="
               flex sm:hidden
-              top-5
-              right-5
+              top-3
+              right-3
               left-5
               fixed
             "
           >
-            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
+            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`} className="block mr-3">
               <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             </Link>
             <SearchBar afterHtml={
@@ -292,7 +292,7 @@ const Home: NextPage = ({
                 shadow-none
                 bg-transparent
                 absolute
-                right-2
+                right-1
                 z-10
               "
               onClick={() => {
@@ -467,7 +467,6 @@ const Home: NextPage = ({
           />
         </Modal>
       </>)}
-
     </>
   );
 };

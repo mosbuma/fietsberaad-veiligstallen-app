@@ -76,7 +76,7 @@ const ParkingView = ({ parkingdata, onEdit = undefined }: { parkingdata: any, on
           {onEdit!==undefined ? (
             <Button
               key="b-1"
-              className="mt-3 sm:mt-0"
+              className="mt-3 sm:mt-0 hidden sm:block"
               onClick={(e) => {
                 if (e) e.preventDefault();
                 onEdit();

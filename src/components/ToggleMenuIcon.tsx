@@ -7,8 +7,8 @@ export const ToggleMenuIcon = ({
 }) => {
 	return (
 		<div className={`
-			w-10
-			h-10
+			w-12
+			h-12
 			${className && className.indexOf('bg-') > -1 ? '' : 'bg-white'}
 			${className && className.indexOf('shadow-') > -1 ? '' : 'shadow'}
 			rounded-full

@@ -18,7 +18,7 @@ function SearchBar({
         placeholder="Vind een stalling"
         className="
           sticky top-0 z-10
-          h-10
+           h-12
           w-full
           rounded-3xl
           px-4

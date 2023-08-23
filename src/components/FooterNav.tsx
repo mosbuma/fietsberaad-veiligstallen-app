@@ -48,12 +48,6 @@ const FooterNav = () => {
     { title: 'Over Veilig Stallen', url: '/fietsberaad/Copyright' },
   ];
 
-  const navItemsSecundary = [
-    { title: 'Disclaimer', url: '/fietsberaad/Disclaimer' },
-    { title: 'Privacy', url: '/fietsberaad/Privacy' },
-    { title: 'Algemene voorwaarden', url: '/fietsberaad/Algemene_voorwaarden' },
-  ];
-
   const footerMenuItems = getFooter(fietsberaadArticles);
 
   return (
@@ -78,7 +72,7 @@ const FooterNav = () => {
       </FooterNavItem>)}
 
       {footerMenuItems ? footerMenuItems.map((x) => <FooterNavItem
-        key={'pmi-'+x.UrlName}
+        key={'pmi-'+x.Title}
         url={`/fietsberaad/${x.Title ? x.Title : ''}`}
       >
         {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}

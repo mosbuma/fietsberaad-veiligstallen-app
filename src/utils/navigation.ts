@@ -35,6 +35,7 @@ export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
 
 export const getPrimary = (items) => {
   let primaryItems = items;
+  if(! primaryItems) return;
 
   // Only include 'main' items
   primaryItems = primaryItems.filter(x => x.Navigation === 'main');
@@ -58,6 +59,6 @@ export const getSecundary = (items) => {
 
 export const getFooter = (items) => {
   return items.filter((x) => {
-    return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene voorwaarden';
+    return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene Voorwaarden';
   });
 }
