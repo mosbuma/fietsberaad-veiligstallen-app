@@ -101,7 +101,7 @@ function ParkingFacilityBlock({
 
   const locationDescription = `${parking.Location || ""}${
     parking.Location && parking.Plaats ? ", " : ""
-  }${parking.Plaats}`;
+  }${parking.Plaats ? parking.Plaats : ''}`;
 
   let costDescription: string | undefined = "";
   switch (parking.Tariefcode) {
