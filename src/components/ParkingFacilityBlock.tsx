@@ -139,9 +139,16 @@ function ParkingFacilityBlock({
     // console.log('parking', parking)
   }
 
-  const parkingImageUrl = parking.Image
-    ? `https://static.veiligstallen.nl/library/fietsenstallingen/${parking.Image}`
-    : `/images/bike-blue-green.png`;
+  // Set image
+  let parkingImageUrl = parking.Image;
+  // If no parking image was found: Show default image
+  if(! parkingImageUrl) {
+    parkingImageUrl = `/images/bike-blue-green.png`;
+  }
+  // If parking has an image URL not starting with http: Create veiligstallen URL
+  else if(! parkingImageUrl.includes('http')) {
+    parkingImageUrl = `https://static.veiligstallen.nl/library/fietsenstallingen/${parkingImageUrl}`;
+  }
 
   return (
     <div
