@@ -183,7 +183,7 @@ const AppNavigationMobile = ({
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             onClick={(e) => {
             	e.preventDefault();
-            	push(`/fietsberaad/${x.Title ? x.Title : ''}`);
+            	clickItem(`/fietsberaad/${x.Title ? x.Title : ''}`);
             }}
             />
           )}
