@@ -13,11 +13,7 @@ const initialState: FilterState = {
   activeTypes: [
     "bewaakt",
     "geautomatiseerd",
-    "onbewaakt",
-    "toezicht",
-    "buurtstalling",
-    "fietstrommel",
-    "fietskluizen",
+    "toezicht"
   ],
   query: "",
 };

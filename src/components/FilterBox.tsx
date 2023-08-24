@@ -27,16 +27,16 @@ const OPTIONS_1 = [
     active: true,
   },
   {
-    id: "onbewaakt",
-    name: "publiek",
-    title: "Onbewaakte stalling",
-    active: true,
-  },
-  {
     id: "toezicht",
     name: "toezicht",
     title: "Stalling met toezicht",
     active: true,
+  },
+  {
+    id: "onbewaakt",
+    name: "publiek",
+    title: "Onbewaakte stalling",
+    active: false,
   },
 ];
 
@@ -45,19 +45,19 @@ const OPTIONS_2 = [
     id: "buurtstalling",
     name: "buurtstalling",
     title: "Buurtstalling",
-    active: true,
+    active: false,
   },
   {
     id: "fietstrommel",
     name: "fietstrommel",
     title: "Fietsentrommel",
-    active: true,
+    active: false,
   },
   {
     id: "fietskluizen",
     name: "fietskluizen",
     title: "Fietskluis",
-    active: true,
+    active: false,
   },
 ];
 

@@ -18,6 +18,9 @@ export const getParkingColor = (parkingType: string) => {
     case 'buurtstalling':
       color = '#FFB300';
       break;
+    case 'onbewaakt':
+      color = '#058959';
+      break;
     case 'publiek':
     default:
       color = '#00CE83';
