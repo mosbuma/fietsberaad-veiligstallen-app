@@ -20,6 +20,10 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
 
   }, [parkingdata])
 
+  if(! subscriptionTypes || ! subscriptionTypes.length > 0) {
+    return <></>
+  }
+
   return (
     <>
       <SectionBlock heading="Abonnementen">
