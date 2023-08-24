@@ -1,8 +1,8 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 
-import ParkingEdit from "~/components/ParkingEdit";
-import ParkingView from "~/components/ParkingView";
+import ParkingEdit from "~/components/parking/ParkingEdit";
+import ParkingView from "~/components/parking/ParkingView";
 
 const Parking = ({ parkingdata }: { parkingdata: any }) => {
   const session = useSession();
