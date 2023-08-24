@@ -14,6 +14,7 @@ const ParkingViewOpening = ({ parkingdata }: { parkingdata: any }) => {
     let value = '?';
     if(parkingdata["Open_" + day]) {
       const tmpopen: Date = new Date(Date.parse(parkingdata["Open_" + day]));
+    
       // NB: times are stored as UTC times (no timezone offset)
       const hoursopen = tmpopen.getUTCHours();
       const minutesopen = String(tmpopen.getUTCMinutes()).padStart(2, "0");
