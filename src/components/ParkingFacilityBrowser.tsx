@@ -80,7 +80,7 @@ function ParkingFacilityBrowser({
     // Stop if no parking element was found
     if(! elToScrollTo) return;
     container.scrollTo({
-      top: elToScrollTo.offsetTop - 135,
+      top: elToScrollTo.offsetTop - 250,
       behavior: "smooth"
     });
   }, [selectedParkingId]);
