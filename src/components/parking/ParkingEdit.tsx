@@ -263,32 +263,35 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: any, onClose: Func
 
         <div data-name="content-right" className="ml-12 hidden sm:block">
           <div className="relative">
+
             <ParkingOnTheMap parking={parkingdata} />
+
+            <Button
+              className="
+                fixed bottom-3
+                right-3 z-10
+                flex
+                py-3
+                sm:absolute
+                sm:bottom-1
+              "
+              onClick={(e) => {
+                if (e) e.preventDefault();
+                openRoute(parkingdata.Coordinaten);
+              }}
+              htmlBefore=<img
+                src="/images/icon-route-white.png"
+                alt="Route"
+                className="mr-3 w-5"
+              />
+            >
+              Breng mij hier naartoe
+            </Button>
+
           </div>
         </div>
       </div>
 
-      <Button
-        className="
-          fixed bottom-3
-          right-3 z-10
-          flex
-          py-3
-          sm:absolute
-          sm:bottom-1
-        "
-        onClick={(e) => {
-          if (e) e.preventDefault();
-          openRoute(parkingdata.Coordinaten);
-        }}
-        htmlBefore=<img
-          src="/images/icon-route-white.png"
-          alt="Route"
-          className="mr-3 w-5"
-        />
-      >
-        Breng mij hier naartoe
-      </Button>
     </div>
   );
 };

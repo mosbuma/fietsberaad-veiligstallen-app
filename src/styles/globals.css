@@ -74,6 +74,7 @@ body {
 
 .modal-wrapper {
   width: 90dvw;
+  max-width: 1200px;
   height: 90dvh;
 }
 
