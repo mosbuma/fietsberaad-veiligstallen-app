@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
+import { Button } from "~/components/Button";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
@@ -137,6 +138,12 @@ const ParkingView = ({ parkingdata, onEdit = undefined }: { parkingdata: any, on
               <div className="text-right sm:text-center">&euro;80,90</div>
               <div className="col-span-2">Jaarabonnement bromfiets</div>
               <div className="text-right sm:text-center">&euro;262.97</div>
+              <div className="col-span-2"></div>
+              <div className="text-right sm:text-center">
+                <Button>
+                  Koop abonnement
+                </Button>
+              </div>
             </div>
           </SectionBlock>
 
