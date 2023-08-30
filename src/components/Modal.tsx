@@ -44,6 +44,22 @@ const Modal: React.FC<ModalProps> = ({
     };
   }, [backDropHandler]);
 
+  useEffect(() => {
+    const initEscapeHandler = (event) => {
+      // Check if <escape> is pressed
+      if ( event.keyCode == 27 ) {
+        console.log('escape pressed');
+        // Close modal
+        onClose();
+      }
+    }
+    window.addEventListener('keydown', initEscapeHandler);
+
+    return () => {
+      window.removeEventListener('keydown', initEscapeHandler);
+    }
+  }, []);
+
   const handleCloseClick = (
     e?: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
@@ -52,7 +68,8 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const modalContent = (
-    <div className="modal-overlay z-20">
+    <div className="modal-overlay relative z-20">
+      <div className="modal-background absolute top-0 right-0 bottom-0 left-0" onClick={handleCloseClick} />
       <div ref={modalWrapperRef} className="modal-wrapper">
         <div className="modal">
           <a href="#" onClick={handleCloseClick} className="modal-close-button">
