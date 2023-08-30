@@ -161,11 +161,16 @@ function ParkingFacilityBlock({
         border-b
         border-solid
         border-gray-300
-        bg-white
         px-5 pb-5
         pt-5
-        ${compact ? 'cursor-pointer' : ''}
+        ${compact
+          ? 'bg-white cursor-pointer'
+          : 'shadow-lg'
+        }
       `}
+      style={{
+        backgroundColor: ! compact ? 'rgba(31, 153, 210, 0.1)' : null
+      }}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
         if (expandParkingHandler) expandParkingHandler(parking.ID);
@@ -212,7 +217,7 @@ function ParkingFacilityBlock({
                   if (openParkingHandler) openParkingHandler(parking.ID);
                 }}
                 href="#"
-                className="text-sm text-gray-500 underline"
+                className="text-sm text-gray-500 underline p-1 inline-block"
               >
                 meer informatie
               </a>
@@ -242,7 +247,7 @@ function ParkingFacilityBlock({
         </div>
         {!compact && (
           <>
-            <figure className="mt-4     mx-auto p-2">
+            {/*<figure className="mt-4     mx-auto p-2">
               <img
                 className="mx-auto"
                 src={parkingImageUrl}
@@ -251,7 +256,7 @@ function ParkingFacilityBlock({
                   maxHeight: '150px'
                 }}
               />
-            </figure>
+            </figure>*/}
             <div className="mt-4 flex justify-between">
               <div className="flex text-sm text-gray-500">
                 {/*
@@ -272,7 +277,7 @@ function ParkingFacilityBlock({
                     if (openParkingHandler) openParkingHandler(parking.ID);
                   }}
                   href="#"
-                  className="text-sm text-gray-500 underline"
+                  className="text-sm text-gray-500 underline px-1 py-2 inline-block -px-1 -my-2"
                 >
                   meer informatie
                 </a>
