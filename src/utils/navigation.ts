@@ -5,8 +5,7 @@ export const getNavigationItemsForMunicipality = async (siteId) => {
       const articles = await response.json();
 
       let primaryMenuItems = articles;
-      // Exclude articles with title: Home
-      primaryMenuItems = primaryMenuItems.filter(x => x.Title !== 'Home');
+
       // Only keep items for veiligstallen
       primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
 
@@ -39,6 +38,15 @@ export const getPrimary = (items) => {
 
   // Only include 'main' items
   primaryItems = primaryItems.filter(x => x.Navigation === 'main');
+
+  // Update title: Home -> Info
+  // |-> Niet nodig, want we hebben DisplayTitle
+  // primaryItems = primaryItems.map(x => {
+  //   if(x.Title === 'Home') {
+  //     x.DisplayTitle = 'Info';
+  //   }
+  //   return x;
+  // });
 
   // Keep everything apart from Tips, Contact and FAQ
   return primaryItems.filter((x) => {
