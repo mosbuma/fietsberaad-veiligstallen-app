@@ -163,8 +163,9 @@ function ParkingFacilityBlock({
         border-gray-300
         px-5 pb-5
         pt-5
+        cursor-pointer
         ${compact
-          ? 'bg-white cursor-pointer'
+          ? 'bg-white'
           : 'shadow-lg'
         }
       `}
@@ -173,7 +174,13 @@ function ParkingFacilityBlock({
       }}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
-        if (expandParkingHandler) expandParkingHandler(parking.ID);
+        if (expandParkingHandler && compact) {
+          expandParkingHandler(parking.ID);
+        }
+        // Open parking details if ParkingBlock was already active
+        else if(expandParkingHandler && ! compact) {
+          openParkingHandler(parking.ID);
+        }
         // Open parking if no expand handler was given
         if (!expandParkingHandler && openParkingHandler)
           openParkingHandler(parking.ID);
