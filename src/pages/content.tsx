@@ -115,17 +115,23 @@ const Content: NextPage = ({ fietsenstallingen }) => {
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
+  if(! pageContent) {
+    return (<div className="p-10">
+      Geen pagina-inhoud gevonden. <a href="javascript:history.back();" className="underline">Ga terug</a>
+    </div>);
+  }
+
   let parkingTypesToFilterOn;
-  if(pageContent.Title === 'Stallingen') {
+  if(pageContent && pageContent.Title === 'Stallingen') {
   	parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
   }
-  else if(pageContent.Title === 'Buurtstallingen') {
+  else if(pageContent && pageContent.Title === 'Buurtstallingen') {
   	parkingTypesToFilterOn = ['buurtstalling'];
   }
-  else if(pageContent.Title === 'Fietstrommels' || pageContent.Title === 'fietstrommels') {
+  else if(pageContent && (pageContent.Title === 'Fietstrommels' || pageContent.Title === 'fietstrommels')) {
   	parkingTypesToFilterOn = ['fietstrommel'];
   }
-  else if(pageContent.Title === 'Fietskluizen') {
+  else if(pageContent && pageContent.Title === 'Fietskluizen') {
   	parkingTypesToFilterOn = ['fietskluizen'];
   }
 

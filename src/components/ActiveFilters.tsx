@@ -1,7 +1,10 @@
 // ActiveFilters.tsx - Location specific logo
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppState } from "~/store/store";
+import { useRouter } from 'next/router'
+
+import { setTypes } from "~/store/filterSlice";
 
 import FilterBoxList, {
   updateActiveTypeStates,
@@ -53,6 +56,9 @@ const ALL_PARKING_TYPES = [
 ];
 
 function ActiveFilters({}: {}) {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
@@ -60,6 +66,33 @@ function ActiveFilters({}: {}) {
   const isAuthenticated = useSelector(
     (state: AppState) => state.map.municipality.code
   );
+
+  // If setFilter query param is set, set filter accordingly
+  // Example URL: /?typesFilter=bewaakt,toezicht
+  React.useEffect(() => {
+    if(! router.query || ! router.query.typesFilter) {
+      return;
+    }
+
+    const filterParams = router.query.typesFilter;
+    setFilterFromParams(filterParams);
+  }, [
+    router.query
+  ])
+
+  const setFilterFromParams = (params) => {
+    // Make an array out of params
+    const paramsArray = params.split(',');
+    // Stop if no params were found
+    if(! paramsArray || paramsArray.length <= 0) return;
+    // Loop parms
+    const typesFilter = [];
+    paramsArray.forEach(x => {
+      typesFilter.push(x);
+    });
+    // Set in state
+    dispatch(setTypes(typesFilter));
+  }
 
   const parkingTypes = updateActiveTypeStates(ALL_PARKING_TYPES, activeTypes);
 

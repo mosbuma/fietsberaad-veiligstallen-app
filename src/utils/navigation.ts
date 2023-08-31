@@ -56,6 +56,7 @@ export const getPrimary = (items) => {
 
 export const getSecundary = (items) => {
   let secundaryItems = items;
+  if(! secundaryItems) return [];
 
   // Only include 'main' items
   secundaryItems = secundaryItems.filter(x => x.Navigation === 'main');

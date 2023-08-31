@@ -18,6 +18,16 @@ const initialState: FilterState = {
   query: "",
 };
 
+const allowedTypes = [
+  'bewaakt',
+  'geautomatiseerd',
+  'toezicht',
+  'onbewaakt',
+  'buurtstalling',
+  'fietstrommel',
+  'fietskluizen'
+];
+
 // Actual Slice
 export const filterSlice = createSlice({
   name: "filter",
@@ -35,8 +45,28 @@ export const filterSlice = createSlice({
         state.activeTypes.splice(index, 1);
       }
     },
+    // Action to toggle the type
+    setTypes(state, action) {
+      const typesToSet = action.payload;
+      // Check if given types are valid
+      let isInvalidInput = false;
+      if(! typesToSet) {
+        isInvalidInput = true;
+      }
+      for(let key in typesToSet) {
+        const typeToSet = typesToSet[key];
+        if(allowedTypes.indexOf(typeToSet) <= -1) {
+          isInvalidInput = true;
+        }
+      }
+      if(isInvalidInput) {
+        return;
+      }
+
+      state.activeTypes = typesToSet;
+    },
     setQuery(state, action) {
-      state.query = action.payload.toLowerCase();
+      state.query = action.payload;
     },
   },
 
@@ -51,4 +81,8 @@ export const filterSlice = createSlice({
   },
 });
 
-export const { toggleType, setQuery } = filterSlice.actions;
+export const {
+  toggleType,
+  setQuery,
+  setTypes
+} = filterSlice.actions;

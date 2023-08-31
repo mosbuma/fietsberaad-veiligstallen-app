@@ -33,8 +33,8 @@ export const RadioButton = ({
         }
         ${className}
       `}
-      onClick={() => {
-        if(onClick) onClick()
+      onClick={(e) => {
+        if(onClick) onClick(e)
       }}
       style={{ userSelect: "none" }} // disable highlighting
     >
@@ -71,8 +71,8 @@ export const Button = ({
         text-white
         ${className}
       `}
-      onClick={() => {
-        if(onClick) onClick()
+      onClick={(e) => {
+        if(onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting
@@ -118,8 +118,8 @@ export const IconButton = ({
         shadow-md
         ${className}
       `}
-      onClick={() => {
-        if(onClick) onClick()
+      onClick={(e) => {
+        if(onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting

@@ -37,6 +37,7 @@ import FilterBox from "~/components/FilterBox";
 import { IconButton } from "~/components/Button";
 import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
 import AppNavigationMobile from "~/components/AppNavigationMobile";
+import WelcomeToMunicipality from "~/components/WelcomeToMunicipality";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
@@ -78,6 +79,8 @@ const Home: NextPage = ({
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
+  const [isClient, setIsClient] = useState(false);
+  const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -103,7 +106,14 @@ const Home: NextPage = ({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  const initialLatLng = useSelector((state: AppState) => state.map.initialLatLng);
+
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
+  // Check if on client
+  useEffect(() => {
+    setIsClient(typeof window !== 'undefined');
+  }, []);
 
   useEffect(() => {
     if (
@@ -124,6 +134,7 @@ const Home: NextPage = ({
     (async () => {
       // Get municipality
       const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
+      if(! municipality) return;
       // Fly to municipality, on the map
       const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
       if(initialLatLng) {
@@ -156,6 +167,22 @@ const Home: NextPage = ({
   }, [
     activeMunicipality
   ])
+
+  // Open municipality info modal
+  useEffect(() => {
+    setTimeout(() => {
+      if(! initialLatLng || ! activeMunicipalityInfo) return;
+      // Save the fact that user did see welcome modal
+      const VS__didSeeWelcomeModal = localStorage.getItem('VS__didSeeWelcomeModal');
+      // Only show modal once per 15 minutes
+      if(! VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600*1000 / 4))) {
+        setIsInfoModalVisible(true);
+      }
+    }, 1650);// 1500 is flyTo time in MapComponent
+  }, [
+    activeMunicipalityInfo,
+    initialLatLng
+  ]);
 
   const currentStalling = fietsenstallingen.find((stalling: any) => {
     return stalling.ID === currentStallingId;
@@ -467,6 +494,31 @@ const Home: NextPage = ({
           />
         </Modal>
       </>)}
+
+      {isClient && isInfoModalVisible && <Modal
+        onClose={() => {
+          setIsInfoModalVisible(false)
+
+          // Save the fact that user did see welcome modal
+          localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+        }}
+        clickOutsideClosesDialog={false}
+        modalStyle={{
+          width: '400px',
+          maxWidth: '100%',
+          marginRight: 'auto',
+          marginLeft: 'auto',
+        }}
+        modalBodyStyle={{
+          overflow: 'visible',
+        }}
+      >
+        <WelcomeToMunicipality
+          municipalityInfo={activeMunicipalityInfo}
+          buttonClickHandler={() => {setIsInfoModalVisible(false)}}
+        />
+      </Modal>}
+
     </>
   );
 };
