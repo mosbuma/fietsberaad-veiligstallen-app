@@ -43,7 +43,7 @@ export const mapSlice = createSlice({
     setMapVisibleFeatures(state, action) {
       state.visibleFeatures = action.payload;
     },
-    // Action to set active municipality ()based on location)
+    // Action to set active municipality based on location)
     setMunicipality(state, action) {
       state.municipality = action.payload;
     },

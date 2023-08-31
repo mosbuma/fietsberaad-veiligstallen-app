@@ -106,9 +106,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   const initialLatLng = useSelector((state: AppState) => state.map.initialLatLng);
 
-  const municipalities = useSelector(
-    (state: AppState) => state.geo.municipalities
-  );
+  // const municipalities = useSelector(
+  //   (state: AppState) => state.geo.municipalities
+  // );
 
   const selectedParkingId = useSelector(
     (state: AppState) => state.map.selectedParkingId

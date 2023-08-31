@@ -9,8 +9,8 @@ const rootReducer = combineReducers({
   [authSlice.name]: authSlice.reducer,
   [filterSlice.name]: filterSlice.reducer,
   [mapSlice.name]: mapSlice.reducer,
-  [geoSlice.name]: geoSlice.reducer,
   [appSlice.name]: appSlice.reducer,
+  [geoSlice.name]: geoSlice.reducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

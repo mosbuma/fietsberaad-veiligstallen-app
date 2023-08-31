@@ -1,12 +1,48 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedParkingId } from "~/store/mapSlice";
+import { setSelectedParkingId, setInitialLatLng } from "~/store/mapSlice";
 import { setQuery } from "~/store/filterSlice";
+import { setMunicipalities } from "~/store/geoSlice";
+
+import { convertCoordinatenToCoords } from "~/utils/map/index";
+
+import {
+  getMunicipalities
+} from "~/utils/municipality";
+
+import ParkingFacilityBrowserStyles from './ParkingFacilityBrowser.module.css';
 
 import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
+
+const MunicipalityBlock = ({
+  title,
+  onClick
+}) => {
+  return (
+    <div
+      className={`
+        ParkingFacilityBlock
+        relative
+        flex w-full
+        justify-between
+        border-b
+        border-solid
+        border-gray-300
+        px-5 pb-5
+        pt-5
+        cursor-pointer
+      `}
+      onClick={onClick}
+    >
+      <b className="text-base">
+        {title}
+      </b>
+    </div>
+  )
+}
 
 function ParkingFacilityBrowser({
   fietsenstallingen,
@@ -24,7 +60,7 @@ function ParkingFacilityBrowser({
   const dispatch = useDispatch();
 
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
-  // const [filterQuery, setFilterQuery] = useState("");
+  const [visibleMunicipalities, setVisibleMunicipalities] = useState([]);
 
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
@@ -36,6 +72,10 @@ function ParkingFacilityBrowser({
 
   const filterQuery = useSelector(
     (state: AppState) => state.filter.query
+  );
+
+  const municipalities = useSelector(
+    (state: AppState) => state.geo.municipalities
   );
 
   // If mapVisibleFeatures change: Filter parkings
@@ -76,6 +116,17 @@ function ParkingFacilityBrowser({
     customFilter
   ]);
 
+  useEffect(() => {
+    // Don't ask the API if we have all municipalities already
+    if(municipalities && municipalities.length > 0) {
+      return;
+    }
+    (async () => {
+      const response = await getMunicipalities();
+      dispatch(setMunicipalities(response));
+    })();
+  }, []);
+
   // Scroll to selected parking if selected parking changes
   useEffect(() => {
     // Stop if no parking was selected
@@ -89,6 +140,20 @@ function ParkingFacilityBrowser({
       behavior: "smooth"
     });
   }, [selectedParkingId]);
+
+  // Filter municipalities based on search query
+  useEffect(() => {
+    const filteredMunicipalities = municipalities.filter((x) => {
+      if(! x.CompanyName) return false;
+      if(filterQuery.length <= 1) return false;
+      if(x.CompanyName === 'FIETSBERAAD') return false;
+      return x.CompanyName.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
+    });
+    setVisibleMunicipalities(filteredMunicipalities.slice(0,3));
+  }, [
+    municipalities,
+    filterQuery
+  ]);
 
   const expandParking = (id: string) => {
     // Set active parking ID
@@ -106,27 +171,44 @@ function ParkingFacilityBrowser({
     onShowStallingDetails && onShowStallingDetails(id);
   };
 
-  console.log('filterQuery', filterQuery);
-
   return (
     <div
-      className="
+      className={`
+        ${ParkingFacilityBrowserStyles.ParkingFacilityBrowser}
         ParkingFacilityBrowser
         rounded-3xl
         bg-white
         py-0
         text-left
         shadow-lg
-      "
+      `}
       style={{
         maxWidth: "100%",
         height: "100%",
         overflow: "auto",
       }}
     >
-      {showSearchBar ? <SearchBar filterChanged={(e) => dispatch(setQuery(e.target.value))} /> : ''}
+      {showSearchBar ? <SearchBar
+        value={filterQuery}
+        filterChanged={(e) => dispatch(setQuery(e.target.value))}
+      /> : ''}
 
       <div className="px-0">
+        {visibleMunicipalities.map((x: any) => {
+          return (
+            <MunicipalityBlock
+              key={x.ID}
+              title={x.CompanyName}
+              onClick={() => {
+                // Fly to municipality
+                const initialLatLng = convertCoordinatenToCoords(x.Coordinaten);
+                dispatch(setInitialLatLng(initialLatLng))
+                // Reset filterQuery
+                dispatch(setQuery(''));
+              }}
+            />
+          )
+        })}
         {visibleParkings.map((x: any) => {
           return (
             <div className="mb-0 ml-0 mr-0" key={x.ID}>

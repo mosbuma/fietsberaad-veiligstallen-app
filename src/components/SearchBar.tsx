@@ -3,12 +3,12 @@ import Input from "@mui/material/TextField";
 import { useDispatch, useSelector } from "react-redux";
 
 function SearchBar({
-  defaultValue,
+  value,
   filterChanged,
   afterHtml
 }: {
-  defaultValue?: string,
-  filterChanged?: Function,
+  value?: string,
+  filterChanged: Function,
   afterHtml?: any,
 }) {
   const dispatch = useDispatch();
@@ -28,7 +28,7 @@ function SearchBar({
           shadow-md
         "
         onChange={filterChanged}
-        defaultValue={defaultValue}
+        value={value}
       />
       {afterHtml ? afterHtml : ''}
     </>

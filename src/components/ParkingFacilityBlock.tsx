@@ -254,16 +254,6 @@ function ParkingFacilityBlock({
         </div>
         {!compact && (
           <>
-            {/*<figure className="mt-4     mx-auto p-2">
-              <img
-                className="mx-auto"
-                src={parkingImageUrl}
-                style={{
-                  borderRadius: "7px",
-                  maxHeight: '150px'
-                }}
-              />
-            </figure>*/}
             <div className="mt-4 flex justify-between">
               <div className="flex text-sm text-gray-500">
                 {/*

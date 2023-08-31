@@ -1,0 +1,7 @@
+.ParkingFacilityBrowser {
+}
+@media(min-width: 641px) {
+  .ParkingFacilityBrowser {
+    max-height: 60dvh;
+  }
+}
