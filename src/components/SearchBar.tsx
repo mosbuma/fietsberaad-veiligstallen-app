@@ -1,12 +1,15 @@
 import * as React from "react";
 import Input from "@mui/material/TextField";
-import { setQuery } from "~/store/filterSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 function SearchBar({
+  defaultValue,
+  filterChanged,
   afterHtml
 }: {
-  afterHtml?: any
+  defaultValue?: string,
+  filterChanged?: Function,
+  afterHtml?: any,
 }) {
   const dispatch = useDispatch();
 
@@ -18,15 +21,14 @@ function SearchBar({
         placeholder="Vind een stalling"
         className="
           sticky top-0 z-10
-           h-12
+          h-12
           w-full
           rounded-3xl
           px-4
           shadow-md
         "
-        onChange={(e) => {
-          dispatch(setQuery(e.target.value));
-        }}
+        onChange={filterChanged}
+        defaultValue={defaultValue}
       />
       {afterHtml ? afterHtml : ''}
     </>

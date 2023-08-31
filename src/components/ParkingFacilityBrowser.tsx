@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedParkingId } from "~/store/mapSlice";
+import { setQuery } from "~/store/filterSlice";
 
 import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
@@ -23,7 +24,7 @@ function ParkingFacilityBrowser({
   const dispatch = useDispatch();
 
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
-  const [filterQuery, setFilterQuery] = useState("");
+  // const [filterQuery, setFilterQuery] = useState("");
 
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
@@ -31,6 +32,10 @@ function ParkingFacilityBrowser({
 
   const selectedParkingId = useSelector(
     (state: AppState) => state.map.selectedParkingId
+  );
+
+  const filterQuery = useSelector(
+    (state: AppState) => state.filter.query
   );
 
   // If mapVisibleFeatures change: Filter parkings
@@ -101,9 +106,7 @@ function ParkingFacilityBrowser({
     onShowStallingDetails && onShowStallingDetails(id);
   };
 
-  const updateFilter = (query: string) => {
-    setFilterQuery(query);
-  };
+  console.log('filterQuery', filterQuery);
 
   return (
     <div
@@ -121,7 +124,7 @@ function ParkingFacilityBrowser({
         overflow: "auto",
       }}
     >
-      {showSearchBar ? <SearchBar filterChanged={updateFilter} /> : ''}
+      {showSearchBar ? <SearchBar filterChanged={(e) => dispatch(setQuery(e.target.value))} /> : ''}
 
       <div className="px-0">
         {visibleParkings.map((x: any) => {
