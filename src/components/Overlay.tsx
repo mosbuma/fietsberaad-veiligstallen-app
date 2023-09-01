@@ -75,7 +75,7 @@ const Overlay: React.FC<OverlayProps> = ({
               showCloseButton={true}
               handleCloseClick={handleCloseClick}
             /> : ''}
-            <div className="overlay-body min-h-full">
+            <div className="overlay-body px-6 min-h-full">
               {children}
             </div>
           </div>

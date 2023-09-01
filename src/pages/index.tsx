@@ -13,8 +13,10 @@ import {
 } from "~/store/appSlice";
 import {
   setActiveMunicipalityInfo,
-  setInitialLatLng
+  setInitialLatLng,
 } from "~/store/mapSlice";
+
+import { setQuery } from "~/store/filterSlice";
 
 import {
   getMunicipalityBasedOnCbsCode,
@@ -169,11 +171,14 @@ const Home: NextPage = ({
   ])
 
   // Open municipality info modal
+  let TO_showWelcomeModal;
   useEffect(() => {
-    setTimeout(() => {
+    if(TO_showWelcomeModal) clearTimeout(TO_showWelcomeModal);
+    TO_showWelcomeModal = setTimeout(() => {
       if(! initialLatLng || ! activeMunicipalityInfo) return;
       // Save the fact that user did see welcome modal
       const VS__didSeeWelcomeModal = localStorage.getItem('VS__didSeeWelcomeModal');
+      // console.log('GET timestamp', VS__didSeeWelcomeModal, Date.now() - VS__didSeeWelcomeModal, 'Date.now()', Date.now())
       // Only show modal once per 15 minutes
       if(! VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600*1000 / 4))) {
         setIsInfoModalVisible(true);
@@ -311,22 +316,33 @@ const Home: NextPage = ({
               fixed
             "
           >
-            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`} className="block mr-3">
+            <Link
+              href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}
+              onClick={() => {
+                dispatch(setIsParkingListVisible(false));
+              }}
+              className="block mr-3"
+            >
               <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             </Link>
-            <SearchBar afterHtml={
-              <ToggleMenuIcon className="
-                shadow-none
-                bg-transparent
-                absolute
-                right-1
-                z-10
-              "
-              onClick={() => {
-                dispatch(setIsMobileNavigationVisible(true))
+            <SearchBar
+              filterChanged={(e) => {
+                dispatch(setQuery(e.target.value))
+                dispatch(setIsParkingListVisible(true));
               }}
-              />
-            } />
+              afterHtml={
+                <ToggleMenuIcon className="
+                  shadow-none
+                  bg-transparent
+                  absolute
+                  right-1
+                  z-10
+                "
+                onClick={() => {
+                  dispatch(setIsMobileNavigationVisible(true))
+                }}
+              />}
+            />
             {/*HAMB.*/}
           </div>
         </div>
@@ -497,10 +513,11 @@ const Home: NextPage = ({
 
       {isClient && isInfoModalVisible && <Modal
         onClose={() => {
-          setIsInfoModalVisible(false)
-
           // Save the fact that user did see welcome modal
+          // console.log('SET timestamp', Date.now())
           localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+
+          setIsInfoModalVisible(false)
         }}
         clickOutsideClosesDialog={false}
         modalStyle={{

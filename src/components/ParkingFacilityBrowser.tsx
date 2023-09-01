@@ -190,7 +190,9 @@ function ParkingFacilityBrowser({
     >
       {showSearchBar ? <SearchBar
         value={filterQuery}
-        filterChanged={(e) => dispatch(setQuery(e.target.value))}
+        filterChanged={(e) => {
+          dispatch(setQuery(e.target.value))
+        }}
       /> : ''}
 
       <div className="px-0">

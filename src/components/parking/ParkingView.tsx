@@ -72,7 +72,7 @@ const ParkingView = ({
     >
       <div
         className="
-          mr-8 flex
+          sm:mr-8 flex
           justify-between
         "
       >
