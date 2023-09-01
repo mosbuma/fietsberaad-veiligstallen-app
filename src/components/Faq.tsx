@@ -30,7 +30,6 @@ function Faq({
           <details className={`${Styles.details}`}>
             <summary className={`
               rounded
-              mb-4
               p-2
               py-3
               font-bold
@@ -44,12 +43,12 @@ function Faq({
               {section.q_and_a.map((QA) => {
                 return (
                   <details className={Styles.details}>
-                    <summary className={`my-2 ${Styles.qaSummary}`}>
+                    <summary className={`my-1 ${Styles.qaSummary}`}>
                       {QA.Question}
                     </summary>
                     <div className={`
-                      mt-2
-                      mb-2
+                      mt-4
+                      mb-4
                       -mx-2 px-4
                       py-2
                       ${Styles.qaAnswer}

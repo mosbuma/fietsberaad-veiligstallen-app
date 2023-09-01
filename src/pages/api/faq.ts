@@ -21,7 +21,8 @@ export default async function handle(req, res) {
   for await (const x of faqsForContact) {
     const faqItem = await prisma.faq.findFirst({
       where: {
-        ID: x.FaqID
+        ID: x.FaqID,
+        Status: '1',
       },
       select: {
         ID: true,
@@ -45,7 +46,8 @@ export default async function handle(req, res) {
   for await (const section of faqSections) {
     const faqQuestionAndAnswers = await prisma.faq.findMany({
       where: {
-        ParentID: section.ID
+        ParentID: section.ID,
+        Status: '1'
       },
       select: {
         ID: true,
