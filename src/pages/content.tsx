@@ -19,6 +19,7 @@ import { Button } from "~/components/Button";
 import Modal from "src/components/Modal";
 import Overlay from "src/components/Overlay";
 import Parking from "~/components/Parking";
+import Faq from "~/components/Faq";
 
 import Styles from "./content.module.css";
 
@@ -121,6 +122,9 @@ const Content: NextPage = ({ fietsenstallingen }) => {
     </div>);
   }
 
+  const isFaq = pageContent.Title === 'FAQ';
+
+  // Decide on what parkings to show on this page, if any
   let parkingTypesToFilterOn;
   if(pageContent && pageContent.Title === 'Stallingen') {
   	parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
@@ -184,6 +188,10 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 					"
 					dangerouslySetInnerHTML={{__html: pageContent.Article}}
 					/> : ''}
+
+          {isFaq && <>
+            <Faq />
+          </>}
 				</div>
 				<div className="
 					mt-10

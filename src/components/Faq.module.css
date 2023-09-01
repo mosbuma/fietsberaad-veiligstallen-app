@@ -1,0 +1,40 @@
+.details {
+  user-select: none;
+}
+
+.sectionSummary {
+  cursor: pointer;
+  background: #15aeef;
+}
+.sectionBody {
+}
+
+.qaSummary {
+  cursor: pointer;
+}
+.qaAnswer {
+  cursor: select;
+  background: #eee;
+}
+
+/*
+.details > .summary span.icon {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s;
+  margin-left: auto;
+}
+
+.details[open] .summary span.icon {
+  transform: rotate(180deg);
+}
+
+.summary {
+  display: flex;
+  cursor: pointer;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+*/
