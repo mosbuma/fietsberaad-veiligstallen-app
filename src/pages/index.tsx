@@ -514,10 +514,9 @@ const Home: NextPage = ({
       {isClient && isInfoModalVisible && <Modal
         onClose={() => {
           // Save the fact that user did see welcome modal
-          // console.log('SET timestamp', Date.now())
           localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
 
-          setIsInfoModalVisible(false)
+          setIsInfoModalVisible(false);
         }}
         clickOutsideClosesDialog={false}
         modalStyle={{
@@ -532,7 +531,12 @@ const Home: NextPage = ({
       >
         <WelcomeToMunicipality
           municipalityInfo={activeMunicipalityInfo}
-          buttonClickHandler={() => {setIsInfoModalVisible(false)}}
+          buttonClickHandler={() => {
+            // Save the fact that user did see welcome modal
+            localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+  
+            setIsInfoModalVisible(false)
+          }}
         />
       </Modal>}
 

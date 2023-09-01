@@ -109,6 +109,8 @@ function WelcomeToMunicipality({
       <a href={`/${municipalityInfo.UrlName}/home`} className="text-gray-500 underline" onClick={(e) => {
         e.preventDefault();
         push(`/${municipalityInfo.UrlName}/home`);
+        // Close modal
+        buttonClickHandler();
       }}>
         Parkeren in {municipalityInfo.CompanyName} - Hoe werkt het?
       </a>
