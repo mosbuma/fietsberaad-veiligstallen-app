@@ -62,7 +62,7 @@ export const getSecundary = (items) => {
   secundaryItems = secundaryItems.filter(x => x.Navigation === 'main');
 
   return secundaryItems.filter((x) => {
-    return x.Title === 'Tips' || x.Title === 'Contact' || x.Title === 'FAQ';
+    return x.Title === 'Tips' || x.Title === 'Contact';
   });
 }
 
