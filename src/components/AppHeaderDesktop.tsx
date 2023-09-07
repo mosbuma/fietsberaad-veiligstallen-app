@@ -147,16 +147,16 @@ function AppHeaderDesktop({
           duration-500
           ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
         `}>
-          {primaryMenuItems ? primaryMenuItems.map((x) => <PrimaryMenuItem
-            key={'pmi-'+x.Title}
+          {primaryMenuItems ? primaryMenuItems.map((x,idx) => <PrimaryMenuItem
+            key={'pmi-h1-'+idx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
         </div>
         <div className="flex flex-end">
-          {secundaryMenuItems.map(x => {
+          {secundaryMenuItems.map((x,idx) => {
             return <SecundaryMenuItem
-              key={'pmi-'+x.UrlName}
+              key={'pmi-h2-'+idx}
               title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
               url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
             />

@@ -5,6 +5,7 @@ import Head from "next/head";
 import superjson from "superjson";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import type { ParkingDetailsType } from "~/types";
 
 import {
   setIsParkingListVisible,
@@ -44,6 +45,7 @@ import WelcomeToMunicipality from "~/components/WelcomeToMunicipality";
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
+import { getParkingDetails } from "~/utils/parkings";
 
 export async function getServerSideProps(context) {
   try {
@@ -80,9 +82,10 @@ const Home: NextPage = ({
 
   const dispatch = useDispatch();
 
-  const [currentStallingId, setCurrentStallingId] = useState(undefined);
-  const [isClient, setIsClient] = useState(false);
-  const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
+  // const [currentStallingId, setCurrentStallingId] = useState<string|undefined>(undefined);
+  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType|null>(null);
+  const [isClient, setIsClient] = useState<boolean>(false);
+  const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -118,13 +121,11 @@ const Home: NextPage = ({
   }, []);
 
   useEffect(() => {
-    if (
-      fietsenstallingen.find(
-        (stalling: any) => stalling.ID === router.query.stallingid
-      )
-    ) {
-      // can happen when the logged in user does not have access to the parking
-      setCurrentStallingId(router.query.stallingid);
+    const stallingId = router.query.stallingid;
+    if(stallingId!==undefined && !Array.isArray(stallingId)) {
+      getParkingDetails(stallingId).then((stalling) => {
+        setCurrentStalling(stalling);
+      });
     }
   }, [router.query.stallingid]);
 
@@ -189,10 +190,6 @@ const Home: NextPage = ({
     initialLatLng
   ]);
 
-  const currentStalling = fietsenstallingen.find((stalling: any) => {
-    return stalling.ID === currentStallingId;
-  });
-
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
@@ -215,14 +212,15 @@ const Home: NextPage = ({
   }
 
   const updateStallingId = (id: string | undefined): void => {
-    console.log(">>> update stallingId", id);
     if(undefined===id) {
       delete query.stallingid;
       router.push({ query: { ...query}});
     } else {
       router.push({ query: { ...query, stallingid: id }}); 
     }
-    setCurrentStallingId(id)
+    if(undefined===id) {
+      setCurrentStalling(null);
+    }
   }
 
   return (
@@ -239,28 +237,26 @@ const Home: NextPage = ({
           <AppHeaderDesktop />
         </div>
 
-        {currentStallingId && isSm && (<>
+        {currentStalling!==null && isSm && (<>
           <Overlay
             title={currentStalling.Title}
             onClose={() => {updateStallingId(undefined)}}
           >
             <Parking
-              key={currentStallingId}
+              key={'parking-sm-' + currentStalling.ID}
               parkingdata={currentStalling}
             />
           </Overlay>
         </>)}
 
-        {currentStallingId && ! isSm && (<>
+        {currentStalling!==null && ! isSm && (<>
           <Modal
             onClose={() => {updateStallingId(undefined)}}
             clickOutsideClosesDialog={false}
           >
             <Parking
-              key={currentStallingId}
-              parkingdata={fietsenstallingen.find((stalling: any) => {
-                return stalling.ID === currentStallingId;
-              })}
+              key={'parking-nsm-' + currentStalling.ID}
+              parkingdata={currentStalling}
             />
           </Modal>
         </>)}

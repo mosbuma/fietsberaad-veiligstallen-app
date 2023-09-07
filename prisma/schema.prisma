@@ -55,33 +55,41 @@ model abonnementsvorm_fietsenstalling {
   SubscriptiontypeID Int
   BikeparkID         String @db.VarChar(35)
 
+  abonnementsvormen abonnementsvormen? @relation(fields: [SubscriptiontypeID], references: [ID])
+  fietsenstallingen fietsenstallingen? @relation(fields: [BikeparkID], references: [ID])
+
   @@unique([SubscriptiontypeID, BikeparkID], map: "SubscriptiontypeID")
-  @@unique([SubscriptiontypeID, BikeparkID], map: "prismaID")
+}
+
+model abonnementsvormen {
+  ID                     Int      @id @default(autoincrement())
+  naam                   String?  @db.VarChar(255)
+  omschrijving           String?  @db.LongText
+  prijs                  Decimal? @db.Decimal(8, 2)
+  tijdsduur              Int?
+  conditions             String?  @db.Text
+  siteID                 String?  @db.VarChar(36)
+  bikeparkTypeID         String?  @db.VarChar(15)
+  isActief               Boolean  @default(dbgenerated("b'1'")) @db.Bit(1)
+  exploitantSiteID       String?  @db.VarChar(36)
+  idmiddelen             String   @default("sleutelhanger") @db.VarChar(40)
+  contractID             String?  @db.VarChar(35)
+  paymentAuthorizationID String?  @db.VarChar(35)
+  conditionsID           String?  @db.VarChar(255)
+
+  abonnementen                    abonnementen[]
+  abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+  abonnementsvorm_fietstype       abonnementsvorm_fietstype[]
 }
 
 model abonnementsvorm_fietstype {
   SubscriptiontypeID Int
   BikeTypeID         Int
 
-  @@unique([SubscriptiontypeID, BikeTypeID], map: "prismaID")
-}
+  abonnementsvorm abonnementsvormen @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_av")
+  fietstype       fietstypen        @relation(fields: [SubscriptiontypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_ft")
 
-model abonnementsvormen {
-  ID                     Int            @id @default(autoincrement())
-  naam                   String?        @db.VarChar(255)
-  omschrijving           String?        @db.LongText
-  prijs                  Decimal?       @db.Decimal(8, 2)
-  tijdsduur              Int?
-  conditions             String?        @db.Text
-  siteID                 String?        @db.VarChar(36)
-  bikeparkTypeID         String?        @db.VarChar(15)
-  isActief               Boolean        @default(dbgenerated("b'1'")) @db.Bit(1)
-  exploitantSiteID       String?        @db.VarChar(36)
-  idmiddelen             String         @default("sleutelhanger") @db.VarChar(40)
-  contractID             String?        @db.VarChar(35)
-  paymentAuthorizationID String?        @db.VarChar(35)
-  conditionsID           String?        @db.VarChar(255)
-  abonnementen           abonnementen[]
+  @@unique([SubscriptiontypeID, BikeTypeID], map: "prismaID")
 }
 
 model account_transacties {
@@ -447,6 +455,7 @@ model contacts {
   fmsservice_permit_fmsservice_permit_SiteIDTocontacts     fmsservice_permit[]    @relation("fmsservice_permit_SiteIDTocontacts")
   presentations                                            presentations[]
   presentations_ticker                                     presentations_ticker[]
+  fietsenstallingen                                        fietsenstallingen[]
 
   @@unique([ItemType, CompanyName], map: "ItemType")
   @@index([CompanyName], map: "CompanyName")
@@ -689,6 +698,9 @@ model fietsenstalling_sectie {
   isactief                 Boolean @default(dbgenerated("b'1'")) @db.Bit(1)
   qualificatie             String? @default("NONE") @db.VarChar(255)
 
+  fietsenstalling   fietsenstallingen? @relation(fields: [fietsenstallingsId], references: [ID])
+  secties_fietstype sectie_fietstype[]
+
   @@index([fietsenstallingsId], map: "FKA8FBA192D2C0280D")
   @@index([fietsenstallingsId], map: "fietsenstallingsId")
   @@index([isactief], map: "isactief")
@@ -771,6 +783,14 @@ model fietsenstallingen {
   fietsenstallingen_services fietsenstallingen_services[]
   fmsservice_permit          fmsservice_permit[]
 
+  fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
+
+  fietsenstalling_secties fietsenstalling_sectie[]
+
+  abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+
+  exploitant contacts? @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
+
   @@index([StallingsID, SiteID], map: "idxSiteidstid")
   @@index([SiteID], map: "sidxsiteid")
   @@index([ExploitantID], map: "ExploitantID")
@@ -801,15 +821,19 @@ model fietsenstallingen_winkansen {
 }
 
 model fietsenstallingtypen {
-  id       String  @id @db.VarChar(15)
-  name     String? @db.VarChar(255)
-  sequence Int     @db.SmallInt
+  id                String              @id @db.VarChar(15)
+  name              String?             @db.VarChar(255)
+  sequence          Int                 @db.SmallInt
+  fietsenstallingen fietsenstallingen[]
 }
 
 model fietstypen {
   ID            Int     @id @default(autoincrement())
   Name          String? @db.VarChar(255)
   naamenkelvoud String  @db.VarChar(255)
+
+  sectie_fietstype          sectie_fietstype[]
+  abonnementsvorm_fietstype abonnementsvorm_fietstype[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -1176,6 +1200,9 @@ model sectie_fietstype {
   StallingsID       String?  @db.VarChar(35)
   BikeTypeID        Int?
 
+  fietsenstalling_sectie fietsenstalling_sectie? @relation(fields: [sectieID], references: [sectieId], onDelete: NoAction, map: "FK_sectie_fietstype_sectie")
+  fietstype              fietstypen?             @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, map: "FK_sectie_fietstype_fietstype")
+
   @@unique([sectieID, StallingsID, BikeTypeID], map: "sectieID_2")
   @@index([sectieID], map: "sectieID")
   @@index([BikeTypeID], map: "BikeTypeID")
@@ -1259,9 +1286,9 @@ model tariefregels {
   index             Int?
   tijdsspanne       Float?
   kosten            Decimal? @db.Decimal(8, 2)
-  stallingsID1       String?  @map("__stallingsID") @db.VarChar(8)
+  stallingsID1      String?  @map("__stallingsID") @db.VarChar(8)
   stallingsID       String?  @db.VarChar(35)
-  sectieID1          String?  @map("__sectieID") @db.VarChar(13)
+  sectieID1         String?  @map("__sectieID") @db.VarChar(13)
   sectieID          Int?
   sectionBikeTypeID Int?
 }
@@ -1626,7 +1653,7 @@ model ds_canonical_vehicles {
   json                            Json
   createdBy                       String                          @db.VarChar(255)
   dateCreated                     DateTime                        @default(now()) @db.Timestamp(0)
-  json1                            Json                            @map("_json")
+  json1                           Json                            @map("_json")
   ds_canonical_vehicle_json       ds_canonical_vehicle_json[]
   ds_canonical_vehicle_categories ds_canonical_vehicle_categories @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "ds_canonical_vehicles_ibfk_1")
 
@@ -1834,9 +1861,9 @@ model tariefregels_tmp {
   index             Int?
   tijdsspanne       Float?
   kosten            Decimal? @db.Decimal(8, 2)
-  stallingsID1       String?  @db.VarChar(8)
+  stallingsID1      String?  @db.VarChar(8)
   stallingsID       String?  @map("_stallingsID") @db.VarChar(35)
-  sectieID1          String?  @db.VarChar(13)
+  sectieID1         String?  @db.VarChar(13)
   sectieID          Int?     @map("_sectieID")
   sectionBikeTypeID Int?
 }

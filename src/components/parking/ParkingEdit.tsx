@@ -12,8 +12,9 @@ import { Button, IconButton } from "~/components/Button";
 import ParkingOnTheMap from "~/components/ParkingOnTheMap";
 import FormInput from "~/components/Form/FormInput";
 import SectionBlock from "~/components/SectionBlock";
+import { type ParkingDetailsType } from "~/types/";
 
-const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: any, onClose: Function }) => {
+const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType, onClose: Function }) => {
   const router = useRouter();
   const session = useSession();
 
@@ -30,7 +31,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: any, onClose: Func
       return;
     }
 
-    let newParking = {
+    let newParking: ParkingDetailsType = {
     };
 
     if(newTitle !== undefined) { newParking.Title = newTitle; }
@@ -38,7 +39,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: any, onClose: Func
     if(newPostcode !== undefined) { newParking.Postcode = newPostcode; }
     if(newPlaats !== undefined) { newParking.Plaats = newPlaats; }
 
-    console.log("updateParking", newParking);
+    // console.log("updateParking", newParking);
 
     const response = await fetch(
       "/api/fietsenstallingen?id=" + parkingdata.ID,
@@ -61,7 +62,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: any, onClose: Func
   ): React.ReactNode => {
     const wkday = new Date().getDay();
 
-    const tmpopen: Date = new Date(parkingdata["Open_" + day]);
+    const tmpopen: Date = new Date(parkingdata["Open_" + day] as string);
     const hoursopen = tmpopen.getHours();
     const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
 

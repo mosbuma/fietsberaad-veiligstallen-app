@@ -71,8 +71,8 @@ const FooterNav = () => {
         {x.title}        
       </FooterNavItem>)}
 
-      {footerMenuItems ? footerMenuItems.map((x) => <FooterNavItem
-        key={'pmi-'+x.Title}
+      {footerMenuItems ? footerMenuItems.map((x,idx) => <FooterNavItem
+        key={'pmi-f-'+idx}
         url={`/fietsberaad/${x.Title ? x.Title : ''}`}
       >
         {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}

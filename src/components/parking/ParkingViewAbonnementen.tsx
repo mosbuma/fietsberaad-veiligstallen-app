@@ -5,33 +5,20 @@ import { Button } from "~/components/Button";
 import SectionBlock from "~/components/SectionBlock";
 
 const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
-  const [subscriptionTypes, setSubscriptionTypes] = useState([]);
 
-  // Get subscription types for this parking
-  useEffect(() => {
-    if(! parkingdata || ! parkingdata.ID) return;
-    
-    (async () => {
-      const response = await fetch(`/api/subscription_types_for_parking/?parkingId=${parkingdata.ID}`);
-      const subscriptionTypes = await response.json();
-
-      setSubscriptionTypes(subscriptionTypes);
-    })();
-
-  }, [parkingdata])
-
-  if(! subscriptionTypes || ! subscriptionTypes.length > 0) {
-    return <></>
+  
+  if(!parkingdata.abonnementsvorm_fietsenstalling || parkingdata.abonnementsvorm_fietsenstalling.length === 0) {
+    return null;
   }
 
   return (
     <>
       <SectionBlock heading="Abonnementen">
         <div className="ml-2 grid grid-cols-3">
-          {subscriptionTypes.map((x) => {
+          {parkingdata.abonnementsvorm_fietsenstalling.map((x) => {
             return <>
-              <div className="col-span-2">{x.naam}</div>
-              <div className="text-right sm:text-center">&euro;{x.prijs.toLocaleString('nl-NL')}</div>
+              <div className="col-span-2">{x.abonnementsvormen.naam}</div>
+              <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs.toLocaleString('nl-NL')}</div>
             </>
           })}
           <div className="text-right sm:text-center">

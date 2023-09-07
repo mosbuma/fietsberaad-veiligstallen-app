@@ -17,13 +17,13 @@ import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnemente
 import ParkingViewBeheerder from "~/components/parking/ParkingViewBeheerder";
 import ParkingViewServices from "~/components/parking/ParkingViewServices";
 
-import { parkingType2Text } from "~/utils/parkings";
+import { type ParkingDetailsType } from "~/types/";
 
 const ParkingView = ({
   parkingdata,
   onEdit = undefined,
 }: {
-  parkingdata: any;
+  parkingdata: ParkingDetailsType;
   onEdit: Function | undefined;
 }) => {
   const renderAddress = () => {
@@ -116,7 +116,7 @@ const ParkingView = ({
           <ParkingViewAbonnementen parkingdata={parkingdata} />
 
           <SectionBlock heading="Soort stalling">
-            {parkingType2Text(parkingdata.Type)}
+            {parkingdata.fietsenstalling_type.name}
           </SectionBlock>
 
           <HorizontalDivider className="my-4" />

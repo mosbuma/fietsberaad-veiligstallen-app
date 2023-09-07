@@ -1,3 +1,8 @@
+import {
+  type fietsenstallingen,
+} from "@prisma/client";
+import { type ParkingDetailsType } from "~/types";
+
 export const parkingTypes: string[] = [
   "buurtstalling",
   "fietskluizen",
@@ -9,7 +14,7 @@ export const parkingTypes: string[] = [
   "unknown",
 ];
 
-export const findParkingIndex = (parkings, parkingId) => {
+export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
   let index = 0,
     foundIndex;
   parkings.forEach((x) => {
@@ -21,32 +26,13 @@ export const findParkingIndex = (parkings, parkingId) => {
   return foundIndex;
 };
 
-export const parkingType2Text = (type: string): string => {
-  let result = "";
-  switch (type) {
-    case "fietstrommel":
-      result = "Fietstrommel";
-      break;
-    case "fietskluizen":
-      result = "Fietskluizen";
-      break;
-    case "buurtstalling":
-      result = "Buurtstalling";
-      break;
-    case "bewaakt":
-      result = "Bewaakt stalling";
-      break;
-    case "onbewaakt":
-      result = "Onbewaakt";
-      break;
-    case "toezicht":
-      result = "Toezicht";
-      break;
-    case "geautomatiseerd":
-      result = "Geautomatiseerd";
-      break;
-    default:
-      result = `onbekend type ${type}`;
+export const getParkingDetails = async (stallingId: string): Promise<ParkingDetailsType | null> => {
+  try {
+    const response = await fetch(`/api/parking?stallingid=${stallingId}`);
+    const json = await response.json();
+    return json;
+  } catch (error: any) {
+    console.error("getParkingDetails - error: ", error.message);
+    return null;
   }
-  return result;
 };
