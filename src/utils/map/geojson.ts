@@ -42,6 +42,32 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
   };
 };
 
+const createEditGeoJson = (Coordinaten: string) => {
+  let features: GeoJsonFeature[] = [];
+
+  const coords = Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
+  if(undefined!==coords[0] && undefined!==coords[1]) { 
+    features.push({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [coords[1], coords[0]],
+      },
+      properties: {
+        title: "",
+        location: "",
+        plaats: "",
+        type: "",
+      },
+    });
+  }
+
+  return {
+    type: "FeatureCollection",
+    features: features,
+  };
+};
+
 export {
-  createGeoJson
+  createGeoJson, createEditGeoJson
 }

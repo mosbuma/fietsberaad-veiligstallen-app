@@ -107,6 +107,16 @@ export default async function handle(
               Helpdesk: true,
               CompanyName: true,
             }
+          },
+          fietsenstallingen_services: {
+            select: {
+              services: {
+                select: {
+                  ID: true,
+                  Name: true
+                }
+              }
+            }
           }
         }
       })) as unknown as ParkingDetailsType;
