@@ -11,6 +11,7 @@ import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import FormInput from "~/components/Form/FormInput";
+import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
@@ -36,10 +37,21 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const [newPlaats, setNewPlaats ] = React.useState(undefined);
   const [newCoordinaten, setNewCoordinaten ] = React.useState<string|undefined>(undefined);
 
+
   // used for map recentre when coordinates are manually changed
   const [centerCoords, setCenterCoords ] = React.useState<string|undefined>(undefined); 
 
-  const [services, setServices ] = React.useState<string[]|undefined>(undefined); 
+  type ServiceType = { ID: string, Name: string};
+  type ChangedType = { ID: string, selected: boolean};
+
+  
+  const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
+  const [newServices, setNewServices ] = React.useState<ChangedType[]>([]);
+
+  type StallingType = { id: string, name: string, sequence: number};
+  const [allTypes, setAllTypes ] = React.useState<StallingType[]>([]); 
+  const [newStallingType, setNewStallingType ] = React.useState<string|undefined>(undefined);
+
 
   React.useEffect(() => {
     (async () => {
@@ -50,9 +62,25 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
         const json = await response.json();
         if(! json) return;
 
-        setServices(json);
+        setAllServices(json);
       } catch(err) {
-        console.error(err);
+        console.error("get all services error", err);
+      }
+		})();
+  },[]) 
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetch(
+        	`/api/fietsenstallingtypen/`
+      	);
+        const json = await response.json();
+        if(! json) return;
+
+        setAllTypes(json);
+      } catch(err) {
+        console.error("get all types error", err);
       }
 		})();
   },[]) 
@@ -69,6 +97,29 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     if(newPostcode !== undefined) { update.Postcode = newPostcode; }
     if(newPlaats !== undefined) { update.Plaats = newPlaats; }
     if(newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
+    if(newStallingType !== undefined) { update.Type = newStallingType; }
+
+    // // if newServices is not empty, then update the services
+    // TODO: make this work
+    // if(newServices.length > 0) {
+    //   // const create: {}[] = [];
+    //   // newServices.forEach(s=>{ create.push(
+    //     const s=newServices[0];
+    //     const create = 
+    //       {
+    //         ServiceID: s.ID, FietsenstallingID: parkingdata.ID,
+    //       }
+    //   // });
+
+    //   update.fietsenstallingen_services = { 
+    //     deleteMany: {},
+    //     create: create,
+    //    }
+    // }
+
+    // console.log("#### update", update);
+
+    // store 
 
     return update;
   }
@@ -76,7 +127,12 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const updateParking = async () => {
     const update = getUpdate();
 
-    const response = await fetch(
+    const parkingChanged = Object.keys(update).length !== 0;
+    if(!parkingChanged) {
+      return;
+    }
+
+    await fetch(
       "/api/fietsenstallingen?id=" + parkingdata.ID,
       {
         method: "PUT",
@@ -87,7 +143,9 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
       }
     );
 
-    router.push("?stallingid=" + parkingdata.ID); // refreshes the page to show the edits
+    // const randomstr = Math.floor(Math.random() * 1000000)
+    // router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
+    router.refresh();
   };
 
   const update = getUpdate()
@@ -96,7 +154,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   // console.log("@@@ parkingdata", parkingdata);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
-    console.log("#### update from map")
+    // console.log("#### update from map")
     const latlngstring = `${lat},${lng}`;
     if(latlngstring !== parkingdata.Coordinaten) {
       setNewCoordinaten(latlngstring);
@@ -107,7 +165,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   }
 
   const updateCoordinatesFromForm = (isLat: boolean) => (e: { target: { value: string; }; }) => {
-    console.log("#### update from form")
+    // console.log("#### update from form")
     try {
       const latlng = parkingdata.Coordinaten.split(",");
       if(isLat) {
@@ -139,9 +197,34 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   }
 
   const renderTabAlgemeen = () => {
-    let services = [];
-    for(const item of parkingdata.fietsenstallingen_services) {
-      services.push(<div>{item.services.Name}</div>);
+    const serviceIsActive = (ID: string): boolean => {
+      const change = newServices.find(s=>(s.ID===ID));
+      if(change!==undefined) {
+        // console.log(ID, "changed to ", change.selected);
+        return change.selected;
+      }
+
+      for(const item of parkingdata.fietsenstallingen_services) {
+        if(item.services.ID===ID) { 
+          // console.log("selected in parkingdata", ID, change);
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    const handleSelectService = (ID: string, checked: boolean) => {
+      const index = newServices.findIndex(s=>s.ID===ID);
+      if(index !== -1) {
+        newServices.splice(index, 1);        
+      } else {
+        newServices.push({ID: ID, selected: checked});
+      }
+
+      // console.log('newservices - after', JSON.stringify(newServices,0,2));
+
+      setNewServices([...newServices]);
     }
 
     return (
@@ -176,17 +259,30 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
           <SectionBlock heading="Services">
             <div className="flex-1">
               <div>
-              { services }
-              </div>
+              {allServices && allServices.map(service => (
+            <div key={service.ID}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={serviceIsActive(service.ID)}
+                  onChange={e => handleSelectService(service.ID, e.target.checked)}
+                />
+                {service.Name}
+              </label>
             </div>
-          </SectionBlock>
+          ))}        </div>  </div>        </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
           <SectionBlock heading="Soort stalling">
-            Bewaakte stalling
+            <select value={newStallingType!==undefined?newStallingType:parkingdata.Type} onChange={(event)=>{setNewStallingType(event.target.value)}}>
+              {allTypes.map(type => (
+                <option key={type.id} value={type.id}>
+                    {type.name}
+                </option>
+              ))}
+            </select>
           </SectionBlock>
-
 
           <p className="mb-10">{/*Some spacing*/}</p>
 
@@ -377,8 +473,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
       >
         <PageTitle className="flex w-full justify-center sm:justify-start">
           <div className="mr-4 hidden sm:block">{parkingdata.Title}</div>
-          {session.status === "authenticated" && parkingChanged === true ? (
-            <Button
+          <Button
               key="b-1"
               className="mt-3 sm:mt-0"
               onClick={(e) => {
@@ -387,9 +482,8 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
                 onClose();
               }}
             >
-              Opslaan
+              { parkingChanged === true ? 'Opslaan': 'Terug' }
             </Button>
-          ) : null}
         </PageTitle>
       </div>
 

@@ -14,7 +14,7 @@ const FooterNavItem = ({
 }: {
   url?: string,
   children: any,
-  className?: string
+  className?: string,
 }) => {
   const { push } = useRouter();
 
@@ -25,7 +25,7 @@ const FooterNavItem = ({
   onClick={(e) => {
     e.preventDefault();
 
-    push(url);
+      push(url);
   }}
   >
     {children}
@@ -63,6 +63,11 @@ const FooterNav = () => {
       text-xs
       z-10
     ">
+      <FooterNavItem
+          url={'?stallingid=nieuw'}
+          className="font-bold">
+          Stalling Aanmelden
+        </FooterNavItem> 
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
         url={x.url}

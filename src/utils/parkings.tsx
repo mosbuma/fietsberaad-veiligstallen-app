@@ -1,19 +1,10 @@
 import React from "react";
+
 import {
+  PrismaClient,
   type fietsenstallingen,
 } from "@prisma/client";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
-
-export const parkingTypes: string[] = [
-  "buurtstalling",
-  "fietskluizen",
-  "bewaakt",
-  "fietstrommel",
-  "toezicht",
-  "onbewaakt",
-  "geautomatiseerd",
-  "unknown",
-];
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
   let index = 0,
@@ -76,3 +67,30 @@ export const formatOpeningTimes = (
     </>
   );
 };
+
+const generateRandomChar = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  return chars[Math.floor(Math.random() * chars.length)];
+}
+
+export const generateRandomId = (prefix = '') => {
+  while (prefix.length < 8) {
+    prefix += generateRandomChar();
+  }
+
+  if (prefix.length > 8) {
+    prefix = prefix.substr(0, 8);
+  }
+
+  let id = `${prefix}-`;
+
+  // Generate the 'AAAA-AAAA-AAAAAAAAAAAAAAAA' portion
+  for (let i = 0; i < 23; i++) {
+    if (i === 4 || i === 9) id += '-';
+    id += generateRandomChar();
+  }
+
+  return id;
+}
+
+export default generateRandomId;

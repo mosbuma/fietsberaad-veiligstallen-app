@@ -45,7 +45,7 @@ import WelcomeToMunicipality from "~/components/WelcomeToMunicipality";
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { getParkingDetails } from "~/utils/parkings";
+import { getParkingDetails, generateRandomId } from "~/utils/parkings";
 
 export async function getServerSideProps(context) {
   try {
@@ -122,7 +122,39 @@ const Home: NextPage = ({
 
   useEffect(() => {
     const stallingId = router.query.stallingid;
-    if(stallingId!==undefined && !Array.isArray(stallingId)) {
+    if(stallingId===undefined || Array.isArray(stallingId)) {
+      console.warn('stallingId is undefined or array', stallingId);
+      return;
+    }
+
+    if(stallingId==='nieuw') {
+      const voorstelid=generateRandomId('VOORSTEL')
+      const data =  {
+        ID: voorstelid, 
+        Title: 'Nieuwe stalling',
+        Type: 'bewaakt',
+        Coordinaten: '52.09066,5.121317',
+      }
+
+      fetch(
+        "/api/fietsenstallingen",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      ).then(response => {
+        if(response) {
+          response.json().then(json => {
+            router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
+          })
+        } else {
+          console.error('create new parking failed', response);
+        }
+      });
+    } else {
       getParkingDetails(stallingId).then((stalling) => {
         setCurrentStalling(stalling);
       });
@@ -223,6 +255,11 @@ const Home: NextPage = ({
     }
   }
 
+  let startInEditMode=false;
+  if(currentStalling!== null && 'editmode' in router.query) {
+    startInEditMode = true;
+  }
+
   return (
     <>
       <Head>
@@ -245,6 +282,7 @@ const Home: NextPage = ({
             <Parking
               key={'parking-sm-' + currentStalling.ID}
               parkingdata={currentStalling}
+              startInEditMode={startInEditMode}
             />
           </Overlay>
         </>)}
@@ -257,6 +295,7 @@ const Home: NextPage = ({
             <Parking
               key={'parking-nsm-' + currentStalling.ID}
               parkingdata={currentStalling}
+              startInEditMode={startInEditMode}
             />
           </Modal>
         </>)}

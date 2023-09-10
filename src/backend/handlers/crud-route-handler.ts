@@ -14,7 +14,6 @@ export const CrudRouteHandler = async <T>(
   if ((request.method as HttpMethod) === "GET") {
     if (!id) {
       data = await service.getAll();
-      console.log("got all", data);
       const datafixed = JSON.stringify(data, (key, value) =>
         typeof value === "bigint" ? value.toString() : value
       );
