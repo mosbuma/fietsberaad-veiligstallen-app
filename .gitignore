@@ -49,3 +49,7 @@ yarn-error.log*
 /public/workbox*
 
 /PRIVATE.md
+
+#backups
+mysql-db/export-db.sql
+mysql-db/export-db.zip

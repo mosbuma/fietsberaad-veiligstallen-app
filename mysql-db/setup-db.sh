@@ -34,14 +34,17 @@ docker run --name veiligstallen-mysql -d \
     -e MYSQL_ROOT_PASSWORD_FILE=run/secrets/mysql-root-password \
     -v $CWD/persist-db:/var/lib/mysql \
     -v $CWD/secrets:/run/secrets \
-    mysql:5.7
+    mysql:8.1.0
 # --restart unless-stopped \
 
 echo "pausing to give mysql server time to start"
-sleep 10
+sleep 15
 
-echo "importing veiligstallen test database"
-docker exec -i veiligstallen-mysql mysql -h127.0.0.1 -P3306 -uroot --password=$PASSWD < $PWD/initial_db.min.sql 
+echo "importing veiligstallen test database - be patient: this may take a while!"
+docker exec -i veiligstallen-mysql mysql -hlocalhost -P3308 -f -uroot --password=$PASSWD < $PWD/export-db.sql 
 
 echo "applying patch for prisma introspection"
-docker exec -i veiligstallen-mysql mysql -h127.0.0.1 -P3306 -uroot --password=$PASSWD < $PWD/fix-for-prisma.sql 
+docker exec -i veiligstallen-mysql mysql -hlocalhost -P3308 -uroot --password=$PASSWD < $PWD/fix-for-prisma.sql 
+
+
+
