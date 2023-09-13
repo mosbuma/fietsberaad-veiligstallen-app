@@ -261,9 +261,10 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
               <div>
               {allServices && allServices.map(service => (
             <div key={service.ID}>
-              <label>
+              <label className="cursor-pointer hover:bg-gray-100 py-1 block">
                 <input
                   type="checkbox"
+                  className="inline-block mr-2"
                   checked={serviceIsActive(service.ID)}
                   onChange={e => handleSelectService(service.ID, e.target.checked)}
                 />
