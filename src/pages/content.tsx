@@ -12,8 +12,7 @@ import { usePathname } from 'next/navigation';
 import PageTitle from "~/components/PageTitle";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
-import AppHeaderDesktop from "~/components/AppHeaderDesktop";
-import AppHeaderMobile from "~/components/AppHeaderMobile";
+import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import { Button } from "~/components/Button";
 import Modal from "src/components/Modal";
@@ -57,7 +56,6 @@ export async function getServerSideProps(context) {
 const Content: NextPage = ({ fietsenstallingen }) => {
   const dispatch = useDispatch();
   const { push } = useRouter();
-  // const router = useRouter();
 	const pathName = usePathname();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
@@ -111,7 +109,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
   }, [
   	pathName,
   	activeMunicipalityInfo
-	]) 
+	]);
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
@@ -151,12 +149,9 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
-			<div data-comment="Show only on desktop" className="hidden sm:flex">
-			  <AppHeaderDesktop />
-			</div>
-			<div data-comment="Show only on mobile" className="block sm:hidden">
-			  <AppHeaderMobile />
-			</div>
+
+      <AppHeader />
+
 			<div className={`
 				lg:mt-16
 				p-4

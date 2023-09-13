@@ -27,7 +27,7 @@ import {
 import { convertCoordinatenToCoords } from "~/utils/map/index";
 
 import ParkingFacilities from "~/components/ParkingFacilities";
-import AppHeaderDesktop from "~/components/AppHeaderDesktop";
+import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
 import Parking from "~/components/Parking";
 import Modal from "src/components/Modal";
@@ -270,9 +270,8 @@ const Home: NextPage = ({
       </Head>
 
       <main className="flex-grow">
-        <div data-comment="Show only on desktop" className="z-10 relative sm:h-16 hidden sm:flex">
-          <AppHeaderDesktop />
-        </div>
+
+        <AppHeader />
 
         {currentStalling!==null && isSm && (<>
           <Overlay

@@ -144,6 +144,7 @@ function AppHeaderDesktop({
           />
         </Link>
         <div className={`
+          primaryMenuItems-wrapper
           flex-1 flex flex-start
           flex-wrap overflow-hidden
           transition-opacity

@@ -64,10 +64,11 @@ const FooterNav = () => {
       z-10
     ">
       <FooterNavItem
-          url={'?stallingid=nieuw'}
-          className="font-bold">
-          Stalling Aanmelden
-        </FooterNavItem> 
+        url={'?stallingid=nieuw'}
+        className="font-bold">
+        Stalling Aanmelden
+      </FooterNavItem>
+
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
         url={x.url}

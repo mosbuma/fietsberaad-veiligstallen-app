@@ -7,8 +7,7 @@ import useQueryParam from '../hooks/useQueryParam';
 import PageTitle from "~/components/PageTitle";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
-import AppHeaderDesktop from "~/components/AppHeaderDesktop";
-import AppHeaderMobile from "~/components/AppHeaderMobile";
+import AppHeader from "~/components/AppHeader";
 import { Button } from "~/components/Button";
 import { signIn } from "next-auth/react";
 
@@ -50,12 +49,9 @@ const Login: NextPage = () => {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 			<div className="flex flex-col justify-between" style={{height:'100dvh'}}>
-				<div data-comment="Show only on desktop" className="hidden sm:flex">
-				  <AppHeaderDesktop />
-				</div>
-				<div data-comment="Show only on mobile" className="block sm:hidden">
-				  <AppHeaderMobile />
-				</div>
+
+			  <AppHeader />
+
 				<div className={`${Styles.LoginPage} flex-1`}>
 					<div className={`
 						${Styles.LoginBox}
