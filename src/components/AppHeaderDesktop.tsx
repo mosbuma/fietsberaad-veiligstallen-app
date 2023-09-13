@@ -28,6 +28,7 @@ const PrimaryMenuItem = (props: any) => {
 
       push(props.url);
     }}>
+      {props.icon ? <img src={props.icon} style={{height: '30px'}} /> : ''}
       {props.title}
     </a>
   </div>
@@ -109,6 +110,8 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
+  const showMapIcon = pathName !== '/';
+
   const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
   const primaryMenuItems = getPrimary(allMenuItems)
   const secundaryMenuItems = getSecundary(allMenuItems);
@@ -147,6 +150,11 @@ function AppHeaderDesktop({
           duration-500
           ${(primaryMenuItems && primaryMenuItems.length > 0) ? 'opacity-100' : 'opacity-0'}
         `}>
+          {showMapIcon && <PrimaryMenuItem
+            key={'pmi-h1-map'}
+            icon={'/images/icon-map.png'}
+            url={'/'}
+          />}
           {primaryMenuItems ? primaryMenuItems.map((x,idx) => <PrimaryMenuItem
             key={'pmi-h1-'+idx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
