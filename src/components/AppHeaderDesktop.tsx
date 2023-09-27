@@ -163,7 +163,6 @@ function AppHeaderDesktop({
   const primaryMenuItems = getPrimary(allMenuItems)
   const secundaryMenuItems = getSecundary(allMenuItems);
 
-  console.log('didNavOverflow', didNavOverflow);
   return (
     <>
       <div

@@ -62,6 +62,12 @@ function ParkingFacilityBrowser({
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
   const [visibleMunicipalities, setVisibleMunicipalities] = useState([]);
 
+  const mapZoom = useSelector((state: AppState) => state.map.zoom);
+
+  const activeMunicipalityInfo = useSelector(
+    (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
   const mapVisibleFeatures = useSelector(
     (state: AppState) => state.map.visibleFeatures
   );
@@ -80,11 +86,17 @@ function ParkingFacilityBrowser({
 
   // If mapVisibleFeatures change: Filter parkings
   useEffect(() => {
+    // Don't show results if no parkings were found
     if (!fietsenstallingen) return;
-    if (!mapVisibleFeatures) return;
-    const allParkings = fietsenstallingen;
-    let filtered = fietsenstallingen;
+    // Don't show results if no search query was given
+    if (! filterQuery && !mapVisibleFeatures) return;
 
+    // Create variable that represents all parkings
+    const allParkings = fietsenstallingen;
+    // Create variable that will have the filtered parkings
+    let filtered = [];
+
+    // If custom filter is given: Only apply custom filter
     if(customFilter) {
       filtered = filtered.filter((x) => {
         // console.log('Going to filter x', x)
@@ -92,17 +104,39 @@ function ParkingFacilityBrowser({
       });
     }
     // Default filter:
+    // - If no active municipality: Search through everything
+    // - If active municipality: Search only through parkings of this municipality
     else {
-      const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
-      // Only keep parkings that are visible on the map
-      filtered = allParkings.filter((p) => {
+      // If active municipality:
+      if(mapZoom && mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
+        // Only keep parkings for this municipality
+        const parkingsInThisMunicipality = allParkings.filter((p) => p.SiteID === activeMunicipalityInfo.ID);
+        // Put the visible parkings on top
+        const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
+        filtered = parkingsInThisMunicipality.filter((p) => {
+          return visibleParkingIds.indexOf(p.ID) > -1;
+        });
+        parkingsInThisMunicipality.forEach((p) => {
+          if(visibleParkingIds.indexOf(p.ID) <= -1) {
+            filtered.push(p);
+          }
+        });
+      }
+
+      // Only keep parkings with the searchQuery
+      filtered = filtered.filter((p) => {
         const inFilter =
-          filterQuery === "" ||
-          p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-          p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-          p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
-        activeParkingId ? p.ID === activeParkingId : true;
-        const showParking = visibleParkingIds.indexOf(p.ID) > -1 && inFilter;
+          p.SiteID && (
+            filterQuery === "" ||
+            p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+            p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+            p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1
+          );
+        // activeParkingId ? p.ID === activeParkingId : true;
+
+        // Decide if we want to show the parking
+        let showParking =  inFilter;
+
         return showParking;
       });
     }
@@ -110,6 +144,7 @@ function ParkingFacilityBrowser({
     setVisibleParkings(filtered);
   }, [
     fietsenstallingen,
+    activeMunicipalityInfo,
     mapVisibleFeatures,
     mapVisibleFeatures.length,
     filterQuery,

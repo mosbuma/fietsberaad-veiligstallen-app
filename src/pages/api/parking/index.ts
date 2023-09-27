@@ -37,6 +37,7 @@ export default async function handle(
         select: {
           Title: true,
           ID: true,
+          SiteID: true,
           Location: true,
           Postcode: true,
           Plaats: true,
