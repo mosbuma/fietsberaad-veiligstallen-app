@@ -19,6 +19,7 @@ import Modal from "src/components/Modal";
 import Overlay from "src/components/Overlay";
 import Parking from "~/components/Parking";
 import Faq from "~/components/Faq";
+import FooterNav from "~/components/FooterNav";
 
 import Styles from "./content.module.css";
 
@@ -233,7 +234,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         </Modal>
       </>)}
 
-
+      <FooterNav />
 		</>
   );
 };
