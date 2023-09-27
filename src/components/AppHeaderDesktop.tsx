@@ -7,6 +7,11 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link'
 
 import Logo from './Logo';
+import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
+
+import {
+  setIsMobileNavigationVisible
+} from "~/store/appSlice";
 
 import {
   getNavigationItemsForMunicipality,
@@ -63,6 +68,7 @@ function AppHeaderDesktop({
   
   const [articles, setArticles] = useState([]);
   const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+  const [didNavOverflow, setDidNavOverflow] = useState(false);
 
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.authState
@@ -93,6 +99,47 @@ function AppHeaderDesktop({
     pathName
   ]);
 
+  const [forceShowingMobileHeader, setForceShowingMobileHeader] = useState(false);
+
+  // Handler if screen size changes
+  useEffect(() => {
+    // Run at least once
+    overflowNavItems();
+    // Set event handler
+    window.addEventListener('resize', overflowNavItems);
+    return () => {
+      window.removeEventListener('resize', overflowNavItems);
+    };
+  }, [
+    articles
+  ]);
+
+  const overflowNavItems = () => {
+    // In AppHeaderDesktop, check if nav items overflow
+    const headerEl = document.getElementsByClassName('AppHeaderDesktop')[0];
+    const wrapperEl = document.getElementsByClassName('primaryMenuItems-wrapper')[0];
+    // Show nav items again after resize
+    for (const el of wrapperEl.children) {
+      el.style.display = 'block';
+    }
+    // Check if nav items overflow the nav bar
+    let navOverflow = false;
+    for (const el of wrapperEl.children) {
+      if(! el.classList.contains('PrimaryMenuItem')) {
+        continue;
+      }
+      const elementTop = el.offsetTop;
+      const headerHeight = headerEl.offsetHeight;
+      if((elementTop + 12) >= headerHeight) {// 12 = padding-top of header
+        el.style.display = 'none';
+        navOverflow = true;
+      } else {
+        el.style.display = 'block';
+      }
+    }
+    setDidNavOverflow(navOverflow);
+  };
+
   const handleLoginClick = () => {
     if(!session) {
       push('/login');
@@ -116,10 +163,12 @@ function AppHeaderDesktop({
   const primaryMenuItems = getPrimary(allMenuItems)
   const secundaryMenuItems = getSecundary(allMenuItems);
 
+  console.log('didNavOverflow', didNavOverflow);
   return (
     <>
       <div
         className="
+          AppHeaderDesktop
           t-0
           fixed z-10
           flex
@@ -161,6 +210,22 @@ function AppHeaderDesktop({
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
+          <div className="
+          " style={{
+            display: didNavOverflow ? 'block' : 'none',
+            visibility: didNavOverflow ? 'visible' : 'hidden',
+          }}>
+            <ToggleMenuIcon className="
+              shadow-none
+              bg-transparent
+              z-10
+            "
+            style={{height: '40px'}}
+            onClick={() => {
+              dispatch(setIsMobileNavigationVisible(true))
+            }}
+            />
+          </div>
         </div>
         <div className="flex flex-end">
           {secundaryMenuItems.map((x,idx) => {

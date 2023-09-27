@@ -1,9 +1,11 @@
 export const ToggleMenuIcon = ({
 	className,
-	onClick
+	onClick,
+	style
 }: {
 	className?: string
-	onClick?: Function
+	onClick?: Function,
+	style?: any
 }) => {
 	return (
 		<div className={`
@@ -23,6 +25,7 @@ export const ToggleMenuIcon = ({
 
 			${className}
 		`}
+		style={style}
 		onClick={onClick}
 		>
 			<img
