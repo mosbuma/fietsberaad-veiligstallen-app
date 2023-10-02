@@ -196,6 +196,14 @@ const Home: NextPage = ({
       cbsCode = Number(cbsCode);
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
+      // Set municipality slug in URL
+      if(mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
+        window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
+      }
+      // If zoomed out, have just `/` as URL
+      else {
+        window.history.pushState({}, "", `/`);
+      }
       // Set the municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipalityInfo))
     })();
