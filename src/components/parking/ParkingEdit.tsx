@@ -143,9 +143,8 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
       }
     );
 
-    // const randomstr = Math.floor(Math.random() * 1000000)
-    // router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
-    router.refresh();
+    const randomstr = Math.floor(Math.random() * 1000000)
+    router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
   };
 
   const update = getUpdate()

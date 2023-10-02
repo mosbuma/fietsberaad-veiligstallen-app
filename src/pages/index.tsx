@@ -159,7 +159,10 @@ const Home: NextPage = ({
         setCurrentStalling(stalling);
       });
     }
-  }, [router.query.stallingid]);
+  }, [
+    router.query.stallingid,
+    router.query.revision
+  ]);
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
