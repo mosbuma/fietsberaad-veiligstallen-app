@@ -68,9 +68,6 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
     <>
       <Head>
         <title>VeiligStallen</title>
-        <meta name="description" content="VeiligStallen" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
       <main>

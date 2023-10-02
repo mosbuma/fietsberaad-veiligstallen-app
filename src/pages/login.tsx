@@ -44,9 +44,6 @@ const Login: NextPage = () => {
         <title>
         	Login - VeiligStallen
       	</title>
-        <meta name="description" content="VeiligStallen" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 			<div className="flex flex-col justify-between" style={{height:'100dvh'}}>
 

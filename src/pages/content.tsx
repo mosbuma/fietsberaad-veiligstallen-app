@@ -146,9 +146,6 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 	        	? `${activeMunicipalityInfo.CompanyName} - VeiligStallen`
 	        	: 'VeiligStallen'}
       	</title>
-        <meta name="description" content="VeiligStallen" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
       <AppHeader />
