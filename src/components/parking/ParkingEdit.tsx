@@ -93,33 +93,81 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     // // if newServices is not empty, then update the services
     // TODO: make this work
     if(newServices.length > 0) {
-      console.log('newServices', newServices)
-    //   // const create: {}[] = [];
-    //   // newServices.forEach(s=>{ create.push(
-    //     const s=newServices[0];
-    //     const create = 
-    //       {
-    //         ServiceID: s.ID, FietsenstallingID: parkingdata.ID,
-    //       }
-    //   // });
+      // Set empty array
+      // update.fietsenstallingen_services = null;
+      // console.log('newServices', newServices)
+      // const servicesToSave: {}[] = [];
+      // newServices.forEach(s => {
+      //   // Don't add if service is not selected
+      //   if(! s.selected) return;
 
-    //   update.fietsenstallingen_services = { 
-    //     deleteMany: {},
-    //     create: create,
-    //    }
+      //   servicesToSave.push({
+      //     ServiceID: s.ID,
+      //     FietsenstallingID: parkingdata.ID,
+      //   });
+      // });
+
+      // update.fietsenstallingen_services = { 
+      //   deleteMany: {
+      //     where: {
+      //       FietsenstallingID: parkingdata.ID
+      //     }
+      //   },
+      //   create: servicesToSave,
+      //  }
+
+      // update.fietsenstallingen_services = { 
+      //   createMany: {
+      //     data: servicesToSave
+      //   }
+      // }
     }
 
-    // console.log("#### update", update);
-
-    // store 
-
+    console.log("#### update", update);
     return update;
   }
 
   const updateParking = async () => {
-    const update = getUpdate();
+    // Stop if no parking ID is available
+    if(! parkingdata || ! parkingdata.ID) return;
 
-    const parkingChanged = Object.keys(update).length !== 0;
+    // Check if parking was changed
+    const update = getUpdate();
+    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0;
+
+    // If services are updated: Update services
+    if(newServices.length > 0) {
+      try {
+        // Create servicesToSave object
+        const servicesToSave: {}[] = [];
+        newServices.forEach(s => {
+          // Don't add if service is not selected
+          if(! s.selected) return;
+
+          servicesToSave.push({
+            ServiceID: s.ID,
+            FietsenstallingID: parkingdata.ID,
+          });
+        });
+        // Delete existing services for this parking
+        await fetch(
+          "/api/fietsenstallingen_services?id=" + parkingdata.ID,
+          {
+            method: "delete",
+          }
+        );
+        await prisma.fietsenstallingen_services.deleteMany({
+          where: {
+            FietsenstallingID: parkingdata.ID
+          }
+        });
+        await prisma.fietsenstallingen_services.create(servicesToSave);
+      } catch(err) {
+        console.error(err);
+      }
+    }
+
+    // If parking data didn't change: stop
     if(!parkingChanged) {
       return;
     }
@@ -150,9 +198,9 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   };
 
   const update = getUpdate()
-  const parkingChanged = Object.keys(update).length !== 0;
+  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0;
 
-  // console.log("@@@ parkingdata", parkingdata);
+  console.log("@@@ parkingdata", parkingdata);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     // console.log("#### update from map")
