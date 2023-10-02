@@ -10,6 +10,12 @@ class MainDocument extends Document {
     return (
       <Html>
         <Head>
+          <title>VeiligStallen - Nederlandse fietsenstallingen</title>
+          <meta name="title" content="VeiligStallen - Nederlandse fietsenstallingen" />
+          <meta name="description" content="Waar is een goede/veilige/overdekte plek voor je fiets? Bekijk het op VeiligStallen.nl" />
+
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
+
           <meta name="application-name" content="VeiligStallen" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta
@@ -17,10 +23,7 @@ class MainDocument extends Document {
             content="default"
           />
           <meta name="apple-mobile-web-app-title" content="VeiligStallen" />
-          <meta
-            name="description"
-            content="De kortste weg naar een veilige plek voor uw fiets"
-          />
+          <meta property="twitter:description" content="Waar is een goede/veilige/overdekte plek voor je fiets? Bekijk het op VeiligStallen.nl" />
           <meta name="format-detection" content="telephone=no" />
           <meta name="mobile-web-app-capable" content="yes" />
           {/*<meta name="msapplication-config" content="/icons/browserconfig.xml" />*/}
@@ -65,30 +68,24 @@ class MainDocument extends Document {
             href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
           />
 
-          <meta name="twitter:card" content="summary" />
+          <meta property="twitter:card" content="summary_large_image" />
           <meta name="twitter:url" content="https://beta.veiligstallen.nl" />
-          <meta name="twitter:title" content="VeiligStallen" />
+          <meta property="twitter:title" content="VeiligStallen - Nederlandse fietsenstallingen" />
           <meta
             name="twitter:description"
             content="De kortste weg naar een veilige plek voor uw fiets"
           />
           <meta
             name="twitter:image"
-            content="https://beta.veiligstallen.nl/icons/android-chrome-192x192.png"
+            content="https://beta.veiligstallen.nl/icons/preview-image.png"
           />
           <meta name="twitter:creator" content="@verkeer_vervoer" />
           <meta property="og:type" content="website" />
-          <meta property="og:title" content="VeiligStallen" />
-          <meta
-            property="og:description"
-            content="De kortste weg naar een veilige plek voor uw fiets"
-          />
+          <meta property="og:title" content="VeiligStallen - Nederlandse fietsenstallingen" />
+          <meta property="og:description" content="Waar is een goede/veilige/overdekte plek voor je fiets? Bekijk het op VeiligStallen.nl" />
           <meta property="og:site_name" content="VeiligStallen" />
           <meta property="og:url" content="https://beta.veiligstallen.nl" />
-          <meta
-            property="og:image"
-            content="https://beta.veiligstallen.nl/icons/apple-touch-icon.png"
-          />
+          <meta property="og:image" content="https://beta.veiligstallen.nl/icons/preview-image.png" />
 
           <link
             href="/icons/splashscreens-ios/iphone5_splash.png"

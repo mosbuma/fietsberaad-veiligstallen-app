@@ -230,12 +230,6 @@ const Home: NextPage = ({
   if (online === false) {
     return (
       <>
-        <Head>
-          <title>VeiligStallen</title>
-          <meta name="description" content="VeiligStallen" />
-          <link rel="icon" href="/favicon.ico" />
-          <meta name="viewport" content="initial-scale=1, width=device-width" />
-        </Head>
         <main className="flex-grow">
           <h1>Database offline</h1>
         </main>
