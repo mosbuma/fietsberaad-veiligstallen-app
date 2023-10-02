@@ -132,19 +132,29 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
       return;
     }
 
-    await fetch(
-      "/api/fietsenstallingen?id=" + parkingdata.ID,
-      {
-        method: "PUT",
-        body: JSON.stringify(update),
-        headers: {
-          "Content-Type": "application/json",
-        },
+    try {
+      const result = await fetch(
+        "/api/fietsenstallingen?id=" + parkingdata.ID,
+        {
+          method: "PUT",
+          body: JSON.stringify(update),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if(! result.ok) {
+        throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
       }
-    );
-
-    const randomstr = Math.floor(Math.random() * 1000000)
-    router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
+      // Reload data
+      const randomstr = Math.floor(Math.random() * 1000000)
+      router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
+      // Go back to 'view' mode
+      onClose();
+    } catch(err) {
+      if(err.message) alert(err.message);
+      else alert(err);
+    }
   };
 
   const update = getUpdate()
@@ -478,8 +488,12 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
               className="mt-3 sm:mt-0"
               onClick={(e) => {
                 if (e) e.preventDefault();
-                updateParking();
-                onClose();
+                if(parkingChanged === true) {
+                  updateParking();
+                }
+                else {
+                  onClose();
+                }
               }}
             >
               { parkingChanged === true ? 'Opslaan': 'Terug' }

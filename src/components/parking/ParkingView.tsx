@@ -67,7 +67,6 @@ const ParkingView = ({
   return (
     <div
       className="
-
     "
     >
       <div
