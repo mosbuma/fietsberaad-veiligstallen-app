@@ -316,9 +316,10 @@ const Home: NextPage = ({
             "
             style={{
               width: "414px",
-              height: mapZoom >= 12 ? "60vh" : 'auto',
-              maxHeight: 'calc(100vh - 64px)'
+              height: 'auto'
             }}
+            // height: mapZoom >= 12 ? "60vh" : 'auto',
+            // maxHeight: 'calc(100vh - 64px)'
           >
             <ParkingFacilityBrowser
               showSearchBar={true}

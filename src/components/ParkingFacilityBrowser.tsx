@@ -94,12 +94,11 @@ function ParkingFacilityBrowser({
     // Create variable that represents all parkings
     const allParkings = fietsenstallingen;
     // Create variable that will have the filtered parkings
-    let filtered = [];
+    let filtered = allParkings;
 
     // If custom filter is given: Only apply custom filter
     if(customFilter) {
       filtered = filtered.filter((x) => {
-        // console.log('Going to filter x', x)
         return customFilter(x)
       });
     }
@@ -110,7 +109,10 @@ function ParkingFacilityBrowser({
       // If active municipality:
       if(mapZoom && mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
         // Only keep parkings for this municipality
-        const parkingsInThisMunicipality = allParkings.filter((p) => p.SiteID === activeMunicipalityInfo.ID);
+        const parkingsInThisMunicipality = allParkings.filter((p) => {
+          return p.SiteID === activeMunicipalityInfo.ID
+            || p.Plaats === activeMunicipalityInfo.CompanyName;// Also show NS stallingen that have an other SiteID
+        });
         // Put the visible parkings on top
         const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
         filtered = parkingsInThisMunicipality.filter((p) => {
@@ -124,21 +126,28 @@ function ParkingFacilityBrowser({
       }
 
       // Only keep parkings with the searchQuery
-      filtered = filtered.filter((p) => {
-        const inFilter =
-          p.SiteID && (
-            filterQuery === "" ||
-            p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-            p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-            p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1
-          );
-        // activeParkingId ? p.ID === activeParkingId : true;
+      if(
+        mapZoom >= 12 ||
+        (filterQuery && filterQuery.length > 0)
+      ) {
+        filtered = filtered.filter((p) => {
+          const inFilter =
+            p.SiteID && (
+              filterQuery === "" ||
+              p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+              p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+              p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1
+            );
 
-        // Decide if we want to show the parking
-        let showParking =  inFilter;
+          // Decide if we want to show the parking
+          let showParking = inFilter;
 
-        return showParking;
-      });
+          return showParking;
+        });
+      }
+      else {
+        filtered = [];
+      }
     }
     // Set filtered parkings into a state variable
     setVisibleParkings(filtered);
@@ -219,7 +228,7 @@ function ParkingFacilityBrowser({
       `}
       style={{
         maxWidth: "100%",
-        height: "100%",
+        // height: "100%",
         overflow: "auto",
       }}
     >

@@ -337,9 +337,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         ["in", ["get", "type"], ["literal", filterActiveTypes]],
         [
           "any",
-          [">", ["index-of", ["literal", filterQuery], ["get", "title"]], -1],
-          [">", ["index-of", ["literal", filterQuery], ["get", "locatie"]], -1],
-          [">", ["index-of", ["literal", filterQuery], ["get", "plaats"]], -1],
+          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "title"]], -1],
+          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "locatie"]], -1],
+          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "plaats"]], -1],
         ],
       ];
     }
