@@ -15,7 +15,10 @@ import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
-import { formatOpeningTimes } from "~/utils/parkings";
+import {
+  formatOpeningTimes,
+  getAllServices
+} from "~/utils/parkings";
 import { Tabs, Tab, FormHelperText, FormLabel, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
@@ -23,7 +26,6 @@ import ParkingViewOpening from "~/components/parking/ParkingViewOpening";
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
 import ParkingViewCapaciteit from "~/components/parking/ParkingViewCapaciteit";
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
-
 
 const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType, onClose: Function }) => {
   const router = useRouter();
@@ -37,14 +39,12 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const [newPlaats, setNewPlaats ] = React.useState(undefined);
   const [newCoordinaten, setNewCoordinaten ] = React.useState<string|undefined>(undefined);
 
-
   // used for map recentre when coordinates are manually changed
   const [centerCoords, setCenterCoords ] = React.useState<string|undefined>(undefined); 
 
   type ServiceType = { ID: string, Name: string};
   type ChangedType = { ID: string, selected: boolean};
 
-  
   const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
   const [newServices, setNewServices ] = React.useState<ChangedType[]>([]);
 
@@ -52,22 +52,13 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const [allTypes, setAllTypes ] = React.useState<StallingType[]>([]); 
   const [newStallingType, setNewStallingType ] = React.useState<string|undefined>(undefined);
 
-
+  // Set 'allServices' variable in local state
   React.useEffect(() => {
     (async () => {
-      try {
-        const response = await fetch(
-        	`/api/services/`
-      	);
-        const json = await response.json();
-        if(! json) return;
-
-        setAllServices(json);
-      } catch(err) {
-        console.error("get all services error", err);
-      }
+      const result = await getAllServices();
+      setAllServices(result);
 		})();
-  },[]) 
+  },[])
 
   React.useEffect(() => {
     (async () => {
@@ -101,7 +92,8 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
 
     // // if newServices is not empty, then update the services
     // TODO: make this work
-    // if(newServices.length > 0) {
+    if(newServices.length > 0) {
+      console.log('newServices', newServices)
     //   // const create: {}[] = [];
     //   // newServices.forEach(s=>{ create.push(
     //     const s=newServices[0];
@@ -115,7 +107,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     //     deleteMany: {},
     //     create: create,
     //    }
-    // }
+    }
 
     // console.log("#### update", update);
 
@@ -268,19 +260,22 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
           <SectionBlock heading="Services">
             <div className="flex-1">
               <div>
-              {allServices && allServices.map(service => (
-            <div key={service.ID}>
-              <label className="cursor-pointer hover:bg-gray-100 py-1 block">
-                <input
-                  type="checkbox"
-                  className="inline-block mr-2"
-                  checked={serviceIsActive(service.ID)}
-                  onChange={e => handleSelectService(service.ID, e.target.checked)}
-                />
-                {service.Name}
-              </label>
+                {allServices && allServices.map(service => (
+                  <div key={service.ID}>
+                    <label className="cursor-pointer hover:bg-gray-100 py-1 block">
+                      <input
+                        type="checkbox"
+                        className="inline-block mr-2"
+                        checked={serviceIsActive(service.ID)}
+                        onChange={e => handleSelectService(service.ID, e.target.checked)}
+                      />
+                      {service.Name}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}        </div>  </div>        </SectionBlock>
+          </SectionBlock>
 
           <HorizontalDivider className="my-4" />
 
@@ -484,20 +479,33 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
         <PageTitle className="flex w-full justify-center sm:justify-start">
           <div className="mr-4 hidden sm:block">{parkingdata.Title}</div>
           <Button
-              key="b-1"
-              className="mt-3 sm:mt-0"
-              onClick={(e) => {
-                if (e) e.preventDefault();
-                if(parkingChanged === true) {
-                  updateParking();
-                }
-                else {
-                  onClose();
-                }
-              }}
-            >
-              { parkingChanged === true ? 'Opslaan': 'Terug' }
-            </Button>
+            key="b-1"
+            className="mt-3 sm:mt-0"
+            onClick={(e) => {
+              if (e) e.preventDefault();
+              if(parkingChanged === true) {
+                updateParking();
+              }
+              else {
+                onClose();
+              }
+            }}
+          >
+            { parkingChanged === true ? 'Opslaan': 'Terug' }
+          </Button>
+          {parkingChanged === true && <Button
+            key="b-2"
+            className="mt-3 ml-2 sm:mt-0"
+            variant="secundary"
+            onClick={(e) => {
+              if (e) e.preventDefault();
+              if(confirm('Wil je het bewerkformulier verlaten?')) {
+                onClose();
+              }
+            }}
+          >
+            Annuleer
+          </Button>}
         </PageTitle>
       </div>
 

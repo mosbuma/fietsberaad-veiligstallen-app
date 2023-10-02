@@ -29,6 +29,20 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
   }
 };
 
+export const getAllServices = async (): Promise => {
+  try {
+    const response = await fetch(
+      `/api/services/`
+    );
+    const json = await response.json();
+    if(! json) return;
+
+    return json;
+  } catch(err) {
+    console.error("get all services error", err);
+  }
+};
+
 const getOpenTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
   return ('Open_' + day) as keyof ParkingDetailsType;
 }  

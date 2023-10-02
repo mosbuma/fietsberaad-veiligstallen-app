@@ -1,4 +1,49 @@
 // @ts-nocheck
+import Styles from './Button.module.css';
+
+export const Button = ({
+  onClick,
+  children,
+  htmlBefore,
+  className,
+  style,
+  variant
+}: {
+  onClick?: Function,
+  children: any
+  htmlBefore?: any,
+  className?: string,
+  style?: object
+  variant?: string
+}) => {
+  return (
+    <button
+      className={`
+        py-1 px-4 mb-3
+        text-left rounded-full
+        whitespace-nowrap text-ellipsis overflow-hidden
+        font-poppinsmedium
+        width-auto
+        text-base
+        hover:shadow
+        transition-all
+        text-white
+        ${className}
+        ${Styles[variant]}
+      `}
+      onClick={(e) => {
+        if(onClick) onClick(e)
+      }}
+      style={Object.assign({}, {
+        userSelect: "none", // disable highlighting
+        backgroundColor: '#CC0000'
+      }, style)}
+    >
+      {htmlBefore}
+      {children}
+    </button>
+  );
+}
 
 export const RadioButton = ({
   isActive,
@@ -37,47 +82,6 @@ export const RadioButton = ({
         if(onClick) onClick(e)
       }}
       style={{ userSelect: "none" }} // disable highlighting
-    >
-      {htmlBefore}
-      {children}
-    </button>
-  );
-}
-
-export const Button = ({
-  onClick,
-  children,
-  htmlBefore,
-  className,
-  style
-}: {
-  onClick?: Function,
-  children: any
-  htmlBefore?: any,
-  className?: string,
-  style?: object
-}) => {
-  return (
-    <button
-      className={`
-        py-1 px-4 mb-3
-        text-left rounded-full
-        whitespace-nowrap text-ellipsis overflow-hidden
-        font-poppinsmedium
-        width-auto
-        text-base
-        hover:shadow
-        transition-all
-        text-white
-        ${className}
-      `}
-      onClick={(e) => {
-        if(onClick) onClick(e)
-      }}
-      style={Object.assign({}, {
-        userSelect: "none", // disable highlighting
-        backgroundColor: '#CC0000'
-      }, style)}
     >
       {htmlBefore}
       {children}
