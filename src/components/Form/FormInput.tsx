@@ -10,15 +10,19 @@ function FormInput({
   onChange,
   value,
   label,
+  size,
+  style
 }: {
   innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
   required?: boolean,
   placeholder?: string,
-  classNAme?: string,
+  className?: string,
   onChange?: Function
   value?: any
   label?: string,
+  size?: number
+  style?: object
 }) {
   return (
     <>
@@ -33,6 +37,8 @@ function FormInput({
           required={required || false}
           onChange={onChange}
           value={value}
+          size={size}
+          style={style}
           className={`
             px-5
             py-2

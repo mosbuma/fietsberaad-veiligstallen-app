@@ -2,8 +2,14 @@ import React from "react";
 import HorizontalDivider from "~/components/HorizontalDivider";
 
 import SectionBlock from "~/components/SectionBlock";
+import FormInput from "~/components/Form/FormInput";
+import FormCheckbox from "~/components/Form/FormCheckbox";
 import { ParkingDetailsType } from '~/types';
   
+import {
+  getAllFietstypen
+} from "~/utils/parkings";
+
 type capacitydata = {
   unknown: boolean;
   total: number;
@@ -50,11 +56,46 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
   }
 };
 
-const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsType }) => {
+const getCapacityForFietstype = (fietstypeName, capacitydata) => {
+  if(! fietstypeName) return 0;
+  if(! capacitydata || ! capacitydata.detailed) return 0;
+
+  const capacityForFietstype = capacitydata.detailed[fietstypeName];
+  if(capacityForFietstype && capacityForFietstype.Capaciteit) {
+    return capacityForFietstype.Capaciteit;
+  }
+
+  return 0;
+}
+
+const getAllowedValueForFietstype = (fietstypeName, capacitydata) => {
+  if(! fietstypeName) return 0;
+  if(! capacitydata || ! capacitydata.detailed) return 0;
+
+  const capacityForFietstype = capacitydata.detailed[fietstypeName];
+  if(capacityForFietstype && capacityForFietstype.Toegestaan) {
+    return true;
+  }
+
+  return false;
+}
+
+const ParkingEditCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsType }) => {
+  const [allFietstypen, setAllFietstypen ] = React.useState<Fietstype[]>([]); 
+
+  // Set 'allServices' variable in local state
+  React.useEffect(() => {
+    (async () => {
+      const result = await getAllFietstypen();
+      setAllFietstypen(result);
+      console.log('result', result)
+    })();
+  },[])
+
   let content = null;
 
   const capacitydata = calculateCapacityData(parkingdata);
-  // console.log("#### capacitydata", capacitydata, parkingdata);
+  console.log("#### capacitydata", capacitydata, parkingdata);
 
   if (capacitydata===null || capacitydata?.unknown) {
     content = "Onbekend";
@@ -93,15 +134,32 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
 
   return (
     <>
-      <SectionBlock heading="Capaciteit">
-        <div className="grid grid-cols-2">
-          {content}
-        </div>
-      </SectionBlock>
-
-      <HorizontalDivider className="my-4" />
+      <div className="ml-2 grid grid-cols-4">
+        {allFietstypen.map(x => {
+          const capacity = getCapacityForFietstype(x.Name, capacitydata);
+          const isAllowed = getAllowedValueForFietstype(x.Name, capacitydata);
+          return <React.Fragment key={x.ID}>
+            <div className="col-span-2 flex flex-col justify-center">
+              {x.Name}
+            </div>
+            <div className=" flex flex-col justify-center">
+              <FormInput
+                type="number"
+                value={capacity}
+                size="4"
+                style={{width: '100px'}}
+              />
+            </div>
+            <div className=" flex flex-col justify-center">
+              <FormCheckbox checked={isAllowed}>
+                Toegestaan?
+              </FormCheckbox>
+            </div>
+          </React.Fragment>
+        })}
+      </div>
     </>
   );
 };
 
-export default ParkingViewCapaciteit;
+export default ParkingEditCapaciteit;

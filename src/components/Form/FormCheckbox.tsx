@@ -4,10 +4,12 @@ import * as React from "react";
 function FormCheckbox({
   required,
   classes,
-  children
+  checked,
+  children,
 }: {
   required?: boolean,
   classes?: string,
+  checked?: boolean,
   children?: any,
 }) {
   return (
@@ -22,6 +24,7 @@ function FormCheckbox({
   		<input
         type={'checkbox'}
         required={required}
+        checked={checked}
         className="
           mr-2
           my-2

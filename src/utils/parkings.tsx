@@ -43,6 +43,20 @@ export const getAllServices = async (): Promise => {
   }
 };
 
+export const getAllFietstypen = async (): Promise => {
+  try {
+    const response = await fetch(
+      `/api/fietstypen`
+    );
+    const json = await response.json();
+    if(! json) return;
+
+    return json;
+  } catch(err) {
+    console.error("get all fietstypen error", err);
+  }
+};
+
 const getOpenTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
   return ('Open_' + day) as keyof ParkingDetailsType;
 }  
