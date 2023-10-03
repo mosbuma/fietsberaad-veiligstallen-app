@@ -90,40 +90,6 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     if(newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
     if(newStallingType !== undefined) { update.Type = newStallingType; }
 
-    // // if newServices is not empty, then update the services
-    // TODO: make this work
-    if(newServices.length > 0) {
-      // Set empty array
-      // update.fietsenstallingen_services = null;
-      // console.log('newServices', newServices)
-      // const servicesToSave: {}[] = [];
-      // newServices.forEach(s => {
-      //   // Don't add if service is not selected
-      //   if(! s.selected) return;
-
-      //   servicesToSave.push({
-      //     ServiceID: s.ID,
-      //     FietsenstallingID: parkingdata.ID,
-      //   });
-      // });
-
-      // update.fietsenstallingen_services = { 
-      //   deleteMany: {
-      //     where: {
-      //       FietsenstallingID: parkingdata.ID
-      //     }
-      //   },
-      //   create: servicesToSave,
-      //  }
-
-      // update.fietsenstallingen_services = { 
-      //   createMany: {
-      //     data: servicesToSave
-      //   }
-      // }
-    }
-
-    console.log("#### update", update);
     return update;
   }
 
@@ -138,8 +104,25 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     // If services are updated: Update services
     if(newServices.length > 0) {
       try {
+        // Delete existing services for this parking
+        await fetch(
+          "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
+          { method: "DELETE" }
+        );
         // Create servicesToSave object
         const servicesToSave: {}[] = [];
+        // - First, add existing services
+        parkingdata.fietsenstallingen_services.forEach(x => {
+          // To be removed?
+          const doRemove = newServices.filter(s => s.ID === x.services.ID && ! s.selected).pop();
+          if(! doRemove) {
+            servicesToSave.push({
+              ServiceID: x.services.ID,
+              FietsenstallingID: parkingdata.ID,
+            });          
+          }
+        })
+        // - Second, add new services
         newServices.forEach(s => {
           // Don't add if service is not selected
           if(! s.selected) return;
@@ -149,19 +132,17 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
             FietsenstallingID: parkingdata.ID,
           });
         });
-        // Delete existing services for this parking
+        // Create parking services in database
         await fetch(
-          "/api/fietsenstallingen_services?id=" + parkingdata.ID,
+          "/api/fietsenstallingen_services/create",
           {
-            method: "delete",
+            method: "POST",
+            body: JSON.stringify(servicesToSave),
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
         );
-        await prisma.fietsenstallingen_services.deleteMany({
-          where: {
-            FietsenstallingID: parkingdata.ID
-          }
-        });
-        await prisma.fietsenstallingen_services.create(servicesToSave);
       } catch(err) {
         console.error(err);
       }
@@ -200,7 +181,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const update = getUpdate()
   const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0;
 
-  console.log("@@@ parkingdata", parkingdata);
+  // console.log("@@@ parkingdata", parkingdata);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     // console.log("#### update from map")

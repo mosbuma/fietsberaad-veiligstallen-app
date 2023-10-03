@@ -9,7 +9,7 @@ const Parking = ({ parkingdata, startInEditMode=false }: { parkingdata: ParkingD
   const session = useSession();
 
   const handleCloseEdit = () => {
-    console.log("handleCloseEdit");
+    // console.log("handleCloseEdit");
     setEditMode(false);
   }
 
