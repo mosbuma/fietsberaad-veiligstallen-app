@@ -32,8 +32,8 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const router = useRouter();
   const session = useSession();
 
-  // const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
-  const [selectedTab, setSelectedTab] = React.useState('tab-openingstijden');  
+  const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
+  // const [selectedTab, setSelectedTab] = React.useState('tab-openingstijden');  
 
   const [newTitle, setNewTitle ] = React.useState(undefined);
   const [newLocation, setNewLocation ] = React.useState(undefined);
