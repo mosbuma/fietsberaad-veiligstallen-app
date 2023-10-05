@@ -5,11 +5,13 @@ function FormCheckbox({
   required,
   classes,
   checked,
+  onChange,
   children,
 }: {
   required?: boolean,
   classes?: string,
   checked?: boolean,
+  onChange?: Function,
   children?: any,
 }) {
   return (
@@ -25,6 +27,7 @@ function FormCheckbox({
         type={'checkbox'}
         required={required}
         checked={checked}
+        onChange={onChange}
         className="
           mr-2
           my-2
