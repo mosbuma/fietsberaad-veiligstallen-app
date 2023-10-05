@@ -57,6 +57,7 @@ export default async function handle(
           Dicht_za: true,
           Open_zo : true,
           Dicht_zo: true,
+          Openingstijden: true,
           Capacity: true,
           Coordinaten: true,
           Beheerder: true,

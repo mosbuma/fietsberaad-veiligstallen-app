@@ -10,19 +10,19 @@ import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
+import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
 import {
-  formatOpeningTimes,
   getAllServices
 } from "~/utils/parkings";
 import { Tabs, Tab, FormHelperText, FormLabel, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
-import ParkingViewOpening from "~/components/parking/ParkingViewOpening";
+import ParkingEditOpening, {type OpeningChangedType} from "~/components/parking/ParkingEditOpening";
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
 import ParkingViewCapaciteit from "~/components/parking/ParkingViewCapaciteit";
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
@@ -32,8 +32,8 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const router = useRouter();
   const session = useSession();
 
-  // const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
-  const [selectedTab, setSelectedTab] = React.useState('tab-capaciteit');  
+  const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
+  // const [selectedTab, setSelectedTab] = React.useState('tab-openingstijden');  
 
   const [newTitle, setNewTitle ] = React.useState(undefined);
   const [newLocation, setNewLocation ] = React.useState(undefined);
@@ -50,7 +50,10 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
   const [newServices, setNewServices ] = React.useState<ChangedType[]>([]);
 
-  const [newCapacity, setNewCapacity ] = React.useState<anyg[]>([]);
+  const [newCapacity, setNewCapacity ] = React.useState<any[]>([]);
+
+  const [newOpening, setNewOpening ] = React.useState<any>(undefined); // openingstijdenschema
+  const [newOpeningstijden, setNewOpeningstijden ] = React.useState<string|undefined>(undefined); // textveld afwijkende openingstijden
 
   type StallingType = { id: string, name: string, sequence: number};
   const [allTypes, setAllTypes ] = React.useState<StallingType[]>([]); 
@@ -94,6 +97,20 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     if(newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
     if(newStallingType !== undefined) { update.Type = newStallingType; }
 
+    if(undefined!==newOpening) {
+      for(const keystr in newOpening) {
+        const key = keystr as keyof ParkingDetailsType;
+        update[key] = new Date(newOpening[key]).toISOString();
+      }
+    }
+
+    if(undefined!==newOpeningstijden) {
+      update.Openingstijden = newOpeningstijden;
+    } else if(parkingdata.Openingstijden !== "") {
+      update.Openingstijden = "";
+    }
+
+    // console.log("got update", JSON.stringify(update,null,2));
     return update;
   }
 
@@ -103,7 +120,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
 
     // Check if parking was changed
     const update = getUpdate();
-    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0;
+    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
 
     // If services are updated: Update services
     if(newServices.length > 0) {
@@ -183,9 +200,9 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   };
 
   const update = getUpdate()
-  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0;
+  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
 
-  console.log("@@@ parkingdata", parkingdata);
+  // console.log("@@@ parkingdata", parkingdata);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     // console.log("#### update from map")
@@ -364,45 +381,23 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   }
 
   const renderTabAfbeelding = () => {
-    return (
-      <div className="flex justify-between">
-        <div data-name="content-left" className="sm:mr-12">
-          {parkingdata.Image && (
-            <div className="mb-8">
-              <ImageSlider images={[parkingdata.Image]} />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const renderTabOpeningstijden = () => {
     return ( 
       <div className="flex justify-between w-full mt-10">
-        <ParkingViewOpening parkingdata={parkingdata} />
-      </div>);
-    return (
+        <ParkingEditAfbeelding parkingdata={parkingdata} />
+      </div> );
+ }
+
+  const renderTabOpeningstijden = () => {
+    const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
+      setNewOpening(tijden);
+      setNewOpeningstijden(Openingstijden);
+
+      return;
+    }
+    return ( 
       <div className="flex justify-between w-full mt-10">
-        <SectionBlockEdit>
-          {formatOpeningTimes(parkingdata, 2, "ma", "Maandag")}
-          {formatOpeningTimes(parkingdata, 3, "di", "Dinsdag")}
-          {formatOpeningTimes(parkingdata, 4, "wo", "Woensdag")}
-          {formatOpeningTimes(parkingdata, 5, "do", "Donderdag")}
-          {formatOpeningTimes(parkingdata, 6, "vr", "Vrijdag")}
-          {formatOpeningTimes(parkingdata, 0, "za", "Zaterdag")}
-          {formatOpeningTimes(parkingdata, 1, "zo", "Zondag")}
-          {parkingdata.Openingstijden !== "" && (
-            <div className="col-span-2">
-              <div>
-                <br />
-                {parkingdata.Openingstijden}
-              </div>
-            </div>
-          )}
-        </SectionBlockEdit>
-      </div>
-    );
+        <ParkingEditOpening parkingdata={parkingdata} openingChanged={handlerSetNewOpening}/>
+      </div>);
   }
 
   const renderTabTarieven = () => {
@@ -529,7 +524,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
             key="b-2"
             className="mt-3 ml-2 sm:mt-0"
             variant="secundary"
-            onClick={(e) => {
+            onClick={(e: MouseEvent) => {
               if (e) e.preventDefault();
               if(confirm('Wil je het bewerkformulier verlaten?')) {
                 onClose();
