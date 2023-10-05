@@ -7,14 +7,12 @@ function FormCheckbox({
   checked,
   onChange,
   children,
-  onChange
 }: {
   required?: boolean,
   classes?: string,
   checked?: boolean,
   onChange?: Function,
   children?: any,
-  onChange?: React.ChangeEventHandler<HTMLInputElement>
 }) {
   return (
     <label
@@ -29,7 +27,6 @@ function FormCheckbox({
         type={'checkbox'}
         required={required}
         checked={checked}
-        onChange={onChange}
         className="
           mr-2
           my-2
