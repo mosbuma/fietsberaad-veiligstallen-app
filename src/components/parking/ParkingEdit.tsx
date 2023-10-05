@@ -105,10 +105,10 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
     }
 
     if(undefined!==newOpeningstijden) {
-      update.Openingstijden = newOpeningstijden;
-    } else if(parkingdata.Openingstijden !== "") {
-      update.Openingstijden = "";
-    }
+      if(newOpeningstijden !== parkingdata.Openingstijden) {
+        update.Openingstijden = newOpeningstijden;
+      }
+    } 
 
     // console.log("got update", JSON.stringify(update,null,2));
     return update;
