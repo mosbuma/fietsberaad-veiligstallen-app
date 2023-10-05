@@ -6,11 +6,13 @@ function FormCheckbox({
   classes,
   checked,
   children,
+  onChange
 }: {
   required?: boolean,
   classes?: string,
   checked?: boolean,
   children?: any,
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
 }) {
   return (
     <label
@@ -30,6 +32,7 @@ function FormCheckbox({
           my-2
           inline-block
         "
+        onChange={(e) => (onChange ? onChange(e) : () => {} )}
       />
       {children}
     </label>

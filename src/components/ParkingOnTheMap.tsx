@@ -98,58 +98,66 @@ function ParkingOnTheMap({parking}) {
 
   // If 'parking' variable changes: Update source data
   React.useEffect(() => {
-    if (!stateMap || stateMap === undefined) return;
-    if (!stateMap.getSource) return;
+    try {
+      if (!stateMap || stateMap === undefined) return;
+      if (!stateMap.getSource) return;
 
-    // Create geojson
-    const geojson: any = createGeoJson([parking]);
+      // Create geojson
+      const geojson: any = createGeoJson([parking]);
 
-    // Add or update fietsenstallingen data
-    const source: maplibregl.GeoJSONSource = stateMap.getSource(
-      "fietsenstallingen"
-    ) as maplibregl.GeoJSONSource;
-    if (source) {
-      source.setData(geojson);
-    } else {
-      stateMap.addSource("fietsenstallingen", {
-        type: "geojson",
-        data: geojson,
-      });
-    }
+      // Add or update fietsenstallingen data
+      try {
+        const source: maplibregl.GeoJSONSource = stateMap.getSource(
+          "fietsenstallingen"
+        ) as maplibregl.GeoJSONSource;
+        if (source) {
+          source.setData(geojson);
+        } else {
+          stateMap.addSource("fietsenstallingen", {
+            type: "geojson",
+            data: geojson,
+          });
+        } 
+      } catch(ex) {
+        console.warn("ParkingOnTheMap - unable to add/update source data", ex);
+      }
 
-    // Add markers layer
-    if (!stateMap.getLayer("fietsenstallingen-markers")) {
-      stateMap.addLayer({
-        id: "fietsenstallingen-markers",
-        source: "fietsenstallingen",
-        type: "circle",
-        filter: ["all"],
-        paint: {
-          "circle-color": "#fff",
-          "circle-radius": 5,
-          "circle-stroke-width": 4,
-          "circle-stroke-color": [
-            "match",
-            ["get", "type"],
-            "bewaakt",
-            "#00BDD5",
-            "geautomatiseerd",
-            "#028090",
-            "fietskluizen",
-            "#9E1616",
-            "fietstrommel",
-            "#DF4AAD",
-            "buurtstalling",
-            "#FFB300",
-            "publiek",
-            "#00CE83",
-            "#00CE83",
-          ],
-        },
-      });
+      // Add markers layer
+      if (!stateMap.getLayer("fietsenstallingen-markers")) {
+        stateMap.addLayer({
+          id: "fietsenstallingen-markers",
+          source: "fietsenstallingen",
+          type: "circle",
+          filter: ["all"],
+          paint: {
+            "circle-color": "#fff",
+            "circle-radius": 5,
+            "circle-stroke-width": 4,
+            "circle-stroke-color": [
+              "match",
+              ["get", "type"],
+              "bewaakt",
+              "#00BDD5",
+              "geautomatiseerd",
+              "#028090",
+              "fietskluizen",
+              "#9E1616",
+              "fietstrommel",
+              "#DF4AAD",
+              "buurtstalling",
+              "#FFB300",
+              "publiek",
+              "#00CE83",
+              "#00CE83",
+            ],
+          },
+        });
 
-      // Highlight one and only active marker
-      highlighMarker(stateMap, parking.ID)
+        // Highlight one and only active marker
+        highlighMarker(stateMap, parking.ID)
+      }
+    } catch(ex) {
+      console.warn("ParkingOnTheMap - unable to add/update source data", ex);
     }
   }, [stateMap, parking]);
 

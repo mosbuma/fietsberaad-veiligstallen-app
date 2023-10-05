@@ -197,153 +197,161 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   // If 'fietsenstallingen' variable changes: Update source data
   React.useEffect(() => {
-    if (!stateMap || stateMap === undefined) return;
-    if (!stateMap.getSource) return;
+    try {
+      if (!stateMap || stateMap === undefined || 'getSource' in stateMap === false) return;
+      if (!stateMap.getSource) return;
 
-    // Create geojson
-    const geojson: any = createGeoJson(fietsenstallingen);
+      // Create geojson
+      const geojson: any = createGeoJson(fietsenstallingen);
 
-    // Add or update fietsenstallingen data as sources
-    const addOrUpdateSource = (sourceKey) => {
-      const source: maplibregl.GeoJSONSource = stateMap.getSource(
-        sourceKey
-      ) as maplibregl.GeoJSONSource;
-      if (source) {
-        source.setData(geojson);
-      } else {
-        const sourceConfig = {
-          type: "geojson",
-          data: geojson
-        };
-        if(sourceKey === 'fietsenstallingen-clusters') {
-          // We want to cluster
-          sourceConfig.cluster = true;
-          // Max zoom to cluster points on
-          // clusterMaxZoom: 18,
-          // Radius of each cluster when clustering points (defaults to 50)
-          sourceConfig.clusterRadius = 40;
-          sourceConfig.clusterMaxZoom = 12
-        }
-        stateMap.addSource(sourceKey, sourceConfig);
+      // Add or update fietsenstallingen data as sources
+      const addOrUpdateSource = (sourceKey) => {
+          const source: maplibregl.GeoJSONSource = stateMap.getSource(
+            sourceKey
+          ) as maplibregl.GeoJSONSource;
+          if (source) {
+            source.setData(geojson);
+          } else {
+            const sourceConfig = {
+              type: "geojson",
+              data: geojson
+            };
+            if(sourceKey === 'fietsenstallingen-clusters') {
+              // We want to cluster
+              sourceConfig.cluster = true;
+              // Max zoom to cluster points on
+              // clusterMaxZoom: 18,
+              // Radius of each cluster when clustering points (defaults to 50)
+              sourceConfig.clusterRadius = 40;
+              sourceConfig.clusterMaxZoom = 12
+            }
+            stateMap.addSource(sourceKey, sourceConfig);
+          }
       }
-    }
-    addOrUpdateSource('fietsenstallingen');
-    addOrUpdateSource('fietsenstallingen-clusters');
+      addOrUpdateSource('fietsenstallingen');
+      addOrUpdateSource('fietsenstallingen-clusters');
 
-    // Add MARKERS layer
-    if (!stateMap.getLayer("fietsenstallingen-markers")) {
-      stateMap.addLayer({
-        id: "fietsenstallingen-markers",
-        source: "fietsenstallingen",
-        type: "circle",
-        // filter: ["all"],
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          "circle-color": "#fff",
-          "circle-radius": 5,
-          "circle-stroke-width": 4,
-          "circle-stroke-color": [
-            "match",
-            ["get", "type"],
-            "bewaakt",
-            "#00BDD5",
-            "geautomatiseerd",
-            "#028090",
-            "fietskluizen",
-            "#9E1616",
-            "fietstrommel",
-            "#DF4AAD",
-            "buurtstalling",
-            "#FFB300",
-            "publiek",
-            "#00CE83",
-            "#00CE83",
-          ],
-        },
-        'icon-allow-overlap': true,
-        'minzoom': 12,
-      });
-    }
+      // Add MARKERS layer
+      if (!stateMap.getLayer("fietsenstallingen-markers")) {
+        stateMap.addLayer({
+          id: "fietsenstallingen-markers",
+          source: "fietsenstallingen",
+          type: "circle",
+          // filter: ["all"],
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            "circle-color": "#fff",
+            "circle-radius": 5,
+            "circle-stroke-width": 4,
+            "circle-stroke-color": [
+              "match",
+              ["get", "type"],
+              "bewaakt",
+              "#00BDD5",
+              "geautomatiseerd",
+              "#028090",
+              "fietskluizen",
+              "#9E1616",
+              "fietstrommel",
+              "#DF4AAD",
+              "buurtstalling",
+              "#FFB300",
+              "publiek",
+              "#00CE83",
+              "#00CE83",
+            ],
+          },
+          'icon-allow-overlap': true,
+          'minzoom': 12,
+        });
+      }
 
-    // Add CLUSTERS layer
-    if (!stateMap.getLayer("fietsenstallingen-clusters")) {
-      stateMap.addLayer({
-        id: "fietsenstallingen-clusters",
-        source: "fietsenstallingen-clusters",
-        type: "circle",
-        filter: ['has', 'point_count'],
-        paint: {
-          // Use step expressions (https://maplibre.org/maplibre-gl-js-docs/style-spec/#expressions-step)
-          // with three steps to implement three types of circles:
-          //   * Blue, 20px circles when point count is less than 100
-          //   * Yellow, 30px circles when point count is between 100 and 750
-          //   * Pink, 40px circles when point count is greater than or equal to 750
-          'circle-color': '#fff',
-          'circle-radius': [
-            'step',
-            ['get', 'point_count'],
-            20, 100,
-            30, 750,
-            40
-          ],
-          "circle-stroke-width": 3,
-          "circle-stroke-color": '#15AEEF'
-        },
-        'maxzoom': 12
-      });
-    }
+      // Add CLUSTERS layer
+      if (!stateMap.getLayer("fietsenstallingen-clusters")) {
+        stateMap.addLayer({
+          id: "fietsenstallingen-clusters",
+          source: "fietsenstallingen-clusters",
+          type: "circle",
+          filter: ['has', 'point_count'],
+          paint: {
+            // Use step expressions (https://maplibre.org/maplibre-gl-js-docs/style-spec/#expressions-step)
+            // with three steps to implement three types of circles:
+            //   * Blue, 20px circles when point count is less than 100
+            //   * Yellow, 30px circles when point count is between 100 and 750
+            //   * Pink, 40px circles when point count is greater than or equal to 750
+            'circle-color': '#fff',
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              20, 100,
+              30, 750,
+              40
+            ],
+            "circle-stroke-width": 3,
+            "circle-stroke-color": '#15AEEF'
+          },
+          'maxzoom': 12
+        });
+      }
 
-    // Add CLUSTERS COUNT layer
-    if (!stateMap.getLayer("fietsenstallingen-clusters-count")) {
-      stateMap.addLayer({
-        id: "fietsenstallingen-clusters-count",
-        source: "fietsenstallingen-clusters",
-        type: "symbol",
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': [
-            'step',
-            ['get', 'point_count'],
-            16, 100,
-            20, 750,
-            30
-          ],
-        },
-        paint: {
-          'text-color': '#333333',
-          // 'text-halo-color': '#fff',
-          // 'text-halo-width': 2
-        },
-        'maxzoom': 12
-      });
+      // Add CLUSTERS COUNT layer
+      if (!stateMap.getLayer("fietsenstallingen-clusters-count")) {
+        stateMap.addLayer({
+          id: "fietsenstallingen-clusters-count",
+          source: "fietsenstallingen-clusters",
+          type: "symbol",
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': [
+              'step',
+              ['get', 'point_count'],
+              16, 100,
+              20, 750,
+              30
+            ],
+          },
+          paint: {
+            'text-color': '#333333',
+            // 'text-halo-color': '#fff',
+            // 'text-halo-width': 2
+          },
+          'maxzoom': 12
+        });
+      }
+    } catch(ex) {
+      console.warn("error in MapComponent layer update useEffect call",ex);
     }
-  }, [stateMap, fietsenstallingen]);
+}, [stateMap, fietsenstallingen]);
 
   // Filter map markers if filterActiveTypes filter changes
   React.useEffect(() => {
-    if (!stateMap) return;
+    try {
+      if (!stateMap) return;
 
-    let filter = [
-      "all",
-      ["in", ["get", "type"], ["literal", filterActiveTypes]],
-    ];
-    if (filterQuery === "") {
-      filter = ["all", ["in", ["get", "type"], ["literal", filterActiveTypes]]];
-    } else {
-      filter = [
+      let filter = [
         "all",
         ["in", ["get", "type"], ["literal", filterActiveTypes]],
-        [
-          "any",
-          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "title"]], -1],
-          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "locatie"]], -1],
-          [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "plaats"]], -1],
-        ],
       ];
+      if (filterQuery === "") {
+        filter = ["all", ["in", ["get", "type"], ["literal", filterActiveTypes]]];
+      } else {
+        filter = [
+          "all",
+          ["in", ["get", "type"], ["literal", filterActiveTypes]],
+          [
+            "any",
+            [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "title"]], -1],
+            [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "locatie"]], -1],
+            [">", ["index-of", ["literal", filterQuery.toLowerCase()], ["get", "plaats"]], -1],
+          ],
+        ];
+      }
+      stateMap.setFilter("fietsenstallingen-markers", filter);
+    } catch(ex) {
+      console.warn("error in MapComponent layer setfilter useEffect call",ex);
     }
-    stateMap.setFilter("fietsenstallingen-markers", filter);
   }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery]);
 
   // Update visible features in state if filter changes

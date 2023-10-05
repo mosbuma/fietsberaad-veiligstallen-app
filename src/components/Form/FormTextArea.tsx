@@ -1,27 +1,23 @@
 // FormInput.tsx - Generic input field
 import * as React from "react";
 
-function FormInput({
-  innerRef,
-  type,
+function FormTextArea({
   required,
   placeholder,
   className,
   onChange,
   value,
   label,
-  size,
-  style
+  style,
+  rows
 }: {
-  innerRef?: React.LegacyRef<HTMLInputElement>,
-  type?: string,
   required?: boolean,
   placeholder?: string,
   className?: string,
-  onChange?: React.ChangeEventHandler<HTMLInputElement>,
+  onChange?: React.ChangeEventHandler<HTMLTextAreaElement>,
   value?: any
   label?: string,
-  size?: number
+  rows?: number,
   style?: object
 }) {
   return (
@@ -30,14 +26,11 @@ function FormInput({
         {label ? <div>
           <b>{label}</b>
         </div> : ''}
-    		<input
-          ref={innerRef} 
-          type={type || 'text'}
+    		<textarea
           placeholder={placeholder}
           required={required || false}
           onChange={onChange}
           value={value}
-          size={size}
           style={style}
           className={`
             px-5
@@ -47,10 +40,11 @@ function FormInput({
             my-2
             ${className}
           `}
+          rows={rows}
         />
       </label>
     </>
   );
 }
 
-export default FormInput;
+export default FormTextArea;

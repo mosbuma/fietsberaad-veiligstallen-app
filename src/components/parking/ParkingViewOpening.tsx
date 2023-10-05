@@ -5,6 +5,10 @@ import SectionBlock from "~/components/SectionBlock";
 import HorizontalDivider from "~/components/HorizontalDivider";
 
 const ParkingViewOpening = ({ parkingdata }: { parkingdata: any }) => {
+  if(parkingdata.Openingstijden!==null && parkingdata.Openingstijden.indexOf("\n")>-1) {
+    parkingdata.Openingstijden = parkingdata.Openingstijden.replace("\n", "<br />");
+  }
+
   return (
     <>
       <SectionBlock

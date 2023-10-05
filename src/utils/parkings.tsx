@@ -86,6 +86,8 @@ export const formatOpeningTimes = (
   let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
   if(diff>=86340) {
     value = '24h'
+  } if(diff===0) {
+    value = 'gesloten'
   }
 
   return (

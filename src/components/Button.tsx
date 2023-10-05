@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { MouseEvent } from 'react';
 import Styles from './Button.module.css';
 
 export const Button = ({
@@ -31,7 +32,7 @@ export const Button = ({
         ${className}
         ${Styles[variant]}
       `}
-      onClick={(e) => {
+      onClick={(e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if(onClick) onClick(e)
       }}
       style={Object.assign({}, {

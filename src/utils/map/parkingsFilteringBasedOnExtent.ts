@@ -21,15 +21,19 @@ function getUniqueFeatures(features, comparatorProperty) {
 }
 
 export const mapMoveEndEvents = (map, setVisibleFeatures) => {
-  // Check if layer exists
-  if(! map.getLayer(layerName)) {
-    // console.log('mapMoveEndEvents :: No layer exists yet');
-    return;
-  }
-  const features = map.queryRenderedFeatures({ layers: [layerName] });
+  try {
+    // Check if layer exists
+    if(! map.getLayer(layerName)) {
+      // console.log('mapMoveEndEvents :: No layer exists yet');
+      return;
+    }
+    const features = map.queryRenderedFeatures({ layers: [layerName] });
 
-  if (features) {
-    const uniqueFeatures = getUniqueFeatures(features, 'id');
-    setVisibleFeatures(uniqueFeatures);
+    if (features) {
+      const uniqueFeatures = getUniqueFeatures(features, 'id');
+      setVisibleFeatures(uniqueFeatures);
+    }
+  } catch(ex) {
+    console.warn("mapMoveEndEvents :: exception", ex);
   }
 }
