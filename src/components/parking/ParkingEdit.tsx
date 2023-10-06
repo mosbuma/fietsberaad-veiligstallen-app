@@ -9,31 +9,31 @@ import PageTitle from "~/components/PageTitle";
 import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
-import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
-import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
-import type { ParkingDetailsType, DayPrefix } from "~/types/";
+import type { ParkingDetailsType } from "~/types/";
 import {
   getAllServices
 } from "~/utils/parkings";
 import { Tabs, Tab, FormHelperText, FormLabel, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
-import ParkingEditOpening, {type OpeningChangedType} from "~/components/parking/ParkingEditOpening";
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
 import ParkingViewCapaciteit from "~/components/parking/ParkingViewCapaciteit";
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
 import ParkingEditCapaciteit from "~/components/parking/ParkingEditCapaciteit";
+import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
+import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
+import ParkingEditOpening, {type OpeningChangedType} from "~/components/parking/ParkingEditOpening";
 
-const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType, onClose: Function }) => {
+const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: Function, onChange: Function }) => {
   const router = useRouter();
   const session = useSession();
 
   const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
-  // const [selectedTab, setSelectedTab] = React.useState('tab-openingstijden');  
+  // const [selectedTab, setSelectedTab] = React.useState('tab-afbeelding');  
 
   const [newTitle, setNewTitle ] = React.useState(undefined);
   const [newLocation, setNewLocation ] = React.useState(undefined);
@@ -189,9 +189,10 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
         throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
       }
       // Reload data
-      const randomstr = Math.floor(Math.random() * 1000000)
-      router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
+      // const randomstr = Math.floor(Math.random() * 1000000)
+      // router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
       // Go back to 'view' mode
+      onChange();
       onClose();
     } catch(err) {
       if(err.message) alert(err.message);
@@ -383,7 +384,7 @@ const ParkingEdit = ({ parkingdata, onClose }: { parkingdata: ParkingDetailsType
   const renderTabAfbeelding = () => {
     return ( 
       <div className="flex justify-between w-full mt-10">
-        <ParkingEditAfbeelding parkingdata={parkingdata} />
+        <ParkingEditAfbeelding parkingdata={parkingdata} onUpdateAfbeelding={onChange}/>
       </div> );
  }
 

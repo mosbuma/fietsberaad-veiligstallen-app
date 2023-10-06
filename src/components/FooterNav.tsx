@@ -64,7 +64,7 @@ const FooterNav = () => {
       z-10
     ">
       <FooterNavItem
-        url={'?stallingid=nieuw'}
+        url={'/?stallingid=nieuw'}
         className="font-bold">
         Stalling Aanmelden
       </FooterNavItem>

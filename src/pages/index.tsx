@@ -82,8 +82,7 @@ const Home: NextPage = ({
 
   const dispatch = useDispatch();
 
-  // const [currentStallingId, setCurrentStallingId] = useState<string|undefined>(undefined);
-  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType|null>(null);
+  const [currentStallingId, setCurrentStallingId] = useState<string|undefined>(undefined);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
 
@@ -121,44 +120,39 @@ const Home: NextPage = ({
   }, []);
 
   useEffect(() => {
-    const stallingId = router.query.stallingid;
-    if(stallingId===undefined || Array.isArray(stallingId)) {
-      console.warn('stallingId is undefined or array', stallingId);
-      return;
-    }
-
-    if(stallingId==='nieuw') {
-      const voorstelid=generateRandomId('VOORSTEL')
-      const data =  {
-        ID: voorstelid, 
-        Title: 'Nieuwe stalling',
-        Type: 'bewaakt',
-        Coordinaten: '52.09066,5.121317',
+    if(router.query.stallingid!==undefined && ! Array.isArray(router.query.stallingid)) {
+      if(router.query.stallingid==='nieuw') {
+        const voorstelid=generateRandomId('VOORSTEL')
+        const data =  {
+          ID: voorstelid, 
+          Title: 'Nieuwe stalling',
+          Type: 'bewaakt',
+          Coordinaten: '52.09066,5.121317',
+        }
+  
+        fetch(
+          "/api/fietsenstallingen",
+          {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        ).then(response => {
+          if(response) {
+            response.json().then(json => {
+              router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
+            })
+          } else {
+            console.error('create new parking failed', response);
+          }
+        });
+      } else {
+        setCurrentStallingId(router.query.stallingid);
       }
-
-      fetch(
-        "/api/fietsenstallingen",
-        {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      ).then(response => {
-        if(response) {
-          response.json().then(json => {
-            router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
-          })
-        } else {
-          console.error('create new parking failed', response);
-        }
-      });
-    } else {
-      getParkingDetails(stallingId).then((stalling) => {
-        setCurrentStalling(stalling);
-      });
     }
+
   }, [
     router.query.stallingid,
     router.query.revision
@@ -256,13 +250,8 @@ const Home: NextPage = ({
       router.push({ query: { ...query, stallingid: id }}); 
     }
     if(undefined===id) {
-      setCurrentStalling(null);
+      setCurrentStallingId(undefined);
     }
-  }
-
-  let startInEditMode=false;
-  if(currentStalling!== null && 'editmode' in router.query) {
-    startInEditMode = true;
   }
 
   return (
@@ -271,28 +260,28 @@ const Home: NextPage = ({
 
         <AppHeader />
 
-        {currentStalling!==null && isSm && (<>
+        {currentStallingId!==undefined && isSm && (<>
           <Overlay
-            title={currentStalling.Title}
+            title={""}
             onClose={() => {updateStallingId(undefined)}}
           >
             <Parking
-              key={'parking-sm-' + currentStalling.ID}
-              parkingdata={currentStalling}
-              startInEditMode={startInEditMode}
+              key={'parking-sm-' + currentStallingId}
+              parkingID={currentStallingId}
+              startInEditMode={'editmode' in router.query}
             />
           </Overlay>
         </>)}
 
-        {currentStalling!==null && ! isSm && (<>
+        {currentStallingId!==undefined && ! isSm && (<>
           <Modal
             onClose={() => {updateStallingId(undefined)}}
             clickOutsideClosesDialog={false}
           >
             <Parking
-              key={'parking-nsm-' + currentStalling.ID}
-              parkingdata={currentStalling}
-              startInEditMode={startInEditMode}
+              key={'parking-nsm-' + currentStallingId}
+              parkingID={currentStallingId}
+              startInEditMode={'editmode' in router.query}
             />
           </Modal>
         </>)}
