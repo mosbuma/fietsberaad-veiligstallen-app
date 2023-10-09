@@ -21,12 +21,25 @@ const ImageSlider = ({
     return <></>;
   }
 
+  const fixurl = (imgUrl)=> {
+    let newurl;
+    if(imgUrl.includes('http')) {
+      newurl = imgUrl;
+    } else if (imgUrl.includes('[local]')) {
+      newurl = imgUrl.substring(7);
+    } else {
+      newurl = `https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`
+    }
+    console.log('got newurl', newurl);
+    return newurl;
+  }
+
   return (
     <div className="card-list">
       {/*<div ref={ref} className="card-list__slides keen-slider">*/}
       <div className="card-list__slides keen-slider">
         {images.map((imgUrl, idx) => { 
-            const url= imgUrl.includes('http') ? imgUrl : `https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`;
+            const url=fixurl(imgUrl);
             return (
               <Image
                 key={'img-'+idx}

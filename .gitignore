@@ -53,3 +53,6 @@ yarn-error.log*
 #backups
 mysql-db/export-db.sql
 mysql-db/export-db.zip
+
+#uploads
+/public/uploads*
