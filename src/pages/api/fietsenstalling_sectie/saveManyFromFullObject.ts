@@ -45,7 +45,7 @@ export default async function handle(req, res) {
           BikeTypeID: vehicleTypeId
         },
         data: {
-          Capaciteit: vehicleType.Capaciteit,
+          Capaciteit: Number(vehicleType.Capaciteit),
           Toegestaan: vehicleType.Toegestaan
         }
       })
@@ -58,7 +58,7 @@ export default async function handle(req, res) {
           BikeTypeID: vehicleTypeId,
           sectieID: data.sectionId,
           StallingsID: data.parkingId,
-          Capaciteit: vehicleType.Capaciteit,
+          Capaciteit: number(vehicleType.Capaciteit),
           Toegestaan: vehicleType.Toegestaan
         }
       });

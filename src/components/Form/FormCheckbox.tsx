@@ -5,12 +5,14 @@ function FormCheckbox({
   required,
   classes,
   checked,
+  defaultChecked,
   onChange,
   children,
 }: {
   required?: boolean,
   classes?: string,
   checked?: boolean,
+  defaultChecked?: boolean,
   onChange?: Function,
   children?: any,
 }) {
@@ -27,6 +29,7 @@ function FormCheckbox({
         type={'checkbox'}
         required={required}
         checked={checked}
+        defaultChecked={defaultChecked}
         className="
           mr-2
           my-2

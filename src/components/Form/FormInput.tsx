@@ -11,7 +11,8 @@ function FormInput({
   value,
   label,
   size,
-  style
+  style,
+  defaultValue
 }: {
   innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
@@ -20,6 +21,7 @@ function FormInput({
   className?: string,
   onChange?: React.ChangeEventHandler<HTMLInputElement>,
   value?: any
+  defaultValue?: any
   label?: string,
   size?: number
   style?: object
@@ -37,6 +39,7 @@ function FormInput({
           required={required || false}
           onChange={onChange}
           value={value}
+          defaultValue={defaultValue}
           size={size}
           style={style}
           className={`

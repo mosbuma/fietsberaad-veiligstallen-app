@@ -56,13 +56,24 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
   }
 };
 
-const getCapacityForFietstype = (fietstypeName, capacitydata) => {
+const getCapacityForFietstype = (fietstypeName, capacitydata, localChanges) => {
   if(! fietstypeName) return 0;
   if(! capacitydata || ! capacitydata.detailed) return 0;
 
+  // First, check if we have the value in our local changes
+  if(localChanges) {
+    const foundRelated = localChanges[0].secties_fietstype.filter((x) => {
+      return x.fietstype.Name === fietstypeName;
+    }).pop();
+    if(foundRelated) {
+      return Number(foundRelated.Capaciteit);
+    }
+  }
+
+  // If not, get the original value from the database
   const capacityForFietstype = capacitydata.detailed[fietstypeName];
   if(capacityForFietstype && capacityForFietstype.Capaciteit) {
-    return capacityForFietstype.Capaciteit;
+    return Number(capacityForFietstype.Capaciteit);
   }
 
   return 0;
@@ -134,6 +145,47 @@ const toggleActive = (fietsenstalling_secties, fietstypeName, isActive): {
   return fietsenstalling_secties;
 }
 
+const handleCapacityChange = (fietsenstalling_secties, fietstypeName, amount): {
+  fietsenstalling_secties: any,
+  fietstypeName: String, // 'fietstype'
+  amount: Number      // 'Toegestaan'
+} => {
+  // It's mandatory to have at least 1 section
+  if(! fietsenstalling_secties) return fietsenstalling_secties;
+  if(! fietsenstalling_secties[0]) return fietsenstalling_secties;
+  if(! fietsenstalling_secties[0].secties_fietstype) return fietsenstalling_secties;
+
+  let didUpdateSomething = false;
+  // Update the isActive/'Toegestaan' value for the 'fietstype' given
+  fietsenstalling_secties[0].secties_fietstype =
+    fietsenstalling_secties[0].secties_fietstype.map(x => {
+      if(x.fietstype.Name === fietstypeName) {
+        didUpdateSomething = true;
+      }
+      // Update 'Toegestaan' value if needed
+      return {
+        Capaciteit: x.fietstype.Name === fietstypeName ? amount : x.Capaciteit,
+        fietstype: x.fietstype,
+        Toegestaan: x.Toegestaan
+      }
+    });
+  
+  if(! didUpdateSomething) {
+    // If above script didn't update a value, we should add this fietstypeName
+    const newObject = {
+      Toegestaan: false,
+      Capaciteit: amount,
+      fietstype: {
+        Name: fietstypeName
+      }
+    }
+    // Add new object for this fietstype
+    fietsenstalling_secties[0].secties_fietstype.push(newObject);
+  }
+
+  return fietsenstalling_secties;
+}
+
 const ParkingEditCapaciteit = ({
   parkingdata,
   capaciteitChanged,
@@ -159,7 +211,6 @@ const ParkingEditCapaciteit = ({
   let content = null;
 
   const capacitydata = calculateCapacityData(parkingdata);
-  // console.log("#### update", update);
   // console.log("#### capacitydata", capacitydata, '#### parkingdata', parkingdata);
 
   if (capacitydata===null || capacitydata?.unknown) {
@@ -201,7 +252,7 @@ const ParkingEditCapaciteit = ({
     <>
       <div className="ml-2 grid grid-cols-4">
         {allFietstypen.map(x => {
-          const capacity = getCapacityForFietstype(x.Name, capacitydata);
+          const capacity = getCapacityForFietstype(x.Name, capacitydata, update.fietsenstalling_secties);
           const isAllowed = getAllowedValueForFietstype(x.Name, capacitydata, update.fietsenstalling_secties);
           return <React.Fragment key={x.ID}>
             <div className="col-span-2 flex flex-col justify-center">
@@ -210,15 +261,23 @@ const ParkingEditCapaciteit = ({
             <div className="flex flex-col justify-center">
               <FormInput
                 type="number"
-                value={capacity}
+                defaultValue={capacity}
                 size="4"
-                onChange={() => {}}
+                onChange={(e) => {
+                  const newFietsenstallingSecties = handleCapacityChange(parkingdata.fietsenstalling_secties, x.Name, e.target.value);
+                  const getNewCapacity = () => {
+                    let newCapacity = parkingdata;
+                    newCapacity.fietsenstalling_secties = newFietsenstallingSecties;
+                    return newCapacity;
+                  };
+                  capaciteitChanged(getNewCapacity().fietsenstalling_secties)
+                }}
                 style={{width: '100px'}}
               />
             </div>
             <div className=" flex flex-col justify-center">
               <FormCheckbox
-                checked={isAllowed}
+                defaultChecked={isAllowed}
                 onChange={e => {
                   const newFietsenstallingSecties = toggleActive(parkingdata.fietsenstalling_secties, x.Name, e.target.checked);
                   const getNewCapacity = () => {

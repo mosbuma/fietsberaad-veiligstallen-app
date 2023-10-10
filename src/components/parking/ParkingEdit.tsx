@@ -513,24 +513,24 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
     //console.log("#### got parkingdata", JSON.stringify(parkingdata, null, 2));
 
-  // console.log("### ParkingViewBeheerder", parkingdata, parkingdata.Exploitant, parkingdata.Beheerder, parkingdata.BeheerderContact);
-  if (parkingdata.FMS === true) {
-    content = <SectionBlock heading="Beheerder">FMS</SectionBlock>;
-  }  else if(parkingdata?.exploitant) {
-    content = (
-      <SectionBlock heading="Beheerder">
-      <a href={'mailto:'+parkingdata.exploitant.Helpdesk}>{parkingdata.exploitant.CompanyName}</a>
-      </SectionBlock>
-    )
-  } else if(parkingdata.BeheerderContact !== null) {
-    content = (
-      <SectionBlock heading="Beheerder">
-        <a href={parkingdata.BeheerderContact}>{parkingdata.Beheerder === null ? 'contact' : parkingdata.Beheerder}</a>
-      </SectionBlock>
-      );
-  } else {
-    content = null
-  }
+    // console.log("### ParkingViewBeheerder", parkingdata, parkingdata.Exploitant, parkingdata.Beheerder, parkingdata.BeheerderContact);
+    if (parkingdata.FMS === true) {
+      content = <SectionBlock heading="Beheerder">FMS</SectionBlock>;
+    }  else if(parkingdata?.exploitant) {
+      content = (
+        <SectionBlock heading="Beheerder">
+        <a href={'mailto:'+parkingdata.exploitant.Helpdesk}>{parkingdata.exploitant.CompanyName}</a>
+        </SectionBlock>
+      )
+    } else if(parkingdata.BeheerderContact !== null) {
+      content = (
+        <SectionBlock heading="Beheerder">
+          <a href={parkingdata.BeheerderContact}>{parkingdata.Beheerder === null ? 'contact' : parkingdata.Beheerder}</a>
+        </SectionBlock>
+        );
+    } else {
+      content = null
+    }
 
     return (
       <div className="flex justify-between w-full mt-10">
