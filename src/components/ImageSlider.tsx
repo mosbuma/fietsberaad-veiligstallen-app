@@ -30,7 +30,7 @@ const ImageSlider = ({
     } else {
       newurl = `https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`
     }
-    console.log('got newurl', newurl);
+    // console.log('got newurl', newurl);
     return newurl;
   }
 

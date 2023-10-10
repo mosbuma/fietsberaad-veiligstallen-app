@@ -39,14 +39,14 @@ export type ParkingDetailsType = {
     fietsenstalling_secties: {
         titel: string,
         secties_fietstype: // base data for capacity
-            {
-                Toegestaan: boolean | null,
-                Capaciteit: number | null,
-                fietstype: {
-                    Name: string // Assuming Name is of type string
-                } 
-            }[]
-        }[],
+        {
+            Toegestaan: boolean | null,
+            Capaciteit: number | null,
+            fietstype: {
+                Name: string // Assuming Name is of type string
+            }
+        }[]
+    }[],
     abonnementsvorm_fietsenstalling: {
         abonnementsvormen: {
             ID: string,

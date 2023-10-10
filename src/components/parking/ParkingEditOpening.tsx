@@ -107,7 +107,6 @@ const formatOpeningTimesForEdit = (
               size={4}
               style={{width: '80px', borderRadius: '10px 0 0 10px', textAlign: 'right'}}
               onChange={handlerChange(day, false, true)}
-              
             />  
           <FormInput
               type="number"
@@ -166,7 +165,6 @@ const setMinutesInDate = (date: Date, newMinutes: number): Date => {
 
 const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any, openingChanged: Function }) => {
   const startValues = extractParkingFields(parkingdata);
-  // const [currentValues, setCurrentValues ] = useState<OpeningDetailsType>(extractParkingFields(parkingdata));
   const [changes, setChanges ] = useState<OpeningChangedType>({});
   const [openingstijden, setOpeningstijden ] = useState<string|undefined>(undefined);
 
@@ -178,25 +176,7 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     }
   }, [changes, openingstijden]);
 
-  const handleChangeChecks = (day: DayPrefix, is24hourscheck: boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const openkey = getOpenTimeKey(day)
-    const dichtkey = getDichtTimeKey(day);
-
-    if(e.target.checked) {
-      const newopen = new Date(0);
-
-      // add 24 hours for full day open, otherwise 0 for full day closed
-      const newdicht = new Date(is24hourscheck ? (86340*1000): 0);
-
-      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
-    } else {
-      const newopen = setHourInDate(new Date(0), 10);
-      const newdicht = setHourInDate(new Date(0), 17);
-
-      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
-    }
-  }
-
+  // Function that runs if the capacity changes
   const handleChange = (day: DayPrefix, isOpeningTime:boolean, isHoursField:boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
 
@@ -226,6 +206,27 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     setChanges({...changes, [key]: newtime});
   }
 
+  // Function that runs if the active state changes
+  const handleChangeChecks = (day: DayPrefix, is24hourscheck: boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const openkey = getOpenTimeKey(day)
+    const dichtkey = getDichtTimeKey(day);
+
+    if(e.target.checked) {
+      const newopen = new Date(0);
+
+      // add 24 hours for full day open, otherwise 0 for full day closed
+      const newdicht = new Date(is24hourscheck ? (86340*1000): 0);
+
+      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
+    } else {
+      const newopen = setHourInDate(new Date(0), 10);
+      const newdicht = setHourInDate(new Date(0), 17);
+
+      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
+    }
+  }
+
+  // Function that runs if extra description field changes
   const handleChangeOpeningstijden = () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if(e.target.value===parkingdata.Openingstijden) {
       setOpeningstijden(undefined);
@@ -236,7 +237,8 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
 
   const data = Object.assign(
     {...startValues},
-    {...changes});
+    {...changes}
+  );
 
   return (
     <div className="flex flex-col">

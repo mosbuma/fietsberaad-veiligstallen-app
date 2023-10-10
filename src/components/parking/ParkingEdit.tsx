@@ -32,8 +32,8 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const router = useRouter();
   const session = useSession();
 
-  const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');  
-  // const [selectedTab, setSelectedTab] = React.useState('tab-afbeelding');  
+  // const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');
+  const [selectedTab, setSelectedTab] = React.useState('tab-capaciteit');  
 
   const [newTitle, setNewTitle ] = React.useState(undefined);
   const [newLocation, setNewLocation ] = React.useState(undefined);
@@ -41,8 +41,10 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const [newPlaats, setNewPlaats ] = React.useState(undefined);
   const [newCoordinaten, setNewCoordinaten ] = React.useState<string|undefined>(undefined);
 
-  // used for map recentre when coordinates are manually changed
+  // used for map recenter when coordinates are manually changed
   const [centerCoords, setCenterCoords ] = React.useState<string|undefined>(undefined); 
+
+  type FietsenstallingSectiesType = { [key: string]: Array[] }
 
   type ServiceType = { ID: string, Name: string};
   type ChangedType = { ID: string, selected: boolean};
@@ -50,8 +52,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
   const [newServices, setNewServices ] = React.useState<ChangedType[]>([]);
 
-  const [newCapacity, setNewCapacity ] = React.useState<any[]>([]);
-
+  const [newCapaciteit, setNewCapaciteit ] = React.useState<any>([]); // capaciteitschema
   const [newOpening, setNewOpening ] = React.useState<any>(undefined); // openingstijdenschema
   const [newOpeningstijden, setNewOpeningstijden ] = React.useState<string|undefined>(undefined); // textveld afwijkende openingstijden
 
@@ -104,14 +105,93 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
     }
 
+    // COULDDO: Save data in update object only, to update parkingdata as 1 full object
+    // console.log('>> parkingdata', parkingdata)
+    // if(undefined!==newCapaciteit) {
+    //   update.fietsenstalling_sectie = newCapaciteit as FietsenstallingSectiesType
+    // }
+    // console.log('>> update', update)
+
     if(undefined!==newOpeningstijden) {
       if(newOpeningstijden !== parkingdata.Openingstijden) {
         update.Openingstijden = newOpeningstijden;
       }
-    } 
+    }
 
     // console.log("got update", JSON.stringify(update,null,2));
     return update;
+  }
+
+  const updateServices = async (parkingdata, newServices) => {
+    try {
+      // Delete existing services for this parking
+      await fetch(
+        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
+        { method: "DELETE" }
+      );
+      // Create servicesToSave object
+      const servicesToSave: {}[] = [];
+      // - First, add existing services
+      parkingdata.fietsenstallingen_services.forEach(x => {
+        // To be removed?
+        const doRemove = newServices.filter(s => s.ID === x.services.ID && ! s.selected).pop();
+        if(! doRemove) {
+          servicesToSave.push({
+            ServiceID: x.services.ID,
+            FietsenstallingID: parkingdata.ID,
+          });          
+        }
+      })
+      // - Second, add new services
+      newServices.forEach(s => {
+        // Don't add if service is not selected
+        if(! s.selected) return;
+
+        servicesToSave.push({
+          ServiceID: s.ID,
+          FietsenstallingID: parkingdata.ID,
+        });
+      });
+      // Create parking services in database
+      await fetch(
+        "/api/fietsenstallingen_services/create",
+        {
+          method: "POST",
+          body: JSON.stringify(servicesToSave),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  const updateCapaciteit = async (parkingdata, newCapaciteit) => {
+    if(! newCapaciteit || newCapaciteit.length <= 0) return;
+    console.log('parkingdata, newCapaciteit', parkingdata, newCapaciteit)
+    try {
+      // Get section to save
+      const sectionToSaveResponse = await fetch('/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID='+parkingdata.ID);
+      const sectionToSave = await sectionToSaveResponse.json();
+      const sectionId = sectionToSave.sectieId;
+      
+      // Save capaciteit
+      const savedCapaciteit = await fetch('/api/fietsenstalling_sectie/saveManyFromFullObject', {
+        method: 'POST',
+        body: JSON.stringify({
+          parkingId: parkingdata.ID,
+          sectionId: sectionId,
+          parkingSections: newCapaciteit
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        }
+      })
+    } catch(err) {
+      console.error(err);
+    }
   }
 
   const updateParking = async () => {
@@ -120,57 +200,24 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
     // Check if parking was changed
     const update = getUpdate();
-    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
+    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
 
     // If services are updated: Update services
     if(newServices.length > 0) {
-      try {
-        // Delete existing services for this parking
-        await fetch(
-          "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
-          { method: "DELETE" }
-        );
-        // Create servicesToSave object
-        const servicesToSave: {}[] = [];
-        // - First, add existing services
-        parkingdata.fietsenstallingen_services.forEach(x => {
-          // To be removed?
-          const doRemove = newServices.filter(s => s.ID === x.services.ID && ! s.selected).pop();
-          if(! doRemove) {
-            servicesToSave.push({
-              ServiceID: x.services.ID,
-              FietsenstallingID: parkingdata.ID,
-            });          
-          }
-        })
-        // - Second, add new services
-        newServices.forEach(s => {
-          // Don't add if service is not selected
-          if(! s.selected) return;
+      updateServices(parkingdata, newServices);
+    }
 
-          servicesToSave.push({
-            ServiceID: s.ID,
-            FietsenstallingID: parkingdata.ID,
-          });
-        });
-        // Create parking services in database
-        await fetch(
-          "/api/fietsenstallingen_services/create",
-          {
-            method: "POST",
-            body: JSON.stringify(servicesToSave),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } catch(err) {
-        console.error(err);
-      }
+    // If capaciteit is updated: Update capaciteit
+    if(newCapaciteit.length > 0) {
+      updateCapaciteit(parkingdata, newCapaciteit);
     }
 
     // If parking data didn't change: stop
     if(!parkingChanged) {
+      // Go back to 'view' mode
+      onChange();
+      onClose();
+      // Stop executing
       return;
     }
 
@@ -188,9 +235,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       if(! result.ok) {
         throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
       }
-      // Reload data
-      // const randomstr = Math.floor(Math.random() * 1000000)
-      // router.push("?stallingid=" + parkingdata.ID + `&editmode&revision=${randomstr}` ); // refreshes the page to show the edits
       // Go back to 'view' mode
       onChange();
       onClose();
@@ -201,7 +245,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   };
 
   const update = getUpdate()
-  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
+  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
 
   // console.log("@@@ parkingdata", parkingdata);
 
@@ -248,10 +292,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   }
 
-  const handleUpdateCapacity = () => {
-    setNewCapacity(null);
-  }
-    
   const renderTabAlgemeen = () => {
     const serviceIsActive = (ID: string): boolean => {
       const change = newServices.find(s=>(s.ID===ID));
@@ -392,12 +432,14 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
       setNewOpening(tijden);
       setNewOpeningstijden(Openingstijden);
-
       return;
     }
     return ( 
       <div className="flex justify-between w-full mt-10">
-        <ParkingEditOpening parkingdata={parkingdata} openingChanged={handlerSetNewOpening}/>
+        <ParkingEditOpening
+          parkingdata={parkingdata}
+          openingChanged={handlerSetNewOpening}
+        />
       </div>);
   }
 
@@ -428,15 +470,18 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
     
   const renderTabCapaciteit = () => {
-    // return ( 
-    //   <div className="flex justify-between w-full mt-10">
-    //     <ParkingViewCapaciteit parkingdata={parkingdata} />
-    //   </div>
-    // );
+    const handlerSetNewCapaciteit = (capaciteit: any): void => {
+      setNewCapaciteit(capaciteit);
+      return;
+    }
     return (
       <div className="flex justify-between w-full mt-10">
         <SectionBlockEdit heading="Capaciteit">
-          <ParkingEditCapaciteit parkingdata={parkingdata} onUpdate={handleUpdateCapacity} />
+          <ParkingEditCapaciteit
+            parkingdata={parkingdata}
+            update={update}
+            capaciteitChanged={handlerSetNewCapaciteit}
+          />
         </SectionBlockEdit>
       </div>
     );

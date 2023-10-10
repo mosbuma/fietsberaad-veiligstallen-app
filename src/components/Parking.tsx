@@ -25,12 +25,13 @@ const Parking = ({ parkingID, startInEditMode=false }: { parkingID: string, star
       return;
     }
 
-    console.log(`***** getParkingDetails ${stallingId} -R ${currentRevision} ******`);
+    // console.log(`***** getParkingDetails ${stallingId} -R ${currentRevision} ******`);
     getParkingDetails(stallingId).then((stalling) => {
       setCurrentStalling(stalling);
     });
   }, [
-    parkingID, currentRevision
+    parkingID,
+    currentRevision
   ]);
 
   const handleCloseEdit = () => {
