@@ -12,7 +12,9 @@
     "start-db": "docker start veiligstallen-mysql",
     "stop-db": "docker stop veiligstallen-mysql",
     "remove-db": "docker stop veiligstallen-mysql && docker rm veiligstallen-mysql",
-    "deploy": "cd scripts && bash deploy.sh"
+    "deploy": "cd scripts && bash deploy.sh",
+    "docker-build": "docker build -t nextjs-docker .",
+    "docker-run": "docker run -p 3000:3000 nextjs-docker"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",

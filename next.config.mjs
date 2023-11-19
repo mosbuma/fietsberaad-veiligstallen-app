@@ -42,7 +42,8 @@ const config = {
         pathname: '*/**',
       },
     ],
-  }
+  },
+  output: 'standalone',
 };
 
 const nextConfig = withPWA({

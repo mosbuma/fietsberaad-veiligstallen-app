@@ -76,3 +76,10 @@ Get municipality based on latitude/longitude:
 Error response:
 
     https://api.dashboarddeelmobiliteit.nl/dashboard-api/public/get_municipality_based_on_latlng?location=52.0,7.5
+
+
+## create a docker image for the veiligstallen application
+- make sure that your .env file containers the settings that should be used server side (your development settings can be set in .env.local: this overrides the .env settings)
+- first make sure that the prisma binaries have been generated (npx prisma generate)
+- next create the docker container using the 'npm run docker-build' command
+- the docker image can be started locally by running 'npm run docker-run'

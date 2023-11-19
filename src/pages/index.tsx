@@ -47,7 +47,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { getParkingDetails, generateRandomId } from "~/utils/parkings";
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context:any) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
     // console.log(">>>>> session", session);
