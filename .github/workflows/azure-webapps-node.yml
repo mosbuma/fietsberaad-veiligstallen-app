@@ -48,6 +48,7 @@ jobs:
 
       - name: npm install, build, and test
         run: |
+          cat .env
           npm install
           npm run build
           mv ./build/static ./build/standalone/build
