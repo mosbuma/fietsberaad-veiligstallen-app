@@ -66,5 +66,5 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ vars.AZURE_APP_NAME}}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_VEILIGSTALLEN }}
+          publish-profile: ${{ vars.AZUREAPPSERVICE_PUBLISHPROFILE_VEILIGSTALLEN }}
           package: ./build/standalone
