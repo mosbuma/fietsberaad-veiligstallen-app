@@ -5,7 +5,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "postinstall": "prisma generate",
+    "postinstall-do-not-use": "prisma generate",
     "lint": "next lint",
     "start": "next start",
     "setup-db": "cd mysql-db && bash setup-db.sh && cd .. && prisma db pull --force && prisma generate",
