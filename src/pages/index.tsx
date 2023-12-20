@@ -60,14 +60,16 @@ export async function getServerSideProps(context:any) {
       props: {
         fietsenstallingen: fietsenstallingen,
         online: true,
+        message: "",
       },
     };
   } catch (ex: any) {
-    // console.error("index.getStaticProps - error: ", ex.message);
+    console.error("index.getServerSideProps - error: ", ex.message);
     return {
       props: {
         fietsenstallingen: [],
         online: false,
+        message: ex.message,
       },
     };
   }
@@ -76,6 +78,7 @@ export async function getServerSideProps(context:any) {
 const Home: NextPage = ({
   fietsenstallingen,
   online,
+  message
 }: any) => {
   const router = useRouter();
   const { query} = useRouter();
@@ -236,7 +239,7 @@ const Home: NextPage = ({
     return (
       <>
         <main className="flex-grow">
-          <h1>Database offline</h1>
+          <h1>Database offline {message} </h1>
         </main>
       </>
     );
