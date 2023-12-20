@@ -13,7 +13,7 @@ import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilities from "~/components/ParkingFacilities";
 
 // Fetch all posts (in /pages/index.tsx)
-export async function getStaticProps() {
+export async function getServerSideProps() {
   const fietsenstallingen = await prisma.fietsenstallingen.findMany({
     // where: {
     //   Plaats: {
