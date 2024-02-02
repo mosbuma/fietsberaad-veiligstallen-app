@@ -9,7 +9,7 @@ const makeStore = () =>
   });
 
 // @ts-ignore
-export type AppState = ReturnType<typeof RootState>;
+export type AppState = RootState;
 export type AppStore = ReturnType<typeof makeStore>;
 export type AppDispatch = AppStore["dispatch"];
 export type AppThunk<ReturnType = void> = ThunkAction<

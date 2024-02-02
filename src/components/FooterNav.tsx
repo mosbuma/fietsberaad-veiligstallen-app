@@ -1,6 +1,6 @@
-// @ts-nocheck
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { articles } from "@prisma/client";
 
 import {
   getNavigationItemsForMunicipality,
@@ -22,26 +22,30 @@ const FooterNavItem = ({
     ${className}
     mx-2
   `}
-  onClick={(e) => {
-    e.preventDefault();
+    onClick={(e) => {
+      e.preventDefault();
 
-      push(url);
-  }}
+      console.log("*** onclick FooterNavItem ***");
+
+      if (url) {
+        push(url);
+      }
+    }}
   >
     {children}
   </a>
 }
 
 const FooterNav = () => {
-  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+  const [fietsberaadArticles, setFietsberaadArticles] = useState<articles[]>([]);
 
- // Get menu items for siteId 1 (Fietsberaad)
+  // Get menu items for siteId 1 (Fietsberaad)
   useEffect(() => {
     (async () => {
-      const response = await getNavigationItemsForMunicipality(1);
+      const response = await getNavigationItemsForMunicipality("1");
       setFietsberaadArticles(response);
     })();
-   }, []);
+  }, []);
 
   const navItemsPrimary = [
     // { title: 'Stalling toevoegen' },
@@ -74,11 +78,11 @@ const FooterNav = () => {
         url={x.url}
         className="font-bold"
       >
-        {x.title}        
+        {x.title}
       </FooterNavItem>)}
 
-      {footerMenuItems ? footerMenuItems.map((x,idx) => <FooterNavItem
-        key={'pmi-f-'+idx}
+      {footerMenuItems ? footerMenuItems.map((x, idx) => <FooterNavItem
+        key={'pmi-f-' + idx}
         url={`/fietsberaad/${x.Title ? x.Title : ''}`}
       >
         {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}

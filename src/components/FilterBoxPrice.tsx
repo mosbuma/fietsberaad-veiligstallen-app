@@ -1,8 +1,3 @@
-// @ts-nocheck
-
-import { useState } from "react";
-import { FilterState } from "~/store/filterSlice";
-
 import { RadioButton } from "~/components/Button";
 
 export type FilterBoxPriceOption = {

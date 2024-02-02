@@ -5,6 +5,7 @@ import { AppState } from "~/store/store";
 import { useRouter } from 'next/router'
 
 import { setTypes } from "~/store/filterSlice";
+import { getQueryParameterString } from "~/utils/query";
 
 import FilterBoxList, {
   updateActiveTypeStates,
@@ -55,7 +56,7 @@ const ALL_PARKING_TYPES = [
   },
 ];
 
-function ActiveFilters({}: {}) {
+function ActiveFilters({ }: {}) {
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -63,34 +64,21 @@ function ActiveFilters({}: {}) {
     (state: AppState) => state.filter.activeTypes
   );
 
-  const isAuthenticated = useSelector(
-    (state: AppState) => state.map.municipality.code
-  );
-
   // If setFilter query param is set, set filter accordingly
   // Example URL: /?typesFilter=bewaakt,toezicht
   React.useEffect(() => {
-    if(! router.query || ! router.query.typesFilter) {
+    const filterParams = getQueryParameterString(router.query, "typesFilter");
+    if (undefined === filterParams) {
       return;
     }
-
-    const filterParams = router.query.typesFilter;
     setFilterFromParams(filterParams);
   }, [
     router.query
   ])
 
-  const setFilterFromParams = (params) => {
-    // Make an array out of params
-    const paramsArray = params.split(',');
-    // Stop if no params were found
-    if(! paramsArray || paramsArray.length <= 0) return;
-    // Loop parms
-    const typesFilter = [];
-    paramsArray.forEach(x => {
-      typesFilter.push(x);
-    });
-    // Set in state
+  const setFilterFromParams = (params: string) => {
+    const typesFilter = params.split(',');
+    if (!typesFilter) return;
     dispatch(setTypes(typesFilter));
   }
 
@@ -99,9 +87,9 @@ function ActiveFilters({}: {}) {
   return (
     <>
       <FilterBoxList
-        title={null}
+        title={""}
         options={parkingTypes}
-        onToggleFilter={() => {}}
+        onToggleFilter={() => { }}
       />
     </>
   );

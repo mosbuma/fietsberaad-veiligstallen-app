@@ -1,9 +1,4 @@
-// @ts-nocheck
-
-import { useState } from "react";
-import { FilterState } from "~/store/filterSlice";
-
-import {getParkingColor} from '~/utils/theme';
+import { getParkingColor } from '~/utils/theme';
 
 import { RadioButton } from "~/components/Button";
 

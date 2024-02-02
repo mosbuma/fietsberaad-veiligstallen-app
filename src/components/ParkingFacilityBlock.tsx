@@ -3,34 +3,9 @@ import { useRouter } from "next/navigation";
 import { getParkingColor } from "~/utils/theme";
 import { openRoute } from "~/utils/map/index";
 
-import Styles from "./ParkingFacilityBlock.module.css";
+import { type vsFietsenstallingen } from "~/utils/prisma";
 
-type ParkingType = {
-  ID: string;
-  Title: string;
-  Plaats?: string;
-  Location?: string;
-  Postcode?: any;
-  Status?: any;
-  Coordinaten?: any;
-  Type?: any;
-  Tariefcode?: number;
-  Openingstijden?: string;
-  Open_ma?: string;
-  Dicht_ma?: string;
-  Open_di?: string;
-  Dicht_di?: string;
-  Open_wo?: string;
-  Dicht_wo?: string;
-  Open_do?: string;
-  Dicht_do?: string;
-  Open_vr?: string;
-  Dicht_vr?: string;
-  Open_za?: string;
-  Dicht_za?: string;
-  Open_zo?: string;
-  Dicht_zo?: string;
-}
+import Styles from "./ParkingFacilityBlock.module.css";
 
 const isOpen = (openingTime: Date, closingTime: Date): boolean => {
   const now = new Date();
@@ -90,18 +65,17 @@ function ParkingFacilityBlock({
   compact,
   openParkingHandler,
   expandParkingHandler,
-  showButtons,
+  showButtons = false,
 }: {
   id?: any,
-  parking: ParkingType,
-  openParkingHandler?: Function,
-  showButtons?: false
+  compact: boolean,
+  parking: vsFietsenstallingen,
+  openParkingHandler?: (id: string) => void,
+  expandParkingHandler?: (id: string) => void,
+  showButtons?: boolean
 }) {
-  const { push } = useRouter();
-
-  const locationDescription = `${parking.Location || ""}${
-    parking.Location && parking.Plaats ? ", " : ""
-  }${parking.Plaats ? parking.Plaats : ''}`;
+  const locationDescription = `${parking.Location || ""}${parking.Location && parking.Plaats ? ", " : ""
+    }${parking.Plaats ? parking.Plaats : ''}`;
 
   let costDescription: string | undefined = "";
   switch (parking.Tariefcode) {
@@ -131,22 +105,21 @@ function ParkingFacilityBlock({
 
   const openingDescription = formatOpeningToday(parking);
 
-  const detailsLine = `${costDescription}${
-    costDescription && openingDescription ? "| " : ""
-  }${openingDescription}`;
+  const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
+    }${openingDescription}`;
 
-  if(parking.ExtraServices) {
-    // console.log('parking', parking)
-  }
+  // if (parking.ExtraServices) {
+  //   // console.log('parking', parking)
+  // }
 
   // Set image
   let parkingImageUrl = parking.Image;
   // If no parking image was found: Show default image
-  if(! parkingImageUrl) {
+  if (!parkingImageUrl) {
     parkingImageUrl = `/images/bike-blue-green.png`;
   }
   // If parking has an image URL not starting with http: Create veiligstallen URL
-  else if(! parkingImageUrl.includes('http')) {
+  else if (!parkingImageUrl.includes('http')) {
     parkingImageUrl = `https://static.veiligstallen.nl/library/fietsenstallingen/${parkingImageUrl}`;
   }
 
@@ -170,7 +143,7 @@ function ParkingFacilityBlock({
         }
       `}
       style={{
-        backgroundColor: ! compact ? 'rgba(31, 153, 210, 0.1)' : null
+        backgroundColor: !compact ? 'rgba(31, 153, 210, 0.1)' : undefined
       }}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
@@ -178,7 +151,7 @@ function ParkingFacilityBlock({
           expandParkingHandler(parking.ID);
         }
         // Open parking details if ParkingBlock was already active
-        else if(expandParkingHandler && ! compact) {
+        else if (openParkingHandler && !compact) {
           openParkingHandler(parking.ID);
         }
         // Open parking if no expand handler was given
@@ -203,7 +176,7 @@ function ParkingFacilityBlock({
           <div className="h-6 overflow-hidden sm:h-auto">
             <b className="text-base">{parking.Title}</b>
           </div>
-          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={{locationDescription}}>
+          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={locationDescription}>
             {locationDescription}
           </div>
         </div>
@@ -215,7 +188,7 @@ function ParkingFacilityBlock({
         >
           <div className="">
 
-            {! showButtons && costDescription+' '}
+            {!showButtons && costDescription + ' '}
 
             {showButtons && <div>
               <a
@@ -234,7 +207,7 @@ function ParkingFacilityBlock({
             <div className="hidden sm:inline-block">|</div>
           ) : null}
           <div className="text-right">
-            {! showButtons && openingDescription+' '}
+            {!showButtons && openingDescription + ' '}
           </div>
 
           {(showButtons && parking.Coordinaten) && (<>

@@ -33,12 +33,12 @@ providers.push(
       },
     },
     async authorize(
-      credentials,
+      credentials: Record<"email" | "password", string> | undefined,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       req
-    ): Promise<Account | undefined> {
+    ): Promise<User | undefined> {
       const user = await getUserFromCredentials(credentials);
-      return user;
+      return user ?? null;
     },
   })
 );
@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // augment jwt token with information that will be used on the server side
     async jwt({ user, token, account: accountParam }) {
-      if(token && 'OrgUserID' in token ===false && user) {
+      if (token && 'OrgUserID' in token === false && user) {
         token.OrgUserID = user.OrgUserID;
       }
 
@@ -61,12 +61,12 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session?.user && token?.OrgUserID) {
         const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
-        if(account) {
+        if (account) {
           session.user.OrgUserID = token.orgUserID;
           session.user.RoleID = account.RoleID;
 
           const sites = await prisma.security_users_sites.findMany({ where: { UserID: token.OrgUserID } });
-          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID||-1 } });
+          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID || -1 } });
 
           session.user.sites = sites.map((s) => s.SiteID);
           session.user.GroupID = role?.GroupID;

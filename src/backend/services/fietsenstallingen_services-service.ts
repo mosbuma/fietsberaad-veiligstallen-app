@@ -8,9 +8,11 @@ const FietsenstallingenServicesService: ICrudService<fietsenstallingen_services>
     return await prisma.fietsenstallingen_services.findMany();
   },
   getOne: async (fietsenstallingId: string) => {
-    return await prisma.fietsenstallingen_services.findFirst({ where: {
-      FietsenstallingID: fietsenstallingId
-    } });
+    return await prisma.fietsenstallingen_services.findFirst({
+      where: {
+        FietsenstallingID: fietsenstallingId
+      }
+    });
   },
   create: async (_data: fietsenstallingen_services): Promise<fietsenstallingen_services> => {
     return await prisma.fietsenstallingen_services.create({ data: _data });
@@ -19,15 +21,17 @@ const FietsenstallingenServicesService: ICrudService<fietsenstallingen_services>
     _id: string,
     _data: fietsenstallingen_services
   ): Promise<fietsenstallingen_services> => {
-    return await prisma.fietsenstallingen_services.update({
-      where: { ID: _id },
-      data: _data,
-    });
+    throw new Error("Not implemented");
+    // return await prisma.fietsenstallingen_services.update({
+    //   where: { ID: _id },
+    //   data: _data,
+    // });
   },
   delete: async (_fietsenstallingId: string): Promise<fietsenstallingen_services> => {
-    return await prisma.fietsenstallingen_services.delete({
-      where: { FietsenstallingID: _fietsenstallingId }
-    });
+    throw new Error("Not implemented");
+    // return await prisma.fietsenstallingen_services.delete({
+    //   where: { FietsenstallingID: _fietsenstallingId }
+    // });
   },
   // deleteMany: async (where): Promise<fietsenstallingen_services> => {
   //   return await prisma.fietsenstallingen_services.deleteMany({

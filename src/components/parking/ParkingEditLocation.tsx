@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as React from "react";
 import maplibregl from "maplibre-gl";
 // import {
@@ -25,11 +24,11 @@ function ParkingEditLocation({
   parkingCoords,
   centerCoords,
   onPan,
-}): React.ReactElement<{
-  parkingCoords: string;
-  centerCoords: string | undefined;
-  onPan: Function<{ lat: number; lng: number }>;
-}> {
+}: {
+  parkingCoords: string,
+  centerCoords: string,
+  onPan: Function,
+}): React.ReactElement {
   // this is where the map instance will be stored after initialization
   const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
 
@@ -58,12 +57,13 @@ function ParkingEditLocation({
     }
 
     // otherwise, create a map instance
+    const style: maplibregl.StyleSpecification = nine3030 as maplibregl.StyleSpecification;
     const mapboxMap = new maplibregl.Map({
       container: node,
-      accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
+      // accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
       // style: "maplibre://styles/mapbox/streets-v11",
-      style: nine3030,
-      center: ccoords ? [ccoords[1], ccoords[0]] : [52.508011, 5.47328],
+      style,
+      center: ccoords ? [ccoords[1] || 52.508011, ccoords[0] || 5.47328] : [52.508011, 5.47328],
       zoom: 16,
     });
 
@@ -90,7 +90,9 @@ function ParkingEditLocation({
       if (stateMap) {
         let coords = centerCoords.split(",").map((coord: any) => Number(coord));
         try {
-          stateMap.setCenter([coords[1], coords[0]]);
+          if (coords[1] && coords[0]) {
+            stateMap.setCenter([coords[1], coords[0]]);
+          }
         } catch (e) {
           console.warn("invalid manual location @", coords);
         }
@@ -151,12 +153,12 @@ function ParkingEditLocation({
       });
 
       // Highlight one and only active marker
-      highlighMarker(stateMap, -1);
+      highlighMarker(stateMap, "-1");
     }
   }, [stateMap, parkingCoords]);
 
   // Function that's called if map is loaded
-  const onMapLoaded = (mapboxMap) => {
+  const onMapLoaded = (mapboxMap: maplibregl.Map) => {
     // Save map as local variabele
     setStateMap(mapboxMap);
     // Disable drag and zoom handlers.
@@ -178,7 +180,7 @@ function ParkingEditLocation({
     ]);
   };
 
-  const cursorStyle = {
+  const cursorStyle: React.CSSProperties = {
     position: "absolute",
     top: "50%",
     left: "50%",

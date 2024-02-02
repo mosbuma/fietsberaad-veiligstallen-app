@@ -1,23 +1,7 @@
-// @ts-nocheck
-import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setAuthState } from "~/store/authSlice";
-import { AppState } from "~/store/store";
+import React from "react";
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 
-// Import components
-import Modal from "src/components/Modal";
-import AppNavigationMobile from "~/components/AppNavigationMobile";
-import {Button} from "~/components/Button";
-
-import {
-  setIsMobileNavigationVisible
-} from "~/store/appSlice";
-
-// Import components
-import Logo from './Logo';
-import PageTitle from "~/components/PageTitle";
+import { Button } from "~/components/Button";
 
 function WelcomeToMunicipality({
   municipalityInfo,
@@ -28,7 +12,7 @@ function WelcomeToMunicipality({
 }) {
   const { push } = useRouter();
 
-  if(! municipalityInfo) {
+  if (!municipalityInfo) {
     return <div>
       Leuk dat je VeiligStallen gebruikt!
     </div>
@@ -55,9 +39,9 @@ function WelcomeToMunicipality({
       my-6
       text-red-500
     "
-    style={{
-      color: `#${municipalityInfo.ThemeColor1}`
-    }}
+      style={{
+        color: `#${municipalityInfo.ThemeColor1}`
+      }}
     >
       Welkom in {municipalityInfo.CompanyName}
     </h1>
@@ -74,13 +58,15 @@ function WelcomeToMunicipality({
           const url = `/${municipalityInfo.UrlName}?typesFilter=bewaakt,onbewaakt,toezicht,geautomatiseerd`;
           push(url);
           // Close modal
-          buttonClickHandler();
+          if (buttonClickHandler) {
+            buttonClickHandler();
+          }
         }}
-        className="mx-auto inline-block w-full py-3 text-center max-w-xs"
-        style={{
-          backgroundColor: `#${municipalityInfo.ThemeColor1}`,
-          color: `#fff`
-        }}
+          className="mx-auto inline-block w-full py-3 text-center max-w-xs"
+          style={{
+            backgroundColor: `#${municipalityInfo.ThemeColor1}`,
+            color: `#fff`
+          }}
         >
           Zoek een openbare stalling
         </Button>
@@ -92,13 +78,15 @@ function WelcomeToMunicipality({
           const url = `/${municipalityInfo.UrlName}?typesFilter=buurtstalling,fietstrommel,fietskluizen`;
           push(url);
           // Close modal
-          buttonClickHandler();
+          if (buttonClickHandler) {
+            buttonClickHandler();
+          }
         }}
-        className="mx-auto inline-block w-full py-3 text-center max-w-xs"
-        style={{
-          backgroundColor: `#${municipalityInfo.ThemeColor1}`,
-          color: `#fff`
-        }}
+          className="mx-auto inline-block w-full py-3 text-center max-w-xs"
+          style={{
+            backgroundColor: `#${municipalityInfo.ThemeColor1}`,
+            color: `#fff`
+          }}
         >
           Zoek een prive stalling
         </Button>
@@ -110,7 +98,9 @@ function WelcomeToMunicipality({
         e.preventDefault();
         push(`/${municipalityInfo.UrlName}/home`);
         // Close modal
-        buttonClickHandler();
+        if (buttonClickHandler) {
+          buttonClickHandler();
+        }
       }}>
         Parkeren in {municipalityInfo.CompanyName} - Hoe werkt het?
       </a>

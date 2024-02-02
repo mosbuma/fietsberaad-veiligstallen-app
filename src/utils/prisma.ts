@@ -1,9 +1,74 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type fietsenstallingen } from "@prisma/client";
+import { ISODateString } from "next-auth";
 import { prisma } from "~/server/db";
 
-const getParkingsFromDatabase = async (sites:any) => {
+export type vsFietsenstallingen = 
+  {
+    ID: string,
+    StallingsID: string | null,
+    SiteID: string | null,
+    Title: string | null,
+    StallingsIDExtern: string | null,
+    Description: string | null,
+    Image: string | null,
+    Location: string | null,
+    Postcode: string | null,
+    Plaats: string | null,
+    Capacity: number | null,
+    Openingstijden: string | null,
+    Status: string | null,
+    EditorCreated: string | null,
+    DateCreated: ISODateString | null,
+    EditorModified: string | null,
+    DateModified: ISODateString | null,
+    Ip: string | null,
+    Coordinaten: string | null,
+    Type: string | null,
+    Verwijssysteem: boolean,
+    VerwijssysteemOverzichten: boolean | null,
+    FMS: boolean,
+    Open_ma: ISODateString | null,
+    Dicht_ma: ISODateString | null,
+    Open_di: ISODateString | null,
+    Dicht_di: ISODateString | null,
+    Open_wo: ISODateString | null,
+    Dicht_wo: ISODateString | null,
+    Open_do: ISODateString | null,
+    Dicht_do: ISODateString | null,
+    Open_vr: ISODateString | null,
+    Dicht_vr: ISODateString | null,
+    Open_za: ISODateString | null,
+    Dicht_za: ISODateString | null,
+    Open_zo: ISODateString | null,
+    Dicht_zo: ISODateString | null,
+    OmschrijvingTarieven: string | null,
+    IsStationsstalling: boolean,
+    IsPopup: boolean,
+    NotaVerwijssysteem: string | null,
+    Tariefcode: number | null,
+    Toegangscontrole: number | null,
+    Beheerder: string | null,
+    BeheerderContact: string | null,
+    Url: string | null,
+    ExtraServices: string | null,
+    dia: string | null,
+    BerekentStallingskosten: boolean,
+    AantalReserveerbareKluizen: number,
+    MaxStallingsduur: number,
+    HeeftExterneBezettingsdata: boolean,
+    ExploitantID: string | null,
+    hasUniSectionPrices: boolean,
+    hasUniBikeTypePrices: boolean,
+    shadowBikeparkID: string | null,
+    BronBezettingsdata: string | null,
+    // reservationCostPerDay: Prisma.Decimal | null,
+    wachtlijst_Id: string | null,
+    // freeHoursReservation: Prisma.Decimal | null,
+    thirdPartyReservationsUrl: string | null,
+  }
 
-  let fietsenstallingen;
+const getParkingsFromDatabase = async (sites:string[]): Promise<vsFietsenstallingen[]>  => {
+  let fietsenstallingen: fietsenstallingen[];
 
   if(sites.length===0) {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
@@ -62,7 +127,7 @@ const getParkingsFromDatabase = async (sites:any) => {
 
   // fietsenstallingen.filter((x: any) => x.Plaats !== "");
 
-  return fietsenstallingen;
+  return fietsenstallingen as vsFietsenstallingen[];
 };
 
 export {

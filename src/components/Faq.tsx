@@ -1,8 +1,6 @@
-import React, {useState, useEffect} from "react";
-import Input from "@mui/material/TextField";
-import { useDispatch, useSelector } from "react-redux";
-
+import React, { useState, useEffect } from "react";
 import Styles from './Faq.module.css';
+import { faq } from '@prisma/client';
 
 import {
   getFaqSections
@@ -10,14 +8,12 @@ import {
 
 function Faq({
 }: {
-}) {
-  const dispatch = useDispatch();
-
-  const [faq, setFaq] = useState([]);
+  }) {
+  const [faq, setFaq] = useState<faq[]>([]);
 
   useEffect(() => {
     (async () => {
-      const response = await getFaqSections('E1991A95-08EF-F11D-FF946CE1AA0578FB');
+      const response: faq[] = await getFaqSections('E1991A95-08EF-F11D-FF946CE1AA0578FB');
       setFaq(response);
     })();
   }, []);
@@ -25,7 +21,7 @@ function Faq({
   return (
     <div className="Faq">
 
-      {faq.map((section) => {
+      {faq.map((section: faq) => {
         return (
           <details className={`${Styles.details}`}>
             <summary className={`
@@ -39,7 +35,7 @@ function Faq({
               {section.sectionTitle}
               {/*<span className="icon">👇</span>*/}
             </summary>
-            <div className="sectionBody p-4">
+            <div className="p-4">
               {section.q_and_a.map((QA) => {
                 return (
                   <details className={Styles.details}>

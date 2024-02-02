@@ -11,6 +11,7 @@ import { prisma } from "~/server/db";
 import MapboxMap from "~/components/MapComponent";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import ParkingFacilities from "~/components/ParkingFacilities";
+import { vsFietsenstallingen } from "~/utils/prisma";
 
 // Fetch all posts (in /pages/index.tsx)
 export async function getServerSideProps() {
@@ -60,7 +61,7 @@ export async function getServerSideProps() {
   };
 }
 
-const Home: NextPage = ({ fietsenstallingen }: any) => {
+const Home = ({ fietsenstallingen }: { fietsenstallingen: vsFietsenstallingen[] }) => {
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
   const [mapmode, setMapmode] = useState(true);
 
@@ -73,7 +74,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       <main>
         <AppHeaderDesktop />
 
-        <ParkingFacilities />
+        <ParkingFacilities fietsenstallingen={fietsenstallingen} />
 
         <div
           className="

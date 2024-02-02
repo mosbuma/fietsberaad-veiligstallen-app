@@ -5,6 +5,7 @@ interface GeoJsonFeature {
     coordinates: number[];
   };
   properties: {
+    id: string;
     title: string;
     location: string;
     plaats: string;
@@ -12,7 +13,9 @@ interface GeoJsonFeature {
   };
 }
 
-const createGeoJson = (input: GeoJsonFeature[]) => {
+import { type ParkingDetailsType } from "~/types/";
+
+const createGeoJson = (input: ParkingDetailsType[]) => {
   let features: GeoJsonFeature[] = [];
 
   input.forEach((x: any) => {
@@ -46,7 +49,7 @@ const createEditGeoJson = (Coordinaten: string) => {
   let features: GeoJsonFeature[] = [];
 
   const coords = Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
-  if(undefined!==coords[0] && undefined!==coords[1]) { 
+  if (undefined !== coords[0] && undefined !== coords[1]) {
     features.push({
       type: "Feature",
       geometry: {
@@ -54,6 +57,7 @@ const createEditGeoJson = (Coordinaten: string) => {
         coordinates: [coords[1], coords[0]],
       },
       properties: {
+        id: "",
         title: "",
         location: "",
         plaats: "",

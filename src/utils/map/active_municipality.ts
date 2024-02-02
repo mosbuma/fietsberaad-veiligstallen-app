@@ -1,20 +1,30 @@
-let controller;
+let controller: AbortController | undefined;
 
-export const getMunicipalityBasedOnLatLng = async (latLng: Array) => {
+export type Municipality = {
+  "municipality": string,
+  "name": string,
+  "owner": string | null,
+  "zone_id": number,
+  "zone_type": string
+}
+
+export const getMunicipalityBasedOnLatLng = async (latLng: Array<Number | undefined>): Promise<Municipality | undefined> => {
   // Abort active fetch call, if any
-  if(controller) controller.abort();
+  if (controller) {
+    controller.abort("operation replaced by new request");
+  }
 
   // Create AbortController
   controller = new AbortController();
   const signal = controller.signal;
 
-  if(! latLng) {
+  if (!latLng) {
     console.log('No latLng given');
-    return;
+    return undefined;
   }
-  if(! latLng[0] || ! latLng[1]) {
+  if (!latLng[0] || !latLng[1]) {
     console.log('No correct latLng given. Given: ', latLng);
-    return;
+    return undefined;
   }
 
   try {
@@ -25,13 +35,14 @@ export const getMunicipalityBasedOnLatLng = async (latLng: Array) => {
     )
     let json = await response.json();
 
-    if(json && json.message && json.message === 'No municipality found for these coordinates') {
+    if (json && json.message && json.message === 'No municipality found for these coordinates') {
       console.error(json.message);
-      return;
+      return undefined;
     }
 
     return json;
   } catch (err) {
-    // console.error('err', err)
+    // console.error('unable to fetch municiplaity', err)
+    return undefined;
   }
 }

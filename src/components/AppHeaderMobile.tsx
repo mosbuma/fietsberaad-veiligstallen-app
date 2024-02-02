@@ -1,5 +1,4 @@
-// @ts-nocheck
-import * as React from "react";
+import React, { MouseEventHandler } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthState } from "~/store/authSlice";
 import { AppState } from "~/store/store";
@@ -17,27 +16,27 @@ import {
 import Logo from './Logo';
 import PageTitle from "~/components/PageTitle";
 
-const PrimaryMenuItem = (props: any) => {
-  return <div className="
-    PrimaryMenuItem
-    px-5
-  ">
-    <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
-    </a>
-  </div>
-}
+// const PrimaryMenuItem = (props: any) => {
+//   return <div className="
+//     PrimaryMenuItem
+//     px-5
+//   ">
+//     <a href="#" className="flex flex-col justify-center h-full">
+//       {props.item}
+//     </a>
+//   </div>
+// }
 
-const SecundaryMenuItem = (props: any) => {
-  return <div className="
-    SecundaryMenuItem
-    px-2
-  ">
-    <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
-    </a>
-  </div>
-}
+// const SecundaryMenuItem = (props: any) => {
+//   return <div className="
+//     SecundaryMenuItem
+//     px-2
+//   ">
+//     <a href="#" className="flex flex-col justify-center h-full">
+//       {props.item}
+//     </a>
+//   </div>
+// }
 
 function AppHeaderMobile({
   title,
@@ -45,7 +44,7 @@ function AppHeaderMobile({
   children
 }: {
   title?: string,
-  handleCloseClick?: Function  ,
+  handleCloseClick?: MouseEventHandler<HTMLAnchorElement> | undefined,
   children?: any
 }) {
   const dispatch = useDispatch();
@@ -116,7 +115,7 @@ function AppHeaderMobile({
           </div>
           <a href="#" onClick={(e) => {
             // Custom set action
-            if(handleCloseClick) handleCloseClick(e);
+            if (handleCloseClick) handleCloseClick(e);
             // Or default action
             else dispatch(setIsMobileNavigationVisible(true));
           }} className="

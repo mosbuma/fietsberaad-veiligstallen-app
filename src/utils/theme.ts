@@ -1,8 +1,8 @@
-export const getParkingColor = (parkingType: string) => {
+export const getParkingColor = (parkingType: string | null) => {
   // console.log(parkingType);
 
   let color;
-  switch(parkingType) {
+  switch (parkingType) {
     case 'bewaakt':
       color = '#00BDD5';
       break;

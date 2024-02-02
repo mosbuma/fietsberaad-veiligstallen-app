@@ -1,7 +1,3 @@
-// @ts-nocheck
-
-import { useState } from "react";
-import { FiFilter } from "react-icons/fi";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import FilterBoxList, {
   updateActiveTypeStates,
@@ -69,25 +65,17 @@ const OPTIONS_PRICE = [
 
 type FilterBoxProps = {
   children?: React.ReactNode;
-  isOpen: boolean;
-  onOpen: () => void;
-  onClose: () => void;
-  onReset: () => void;
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
 };
 
 const FilterBox: React.FC<FilterBoxProps> = ({
   children,
-  isOpen,
-  onOpen,
-  onClose,
-  onReset,
-}: {
-  children?: any;
-  isOpen: boolean;
-  onOpen: Function;
-  onClose: Function;
-  onReset: Function;
-}) => {
+  isOpen = true,
+  onOpen = () => { },
+  onClose = () => { },
+}: FilterBoxProps) => {
   const dispatch = useDispatch();
 
   const activeTypes = useSelector(
@@ -105,9 +93,8 @@ const FilterBox: React.FC<FilterBoxProps> = ({
 
   return (
     <div
-      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${
-        isOpen ? "" : "h-16"
-      } transition-all duration-300 ease-in-out`}
+      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${isOpen ? "" : "h-16"
+        } transition-all duration-300 ease-in-out`}
     >
       <div className="mx-auto max-w-7xl px-4 py-5">
         <div

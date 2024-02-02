@@ -1,10 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HYDRATE } from "next-redux-wrapper";
 
+
+export interface AppState {
+  isParkingListVisible: Boolean,
+  isFilterBoxVisible: Boolean,
+  isMobileNavigationVisible: Boolean
+}
+
 // Initial state
-const initialState: AuthState = {
+const initialState: AppState = {
   isParkingListVisible: false,
-  setIsFilterBoxVisible: false,
+  isFilterBoxVisible: false,
   isMobileNavigationVisible: false
 };
 

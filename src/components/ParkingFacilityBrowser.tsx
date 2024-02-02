@@ -2,8 +2,10 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedParkingId, setInitialLatLng } from "~/store/mapSlice";
+import { AppState } from "~/store/store";
 import { setQuery } from "~/store/filterSlice";
 import { setMunicipalities } from "~/store/geoSlice";
+import { type vsFietsenstallingen } from "~/utils/prisma";
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
 
@@ -13,13 +15,14 @@ import {
 
 import ParkingFacilityBrowserStyles from './ParkingFacilityBrowser.module.css';
 
-import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 
 const MunicipalityBlock = ({
   title,
   onClick
+}: {
+  title: string, onClick: React.MouseEventHandler<HTMLDivElement>
 }) => {
   return (
     <div
@@ -46,20 +49,18 @@ const MunicipalityBlock = ({
 
 function ParkingFacilityBrowser({
   fietsenstallingen,
-  activeParkingId,
   onShowStallingDetails,
   showSearchBar,
   customFilter,
 }: {
-  fietsenstallingen: any;
-  activeParkingId?: any;
+  fietsenstallingen: vsFietsenstallingen[];
   onShowStallingDetails?: (id: number) => void;
-  showSearchBar?: false
+  showSearchBar?: boolean;
   customFilter?: Function
 }) {
   const dispatch = useDispatch();
 
-  const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
+  const [visibleParkings, setVisibleParkings] = useState<vsFietsenstallingen[]>(fietsenstallingen);
   const [visibleMunicipalities, setVisibleMunicipalities] = useState([]);
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
@@ -89,7 +90,7 @@ function ParkingFacilityBrowser({
     // Don't show results if no parkings were found
     if (!fietsenstallingen) return;
     // Don't show results if no search query was given
-    if (! filterQuery && !mapVisibleFeatures) return;
+    if (!filterQuery && !mapVisibleFeatures) return;
 
     // Create variable that represents all parkings
     const allParkings = fietsenstallingen;
@@ -97,7 +98,7 @@ function ParkingFacilityBrowser({
     let filtered = allParkings;
 
     // If custom filter is given: Only apply custom filter
-    if(customFilter) {
+    if (customFilter) {
       filtered = filtered.filter((x) => {
         return customFilter(x)
       });
@@ -107,7 +108,7 @@ function ParkingFacilityBrowser({
     // - If active municipality: Search only through parkings of this municipality
     else {
       // If active municipality:
-      if(mapZoom && mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
+      if (mapZoom && mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
         // Only keep parkings for this municipality
         const parkingsInThisMunicipality = allParkings.filter((p) => {
           return p.SiteID === activeMunicipalityInfo.ID
@@ -119,14 +120,14 @@ function ParkingFacilityBrowser({
           return visibleParkingIds.indexOf(p.ID) > -1;
         });
         parkingsInThisMunicipality.forEach((p) => {
-          if(visibleParkingIds.indexOf(p.ID) <= -1) {
+          if (visibleParkingIds.indexOf(p.ID) <= -1) {
             filtered.push(p);
           }
         });
       }
 
       // Only keep parkings with the searchQuery
-      if(
+      if (
         mapZoom >= 12 ||
         (filterQuery && filterQuery.length > 0)
       ) {
@@ -134,9 +135,9 @@ function ParkingFacilityBrowser({
           const inFilter =
             p.SiteID && (
               filterQuery === "" ||
-              p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-              p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
-              p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1
+              p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1 > -1 ||
+              p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1 > -1 ||
+              p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1 > -1
             );
 
           // Decide if we want to show the parking
@@ -162,7 +163,7 @@ function ParkingFacilityBrowser({
 
   useEffect(() => {
     // Don't ask the API if we have all municipalities already
-    if(municipalities && municipalities.length > 0) {
+    if (municipalities && municipalities.length > 0) {
       return;
     }
     (async () => {
@@ -174,12 +175,12 @@ function ParkingFacilityBrowser({
   // Scroll to selected parking if selected parking changes
   useEffect(() => {
     // Stop if no parking was selected
-    if(! selectedParkingId) return;
+    if (!selectedParkingId) return;
     const container = document.getElementsByClassName('ParkingFacilityBrowser')[0];
-    const elToScrollTo = document.getElementById('parking-facility-block-'+selectedParkingId);
+    const elToScrollTo = document.getElementById('parking-facility-block-' + selectedParkingId);
     // Stop if no parking element was found
-    if(! elToScrollTo) return;
-    container.scrollTo({
+    if (!elToScrollTo) return;
+    container?.scrollTo({
       top: elToScrollTo.offsetTop - 250,
       behavior: "smooth"
     });
@@ -188,12 +189,12 @@ function ParkingFacilityBrowser({
   // Filter municipalities based on search query
   useEffect(() => {
     const filteredMunicipalities = municipalities.filter((x) => {
-      if(! x.CompanyName) return false;
-      if(filterQuery.length <= 1) return false;
-      if(x.CompanyName === 'FIETSBERAAD') return false;
+      if (!x.CompanyName) return false;
+      if (filterQuery.length <= 1) return false;
+      if (x.CompanyName === 'FIETSBERAAD') return false;
       return x.CompanyName.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
     });
-    setVisibleMunicipalities(filteredMunicipalities.slice(0,3));
+    setVisibleMunicipalities(filteredMunicipalities.slice(0, 3));
   }, [
     municipalities,
     filterQuery
@@ -204,7 +205,7 @@ function ParkingFacilityBrowser({
     dispatch(setSelectedParkingId(id));
   };
 
-  const clickParking = (id: string) => {
+  const clickParking = (id: number) => {
     // Set URL
     // window.history.replaceState(null, document.title, `/stalling/${id}`); // Only change URL
     // push(`/stalling/${id}`);// Redirect
@@ -259,7 +260,7 @@ function ParkingFacilityBrowser({
           return (
             <div className="mb-0 ml-0 mr-0" key={x.ID}>
               <ParkingFacilityBlock
-                id={'parking-facility-block-'+x.ID}
+                id={'parking-facility-block-' + x.ID}
                 parking={x}
                 compact={x.ID !== selectedParkingId}
                 expandParkingHandler={expandParking}

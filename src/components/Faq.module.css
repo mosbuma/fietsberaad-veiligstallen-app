@@ -6,12 +6,11 @@
   cursor: pointer;
   background: #15aeef;
 }
-.sectionBody {
-}
 
 .qaSummary {
   cursor: pointer;
 }
+
 .qaAnswer {
   cursor: select;
   background: #eee;

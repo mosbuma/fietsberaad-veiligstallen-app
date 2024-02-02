@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { MouseEventHandler, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 
@@ -7,6 +7,8 @@ import {
   setIsMobileNavigationVisible,
   setIsParkingListVisible,
 } from "~/store/appSlice";
+
+import type { articles as ArticlesType } from "@prisma/client";
 
 import {
   getNavigationItemsForMunicipality,
@@ -35,7 +37,7 @@ const NavSection = ({ children }: { children: any }) => {
 };
 
 // If it has an icon: Show bold text
-const NavItem = ({ title, icon, onClick }) => {
+const NavItem = ({ title, icon, onClick }: { title: string, icon?: string, onClick: MouseEventHandler<HTMLAnchorElement> }) => {
   return (
     <a
       className={`
@@ -43,7 +45,7 @@ const NavItem = ({ title, icon, onClick }) => {
 		flex
 		cursor-pointer
 		text-lg
-		${icon ? "font-bold" : ""}
+		${undefined !== icon ? "font-bold" : ""}
 	`}
       onClick={onClick}
     >
@@ -70,13 +72,13 @@ const AppNavigationMobile = ({
   mapZoom,
 }: {
   activeMunicipalityInfo?: any;
-  mapZoom?: number;
+  mapZoom: number;
 }) => {
   const { push } = useRouter();
   const dispatch = useDispatch();
 
-  const [articles, setArticles] = useState([]);
-  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+  const [articles, setArticles] = useState<ArticlesType[]>([]);
+  const [fietsberaadArticles, setFietsberaadArticles] = useState<ArticlesType[]>([]);
 
   // Get menu items based on active municipality
   useEffect(() => {
@@ -99,7 +101,7 @@ const AppNavigationMobile = ({
   // Get menu items for siteId 1 (Fietsberaad)
   useEffect(() => {
     (async () => {
-      const response = await getNavigationItemsForMunicipality(1);
+      const response = await getNavigationItemsForMunicipality("1");
       setFietsberaadArticles(response);
     })();
   }, []);
@@ -112,9 +114,10 @@ const AppNavigationMobile = ({
   };
 
   const title =
-    mapZoom >= 12 &&
-    activeMunicipalityInfo &&
-    activeMunicipalityInfo.CompanyName
+    mapZoom &&
+      mapZoom?.valueOf() >= 12 &&
+      activeMunicipalityInfo &&
+      activeMunicipalityInfo.CompanyName
       ? `Welkom in ${activeMunicipalityInfo.CompanyName}`
       : `Welkom bij VeiligStallen`;
 
@@ -132,12 +135,8 @@ const AppNavigationMobile = ({
     >
       <header>
         <PageTitle
-          className="
-					mb-2 text-2xl text-red-600
-				"
-          style={{
-            maxWidth: "90%",
-          }}
+          className="mb-2 text-2xl text-red-600"
+          style="maxWidth: 90%"
         >
           {title}
         </PageTitle>
@@ -146,8 +145,8 @@ const AppNavigationMobile = ({
             maxWidth: "70%",
           }}
         >
-          De kortste weg naar een veilige plek voor je fiets{" "}
-          {mapZoom >= 12 ? "in Utrecht" : ""}
+          De kortste weg naar een veilige plek voor je fiets
+          {/* {" "}{mapZoom && mapZoom?.valueOf() >= 12 ? "in Utrecht" : ""} */}
         </p>
       </header>
 
@@ -185,10 +184,9 @@ const AppNavigationMobile = ({
                 onClick={(e) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${(mapZoom?.valueOf() || 10) >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
@@ -207,10 +205,9 @@ const AppNavigationMobile = ({
                 onClick={(e) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${(mapZoom?.valueOf() || 10) >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
@@ -232,7 +229,7 @@ const AppNavigationMobile = ({
           ))}
         </NavSection>
       </nav>
-    </div>
+    </div >
   );
 };
 

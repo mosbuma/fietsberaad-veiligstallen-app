@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AppState } from "./store";
 import { HYDRATE } from "next-redux-wrapper";
 
 // Type for our state
 export interface FilterState {
-  activeTypes: String[];
-  query: String;
+  activeTypes: string[];
+  query: string;
 }
 
 // Initial state
@@ -50,16 +49,16 @@ export const filterSlice = createSlice({
       const typesToSet = action.payload;
       // Check if given types are valid
       let isInvalidInput = false;
-      if(! typesToSet) {
+      if (!typesToSet) {
         isInvalidInput = true;
       }
-      for(let key in typesToSet) {
+      for (let key in typesToSet) {
         const typeToSet = typesToSet[key];
-        if(allowedTypes.indexOf(typeToSet) <= -1) {
+        if (allowedTypes.indexOf(typeToSet) <= -1) {
           isInvalidInput = true;
         }
       }
-      if(isInvalidInput) {
+      if (isInvalidInput) {
         return;
       }
 

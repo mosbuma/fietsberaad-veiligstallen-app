@@ -1,25 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "./store";
 import { HYDRATE } from "next-redux-wrapper";
+import { MapGeoJSONFeature } from 'maplibre-gl';
+
+
+const INITIAL_ZOOM = 10;
 
 // Type for our state
 export interface MapState {
   extent: Number[];
-  zoom: Number;
-  extent: any[];
-  municipality: Array[];
-  selectedParkingId: string;
+  zoom: number;
+  visibleFeatures: MapGeoJSONFeature[];
+  selectedParkingId: string | undefined;
   activeMunicipality: any;
   activeMunicipalityInfo: any;
-  initialLatLng: Array;
+  initialLatLng: Array<Number> | undefined;
 }
 
 // Initial state
 const initialState: MapState = {
   extent: [],
-  zoom: undefined,
+  zoom: INITIAL_ZOOM,
   visibleFeatures: [],
-  municipality: [],
   selectedParkingId: undefined,
   activeMunicipality: undefined,
   activeMunicipalityInfo: undefined,
@@ -42,10 +44,6 @@ export const mapSlice = createSlice({
     // Action to set visible features
     setMapVisibleFeatures(state, action) {
       state.visibleFeatures = action.payload;
-    },
-    // Action to set active municipality based on location)
-    setMunicipality(state, action) {
-      state.municipality = action.payload;
     },
     // Set selectedParkingId
     setSelectedParkingId(state, action) {

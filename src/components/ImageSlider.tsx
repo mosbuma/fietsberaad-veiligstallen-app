@@ -1,14 +1,11 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 
 const ImageSlider = ({
   images
-}, {
-  images: Array
+}: {
+  images: Array<string | null>
 }) => {
   // const [ref] = useKeenSlider<HTMLDivElement>({
   //   slides: {
@@ -17,13 +14,13 @@ const ImageSlider = ({
   //   },
   // });
 
-  if(!images) {
+  if (!images) {
     return <></>;
   }
 
-  const fixurl = (imgUrl)=> {
+  const fixurl = (imgUrl: string): string => {
     let newurl;
-    if(imgUrl.includes('http')) {
+    if (imgUrl.includes('http')) {
       newurl = imgUrl;
     } else if (imgUrl.includes('[local]')) {
       newurl = imgUrl.substring(7);
@@ -38,19 +35,23 @@ const ImageSlider = ({
     <div className="card-list">
       {/*<div ref={ref} className="card-list__slides keen-slider">*/}
       <div className="card-list__slides keen-slider">
-        {images.map((imgUrl, idx) => { 
-            const url=fixurl(imgUrl);
-            return (
-              <Image
-                key={'img-'+idx}
-                src={url}
-                alt={"Image " + idx}
-                width={203}
-                height={133}
-                className="keen-slider__slide mr-3 rounded-lg" />
-                ) 
-            }
-          )}
+        {images.map((imgUrl, idx) => {
+          if (imgUrl === null) {
+            return null;
+          }
+
+          const url = fixurl(imgUrl);
+          return (
+            <Image
+              key={'img-' + idx}
+              src={url}
+              alt={"Image " + idx}
+              width={203}
+              height={133}
+              className="keen-slider__slide mr-3 rounded-lg" />
+          )
+        }
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
-/* from the "old" database are in use                                            */  
+/* from the "old" database are in use                                            */
 export type DayPrefix = 'ma' | 'di' | 'wo' | 'do' | 'vr' | 'za' | 'zo';
 
 export type ParkingDetailsType = {
@@ -11,19 +11,19 @@ export type ParkingDetailsType = {
     Plaats: string,
     Type: string,
     Image: any;
-    Open_ma : Date,
+    Open_ma: Date,
     Dicht_ma: Date,
-    Open_di : Date,
+    Open_di: Date,
     Dicht_di: Date,
-    Open_wo : Date,
+    Open_wo: Date,
     Dicht_wo: Date,
-    Open_do : Date,
+    Open_do: Date,
     Dicht_do: Date,
-    Open_vr : Date,
+    Open_vr: Date,
     Dicht_vr: Date,
-    Open_za : Date,
+    Open_za: Date,
     Dicht_za: Date,
-    Open_zo : Date,
+    Open_zo: Date,
     Dicht_zo: Date,
     Openingstijden: string,
     Capacity: number,
@@ -77,4 +77,4 @@ export type ParkingDetailsType = {
         }
 
     }
-  }
+}

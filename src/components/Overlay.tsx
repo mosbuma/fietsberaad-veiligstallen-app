@@ -1,7 +1,4 @@
-// @ts-nocheck
-
 import React, { useCallback, useEffect, useRef } from "react";
-import ReactDOM from "react-dom";
 
 // Import components
 import AppHeaderMobile from "~/components/AppHeaderMobile";
@@ -34,7 +31,7 @@ const Overlay: React.FC<OverlayProps> = ({
         overlayWrapperRef.current &&
         !overlayWrapperRef.current.contains(e.target as Node)
       ) {
-        if(onClose) onClose();
+        if (onClose) onClose();
       }
     },
     [onClose]
@@ -55,7 +52,7 @@ const Overlay: React.FC<OverlayProps> = ({
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
     e.preventDefault();
-    if(onClose) onClose();
+    if (onClose) onClose();
   };
 
   const overlayContent = (
@@ -63,16 +60,15 @@ const Overlay: React.FC<OverlayProps> = ({
       z-20 fixed w-full overflow-auto
       ${onClose ? 'top-0' : 'top-20'}
     `}
-    style={{
-      height: onClose ? '100%' : 'calc(100% - 80px)' // topbar with logo and search = 80px
-    }}
+      style={{
+        height: onClose ? '100%' : 'calc(100% - 80px)' // topbar with logo and search = 80px
+      }}
     >
       <div className="bg-white min-h-full">
         <div ref={overlayWrapperRef} className="overlay-wrapper min-h-full">
           <div className="overlay min-h-full">
             {onClose ? <AppHeaderMobile
               title={title}
-              showCloseButton={true}
               handleCloseClick={handleCloseClick}
             /> : ''}
             <div className="overlay-body px-6 min-h-full">

@@ -1,11 +1,11 @@
 export const getFaqSections = async (siteId: string) => {
   try {
-    if(! siteId) return;
+    if (!siteId) return;
 
     const response = await fetch(`/api/faq?siteId=${siteId}`);
-    return await response.json();
-
-    return json;
+    let result = await response.json();
+    console.log('**** faq result', result);
+    return result;
   } catch (err) {
     console.error('err', err)
   }

@@ -1,18 +1,16 @@
 import * as React from "react";
-import Input from "@mui/material/TextField";
-import { useDispatch, useSelector } from "react-redux";
+
+interface SearchBarProps {
+  value?: string;
+  filterChanged: ((event: React.ChangeEvent<HTMLInputElement>) => void) | undefined;
+  afterHtml?: React.ReactNode | null;
+}
 
 function SearchBar({
-  value,
-  filterChanged,
-  afterHtml
-}: {
-  value?: string,
-  filterChanged: Function,
-  afterHtml?: any,
-}) {
-  const dispatch = useDispatch();
-
+  value = "",
+  filterChanged = undefined,
+  afterHtml = null
+}: SearchBarProps) {
   return (
     <>
       <input
@@ -30,7 +28,7 @@ function SearchBar({
         onChange={filterChanged}
         value={value}
       />
-      {afterHtml ? afterHtml : ''}
+      {afterHtml}
     </>
   );
 }

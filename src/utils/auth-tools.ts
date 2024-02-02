@@ -6,22 +6,22 @@ import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
 
 export type Account = {
-    email: string;
-    password_hash: string;
-  };
+  email: string;
+  OrgUserID: string | null,
+  OtherUserID: string | null,
+  org_account_type: number | null,
+};
 
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
-) => {
+): Promise<Account | null> => {
   if (!credentials) return null;
-
-  console.log("### getUserFromCredentials", credentials);
 
   const { email, password } = credentials;
   if (!email || !password) return null;
 
   let validaccount = false;
-  let account = {
+  let account: Account = {
     email: email.toLocaleLowerCase(),
     OrgUserID: null,
     OtherUserID: null,
@@ -30,8 +30,8 @@ export const getUserFromCredentials = async (
 
   // check if this is an organizational account via security_accounts table
   const orgaccount = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() } });
-  if(orgaccount!==undefined && orgaccount!==null && orgaccount.EncryptedPassword!==null) {
-    if(bcrypt.compareSync(password, orgaccount.EncryptedPassword)||true) {
+  if (orgaccount !== undefined && orgaccount !== null && orgaccount.EncryptedPassword !== null) {
+    if (bcrypt.compareSync(password, orgaccount.EncryptedPassword) || true) {
       validaccount = true;
       account.OrgUserID = orgaccount.UserID;
       account.org_account_type = orgaccount.RoleID;

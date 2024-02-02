@@ -1,9 +1,9 @@
-// @ts-nocheck
+"use client"
 
 import React, { useCallback, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 
-const isServer = typeof window === "undefined";
+// const isServer = typeof window === "undefined";
 
 interface ModalProps {
   onClose: () => void;
@@ -17,11 +17,16 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({
   onClose,
   children,
-  title,
+  //  title,
   modalStyle,
   modalBodyStyle,
   clickOutsideClosesDialog = false,
 }) => {
+  if (typeof window === "undefined") {
+    console.log('Modal: window is undefined');
+    return null;
+  }
+
   const modalWrapperRef = useRef<HTMLDivElement>(null);
 
   const backDropHandler = useCallback(
@@ -51,7 +56,7 @@ const Modal: React.FC<ModalProps> = ({
   useEffect(() => {
     const initEscapeHandler = (event) => {
       // Check if <escape> is pressed
-      if ( event.keyCode == 27 ) {
+      if (event.keyCode == 27) {
         console.log('escape pressed');
         // Close modal
         onClose();
@@ -67,7 +72,7 @@ const Modal: React.FC<ModalProps> = ({
   const handleCloseClick = (
     e?: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
-    if(e) e.preventDefault();
+    if (e) e.preventDefault();
     onClose();
   };
 
@@ -81,7 +86,7 @@ const Modal: React.FC<ModalProps> = ({
           modal
           pl-5 pr-5 pb-5 pt-5 sm:pl-10 sm:pr-10 sm:pt-10 sm:pb-10
         `}
-        style={modalStyle}
+          style={modalStyle}
         >
           <a href="#" onClick={handleCloseClick} className="
             modal-close-button

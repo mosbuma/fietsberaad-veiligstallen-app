@@ -1,14 +1,17 @@
-import { Prisma } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { Prisma } from '@prisma/client';
 import { prisma } from "~/server/db";
+import { getQueryParameterString } from '~/utils/query';
 
-export default async function handle(req, res) {
-  if(! req.query.siteId) return;
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.query.siteId) return;
 
   // Get FAQ sections for site
-  const queryRequest = {
+  const siteID = getQueryParameterString(req.query, "siteId");
+  const queryRequest: Prisma.contacts_faqFindManyArgs = {
     where: {
       Status: true,
-      SiteID: req.query.siteId
+      SiteID: siteID
     },
     select: {
       FaqID: true
@@ -36,7 +39,7 @@ export default async function handle(req, res) {
         SortOrder: { sort: 'asc', nulls: 'last' },
       }
     });
-    if(faqItem && faqItem.Title) {
+    if (faqItem && faqItem.Title) {
       faqSections.push(faqItem);
     }
   }

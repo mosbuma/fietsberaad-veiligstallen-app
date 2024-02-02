@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { MouseEvent } from 'react';
+import { CSSProperties, MouseEvent, MouseEventHandler } from 'react';
 import Styles from './Button.module.css';
 
 export const Button = ({
@@ -10,11 +9,11 @@ export const Button = ({
   style,
   variant
 }: {
-  onClick?: Function,
+  onClick?: MouseEventHandler<HTMLButtonElement>,
   children: any
   htmlBefore?: any,
   className?: string,
-  style?: object
+  style?: CSSProperties
   variant?: string
 }) => {
   return (
@@ -30,10 +29,10 @@ export const Button = ({
         transition-all
         text-white
         ${className}
-        ${Styles[variant]}
+        ${variant ? Styles[variant] : ""}
       `}
-      onClick={(e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        if(onClick) onClick(e)
+      onClick={(e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => {
+        if (undefined !== onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting
@@ -72,15 +71,14 @@ export const RadioButton = ({
         transition-all
         bg-white
         ${className && className.indexOf('py-') > -1 ? '' : 'py-1'}
-        ${
-          isActive
-            ? "border border-gray-700 shadow shadow-md"
-            : "border border-gray-200 bg-white text-gray-700 shadow shadow-sm"
+        ${isActive
+          ? "border border-gray-700 shadow"
+          : "border border-gray-200 bg-white text-gray-700 shadow"
         }
         ${className}
       `}
       onClick={(e) => {
-        if(onClick) onClick(e)
+        if (onClick) onClick(e)
       }}
       style={{ userSelect: "none" }} // disable highlighting
     >
@@ -124,7 +122,7 @@ export const IconButton = ({
         ${className}
       `}
       onClick={(e) => {
-        if(onClick) onClick(e)
+        if (onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting

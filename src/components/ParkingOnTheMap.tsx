@@ -1,16 +1,9 @@
-// @ts-nocheck
 import * as React from "react";
 import maplibregl from "maplibre-gl";
-import * as turf from "@turf/turf";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setMapExtent,
-  setMapZoom,
-  setMapVisibleFeatures,
-  setSelectedParkingId,
-} from "~/store/mapSlice";
+// import { useDispatch, useSelector } from "react-redux";
+// import { AppState } from "~/store/store";
 
-import { AppState } from "~/store/store";
+import { type ParkingDetailsType } from "~/types/";
 
 // Import utils
 // import { getParkingColor } from "~/utils/theme";
@@ -44,20 +37,20 @@ import styles from "./MapComponent.module.css";
 //   });
 // };
 
-function ParkingOnTheMap({ parking }) {
+function ParkingOnTheMap({ parking }: { parking: ParkingDetailsType }) {
   // this is where the map instance will be stored after initialization
   const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
 
-  // Connect to redux store
-  const dispatch = useDispatch();
+  // // Connect to redux store
+  // const dispatch = useDispatch();
 
-  const filterActiveTypes = useSelector(
-    (state: AppState) => state.filter.activeTypes
-  );
+  // const filterActiveTypes = useSelector(
+  //   (state: AppState) => state.filter.activeTypes
+  // );
 
-  const selectedParkingId = useSelector(
-    (state: AppState) => state.map.selectedParkingId
-  );
+  // const selectedParkingId = useSelector(
+  //   (state: AppState) => state.map.selectedParkingId
+  // );
 
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
@@ -81,12 +74,13 @@ function ParkingOnTheMap({ parking }) {
       : null; // I.e.: 52.508011,5.473280;
 
     // otherwise, create a map instance
+    const style: maplibregl.StyleSpecification = nine3030 as maplibregl.StyleSpecification;
     const mapboxMap = new maplibregl.Map({
       container: node,
-      accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
+      // accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
       // style: "maplibre://styles/mapbox/streets-v11",
-      style: nine3030,
-      center: coords ? [coords[1], coords[0]] : [52.508011, 5.47328],
+      style,
+      center: null !== coords ? [coords[1] || 52.508011, coords[0] || 5.47328] : [52.508011, 5.47328],
       zoom: 16,
     });
 
@@ -164,7 +158,7 @@ function ParkingOnTheMap({ parking }) {
   }, [stateMap, parking]);
 
   // Function that's called if map is loaded
-  const onMapLoaded = (mapboxMap) => {
+  const onMapLoaded = (mapboxMap: maplibregl.Map) => {
     // Save map as local variabele
     setStateMap(mapboxMap);
     // Disable drag and zoom handlers.

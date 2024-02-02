@@ -1,5 +1,4 @@
-// @ts-nocheck
-import * as React from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import * as turf from "@turf/turf";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,19 +9,16 @@ import {
   setActiveMunicipality,
   setSelectedParkingId,
 } from "~/store/mapSlice";
+import { type vsFietsenstallingen } from "~/utils/prisma";
 
 import { AppState } from "~/store/store";
 
 // Import utils
-import { getParkingColor } from "~/utils/theme";
 import {
-  // getParkingMarker,
-  // isPointInsidePolygon,
   convertCoordinatenToCoords,
 } from "~/utils/map/index";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 import { mapMoveEndEvents } from "~/utils/map/parkingsFilteringBasedOnExtent";
-// import { parkingTypes } from "~/utils/parkings";
 
 // Import the mapbox-gl styles so that the map is displayed correctly
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -54,6 +50,7 @@ interface GeoJsonFeature {
     coordinates: number[];
   };
   properties: {
+    id: string;
     title: string;
     location: string;
     plaats: string;
@@ -61,13 +58,14 @@ interface GeoJsonFeature {
   };
 }
 
-const createGeoJson = (input: GeoJsonFeature[]) => {
+const createGeoJson = (input: vsFietsenstallingen[]) => {
   let features: GeoJsonFeature[] = [];
 
-  input.forEach((x: any) => {
+  input.forEach((x: vsFietsenstallingen) => {
     if (!x.Coordinaten) return;
 
     const coords = convertCoordinatenToCoords(x.Coordinaten);
+    if (!coords) return;
 
     features.push({
       type: "Feature",
@@ -91,9 +89,9 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
   };
 };
 
-function MapboxMap({ fietsenstallingen = [] }: any) {
+function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: vsFietsenstallingen[] }) {
   // this is where the map instance will be stored after initialization
-  const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
+  const [stateMap, setStateMap] = useState<maplibregl.Map>();
 
   // Connect to redux store
   const dispatch = useDispatch();
@@ -104,9 +102,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   const filterQuery = useSelector((state: AppState) => state.filter.query);
 
-  const mapExtent = useSelector((state: AppState) => state.map.extent);
+  // const mapExtent = useSelector((state: AppState) => state.map.extent);
 
-  const mapZoom = useSelector((state: AppState) => state.map.zoom);
+  // const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
   const initialLatLng = useSelector(
     (state: AppState) => state.map.initialLatLng
@@ -127,10 +125,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   // React ref to store a reference to the DOM node that will be used
   // as a required parameter `container` when initializing the mapbox-gl
   // will contain `null` by default
-  const mapNode = React.useRef(null);
+  const mapNode = useRef(null);
 
   // Highlight marker if selectedParkingId changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!stateMap) return;
     if (!selectedParkingId) return;
     // Highlight marker
@@ -141,12 +139,14 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     if (isParkingListVisible) return;
     // Center map to selected parking
     const selectedParking = fietsenstallingen.find(
-      (x) => x.ID === selectedParkingId
+      (x: vsFietsenstallingen) => x.ID === selectedParkingId
     );
-    if (selectedParking) {
+    if (selectedParking && selectedParking.Coordinaten) {
       const coords = convertCoordinatenToCoords(selectedParking.Coordinaten);
+      // if (!coords) return;
+
       stateMap.flyTo({
-        center: coords,
+        center: coords && [Number(coords[0]), Number(coords[1])],
         // curve: 1,
         speed: 0.75,
         zoom: 14,
@@ -155,9 +155,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         // }
       });
     }
-  }, [stateMap, selectedParkingId]);
+  }, [stateMap, selectedParkingId,]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const node = mapNode.current;
 
     // if the window object is not found, that means
@@ -169,16 +169,29 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     if (stateMap) return;
 
     // otherwise, create a map instance
+    const style: maplibregl.StyleSpecification = nine3030 as maplibregl.StyleSpecification;
     const mapboxMap = new maplibregl.Map({
       container: node,
-      accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
+      // accessToken: process ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : "",
       // style: "maplibre://styles/mapbox/streets-v11",
-      style: nine3030,
+      style,
       center: [5, 52],
       zoom: 7,
     });
 
     mapboxMap.on("load", () => onMapLoaded(mapboxMap));
+    mapboxMap.on("styleimagemissing", (e) => {
+      // add transparent image to prevent errors
+      const id = e.id; // id of the missing image
+
+      // extract the color from the id
+      const width = 1;
+      const bytesPerPixel = 4;
+      const data = new Uint8Array(width * width * bytesPerPixel);
+      mapboxMap.addImage(id, { width, height: width, data });
+
+      // console.log("added missing map marker image ", id)
+    });
 
     // Function that executes if component unloads:
     return () => {
@@ -187,7 +200,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   }, []);
 
   // Fly to municipality if initial municipality is given
-  React.useEffect(() => {
+  useEffect(() => {
     if (!stateMap) return;
     if (!initialLatLng) return;
 
@@ -201,7 +214,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   }, [stateMap, initialLatLng]);
 
   // If 'fietsenstallingen' variable changes: Update source data
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       if (
         !stateMap ||
@@ -215,17 +228,21 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       const geojson: any = createGeoJson(fietsenstallingen);
 
       // Add or update fietsenstallingen data as sources
-      const addOrUpdateSource = (sourceKey) => {
+      const addOrUpdateSource = (sourceKey: string) => {
         const source: maplibregl.GeoJSONSource = stateMap.getSource(
           sourceKey
         ) as maplibregl.GeoJSONSource;
         if (source) {
           source.setData(geojson);
         } else {
-          const sourceConfig = {
+          const sourceConfig: maplibregl.GeoJSONSourceSpecification = {
             type: "geojson",
             data: geojson,
+            cluster: false,
+            clusterRadius: 40,
+            clusterMaxZoom: 12,
           };
+
           if (sourceKey === "fietsenstallingen-clusters") {
             // We want to cluster
             sourceConfig.cluster = true;
@@ -271,7 +288,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
               "#00CE83",
             ],
           },
-          "icon-allow-overlap": true,
+          // "icon-allow-overlap": true, -> only exists on symbols
           minzoom: 12,
         });
       }
@@ -332,11 +349,11 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   }, [stateMap, fietsenstallingen]);
 
   // Filter map markers if filterActiveTypes filter changes
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       if (!stateMap) return;
 
-      let filter = [
+      let filter: maplibregl.FilterSpecification = [
         "all",
         ["in", ["get", "type"], ["literal", filterActiveTypes]],
       ];
@@ -381,38 +398,42 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
           ],
         ];
       }
-      stateMap.setFilter("fietsenstallingen-markers", filter);
+      // stateMap.setFilter("fietsenstallingen-markers", filter);
     } catch (ex) {
       console.warn("error in MapComponent layer setfilter useEffect call", ex);
     }
   }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery]);
 
   // Update visible features in state if filter changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!stateMap) return;
 
-    mapMoveEndEvents(stateMap, (visibleFeatures) => {
+    mapMoveEndEvents(stateMap, (visibleFeatures: string[]) => {
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }, [stateMap, filterActiveTypes]);
 
   const highlighMarker = (map: any, id: string) => {
-    map.setPaintProperty("fietsenstallingen-markers", "circle-radius", [
-      "case",
-      ["==", ["get", "id"], id],
-      10,
-      5,
-    ]);
-    map.setPaintProperty("fietsenstallingen-markers", "circle-stroke-width", [
-      "case",
-      ["==", ["get", "id"], id],
-      3,
-      4,
-    ]);
+    try {
+      map.setPaintProperty("fietsenstallingen-markers", "circle-radius", [
+        "case",
+        ["==", ["get", "id"], id],
+        10,
+        5,
+      ]);
+      map.setPaintProperty("fietsenstallingen-markers", "circle-stroke-width", [
+        "case",
+        ["==", ["get", "id"], id],
+        3,
+        4,
+      ]);
+    } catch (ex) {
+      console.error("highlighMarke - error", ex);
+    }
   };
 
   // Function that's called if map is loaded
-  const onMapLoaded = (mapboxMap) => {
+  const onMapLoaded = (mapboxMap: maplibregl.Map) => {
     // Save map as local variabele
     setStateMap(mapboxMap);
     // Set event handlers
@@ -431,11 +452,15 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // Show parking info on click
     mapboxMap.on("click", "fietsenstallingen-markers", (e) => {
       // Make clicked parking active
-      dispatch(setSelectedParkingId(e.features[0].properties.id));
+      if (e.features && e.features.length > 0 && e.features[0] && e.features[0].properties) {
+        dispatch(setSelectedParkingId(e.features[0].properties.id));
+      }
     });
     // Enlarge parking icon on click
     mapboxMap.on("click", "fietsenstallingen-markers", (e) => {
-      highlighMarker(mapboxMap, e.features[0].properties.id);
+      if (e.features && e.features.length > 0 && e.features[0] && e.features[0].properties) {
+        highlighMarker(mapboxMap, e.features[0].properties.id);
+      }
     });
     // Zoom in on cluster click
     mapboxMap.on("click", "fietsenstallingen-clusters", (e) => {
@@ -448,23 +473,23 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     });
   };
 
-  const onMoved = (mapboxMap) => {
+  const onMoved = (mapboxMap: maplibregl.Map) => {
     // Register map view in state (extend and zoom level)
     registerMapView(mapboxMap);
     // Set visible features into state
-    mapMoveEndEvents(mapboxMap, (visibleFeatures) => {
+    mapMoveEndEvents(mapboxMap, (visibleFeatures: string[]) => {
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   };
 
-  const getActiveMunicipality = async (center) => {
+  const getActiveMunicipality = async (center: Array<Number | undefined>) => {
     const municipality = await getMunicipalityBasedOnLatLng(center);
     if (!municipality) return;
 
     return municipality;
   };
 
-  const registerMapView = React.useCallback((theMap) => {
+  const registerMapView = useCallback((theMap: maplibregl.Map) => {
     // Set map boundaries
     const bounds = theMap.getBounds();
     const extent = [
@@ -473,6 +498,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       bounds._ne.lng,
       bounds._ne.lat,
     ];
+
+    if (!extent[0] || !extent[1] || !extent[2] || !extent[3]) return;
+
     // Create polygon that represents the boundaries of the map
     const polygon = turf.points([
       [extent[1], extent[0]],

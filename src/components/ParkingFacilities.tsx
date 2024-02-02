@@ -10,11 +10,11 @@ import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
 import FooterNav from "~/components/FooterNav";
+import { vsFietsenstallingen } from "~/utils/prisma";
 
 const ParkingFacilities = ({
-  fietsenstallingen,
-  initialLatLng
-}: any) => {
+  fietsenstallingen
+}: { fietsenstallingen: vsFietsenstallingen[] }) => {
   const [mapmode, setMapmode] = useState(true);
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(false);
 
@@ -24,10 +24,10 @@ const ParkingFacilities = ({
 
   const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
   const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
-  const resetFilter = () => {};
+  const resetFilter = () => { };
 
   // let cards: CardData[] = [];
-  let filteredFietsenstallingen: any[] = [];
+  let filteredFietsenstallingen: vsFietsenstallingen[] = [];
 
   if (fietsenstallingen) {
     // cards = fietsenstallingen.map((x: any, idx: number) => {
@@ -40,7 +40,7 @@ const ParkingFacilities = ({
     // });
 
     filteredFietsenstallingen = fietsenstallingen.filter(
-      (x: any) => activeTypes.indexOf(x.Type) > -1
+      (x: vsFietsenstallingen) => x.Type !== null && activeTypes.indexOf(x.Type) > -1
     );
   }
 
@@ -48,7 +48,7 @@ const ParkingFacilities = ({
     <div data-name="parking-facilities">
       <div
         className="
-        flex flex flex-col items-center justify-center
+        flex flex-col items-center justify-center
       "
       >
         {mapmode ? (
@@ -58,41 +58,11 @@ const ParkingFacilities = ({
         ) : (
           <div className="mx-5 pt-24">
             {filteredFietsenstallingen.map((x: any) => {
-              return <ParkingFacilityBlock key={x.Title} parking={x} />;
+              return <ParkingFacilityBlock key={x.Title} parking={x} compact={false} />;
             })}
           </div>
         )}
       </div>
-
-      {/*<div style={{ position: "relative" }}>
-        <div
-          className="l-0 b-20 r-0 h-max-40 absolute"
-          style={{
-            position: "absolute",
-            bottom: "10vh",
-            left: 0,
-            right: 0,
-            maxHeight: "10vh",
-          }}
-        >
-          <CardList cards={cards} />
-        </div>
-      </div>*/}
-
-      {/*<div
-        className="
-        fixed
-        bottom-5
-        right-5
-        rounded-full
-        bg-white
-        p-4
-      "
-        onClick={toggleParkingFacilitiesView}
-      >
-        MAPLIST
-      </div>
-      */}
 
       <div data-comment="Show only on desktop" className="hidden sm:flex">
         <div
@@ -109,7 +79,7 @@ const ParkingFacilities = ({
         >
           <FilterBox
             isOpen={isFilterBoxOpen}
-            onReset={resetFilter}
+            // onReset={resetFilter}
             onOpen={toggleFilterBox}
             onClose={toggleFilterBox}
           />

@@ -1,8 +1,3 @@
-// @ts-nocheck
-
-import * as React from "react";
-import Input from '@mui/material/TextField';
-
 function ContentPageWrapper({
   children,
   className
