@@ -76,9 +76,15 @@ function ParkingOnTheMap({ parking }) {
     if (stateMap) return;
 
     // Get coords from parking variable
-    const coords = parking.Coordinaten
+    let coords = parking.Coordinaten
       ? parking.Coordinaten.split(",").map((coord: any) => Number(coord))
       : null; // I.e.: 52.508011,5.473280;
+
+    if (coords[0] < -90 || coords[0] > 90 || coords[1] < -180 || coords[1] > 180) {
+      console.log("***** invalid coordinates for parking", parking.Title, coords);
+      coords = [52.508011, 5.47328];
+      return;
+    }
 
     // otherwise, create a map instance
     const mapboxMap = new maplibregl.Map({
