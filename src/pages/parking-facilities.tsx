@@ -1,7 +1,7 @@
 // Page = unused?
 
 import { useState } from "react";
-import { type NextPage } from "next";
+import { type NextPage, type GetStaticPaths } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
@@ -14,50 +14,59 @@ import ParkingFacilities from "~/components/ParkingFacilities";
 
 // Fetch all posts (in /pages/index.tsx)
 export async function getServerSideProps() {
-  const fietsenstallingen = await prisma.fietsenstallingen.findMany({
-    // where: {
-    //   Plaats: {
-    //     not: "",
-    //   },
-    // },
-    // select: {
-    //   StallingsID: true,
-    //   Title: true,
-    //   Location: true,
-    //   Coordinaten: true,
-    //   DateCreated: true,
-    // },
-  });
-
-  fietsenstallingen.forEach((stalling: any) => {
-    Object.entries(stalling).forEach(([key, prop]) => {
-      if (prop instanceof Date) {
-        stalling[key] = stalling.toString();
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-        // );
-      }
-      if (prop instanceof BigInt) {
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-        // );
-        stalling[key] = stalling.toString();
-      }
-      if (prop instanceof Prisma.Decimal) {
-        // stalling[key] = stalling.toString();
-        delete stalling[key];
-      }
+  try {
+    const fietsenstallingen = await prisma.fietsenstallingen.findMany({
+      // where: {
+      //   Plaats: {
+      //     not: "",
+      //   },
+      // },
+      // select: {
+      //   StallingsID: true,
+      //   Title: true,
+      //   Location: true,
+      //   Coordinaten: true,
+      //   DateCreated: true,
+      // },
     });
 
-    // console.log(typeof stalling.freeHoursReservation);
+    fietsenstallingen.forEach((stalling: any) => {
+      Object.entries(stalling).forEach(([key, prop]) => {
+        if (prop instanceof Date) {
+          stalling[key] = stalling.toString();
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
+          // );
+        }
+        if (prop instanceof BigInt) {
+          // console.log(
+          //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
+          // );
+          stalling[key] = stalling.toString();
+        }
+        if (prop instanceof Prisma.Decimal) {
+          // stalling[key] = stalling.toString();
+          delete stalling[key];
+        }
+      });
 
-    delete stalling.reservationCostPerDay;
-    delete stalling.wachtlijst_Id;
-  });
+      // console.log(typeof stalling.freeHoursReservation);
 
-  return {
-    props: { fietsenstallingen: fietsenstallingen },
-  };
+      delete stalling.reservationCostPerDay;
+      delete stalling.wachtlijst_Id;
+    });
+
+    return {
+      props: { fietsenstallingen: fietsenstallingen },
+    };
+  } catch (ex: any) {
+    console.error("parking-facilities.getServerSideProps - error: ", ex.message);
+    return {
+      props: {
+        fietsenstallingen: [],
+      },
+    };
+  }
 }
 
 const Home: NextPage = ({ fietsenstallingen }: any) => {
