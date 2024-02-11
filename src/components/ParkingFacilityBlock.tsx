@@ -38,6 +38,13 @@ const isOpen = (openingTime: Date, closingTime: Date): boolean => {
   const opening = openingTime.getHours() * 60 + openingTime.getMinutes();
   let closing = closingTime.getHours() * 60 + closingTime.getMinutes();
 
+  // Exception for NS parkings: If NS parking AND open from 1am to 1am,
+  // then the parking is open 24 hours per day.
+  if (opening === closing && opening === 60 && closing === 60) {
+    // Closing time is on the next day, add 24 hours to closing time
+    return true;
+  }
+
   if (closing < opening) {
     // Closing time is on the next day, add 24 hours to closing time
     closing += 24 * 60;
@@ -59,8 +66,6 @@ const formatOpeningToday = (parkingdata: any): string => {
   const openstr = parkingdata["Open_" + daytxt[dayidx]];
   const closestr = parkingdata["Dicht_" + daytxt[dayidx]];
 
-  // console.log(parkingdata.Title, parkingdata.Type, openstr, closestr);
-
   if (null === openstr || null === closestr) {
     return "";
   }
@@ -68,17 +73,18 @@ const formatOpeningToday = (parkingdata: any): string => {
   const openinfo = new Date(openstr);
   const closeinfo = new Date(closestr);
 
-  // console.log(
-  //   parkingdata.Title,
-  //   parkingdata.Type,
-  //   "valid open/close info",
-  //   openinfo,
-  //   closeinfo,
-  //   parkingdata.Openingstijden
-  // );
-
   if (isOpen(openinfo, closeinfo)) {
-    return `open, sluit om ${formatTime(closeinfo)}`;
+    let str = `open`;
+
+    // Exception: If this is a 24/h a day
+    // NS parking -> don't show "until ..."
+    if (openstr === closestr) {
+      return str;
+    }
+
+    str += `, sluit om ${formatTime(closeinfo)}`;
+
+    return str;
   } else {
     return "gesloten";
   }
@@ -99,9 +105,8 @@ function ParkingFacilityBlock({
 }) {
   const { push } = useRouter();
 
-  const locationDescription = `${parking.Location || ""}${
-    parking.Location && parking.Plaats ? ", " : ""
-  }${parking.Plaats ? parking.Plaats : ''}`;
+  const locationDescription = `${parking.Location || ""}${parking.Location && parking.Plaats ? ", " : ""
+    }${parking.Plaats ? parking.Plaats : ''}`;
 
   let costDescription: string | undefined = "";
   switch (parking.Tariefcode) {
@@ -129,24 +134,24 @@ function ParkingFacilityBlock({
       break;
   }
 
+  console.log(parking.Title);
   const openingDescription = formatOpeningToday(parking);
 
-  const detailsLine = `${costDescription}${
-    costDescription && openingDescription ? "| " : ""
-  }${openingDescription}`;
+  const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
+    }${openingDescription}`;
 
-  if(parking.ExtraServices) {
+  if (parking.ExtraServices) {
     // console.log('parking', parking)
   }
 
   // Set image
   let parkingImageUrl = parking.Image;
   // If no parking image was found: Show default image
-  if(! parkingImageUrl) {
+  if (!parkingImageUrl) {
     parkingImageUrl = `/images/bike-blue-green.png`;
   }
   // If parking has an image URL not starting with http: Create veiligstallen URL
-  else if(! parkingImageUrl.includes('http')) {
+  else if (!parkingImageUrl.includes('http')) {
     parkingImageUrl = `https://static.veiligstallen.nl/library/fietsenstallingen/${parkingImageUrl}`;
   }
 
@@ -170,7 +175,7 @@ function ParkingFacilityBlock({
         }
       `}
       style={{
-        backgroundColor: ! compact ? 'rgba(31, 153, 210, 0.1)' : null
+        backgroundColor: !compact ? 'rgba(31, 153, 210, 0.1)' : null
       }}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
@@ -178,7 +183,7 @@ function ParkingFacilityBlock({
           expandParkingHandler(parking.ID);
         }
         // Open parking details if ParkingBlock was already active
-        else if(expandParkingHandler && ! compact) {
+        else if (expandParkingHandler && !compact) {
           openParkingHandler(parking.ID);
         }
         // Open parking if no expand handler was given
@@ -203,7 +208,7 @@ function ParkingFacilityBlock({
           <div className="h-6 overflow-hidden sm:h-auto">
             <b className="text-base">{parking.Title}</b>
           </div>
-          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={{locationDescription}}>
+          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={{ locationDescription }}>
             {locationDescription}
           </div>
         </div>
@@ -215,7 +220,7 @@ function ParkingFacilityBlock({
         >
           <div className="">
 
-            {! showButtons && costDescription+' '}
+            {!showButtons && costDescription + ' '}
 
             {showButtons && <div>
               <a
@@ -226,7 +231,7 @@ function ParkingFacilityBlock({
                 href="#"
                 className="text-sm text-gray-500 underline p-1 inline-block"
               >
-                meer informatie
+                meer informatie2
               </a>
             </div>}
           </div>
@@ -234,7 +239,7 @@ function ParkingFacilityBlock({
             <div className="hidden sm:inline-block">|</div>
           ) : null}
           <div className="text-right">
-            {! showButtons && openingDescription+' '}
+            {!showButtons && openingDescription + ' '}
           </div>
 
           {(showButtons && parking.Coordinaten) && (<>

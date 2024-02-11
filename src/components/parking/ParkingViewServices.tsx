@@ -8,7 +8,7 @@ import {
 } from "~/utils/parkings";
 
 const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
-  const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
+  const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
 
   // Set 'allServices' variable in local state
   React.useEffect(() => {
@@ -16,11 +16,11 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
       const result = await getAllServices();
       setAllServices(result);
     })();
-  },[])
+  }, [])
 
   const serviceIsActive = (ID: string): boolean => {
-    for(const x of parkingdata.fietsenstallingen_services) {
-      if(x.services.ID===ID) { 
+    for (const x of parkingdata.fietsenstallingen_services) {
+      if (x.services.ID === ID) {
         return true;
       }
     }
@@ -28,15 +28,15 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
     return false;
   }
 
-  if(parkingdata.fietsenstallingen_services===null||parkingdata.fietsenstallingen_services===undefined) {
+  if (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined) {
     return null
   }
 
   return <>
     <SectionBlock heading="Services">
-      <div className="flex-1">
+      <div className="flex-1" key={'services' + parkingdata.ID}>
         {allServices && allServices.map(service => {
-          if(! serviceIsActive(service.ID)) return <></>
+          if (!serviceIsActive(service.ID)) return null;
           return (
             <div key={service.ID}>
               {service.Name}
