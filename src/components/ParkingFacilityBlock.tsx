@@ -40,8 +40,8 @@ const isOpen = (openingTime: Date, closingTime: Date): boolean => {
 
   // Exception for NS parkings: If NS parking AND open from 1am to 1am,
   // then the parking is open 24 hours per day.
+  // #TODO: Combine functions with /src/utils/parkings.tsx
   if (opening === closing && opening === 60 && closing === 60) {
-    // Closing time is on the next day, add 24 hours to closing time
     return true;
   }
 
@@ -134,7 +134,6 @@ function ParkingFacilityBlock({
       break;
   }
 
-  console.log(parking.Title);
   const openingDescription = formatOpeningToday(parking);
 
   const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""

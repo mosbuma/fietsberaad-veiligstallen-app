@@ -35,10 +35,10 @@ export const getAllServices = async (): Promise => {
       `/api/services/`
     );
     const json = await response.json();
-    if(! json) return;
+    if (!json) return;
 
     return json;
-  } catch(err) {
+  } catch (err) {
     console.error("get all services error", err);
   }
 };
@@ -49,21 +49,21 @@ export const getAllFietstypen = async (): Promise => {
       `/api/fietstypen`
     );
     const json = await response.json();
-    if(! json) return;
+    if (!json) return;
 
     return json;
-  } catch(err) {
+  } catch (err) {
     console.error("get all fietstypen error", err);
   }
 };
 
 const getOpenTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
   return ('Open_' + day) as keyof ParkingDetailsType;
-}  
+}
 
 const getDichtTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
   return ('Dicht_' + day) as keyof ParkingDetailsType;
-}  
+}
 
 export const formatOpeningTimes = (
   parkingdata: ParkingDetailsType,
@@ -84,9 +84,17 @@ export const formatOpeningTimes = (
   let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
 
   let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
-  if(diff>=86340) {
+
+  // Exception for NS parkings: If NS parking AND open from 1am to 1am,
+  // then the parking is open 24 hours per day.
+  // #TODO: Combine functions with /src/components/ParkingFacilityBlock.tsx
+  if (hoursopen === 1 && hoursclose === 1 && diff === 0) {
+    value = '24h';
+  }
+  else if (diff >= 86340) {
     value = '24h'
-  } if(diff===0) {
+  }
+  else if (diff === 0) {
     value = 'gesloten'
   }
 

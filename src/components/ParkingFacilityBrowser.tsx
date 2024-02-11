@@ -89,45 +89,25 @@ function ParkingFacilityBrowser({
     // Don't show results if no parkings were found
     if (!fietsenstallingen) return;
     // Don't show results if no search query was given
-    if (! filterQuery && !mapVisibleFeatures) return;
+    if (!filterQuery && !mapVisibleFeatures) return;
 
     // Create variable that represents all parkings
     const allParkings = fietsenstallingen;
     // Create variable that will have the filtered parkings
     let filtered = allParkings;
-
     // If custom filter is given: Only apply custom filter
-    if(customFilter) {
+    if (customFilter) {
       filtered = filtered.filter((x) => {
         return customFilter(x)
       });
     }
     // Default filter:
     // - If no active municipality: Search through everything
-    // - If active municipality: Search only through parkings of this municipality
+    // - If active municipality: First show parkings of this municipality, then the rest
     else {
-      // If active municipality:
-      if(mapZoom && mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
-        // Only keep parkings for this municipality
-        const parkingsInThisMunicipality = allParkings.filter((p) => {
-          return p.SiteID === activeMunicipalityInfo.ID
-            || p.Plaats === activeMunicipalityInfo.CompanyName;// Also show NS stallingen that have an other SiteID
-        });
-        // Put the visible parkings on top
-        const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
-        filtered = parkingsInThisMunicipality.filter((p) => {
-          return visibleParkingIds.indexOf(p.ID) > -1;
-        });
-        parkingsInThisMunicipality.forEach((p) => {
-          if(visibleParkingIds.indexOf(p.ID) <= -1) {
-            filtered.push(p);
-          }
-        });
-      }
-
-      // Only keep parkings with the searchQuery
-      if(
-        mapZoom >= 12 ||
+      // If searchQuery given and zoomed out: Only keep parkings with the searchQuery
+      if (
+        mapZoom < 12 &&
         (filterQuery && filterQuery.length > 0)
       ) {
         filtered = filtered.filter((p) => {
@@ -145,6 +125,72 @@ function ParkingFacilityBrowser({
           return showParking;
         });
       }
+      // If searchQuery given and zoomed in: Only keep parkings with the searchQuery
+      else if (
+        mapZoom >= 12 &&
+        (filterQuery && filterQuery.length > 0)
+      ) {
+        filtered = filtered.filter((p) => {
+          const inFilter =
+            p.SiteID && (
+              filterQuery === "" ||
+              p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+              p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1 ||
+              p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1
+            );
+
+          // Decide if we want to show the parking
+          let showParking = inFilter;
+
+          return showParking;
+        });
+        // Sort the parkings list in a logical order
+        if (activeMunicipalityInfo && activeMunicipalityInfo.ID) {
+          let sorted: any = [];
+          // Get parkings for this municipality
+          const parkingsInThisMunicipality = filtered.filter((p) => {
+            return p.SiteID === activeMunicipalityInfo.ID
+              || p.Plaats === activeMunicipalityInfo.CompanyName;// Also show NS stallingen that have an other SiteID
+          });
+          // Put the visible parkings on top
+          const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
+          parkingsInThisMunicipality.forEach((p) => {
+            if (visibleParkingIds.indexOf(p.ID) > -1) {
+              sorted.push(p);
+            }
+          });
+          // Then the other parkings
+          filtered.forEach((p) => {
+            if (visibleParkingIds.indexOf(p.ID) <= -1) {
+              sorted.push(p);
+            }
+          });
+          filtered = sorted;
+        }
+      }
+      // If no searchQuery is given and zoomed in: Only show active municipality parkings
+      else if (
+        mapZoom >= 12
+        && (!filterQuery || filterQuery.length <= 0)
+        && activeMunicipalityInfo && activeMunicipalityInfo.ID
+      ) {
+        // Get parkings for this municipality
+        const parkingsInThisMunicipality = allParkings.filter((p) => {
+          return p.SiteID === activeMunicipalityInfo.ID
+            || p.Plaats === activeMunicipalityInfo.CompanyName;// Also show NS stallingen that have an other SiteID
+        });
+        // Put the visible parkings on top
+        const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
+        filtered = parkingsInThisMunicipality.filter((p) => {
+          return visibleParkingIds.indexOf(p.ID) > -1;
+        });
+        parkingsInThisMunicipality.forEach((p) => {
+          if (visibleParkingIds.indexOf(p.ID) <= -1) {
+            filtered.push(p);
+          }
+        });
+      }
+      // If zoomed out and no searchQuery: Don't show results
       else {
         filtered = [];
       }
@@ -162,7 +208,7 @@ function ParkingFacilityBrowser({
 
   useEffect(() => {
     // Don't ask the API if we have all municipalities already
-    if(municipalities && municipalities.length > 0) {
+    if (municipalities && municipalities.length > 0) {
       return;
     }
     (async () => {
@@ -174,11 +220,11 @@ function ParkingFacilityBrowser({
   // Scroll to selected parking if selected parking changes
   useEffect(() => {
     // Stop if no parking was selected
-    if(! selectedParkingId) return;
+    if (!selectedParkingId) return;
     const container = document.getElementsByClassName('ParkingFacilityBrowser')[0];
-    const elToScrollTo = document.getElementById('parking-facility-block-'+selectedParkingId);
+    const elToScrollTo = document.getElementById('parking-facility-block-' + selectedParkingId);
     // Stop if no parking element was found
-    if(! elToScrollTo) return;
+    if (!elToScrollTo) return;
     container.scrollTo({
       top: elToScrollTo.offsetTop - 250,
       behavior: "smooth"
@@ -188,12 +234,12 @@ function ParkingFacilityBrowser({
   // Filter municipalities based on search query
   useEffect(() => {
     const filteredMunicipalities = municipalities.filter((x) => {
-      if(! x.CompanyName) return false;
-      if(filterQuery.length <= 1) return false;
-      if(x.CompanyName === 'FIETSBERAAD') return false;
+      if (!x.CompanyName) return false;
+      if (filterQuery.length <= 1) return false;
+      if (x.CompanyName === 'FIETSBERAAD') return false;
       return x.CompanyName.toLowerCase().indexOf(filterQuery.toLowerCase()) > -1;
     });
-    setVisibleMunicipalities(filteredMunicipalities.slice(0,3));
+    setVisibleMunicipalities(filteredMunicipalities.slice(0, 3));
   }, [
     municipalities,
     filterQuery
@@ -259,7 +305,7 @@ function ParkingFacilityBrowser({
           return (
             <div className="mb-0 ml-0 mr-0" key={x.ID}>
               <ParkingFacilityBlock
-                id={'parking-facility-block-'+x.ID}
+                id={'parking-facility-block-' + x.ID}
                 parking={x}
                 compact={x.ID !== selectedParkingId}
                 expandParkingHandler={expandParking}
