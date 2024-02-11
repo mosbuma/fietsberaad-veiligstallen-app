@@ -134,7 +134,6 @@ function ParkingFacilityBlock({
       break;
   }
 
-  console.log(parking.Title);
   const openingDescription = formatOpeningToday(parking);
 
   const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
