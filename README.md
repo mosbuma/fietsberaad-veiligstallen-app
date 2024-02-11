@@ -77,9 +77,20 @@ Error response:
 
     https://api.dashboarddeelmobiliteit.nl/dashboard-api/public/get_municipality_based_on_latlng?location=52.0,7.5
 
+## Create a docker image for the veiligstallen application
 
-## create a docker image for the veiligstallen application
 - make sure that your .env file containers the settings that should be used server side (your development settings can be set in .env.local: this overrides the .env settings)
 - first make sure that the prisma binaries have been generated (npx prisma generate)
-- next create the docker container using the 'npm run docker-build' command
-- the docker image can be started locally by running 'npm run docker-run'
+- next create the docker container using the `npm run docker-build` command
+- the docker image can be started locally by running `npm run docker-run`
+
+--
+
+Stap van schema-full.prisma is auto generated.
+schema.prisma is de uitgeklede versie en moet je handmatig aanpassen bij updates in het schema
+
+NOTE: Na elke `npm run setup-db` moet schema.prisma worden gerevert.
+
+`npx prisma generate` daarna: dat maakt de classes in de app op basis van het schema.
+
+(als ik geen setup-db meer doet, blijft alles hetzelfde)
