@@ -168,7 +168,9 @@ function ParkingFacilityBrowser({
           filtered = sorted;
         }
       }
-      // If no searchQuery is given and zoomed in: Only show active municipality parkings
+      // If no searchQuery is given and zoomed in: 
+      // - First show parkings that are on the map, also if not part of the municipality
+      // - Then other parkings of that municipality
       else if (
         mapZoom >= 12
         && (!filterQuery || filterQuery.length <= 0)
@@ -179,9 +181,11 @@ function ParkingFacilityBrowser({
           return p.SiteID === activeMunicipalityInfo.ID
             || p.Plaats === activeMunicipalityInfo.CompanyName;// Also show NS stallingen that have an other SiteID
         });
+        const parkingsInThisMunicipalityIds = mapVisibleFeatures.map((x) => x.id);
+
         // Put the visible parkings on top
         const visibleParkingIds = mapVisibleFeatures.map((x) => x.id);
-        filtered = parkingsInThisMunicipality.filter((p) => {
+        filtered = allParkings.filter((p) => {
           return visibleParkingIds.indexOf(p.ID) > -1;
         });
         parkingsInThisMunicipality.forEach((p) => {
