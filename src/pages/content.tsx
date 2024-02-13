@@ -57,7 +57,7 @@ export async function getServerSideProps(context) {
 const Content: NextPage = ({ fietsenstallingen }) => {
   const dispatch = useDispatch();
   const { push } = useRouter();
-	const pathName = usePathname();
+  const pathName = usePathname();
 
   const [currentStallingId, setCurrentStallingId] = useState(undefined);
   const [pageContent, setPageContent] = useState({});
@@ -72,8 +72,8 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
-    const municipalitySlug = pathName.split('/')[pathName.split('/').length-2];
-    if(! municipalitySlug) return;
+    const municipalitySlug = pathName.split('/')[pathName.split('/').length - 2];
+    if (!municipalitySlug) return;
 
     // Get municipality based on urlName
     (async () => {
@@ -88,34 +88,34 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
   // Get article content based on slug
   useEffect(() => {
-  	if(! pathName) return;
-  	if(! activeMunicipalityInfo || ! activeMunicipalityInfo.ID) return;
-    const pageSlug = pathName.split('/')[pathName.split('/').length-1];
-    if(! pageSlug) return;
+    if (!pathName) return;
+    if (!activeMunicipalityInfo || !activeMunicipalityInfo.ID) return;
+    const pageSlug = pathName.split('/')[pathName.split('/').length - 1];
+    if (!pageSlug) return;
 
     (async () => {
       try {
         const response = await fetch(
-        	`/api/articles/?Title=${pageSlug}&SiteID=${activeMunicipalityInfo.ID}&findFirst=true`
-      	);
+          `/api/articles/?Title=${pageSlug}&SiteID=${activeMunicipalityInfo.ID}&findFirst=true`
+        );
         const json = await response.json();
-        if(! json) return;
+        if (!json) return;
         // If result is an array with 1 node: Get node only
         const pageContentToSet = json && json.SiteID ? json : json[0];
         setPageContent(pageContentToSet);
-      } catch(err) {
+      } catch (err) {
         console.error(err);
       }
-		})();
+    })();
   }, [
-  	pathName,
-  	activeMunicipalityInfo
-	]);
+    pathName,
+    activeMunicipalityInfo
+  ]);
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
-  if(! pageContent) {
+  if (!pageContent) {
     return (<div className="p-10">
       Geen pagina-inhoud gevonden. <a href="javascript:history.back();" className="underline">Ga terug</a>
     </div>);
@@ -125,32 +125,32 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
   // Decide on what parkings to show on this page, if any
   let parkingTypesToFilterOn;
-  if(pageContent && pageContent.Title === 'Stallingen') {
-  	parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
+  if (pageContent && pageContent.Title === 'Stallingen') {
+    parkingTypesToFilterOn = ['bewaakt', 'geautomatiseerd', 'onbewaakt', 'toezicht'];
   }
-  else if(pageContent && pageContent.Title === 'Buurtstallingen') {
-  	parkingTypesToFilterOn = ['buurtstalling'];
+  else if (pageContent && pageContent.Title === 'Buurtstallingen') {
+    parkingTypesToFilterOn = ['buurtstalling'];
   }
-  else if(pageContent && (pageContent.Title === 'Fietstrommels' || pageContent.Title === 'fietstrommels')) {
-  	parkingTypesToFilterOn = ['fietstrommel'];
+  else if (pageContent && (pageContent.Title === 'Fietstrommels' || pageContent.Title === 'fietstrommels')) {
+    parkingTypesToFilterOn = ['fietstrommel'];
   }
-  else if(pageContent && pageContent.Title === 'Fietskluizen') {
-  	parkingTypesToFilterOn = ['fietskluizen'];
+  else if (pageContent && pageContent.Title === 'Fietskluizen') {
+    parkingTypesToFilterOn = ['fietskluizen'];
   }
 
   return (
     <>
       <Head>
         <title>
-        	{activeMunicipalityInfo
-	        	? `${activeMunicipalityInfo.CompanyName} - VeiligStallen`
-	        	: 'VeiligStallen'}
-      	</title>
+          {activeMunicipalityInfo
+            ? `${activeMunicipalityInfo.CompanyName} - VeiligStallen`
+            : 'VeiligStallen'}
+        </title>
       </Head>
 
       <AppHeader />
 
-			<div className={`
+      <div className={`
 				lg:mt-16
 				p-4
 				sm:pt-20
@@ -161,49 +161,51 @@ const Content: NextPage = ({ fietsenstallingen }) => {
 
 				${Styles.ContentPage_Body}
 			`}>
-				<div className="
+        <div className="
 					flex-1
 					lg:mr-24
 				">
-					{(pageContent.DisplayTitle || pageContent.Title) ? <PageTitle>
-						{pageContent.DisplayTitle ? pageContent.DisplayTitle : pageContent.Title}
-					</PageTitle> : ''}
-					{pageContent.Abstract ? <div className="
+          {(pageContent.DisplayTitle || pageContent.Title) ? <PageTitle>
+            {pageContent.DisplayTitle ? pageContent.DisplayTitle : pageContent.Title}
+          </PageTitle> : ''}
+          {pageContent.Abstract ? <div className="
 						text-lg
 						my-4
 					"
-					dangerouslySetInnerHTML={{__html: pageContent.Abstract}}
-					/> : ''}
-					
-					{pageContent.Article ? <div className="
+            dangerouslySetInnerHTML={{ __html: pageContent.Abstract }}
+          /> : ''}
+
+          {pageContent.Article ? <div className="
 						my-4
 						mt-12
 					"
-					dangerouslySetInnerHTML={{__html: pageContent.Article}}
-					/> : ''}
+            dangerouslySetInnerHTML={{ __html: pageContent.Article }}
+          /> : ''}
 
           {isFaq && <>
             <Faq />
           </>}
-				</div>
-				<div className="
+        </div>
+        <div className="
 					mt-10
 					p-4
 					max-w-full
 				"
-				style={{
-					width: '414px'
-				}}
-				>
-					{parkingTypesToFilterOn && <ParkingFacilityBrowser
-						customFilter={(x) => {
+          style={{
+            width: '414px'
+          }}
+        >
+          {parkingTypesToFilterOn && <ParkingFacilityBrowser
+            customFilter={(x) => {
               return parkingTypesToFilterOn.indexOf(x.Type) > -1 && activeMunicipalityInfo.CompanyName?.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1;
-						}}
-            onShowStallingDetails={(id: any) => setCurrentStallingId(id)}
-						fietsenstallingen={fietsenstallingen}
-					/>}
-				</div>
-			</div>
+            }}
+            onShowStallingDetails={(id: any) => {
+              setCurrentStallingId(id);
+            }}
+            fietsenstallingen={fietsenstallingen}
+          />}
+        </div>
+      </div>
 
       {currentStallingId && isSm && (<>
         <Overlay
@@ -212,27 +214,27 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         >
           <Parking
             key={currentStallingId}
-            parkingdata={currentStalling}
+            parkingID={currentStalling.ID}
           />
         </Overlay>
       </>)}
 
-      {currentStallingId && ! isSm && (<>
+      {currentStallingId && !isSm && (<>
         <Modal
           onClose={() => setCurrentStallingId(undefined)}
           clickOutsideClosesDialog={false}
         >
           <Parking
             key={currentStallingId}
-            parkingdata={fietsenstallingen.find((stalling: any) => {
+            parkingID={fietsenstallingen.find((stalling: any) => {
               return stalling.ID === currentStallingId;
-            })}
+            }).ID}
           />
         </Modal>
       </>)}
 
       <FooterNav />
-		</>
+    </>
   );
 };
 

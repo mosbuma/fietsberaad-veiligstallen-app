@@ -275,7 +275,9 @@ function ParkingFacilityBlock({
                 <a
                   onClick={(e) => {
                     e.preventDefault();
-                    if (openParkingHandler) openParkingHandler(parking.ID);
+                    if (openParkingHandler) {
+                      openParkingHandler(parking.ID);
+                    }
                   }}
                   href="#"
                   className="text-sm text-gray-500 underline px-1 py-2 inline-block -px-1 -my-2"

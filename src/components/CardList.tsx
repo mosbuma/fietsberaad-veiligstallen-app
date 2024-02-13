@@ -40,8 +40,8 @@ const CardList: React.FC<Props> = ({
 
   // If mapVisibleFeatures change: Filter parkings
   useEffect(() => {
-    if(! fietsenstallingen) return;
-    if(! mapVisibleFeatures) return;
+    if (!fietsenstallingen) return;
+    if (!mapVisibleFeatures) return;
 
     const allParkings = fietsenstallingen;
     const visibleParkingIds = mapVisibleFeatures.map(x => x.id);
@@ -56,12 +56,12 @@ const CardList: React.FC<Props> = ({
 
   // If map extent changes: Move to correct parking slide if needed
   useEffect(() => {
-    if(! visibleParkings) return;
+    if (!visibleParkings) return;
 
     // After map update: Is selectedParkingId still visible? If so: Slide to parking card
     let isSelectedParkingStillVisible = false, selectedParkingIndex: number;
     visibleParkings.forEach((x, idx) => {
-      if(x.ID === selectedParkingId) {
+      if (x.ID === selectedParkingId) {
         isSelectedParkingStillVisible = true;
         selectedParkingIndex = idx;
       }
@@ -70,7 +70,7 @@ const CardList: React.FC<Props> = ({
     // Wait 50 ms so that the map flyTo animation is fully done before sliding to the right card
     setTimeout(() => {
       // Check if slider (still) exists
-      if(! slider || ! slider.current) return;
+      if (!slider || !slider.current) return;
       // Slide to card
       const cardToSlideTo = isSelectedParkingStillVisible ? selectedParkingIndex : 0;
       slider.current.update(sliderProps, cardToSlideTo);
@@ -124,7 +124,6 @@ const CardList: React.FC<Props> = ({
     // Set URL
     // window.history.replaceState(null, document.title, `/stalling/${id}`); // Only change URL
     // push(`/stalling/${id}`);// Redirect
-
     // Set active parking ID
     dispatch(setSelectedParkingId(id));
 

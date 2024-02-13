@@ -47,7 +47,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { getParkingDetails, generateRandomId } from "~/utils/parkings";
 
-export async function getServerSideProps(context:any) {
+export async function getServerSideProps(context: any) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
     // console.log(">>>>> session", session);
@@ -81,11 +81,11 @@ const Home: NextPage = ({
   message
 }: any) => {
   const router = useRouter();
-  const { query} = useRouter();
+  const { query } = useRouter();
 
   const dispatch = useDispatch();
 
-  const [currentStallingId, setCurrentStallingId] = useState<string|undefined>(undefined);
+  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
 
@@ -123,16 +123,16 @@ const Home: NextPage = ({
   }, []);
 
   useEffect(() => {
-    if(router.query.stallingid!==undefined && ! Array.isArray(router.query.stallingid)) {
-      if(router.query.stallingid==='nieuw') {
-        const voorstelid=generateRandomId('VOORSTEL')
-        const data =  {
-          ID: voorstelid, 
+    if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
+      if (router.query.stallingid === 'nieuw') {
+        const voorstelid = generateRandomId('VOORSTEL')
+        const data = {
+          ID: voorstelid,
           Title: 'Nieuwe stalling',
           Type: 'bewaakt',
           Coordinaten: '52.09066,5.121317',
         }
-  
+
         fetch(
           "/api/fietsenstallingen",
           {
@@ -143,7 +143,7 @@ const Home: NextPage = ({
             },
           }
         ).then(response => {
-          if(response) {
+          if (response) {
             response.json().then(json => {
               router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
             })
@@ -163,16 +163,16 @@ const Home: NextPage = ({
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
-    if(! router.query.urlName) return;
+    if (!router.query.urlName) return;
 
     // Get municipality based on urlName
     (async () => {
       // Get municipality
       const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
-      if(! municipality) return;
+      if (!municipality) return;
       // Fly to municipality, on the map
       const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
-      if(initialLatLng) {
+      if (initialLatLng) {
         dispatch(setInitialLatLng(initialLatLng));
       }
       // Set municipality info in redux
@@ -184,20 +184,20 @@ const Home: NextPage = ({
 
   // Get municipality theme info
   useEffect(() => {
-    if(! activeMunicipality) return;
-    if(! activeMunicipality.municipality) return;
+    if (!activeMunicipality) return;
+    if (!activeMunicipality.municipality) return;
 
     (async () => {
       // Convert municipality code of DD to VS
       let cbsCode = activeMunicipality.municipality.replace('GM', '');
-      while(cbsCode.charAt(0) === '0') {
+      while (cbsCode.charAt(0) === '0') {
         cbsCode = cbsCode.substring(1);
       }
       cbsCode = Number(cbsCode);
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
       // Set municipality slug in URL
-      if(mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
+      if (mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
         window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
       }
       // If zoomed out, have just `/` as URL
@@ -214,14 +214,14 @@ const Home: NextPage = ({
   // Open municipality info modal
   let TO_showWelcomeModal;
   useEffect(() => {
-    if(TO_showWelcomeModal) clearTimeout(TO_showWelcomeModal);
+    if (TO_showWelcomeModal) clearTimeout(TO_showWelcomeModal);
     TO_showWelcomeModal = setTimeout(() => {
-      if(! initialLatLng || ! activeMunicipalityInfo) return;
+      if (!initialLatLng || !activeMunicipalityInfo) return;
       // Save the fact that user did see welcome modal
       const VS__didSeeWelcomeModal = localStorage.getItem('VS__didSeeWelcomeModal');
       // console.log('GET timestamp', VS__didSeeWelcomeModal, Date.now() - VS__didSeeWelcomeModal, 'Date.now()', Date.now())
       // Only show modal once per 15 minutes
-      if(! VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600*1000 / 4))) {
+      if (!VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600 * 1000 / 4))) {
         setIsInfoModalVisible(true);
       }
     }, 1650);// 1500 is flyTo time in MapComponent
@@ -233,7 +233,7 @@ const Home: NextPage = ({
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
-  const isCardListVisible = ! isParkingListVisible && ! isFilterBoxVisible;
+  const isCardListVisible = !isParkingListVisible && !isFilterBoxVisible;
 
   if (online === false) {
     return (
@@ -246,13 +246,13 @@ const Home: NextPage = ({
   }
 
   const updateStallingId = (id: string | undefined): void => {
-    if(undefined===id) {
+    if (undefined === id) {
       delete query.stallingid;
-      router.push({ query: { ...query}});
+      router.push({ query: { ...query } });
     } else {
-      router.push({ query: { ...query, stallingid: id }}); 
+      router.push({ query: { ...query, stallingid: id } });
     }
-    if(undefined===id) {
+    if (undefined === id) {
       setCurrentStallingId(undefined);
     }
   }
@@ -263,10 +263,10 @@ const Home: NextPage = ({
 
         <AppHeader />
 
-        {currentStallingId!==undefined && isSm && (<>
+        {currentStallingId !== undefined && isSm && (<>
           <Overlay
             title={""}
-            onClose={() => {updateStallingId(undefined)}}
+            onClose={() => { updateStallingId(undefined) }}
           >
             <Parking
               key={'parking-sm-' + currentStallingId}
@@ -276,9 +276,9 @@ const Home: NextPage = ({
           </Overlay>
         </>)}
 
-        {currentStallingId!==undefined && ! isSm && (<>
+        {currentStallingId !== undefined && !isSm && (<>
           <Modal
-            onClose={() => {updateStallingId(undefined)}}
+            onClose={() => { updateStallingId(undefined) }}
             clickOutsideClosesDialog={false}
           >
             <Parking
@@ -321,13 +321,13 @@ const Home: NextPage = ({
               width: "414px",
               height: 'auto'
             }}
-            // height: mapZoom >= 12 ? "60vh" : 'auto',
-            // maxHeight: 'calc(100vh - 64px)'
+          // height: mapZoom >= 12 ? "60vh" : 'auto',
+          // maxHeight: 'calc(100vh - 64px)'
           >
             <ParkingFacilityBrowser
               showSearchBar={true}
               fietsenstallingen={fietsenstallingen}
-              onShowStallingDetails={(id: any) => {updateStallingId(id)}}
+              onShowStallingDetails={(id: any) => { updateStallingId(id) }}
             />
           </div>
 
@@ -363,10 +363,10 @@ const Home: NextPage = ({
                   right-1
                   z-10
                 "
-                onClick={() => {
-                  dispatch(setIsMobileNavigationVisible(true))
-                }}
-              />}
+                  onClick={() => {
+                    dispatch(setIsMobileNavigationVisible(true))
+                  }}
+                />}
             />
             {/*HAMB.*/}
           </div>
@@ -415,7 +415,7 @@ const Home: NextPage = ({
                   : `https://cdn3.iconfinder.com/data/icons/feather-5/24/list-256.png`
               }
               onClick={() => {
-                dispatch(setIsParkingListVisible(! isParkingListVisible));
+                dispatch(setIsParkingListVisible(!isParkingListVisible));
                 // dispatch(setIsFilterBoxVisible(false));
               }}
             ></IconButton>
@@ -428,7 +428,7 @@ const Home: NextPage = ({
                 "https://cdn2.iconfinder.com/data/icons/user-interface-line-38/24/Untitled-5-21-256.png"
               }
               onClick={() => {
-                dispatch(setIsFilterBoxVisible(! isFilterBoxVisible));
+                dispatch(setIsFilterBoxVisible(!isFilterBoxVisible));
                 // dispatch(setIsParkingListVisible(false));
               }}
             ></IconButton>
@@ -454,12 +454,12 @@ const Home: NextPage = ({
                 bottom-0
                 left-0
               "
-              style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.5)'
-              }}
-              onClick={() => {
-                dispatch(setIsFilterBoxVisible(false));
-              }}
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                }}
+                onClick={() => {
+                  dispatch(setIsFilterBoxVisible(false));
+                }}
               />
               <div
                 className="
@@ -492,7 +492,7 @@ const Home: NextPage = ({
                   <ParkingFacilityBrowser
                     showSearchBar={false}
                     fietsenstallingen={fietsenstallingen}
-                    onShowStallingDetails={(id: any) => {updateStallingId(id)}}
+                    onShowStallingDetails={(id: any) => { updateStallingId(id) }}
                   />
                 </Overlay>
               )}
@@ -513,7 +513,7 @@ const Home: NextPage = ({
         >
           <CardList
             fietsenstallingen={fietsenstallingen}
-            onShowStallingDetails={(id: any) => {updateStallingId(id)}}
+            onShowStallingDetails={(id: any) => { updateStallingId(id) }}
           />
         </div>}
 
@@ -559,7 +559,7 @@ const Home: NextPage = ({
           buttonClickHandler={() => {
             // Save the fact that user did see welcome modal
             localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
-  
+
             setIsInfoModalVisible(false)
           }}
         />
