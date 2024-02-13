@@ -22,7 +22,9 @@ const Login: NextPage = () => {
 	const router = useRouter()
 	const error = useQueryParam("error")[0];
 
-	const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
+	const onSignIn = async (e: any) => {
+		e.preventDefault();
+
 		if (
 			emailRef.current && emailRef.current.value !== '' &&
 			passwordRef.current && passwordRef.current.value !== ''
@@ -97,7 +99,7 @@ const Login: NextPage = () => {
 							<div data-name="Some spacing" className="h-2">
 
 							</div>
-							<div data-name="Title and login form" className="mb-8">
+							<form onSubmit={onSignIn} data-name="Title and login form" className="mb-8">
 								<PageTitle className="flex flex-col justify-center hidden sm:block">
 									<div>
 										<img src="/images/logo-without-text.png" alt="VeiligStallen logo"
@@ -146,7 +148,7 @@ const Login: NextPage = () => {
 										Registreren
 									</a>
 								</div>
-							</div>
+							</form>
 
 							<div data-name="Footer: Password forgotten & Contact helpdesk">
 								<div className="text-center">
