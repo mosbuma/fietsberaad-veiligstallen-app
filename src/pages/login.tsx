@@ -13,85 +13,86 @@ import { signIn } from "next-auth/react";
 
 // Import styles
 import Styles from "./login.module.css";
+import { NextPage } from "next/types";
 
 const Login: NextPage = () => {
 	const emailRef = useRef<HTMLInputElement | null>(null);
 	const passwordRef = useRef<HTMLInputElement | null>(null);
-  
+
 	const router = useRouter()
 	const error = useQueryParam("error")[0];
 
-  const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
-		if(
-			emailRef.current && emailRef.current.value!=='' &&
-	    passwordRef.current&& passwordRef.current.value!==''
-    ) {
-	    signIn("credentials", {
-	      email: emailRef.current.value.trim(),
-	      password: passwordRef.current.value,
-	      callbackUrl: "/",
-	    });
+	const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
+		if (
+			emailRef.current && emailRef.current.value !== '' &&
+			passwordRef.current && passwordRef.current.value !== ''
+		) {
+			signIn("credentials", {
+				email: emailRef.current.value.trim(),
+				password: passwordRef.current.value,
+				callbackUrl: "/",
+			});
 		} else {
 			alert('no email of password given');
 		}
-  };
+	};
 
-  const allowLogin = emailRef.current?.value !=='' && passwordRef.current?.value !=='';
+	const allowLogin = emailRef.current?.value !== '' && passwordRef.current?.value !== '';
 
-  return (
-    <>
-      <Head>
-        <title>
-        	Login - VeiligStallen
-      	</title>
-      </Head>
-			<div className="flex flex-col justify-between" style={{height:'100dvh'}}>
+	return (
+		<>
+			<Head>
+				<title>
+					Login - VeiligStallen
+				</title>
+			</Head>
+			<div className="flex flex-col justify-between" style={{ height: '100dvh' }}>
 
-			  <AppHeader />
+				<AppHeader />
 
 				<div className={`${Styles.LoginPage} flex-1`}>
 					<div className={`
-						${Styles.LoginBox}
-						bg-white
-						rounded-xl
-						mx-auto
-						px-4
-						sm:px-12
-						py-8
-						shadow-md
+					${Styles.LoginBox}
+					bg-white
+					rounded-xl
+					mx-auto
+					px-4
+					sm:px-12
+					py-8
+					shadow-md
 
-						flex
-						flex-wrap
-					`}
-					style={{
-						width: '1000px',
-						maxWidth: '90%'
-					}}>
+					flex
+					flex-wrap
+				`}
+						style={{
+							width: '1000px',
+							maxWidth: '90%'
+						}}>
 						<div
 							data-name="bicycle-image"
 							className="
-								px-12
-								sm:px-12
-								sm:pr-24
+							px-12
+							sm:px-12
+							sm:pr-24
 
-								py-2
-								sm:py-10
-							"
+							py-2
+							sm:py-10
+						"
 						>
 							<img src="/images/bike-blue-green.png"
 								width="100%"
-								style={{maxWidth: '350px'}}
+								style={{ maxWidth: '350px' }}
 							/>
 						</div>
 						<div
 							data-name="login-form"
 							className="
-								flex-1
+							flex-1
 
-								flex
-								flex-col
-								justify-around
-							"
+							flex
+							flex-col
+							justify-around
+						"
 						>
 							<div data-name="Some spacing" className="h-2">
 
@@ -101,7 +102,7 @@ const Login: NextPage = () => {
 									<div>
 										<img src="/images/logo-without-text.png" alt="VeiligStallen logo"
 											className="inline-block mr-6"
-											style={{height: '60px'}}
+											style={{ height: '60px' }}
 										/>
 										<b>Log in met je account</b>
 									</div>
@@ -130,11 +131,11 @@ const Login: NextPage = () => {
 								<div className="flex justify-between">
 									<div className="flex flex-col justify-center">
 										{/* <FormCheckbox classes="text-gray-500 text-sm">
-											Ingelogd blijven
-										</FormCheckbox> */}
+										Ingelogd blijven
+									</FormCheckbox> */}
 									</div>
 									<div className="flex flex-col justify-center">
-										<Button style={{marginTop: '0.5rem', marginBottom: '0.5rem'}} onClick={onSignIn}>
+										<Button style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }} onClick={onSignIn}>
 											Inloggen
 										</Button>
 									</div>
@@ -149,7 +150,8 @@ const Login: NextPage = () => {
 
 							<div data-name="Footer: Password forgotten & Contact helpdesk">
 								<div className="text-center">
-									<a href="/reset-password" className="underline text-sm mr-5 hidden">
+									{/* <a href="/reset-password" className="underline text-sm mr-5"> */}
+									<a href="https://fms.veiligstallen.nl/security/login.cfm" className="underline text-sm mr-5" target="_blank">
 										Wachtwoord vergeten?
 									</a>
 									<a href="mailto:fietsberaad@crow.nl" className="underline text-sm">
@@ -158,13 +160,13 @@ const Login: NextPage = () => {
 								</div>
 							</div>
 
-						</div> 
+						</div>
 					</div>
-			  	
-		    </div>
-		  </div>
+
+				</div>
+			</div>
 		</>
-  );
+	);
 };
 
 export default Login;
