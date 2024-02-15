@@ -1,5 +1,17 @@
 # App updates VeiligStallen
 
+## VeiligStallen 2024-02-13
+
+**Login**
+
+- ✨ Je kunt nu in het loginformulier op <enter> drukken om in te loggen
+- 🖌️ Verbeterde "inloggegevens waren onjuist" weergave
+
+**Stallingen-verkenner**
+
+- 🐛 Opgelost: Site crashte als je vanaf een content-pagina een stalling opende
+- 🐛 Opgelost: Binnen een gemeente toonde NS-stallingen niet in de lijst. We geven nu altijd alle op de kaart zichtbare stallingen weer in de stallingenlijst onder de zoekbalk
+
 ## VeiligStallen 2024-02-12
 
 **Stallingen-verkenner**
