@@ -207,7 +207,7 @@ function ParkingFacilityBlock({
           <div className="h-6 overflow-hidden sm:h-auto">
             <b className="text-base">{parking.Title}</b>
           </div>
-          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={{ locationDescription }}>
+          <div className="text-sm text-gray-500 h-5 overflow-hidden" title={locationDescription}>
             {locationDescription}
           </div>
         </div>
