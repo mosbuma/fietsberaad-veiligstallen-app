@@ -1,5 +1,15 @@
 # App updates VeiligStallen
 
+## VeiligStallen 2024-03-03
+
+**Algemeen**
+
+- Toon FMS-link voor ingelogde gebruikers, in het hoofdmenu
+
+**Stallingen-verkenner**
+
+- Toon adres als tooltip bij een mouseover over het adres in de stallingenlijst
+
 ## VeiligStallen 2024-02-13
 
 **Login**
