@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
@@ -33,7 +33,7 @@ const PrimaryMenuItem = (props: any) => {
 
       push(props.url);
     }}>
-      {props.icon ? <img src={props.icon} style={{height: '30px'}} /> : ''}
+      {props.icon ? <img src={props.icon} style={{ height: '30px' }} /> : ''}
       {props.title}
     </a>
   </div>
@@ -65,7 +65,7 @@ function AppHeaderDesktop({
   const { push } = useRouter();
   const pathName = usePathname();
   const { data: session } = useSession()
-  
+
   const [articles, setArticles] = useState([]);
   const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
   const [didNavOverflow, setDidNavOverflow] = useState(false);
@@ -84,7 +84,7 @@ function AppHeaderDesktop({
   useEffect(() => {
     // Get menu items from SiteID 1 OR SiteID of the municipality
     let SiteIdToGetArticlesFrom;
-    if(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
+    if (mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
       SiteIdToGetArticlesFrom = activeMunicipalityInfo.ID;
     } else {
       SiteIdToGetArticlesFrom = "1";
@@ -94,7 +94,7 @@ function AppHeaderDesktop({
       const response = await getNavigationItemsForMunicipality(SiteIdToGetArticlesFrom);
       setArticles(response);
     })();
-   }, [
+  }, [
     activeMunicipalityInfo,
     pathName
   ]);
@@ -125,12 +125,12 @@ function AppHeaderDesktop({
     // Check if nav items overflow the nav bar
     let navOverflow = false;
     for (const el of wrapperEl.children) {
-      if(! el.classList.contains('PrimaryMenuItem')) {
+      if (!el.classList.contains('PrimaryMenuItem')) {
         continue;
       }
       const elementTop = el.offsetTop;
       const headerHeight = headerEl.offsetHeight;
-      if((elementTop + 12) >= headerHeight) {// 12 = padding-top of header
+      if ((elementTop + 12) >= headerHeight) {// 12 = padding-top of header
         el.style.display = 'none';
         navOverflow = true;
       } else {
@@ -141,7 +141,7 @@ function AppHeaderDesktop({
   };
 
   const handleLoginClick = () => {
-    if(!session) {
+    if (!session) {
       push('/login');
     } else {
       // sign out
@@ -179,7 +179,7 @@ function AppHeaderDesktop({
 
           overflow-hidden
         "
-        style={{height: '64px'}}
+        style={{ height: '64px' }}
       >
         <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
           <Logo
@@ -204,36 +204,61 @@ function AppHeaderDesktop({
             icon={'/images/icon-map.png'}
             url={'/'}
           />}
-          {primaryMenuItems ? primaryMenuItems.map((x,idx) => <PrimaryMenuItem
-            key={'pmi-h1-'+idx}
+          {primaryMenuItems ? primaryMenuItems.map((x, idx) => <PrimaryMenuItem
+            key={'pmi-h1-' + idx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
           <div className="
           " style={{
-            display: didNavOverflow ? 'block' : 'none',
-            visibility: didNavOverflow ? 'visible' : 'hidden',
-          }}>
+              display: didNavOverflow ? 'block' : 'none',
+              visibility: didNavOverflow ? 'visible' : 'hidden',
+            }}>
             <ToggleMenuIcon className="
               shadow-none
               bg-transparent
               z-10
             "
-            style={{height: '40px'}}
-            onClick={() => {
-              dispatch(setIsMobileNavigationVisible(true))
-            }}
+              style={{ height: '40px' }}
+              onClick={() => {
+                dispatch(setIsMobileNavigationVisible(true))
+              }}
             />
           </div>
         </div>
         <div className="flex flex-end">
-          {secundaryMenuItems.map((x,idx) => {
+          {secundaryMenuItems.map((x, idx) => {
             return <SecundaryMenuItem
-              key={'pmi-h2-'+idx}
+              key={'pmi-h2-' + idx}
               title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
               url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
             />
           })}
+
+          {session && <a
+            href="https://fms.veiligstallen.nl"
+            target="_blank"
+            className="
+              mx-2
+              h-10
+              rounded-md
+              px-4
+              font-bold
+              text-white
+              shadow-lg
+              flex
+              flex-col
+              justify-center
+            "
+            style={{
+              backgroundColor: '#c4c4c4',
+            }}
+
+            title="Ga naar het oude FMS beheersysteem"
+          >
+            FMS
+          </a>}
+
           <button
             className="
               mx-2
@@ -251,6 +276,7 @@ function AppHeaderDesktop({
           >
             {session ? "Log uit" : "Log in"}
           </button>
+
         </div>
       </div>
 

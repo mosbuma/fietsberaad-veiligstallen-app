@@ -13,7 +13,6 @@ import { signIn } from "next-auth/react";
 
 // Import styles
 import Styles from "./login.module.css";
-import { NextPage } from "next/types";
 
 const Login: NextPage = () => {
 	const emailRef = useRef<HTMLInputElement | null>(null);
@@ -22,9 +21,7 @@ const Login: NextPage = () => {
 	const router = useRouter()
 	const error = useQueryParam("error")[0];
 
-	const onSignIn = async (e: any) => {
-		e.preventDefault();
-
+	const onSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
 		if (
 			emailRef.current && emailRef.current.value !== '' &&
 			passwordRef.current && passwordRef.current.value !== ''
@@ -45,7 +42,7 @@ const Login: NextPage = () => {
 		<>
 			<Head>
 				<title>
-					Login - VeiligStallen
+					Wachtwoord vergeten - VeiligStallen
 				</title>
 			</Head>
 			<div className="flex flex-col justify-between" style={{ height: '100dvh' }}>
@@ -54,18 +51,18 @@ const Login: NextPage = () => {
 
 				<div className={`${Styles.LoginPage} flex-1`}>
 					<div className={`
-					${Styles.LoginBox}
-					bg-white
-					rounded-xl
-					mx-auto
-					px-4
-					sm:px-12
-					py-8
-					shadow-md
+						${Styles.LoginBox}
+						bg-white
+						rounded-xl
+						mx-auto
+						px-4
+						sm:px-12
+						py-8
+						shadow-md
 
-					flex
-					flex-wrap
-				`}
+						flex
+						flex-wrap
+					`}
 						style={{
 							width: '1000px',
 							maxWidth: '90%'
@@ -73,13 +70,13 @@ const Login: NextPage = () => {
 						<div
 							data-name="bicycle-image"
 							className="
-							px-12
-							sm:px-12
-							sm:pr-24
+								px-12
+								sm:px-12
+								sm:pr-24
 
-							py-2
-							sm:py-10
-						"
+								py-2
+								sm:py-10
+							"
 						>
 							<img src="/images/bike-blue-green.png"
 								width="100%"
@@ -89,72 +86,36 @@ const Login: NextPage = () => {
 						<div
 							data-name="login-form"
 							className="
-							flex-1
+								flex-1
 
-							flex
-							flex-col
-							justify-around
-						"
+								flex
+								flex-col
+								justify-around
+							"
 						>
 							<div data-name="Some spacing" className="h-2">
 
 							</div>
-							<form onSubmit={onSignIn} data-name="Title and login form" className="mb-8">
+							<div data-name="Title and login form" className="mb-8">
 								<PageTitle className="flex flex-col justify-center hidden sm:block">
 									<div>
 										<img src="/images/logo-without-text.png" alt="VeiligStallen logo"
 											className="inline-block mr-6"
 											style={{ height: '60px' }}
 										/>
-										<b>Log in met je account</b>
+										<b>Wachtwoord vergeten?</b>
 									</div>
 								</PageTitle>
 
 								<div>
-									<FormInput
-										innerRef={emailRef}
-										type="email"
-										placeholder="E-mail"
-										required
-										className="w-full"
-									/>
+									Ben je je wachtwoord vergeten? Neem dan contact op met <a href="mailto:fietsberaad@crow.nl?subject=VeiligStallen wachtwoord vergeten" className="underline">fietsberaad@crow.nl</a> en vraag om een nieuw wachtwoord.
 								</div>
-
-								<div>
-									<FormInput
-										innerRef={passwordRef}
-										type="password"
-										placeholder="Wachtwoord"
-										required
-										className="w-full"
-									/>
-								</div>
-
-								<div className="flex justify-between">
-									<div className="flex flex-col justify-center">
-										{/* <FormCheckbox classes="text-gray-500 text-sm">
-										Ingelogd blijven
-									</FormCheckbox> */}
-									</div>
-									<div className="flex flex-col justify-center">
-										<Button style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }} onClick={onSignIn}>
-											Inloggen
-										</Button>
-									</div>
-								</div>
-
-								<div className="text-center sm:text-right my-2 text-sm hidden">
-									Nog geen account? <a href="/register" className="underline">
-										Registreren
-									</a>
-								</div>
-							</form>
+							</div>
 
 							<div data-name="Footer: Password forgotten & Contact helpdesk">
 								<div className="text-center">
-									{/* <a href="/reset-password" className="underline text-sm mr-5"> */}
-									<a href="/reset-password" className="underline text-sm mr-5">
-										Wachtwoord vergeten?
+									<a href="/login" className="underline text-sm mr-5">
+										Inloggen
 									</a>
 									<a href="mailto:fietsberaad@crow.nl" className="underline text-sm">
 										Contact helpdesk
