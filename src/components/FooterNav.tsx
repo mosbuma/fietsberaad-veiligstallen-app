@@ -1,6 +1,7 @@
 // @ts-nocheck
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react"
 
 import {
   getNavigationItemsForMunicipality,
@@ -22,26 +23,28 @@ const FooterNavItem = ({
     ${className}
     mx-2
   `}
-  onClick={(e) => {
-    e.preventDefault();
+    onClick={(e) => {
+      e.preventDefault();
 
       push(url);
-  }}
+    }}
   >
     {children}
   </a>
 }
 
 const FooterNav = () => {
+  const { data: session } = useSession()
+
   const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
 
- // Get menu items for siteId 1 (Fietsberaad)
+  // Get menu items for siteId 1 (Fietsberaad)
   useEffect(() => {
     (async () => {
       const response = await getNavigationItemsForMunicipality(1);
       setFietsberaadArticles(response);
     })();
-   }, []);
+  }, []);
 
   const navItemsPrimary = [
     // { title: 'Stalling toevoegen' },
@@ -63,22 +66,23 @@ const FooterNav = () => {
       text-xs
       z-10
     ">
-      <FooterNavItem
-        url={'/?stallingid=nieuw'}
-        className="font-bold">
-        Stalling Aanmelden
-      </FooterNavItem>
+      {!session ?
+        <FooterNavItem
+          url={'/?stallingid=aanmelden'}
+          className="font-bold">
+          Stalling Aanmelden
+        </FooterNavItem> : null}
 
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}
         url={x.url}
         className="font-bold"
       >
-        {x.title}        
+        {x.title}
       </FooterNavItem>)}
 
-      {footerMenuItems ? footerMenuItems.map((x,idx) => <FooterNavItem
-        key={'pmi-f-'+idx}
+      {footerMenuItems ? footerMenuItems.map((x, idx) => <FooterNavItem
+        key={'pmi-f-' + idx}
         url={`/fietsberaad/${x.Title ? x.Title : ''}`}
       >
         {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}

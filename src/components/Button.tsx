@@ -33,7 +33,7 @@ export const Button = ({
         ${Styles[variant]}
       `}
       onClick={(e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        if(onClick) onClick(e)
+        if (onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting
@@ -72,15 +72,14 @@ export const RadioButton = ({
         transition-all
         bg-white
         ${className && className.indexOf('py-') > -1 ? '' : 'py-1'}
-        ${
-          isActive
-            ? "border border-gray-700 shadow shadow-md"
-            : "border border-gray-200 bg-white text-gray-700 shadow shadow-sm"
+        ${isActive
+          ? "border border-gray-700 shadow shadow-md"
+          : "border border-gray-200 bg-white text-gray-700 shadow shadow-sm"
         }
         ${className}
       `}
       onClick={(e) => {
-        if(onClick) onClick(e)
+        if (onClick) onClick(e)
       }}
       style={{ userSelect: "none" }} // disable highlighting
     >
@@ -99,7 +98,7 @@ export const IconButton = ({
   style
 }: {
   onClick?: Function,
-  children: any
+  children?: any
   htmlBefore?: any,
   className?: string
   iconUrl?: string
@@ -124,7 +123,7 @@ export const IconButton = ({
         ${className}
       `}
       onClick={(e) => {
-        if(onClick) onClick(e)
+        if (onClick) onClick(e)
       }}
       style={Object.assign({}, {
         userSelect: "none", // disable highlighting

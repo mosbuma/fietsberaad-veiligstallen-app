@@ -47,7 +47,7 @@ export const CrudRouteHandler = async <T>(
 
   if ((request.method as HttpMethod) === "DELETE") {
     const deleteResponse = await service.delete(id);
-    return response.status(20).json(deleteResponse);
+    return response.status(200).json(deleteResponse);
   }
 
   return response.status(405).send("Method not allowed");
