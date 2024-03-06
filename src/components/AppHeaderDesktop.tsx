@@ -259,6 +259,31 @@ function AppHeaderDesktop({
               url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
             />
           })}
+
+          {session && <a
+            href="https://fms.veiligstallen.nl"
+            target="_blank"
+            className="
+              mx-2
+              h-10
+              rounded-md
+              px-4
+              font-bold
+              text-white
+              shadow-lg
+              flex
+              flex-col
+              justify-center
+            "
+            style={{
+              backgroundColor: '#c4c4c4',
+            }}
+
+            title="Ga naar het oude FMS beheersysteem"
+          >
+            FMS
+          </a>}
+
           <button
             className="
               mx-2
@@ -276,6 +301,7 @@ function AppHeaderDesktop({
           >
             {session ? "Log uit" : "Log in"}
           </button>
+
         </div>
       </div>
     </>
