@@ -1,11 +1,8 @@
-import { SetStateAction, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
-import Head from "next/head";
-import superjson from "superjson";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import type { ParkingDetailsType } from "~/types";
 
 import {
   setIsParkingListVisible,
@@ -26,6 +23,7 @@ import {
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
 
+import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
@@ -44,21 +42,24 @@ import WelcomeToMunicipality from "~/components/WelcomeToMunicipality";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
+import { useSession } from "next-auth/react";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { getParkingDetails, generateRandomId } from "~/utils/parkings";
+import { AppState } from "~/store/store";
+import type { fietsenstallingen } from "@prisma/client";
+// import { undefined } from "zod";
 
 export async function getServerSideProps(context: any) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
-    // console.log(">>>>> session", session);
     const sites = session?.user?.sites || [];
-    const fietsenstallingen = await getParkingsFromDatabase(sites);
+    const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites);
 
     // TODO: Don't include: EditorCreated, EditorModified
 
     return {
       props: {
-        fietsenstallingen: fietsenstallingen,
+        fietsenstallingen,
         online: true,
         message: "",
       },
@@ -82,12 +83,14 @@ const Home: NextPage = ({
 }: any) => {
   const router = useRouter();
   const { query } = useRouter();
+  const { data: session } = useSession()
 
   const dispatch = useDispatch();
 
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
+  // const [newStalling, setNewStalling] = useState<ParkingDetailsType | false | undefined>(undefined);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -123,42 +126,14 @@ const Home: NextPage = ({
   }, []);
 
   useEffect(() => {
+    // handle aanmelden sequence
     if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
-      if (router.query.stallingid === 'nieuw') {
-        const voorstelid = generateRandomId('VOORSTEL')
-        const data = {
-          ID: voorstelid,
-          Title: 'Nieuwe stalling',
-          Type: 'bewaakt',
-          Coordinaten: '52.09066,5.121317',
-        }
-
-        fetch(
-          "/api/fietsenstallingen",
-          {
-            method: "POST",
-            body: JSON.stringify(data),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ).then(response => {
-          if (response) {
-            response.json().then(json => {
-              router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
-            })
-          } else {
-            console.error('create new parking failed', response);
-          }
-        });
-      } else {
-        setCurrentStallingId(router.query.stallingid);
-      }
+      setCurrentStallingId(router.query.stallingid);
     }
-
   }, [
+    router.query,
     router.query.stallingid,
-    router.query.revision
+    router.query.revision,
   ]);
 
   // Do things is municipality if municipality is given by URL
@@ -212,13 +187,20 @@ const Home: NextPage = ({
   ])
 
   // Open municipality info modal
-  let TO_showWelcomeModal;
+  let TO_showWelcomeModal: NodeJS.Timeout | undefined = undefined;
   useEffect(() => {
     if (TO_showWelcomeModal) clearTimeout(TO_showWelcomeModal);
     TO_showWelcomeModal = setTimeout(() => {
       if (!initialLatLng || !activeMunicipalityInfo) return;
       // Save the fact that user did see welcome modal
-      const VS__didSeeWelcomeModal = localStorage.getItem('VS__didSeeWelcomeModal');
+      const VS__didSeeWelcomeModalString: string = localStorage.getItem('VS__didSeeWelcomeModal') || '';
+      let VS__didSeeWelcomeModal: number = 0;
+      try {
+        VS__didSeeWelcomeModal = parseInt(VS__didSeeWelcomeModalString);
+      } catch (ex) {
+        VS__didSeeWelcomeModal = 0
+      }
+
       // console.log('GET timestamp', VS__didSeeWelcomeModal, Date.now() - VS__didSeeWelcomeModal, 'Date.now()', Date.now())
       // Only show modal once per 15 minutes
       if (!VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600 * 1000 / 4))) {
@@ -231,7 +213,7 @@ const Home: NextPage = ({
   ]);
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
-  const isLg = typeof window !== "undefined" && window.innerWidth < 768;
+  // const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
   const isCardListVisible = !isParkingListVisible && !isFilterBoxVisible;
 
@@ -271,7 +253,6 @@ const Home: NextPage = ({
             <Parking
               key={'parking-sm-' + currentStallingId}
               parkingID={currentStallingId}
-              startInEditMode={'editmode' in router.query}
             />
           </Overlay>
         </>)}
@@ -284,7 +265,6 @@ const Home: NextPage = ({
             <Parking
               key={'parking-nsm-' + currentStallingId}
               parkingID={currentStallingId}
-              startInEditMode={'editmode' in router.query}
             />
           </Modal>
         </>)}

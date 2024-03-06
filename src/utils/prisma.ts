@@ -1,35 +1,32 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 
-const getParkingsFromDatabase = async (sites:any) => {
+const getParkingsFromDatabase = async (sites: any) => {
 
   let fietsenstallingen;
 
-  if(sites.length===0) {
+  if (sites.length === 0) {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
         Status: "1",
-        // Plaats: {
-        //   not: "",
-        // }
       },
-      // select: {
-      //   StallingsID: true,
-      //   Title: true,
-      //   Location: true,
-      //   Coordinaten: true,
-      //   DateCreated: true,
-      // },
     });
   } else {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
-        Status: "1",
-        // Plaats: {
-        //   not: "",
-        // },
-        SiteID: { in: sites },
-      },
+        OR: [{
+          Status: "1",
+          // Plaats: {
+          //   not: "",
+          // },
+          SiteID: { in: sites },
+        },
+        {
+          ID: {
+            startsWith: 'VOORSTEL'
+          }
+        }],
+      }
     });
   }
 

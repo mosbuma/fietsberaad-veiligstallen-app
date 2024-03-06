@@ -1,7 +1,8 @@
 import React from "react";
+import { Session } from "next-auth";
+
 
 import {
-  PrismaClient,
   type fietsenstallingen,
 } from "@prisma/client";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
@@ -29,7 +30,7 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
   }
 };
 
-export const getAllServices = async (): Promise => {
+export const getAllServices = async (): Promise<any> => {
   try {
     const response = await fetch(
       `/api/services/`
@@ -43,7 +44,7 @@ export const getAllServices = async (): Promise => {
   }
 };
 
-export const getAllFietstypen = async (): Promise => {
+export const getAllFietstypen = async (): Promise<any> => {
   try {
     const response = await fetch(
       `/api/fietstypen`
@@ -117,7 +118,7 @@ export const generateRandomId = (prefix = '') => {
   }
 
   if (prefix.length > 8) {
-    prefix = prefix.substr(0, 8);
+    prefix = prefix.substring(0, 8);
   }
 
   let id = `${prefix}-`;
@@ -130,5 +131,153 @@ export const generateRandomId = (prefix = '') => {
 
   return id;
 }
+
+
+export const newStallingIDForThisUser = (session?: Session): string | false => {
+  if (session?.user?.OrgUserID) {
+    return 'NW' + session.user.OrgUserID.substring(2);
+  } else {
+    return false;
+  }
+}
+
+export const isNewStallingID = (stallingID: string): boolean => {
+  return stallingID.substring(0, 2) === 'NW' || stallingID.substring(0, 8) === 'VOORSTEL';
+}
+
+export const getNewStallingDefaultRecord = (ID: string) => {
+  const data: ParkingDetailsType = {
+    ID,
+    Title: 'Nieuwe stalling',
+    Location: "",
+    Postcode: "",
+    Plaats: "",
+    Type: "bewaakt",
+    Image: null,
+    Open_ma: new Date(0),
+    Dicht_ma: new Date(0),
+    Open_di: new Date(0),
+    Dicht_di: new Date(0),
+    Open_wo: new Date(0),
+    Dicht_wo: new Date(0),
+    Open_do: new Date(0),
+    Dicht_do: new Date(0),
+    Open_vr: new Date(0),
+    Dicht_vr: new Date(0),
+    Open_za: new Date(0),
+    Dicht_za: new Date(0),
+    Open_zo: new Date(0),
+    Dicht_zo: new Date(0),
+    Openingstijden: "",
+    Capacity: 0,
+    Coordinaten: '52.09066,5.121317',
+    FMS: false,
+    Beheerder: "",
+    BeheerderContact: "",
+  }
+
+  return data
+}
+
+export const getNewStallingRecord = async (session?: Session): Promise<fietsenstallingen | false> => {
+  try {
+    if (!session) {
+      // when no user is logged in, a default stalling record is created
+      console.log("NO USER LOGGED IN")
+      return getNewStallingDefaultRecord(generateRandomId('VOORSTEL'));
+    } else {
+      const voorstelid = generateRandomId();
+      // for logged in users, the stalling record is fetched from the database
+      const response: Response = await fetch(
+        "/api/fietsenstallingen?id=" + voorstelid,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status !== 200) {
+        console.log("new stalling does not exist for this user");
+        return false; // new stalling does not exist for this user
+      }
+
+      let data = await response.json();
+      console.log("getNewStallingRecord: got newStallingData", data);
+      return data
+    }
+  } catch (ex) {
+    console.error('getNewStallingForUser', ex);
+    return false;
+  }
+}
+
+// export const removeNewStallingForUser = async (session: Session): Promise<boolean> => {
+//   try {
+//     const data = await getNewStallingRecord(session);
+//     if (false === data) {
+//       console.warn('removeNewStallingForUser: no new stalling record found for this user');
+//       return false;
+//     }
+
+//     console.log('removeNewStallingForUser: remove record with ID', data.ID);
+//     const response = await fetch(
+//       "/api/fietsenstallingen?id=" + data.ID,
+//       {
+//         method: "DELETE",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       });
+//     console.log("delete response", response);
+//     return response.status === 200;
+//   } catch (ex) {
+//     console.error('removeNewStallingForUser: error ', ex);
+//     return false;
+//   }
+// }
+
+// export const finalizeNewStallingForUser = async (session: Session): Promise<boolean> => {
+//   const data = await getNewStallingRecord(session);
+//   if (false === data) {
+//     console.warn('finalizeNewStallingForUser: no new stalling record found for this user');
+//     return false;
+//   }
+
+//   console.log('got newstalling data record', data);
+
+//   const tempID = data.ID;
+//   data.ID = generateRandomId();
+
+//   let response = await fetch(
+//     "/api/fietsenstallingen",
+//     {
+//       method: "POST",
+//       body: JSON.stringify(data),
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+//   if (response.status === 201) {
+//     const response = await fetch(
+//       "/api/fietsenstallingen?id=" + tempID,
+//       {
+//         method: "DELETE",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       });
+//     if (response.status === 200) {
+//       return true;
+//     } else {
+//       alert(`Er is iets misgegaan bij het opslaan van de nieuwe stalling [code 1-${response.status}]. Probeer het later nog eens.`);
+//       return false;
+//     }
+//   } else {
+//     alert(`Er is iets misgegaan bij het opslaan van de nieuwe stalling [code 2-${response.status}]. Probeer het later nog eens.`);
+//     return false;
+//   }
+// }
+
 
 export default generateRandomId;

@@ -4,8 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedParkingId, setInitialLatLng } from "~/store/mapSlice";
 import { setQuery } from "~/store/filterSlice";
 import { setMunicipalities } from "~/store/geoSlice";
+import { useSession } from "next-auth/react";
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
+import type { fietsenstallingen } from "@prisma/client";
 
 import {
   getMunicipalities
@@ -13,14 +15,16 @@ import {
 
 import ParkingFacilityBrowserStyles from './ParkingFacilityBrowser.module.css';
 
-import Input from "@mui/material/TextField";
 import SearchBar from "~/components/SearchBar";
 import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
+import type { AppState } from "~/store/store";
+
+
 
 const MunicipalityBlock = ({
   title,
   onClick
-}) => {
+}: { title: string, onClick: React.MouseEventHandler<HTMLDivElement> }) => {
   return (
     <div
       className={`
@@ -51,13 +55,14 @@ function ParkingFacilityBrowser({
   showSearchBar,
   customFilter,
 }: {
-  fietsenstallingen: any;
+  fietsenstallingen: fietsenstallingen;
   activeParkingId?: any;
   onShowStallingDetails?: (id: number) => void;
-  showSearchBar?: false
-  customFilter?: Function
+  showSearchBar?: boolean;
+  customFilter?: Function;
 }) {
   const dispatch = useDispatch();
+  const session = useSession();
 
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
   const [visibleMunicipalities, setVisibleMunicipalities] = useState([]);
@@ -76,6 +81,10 @@ function ParkingFacilityBrowser({
     (state: AppState) => state.map.selectedParkingId
   );
 
+  const filterTypes2 = useSelector(
+    (state: AppState) => state.filter.activeTypes2
+  );
+
   const filterQuery = useSelector(
     (state: AppState) => state.filter.query
   );
@@ -92,9 +101,28 @@ function ParkingFacilityBrowser({
     if (!filterQuery && !mapVisibleFeatures) return;
 
     // Create variable that represents all parkings
-    const allParkings = fietsenstallingen;
+    let allParkings = fietsenstallingen;
+    if (filterTypes2 && filterTypes2.includes('show_submissions')) {
+      allParkings = allParkings.filter((x) => {
+        // console.log("filter-is", x.ID, x.ID.substring(0, 8), x.ID.substring(0, 7) !== 'VOORSTEL')
+        return x.ID.substring(0, 8) === 'VOORSTEL'
+      });
+    } else {
+      allParkings = allParkings.filter((x) => {
+        // console.log("filter-is", x.ID, x.ID.substring(0, 8), x.ID.substring(0, 7) !== 'VOORSTEL')
+        return x.ID.substring(0, 8) !== 'VOORSTEL'
+      });
+    }
+
     // Create variable that will have the filtered parkings
     let filtered = allParkings;
+
+    // show all submissions and no other parkings
+    if (filterTypes2 && filterTypes2.includes('show_submissions')) {
+      setVisibleParkings(filtered);
+      return;
+    }
+
     // If custom filter is given: Only apply custom filter
     if (customFilter) {
       filtered = filtered.filter((x) => {
@@ -207,7 +235,8 @@ function ParkingFacilityBrowser({
     mapVisibleFeatures,
     mapVisibleFeatures.length,
     filterQuery,
-    customFilter
+    customFilter,
+    filterTypes2,
   ]);
 
   useEffect(() => {
@@ -282,9 +311,9 @@ function ParkingFacilityBrowser({
         overflow: "auto",
       }}
     >
-      {showSearchBar ? <SearchBar
+      {showSearchBar && filterTypes2 && filterTypes2.includes("show_submissions") === false ? <SearchBar
         value={filterQuery}
-        filterChanged={(e) => {
+        filterChanged={(e: { target: { value: any; }; }) => {
           dispatch(setQuery(e.target.value))
         }}
       /> : ''}

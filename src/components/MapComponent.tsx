@@ -104,6 +104,8 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
   const filterQuery = useSelector((state: AppState) => state.filter.query);
 
+  const filterTypes2 = useSelector((state: AppState) => state.filter.activeTypes2);
+
   const mapExtent = useSelector((state: AppState) => state.map.extent);
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
@@ -340,6 +342,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
         "all",
         ["in", ["get", "type"], ["literal", filterActiveTypes]],
       ];
+
       if (filterQuery === "") {
         filter = [
           "all",
@@ -385,7 +388,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     } catch (ex) {
       console.warn("error in MapComponent layer setfilter useEffect call", ex);
     }
-  }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery]);
+  }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery, filterTypes2]);
 
   // Update visible features in state if filter changes
   React.useEffect(() => {

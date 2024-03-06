@@ -1,106 +1,114 @@
-import React, { ReactEventHandler } from "react";
-
-import { openRoute } from "~/utils/map/index";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import React from "react";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
-import ImageSlider from "~/components/ImageSlider";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button, IconButton } from "~/components/Button";
 import FormInput from "~/components/Form/FormInput";
-import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
-import type { ParkingDetailsType } from "~/types/";
+import type { ParkingDetailsType, ParkingSections } from "~/types/";
 import {
-  getAllServices
+  getAllServices,
+  generateRandomId,
 } from "~/utils/parkings";
 import { Tabs, Tab, FormHelperText, FormLabel, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
-import ParkingViewCapaciteit from "~/components/parking/ParkingViewCapaciteit";
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
-import ParkingEditCapaciteit from "~/components/parking/ParkingEditCapaciteit";
+import ParkingEditCapaciteit, { type CapaciteitType } from "~/components/parking/ParkingEditCapaciteit";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
-import ParkingEditOpening, {type OpeningChangedType} from "~/components/parking/ParkingEditOpening";
+import ParkingEditOpening, { type OpeningChangedType } from "~/components/parking/ParkingEditOpening";
+import { useSession } from "next-auth/react"
+
+export type ParkingEditUpdateStructure = {
+  ID?: string;
+  Title?: string;
+  Location?: string;
+  Postcode?: string;
+  Plaats?: string;
+  Coordinaten?: string;
+  Type?: string;
+  // [key: string]: string | undefined;
+  Openingstijden?: any; // Replace with the actual type if different
+  fietsenstalling_secties?: ParkingSections; // Replace with the actual type if different
+}
+
+type ServiceType = { ID: string, Name: string };
+type ChangedType = { ID: string, selected: boolean };
 
 const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: Function, onChange: Function }) => {
-  const router = useRouter();
-  const session = useSession();
 
   const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');
   // const [selectedTab, setSelectedTab] = React.useState('tab-capaciteit');  
 
-  const [newTitle, setNewTitle ] = React.useState(undefined);
-  const [newLocation, setNewLocation ] = React.useState(undefined);
-  const [newPostcode, setNewPostcode ] = React.useState(undefined);
-  const [newPlaats, setNewPlaats ] = React.useState(undefined);
-  const [newCoordinaten, setNewCoordinaten ] = React.useState<string|undefined>(undefined);
+  const [newTitle, setNewTitle] = React.useState<string | undefined>(undefined);
+  const [newLocation, setNewLocation] = React.useState<string | undefined>(undefined);
+  const [newPostcode, setNewPostcode] = React.useState<string | undefined>(undefined);
+  const [newPlaats, setNewPlaats] = React.useState<string | undefined>(undefined);
+  const [newCoordinaten, setNewCoordinaten] = React.useState<string | undefined>(undefined);
 
   // used for map recenter when coordinates are manually changed
-  const [centerCoords, setCenterCoords ] = React.useState<string|undefined>(undefined); 
+  const [centerCoords, setCenterCoords] = React.useState<string | undefined>(undefined);
 
-  type FietsenstallingSectiesType = { [key: string]: Array[] }
+  // type FietsenstallingSectiesType = { [key: string]: Array[] }
 
-  type ServiceType = { ID: string, Name: string};
-  type ChangedType = { ID: string, selected: boolean};
+  const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
+  const [newServices, setNewServices] = React.useState<ChangedType[]>([]);
 
-  const [allServices, setAllServices ] = React.useState<ServiceType[]>([]); 
-  const [newServices, setNewServices ] = React.useState<ChangedType[]>([]);
+  const [newCapaciteit, setNewCapaciteit] = React.useState<CapaciteitType[]>([]); // capaciteitschema
+  const [newOpening, setNewOpening] = React.useState<any>(undefined); // openingstijdenschema
+  const [newOpeningstijden, setNewOpeningstijden] = React.useState<string | undefined>(undefined); // textveld afwijkende openingstijden
 
-  const [newCapaciteit, setNewCapaciteit ] = React.useState<any>([]); // capaciteitschema
-  const [newOpening, setNewOpening ] = React.useState<any>(undefined); // openingstijdenschema
-  const [newOpeningstijden, setNewOpeningstijden ] = React.useState<string|undefined>(undefined); // textveld afwijkende openingstijden
+  type StallingType = { id: string, name: string, sequence: number };
+  const [allTypes, setAllTypes] = React.useState<StallingType[]>([]);
+  const [newStallingType, setNewStallingType] = React.useState<string | undefined>(undefined);
 
-  type StallingType = { id: string, name: string, sequence: number};
-  const [allTypes, setAllTypes ] = React.useState<StallingType[]>([]); 
-  const [newStallingType, setNewStallingType ] = React.useState<string|undefined>(undefined);
+  const { data: session } = useSession()
 
   // Set 'allServices' variable in local state
   React.useEffect(() => {
     (async () => {
       const result = await getAllServices();
       setAllServices(result);
-		})();
-  },[])
+    })();
+  }, [])
 
   React.useEffect(() => {
     (async () => {
       try {
         const response = await fetch(
-        	`/api/fietsenstallingtypen/`
-      	);
+          `/api/fietsenstallingtypen/`
+        );
         const json = await response.json();
-        if(! json) return;
+        if (!json) return;
 
         setAllTypes(json);
-      } catch(err) {
+      } catch (err) {
         console.error("get all types error", err);
       }
-		})();
-  },[]) 
+    })();
+  }, [])
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setSelectedTab(newValue);
   }
-  
-  const getUpdate = (): any => {
-    let update: any = {};
 
-    if(newTitle !== undefined) { update.Title = newTitle; }
-    if(newLocation !== undefined) { update.Location = newLocation; }
-    if(newPostcode !== undefined) { update.Postcode = newPostcode; }
-    if(newPlaats !== undefined) { update.Plaats = newPlaats; }
-    if(newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
-    if(newStallingType !== undefined) { update.Type = newStallingType; }
+  const getUpdate = () => {
+    let update: ParkingEditUpdateStructure = {};
 
-    if(undefined!==newOpening) {
-      for(const keystr in newOpening) {
-        const key = keystr as keyof ParkingDetailsType;
+    if (newTitle !== undefined) { update.Title = newTitle; }
+    if (newLocation !== undefined) { update.Location = newLocation; }
+    if (newPostcode !== undefined) { update.Postcode = newPostcode; }
+    if (newPlaats !== undefined) { update.Plaats = newPlaats; }
+    if (newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
+    if (newStallingType !== undefined) { update.Type = newStallingType; }
+
+    if (undefined !== newOpening) {
+      for (const keystr in newOpening) {
+        const key = keystr as keyof ParkingEditUpdateStructure;
         update[key] = new Date(newOpening[key]).toISOString();
       }
     }
@@ -112,17 +120,16 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     // }
     // console.log('>> update', update)
 
-    if(undefined!==newOpeningstijden) {
-      if(newOpeningstijden !== parkingdata.Openingstijden) {
+    if (undefined !== newOpeningstijden) {
+      if (newOpeningstijden !== parkingdata.Openingstijden) {
         update.Openingstijden = newOpeningstijden;
       }
     }
 
-    // console.log("got update", JSON.stringify(update,null,2));
     return update;
   }
 
-  const updateServices = async (parkingdata, newServices) => {
+  const updateServices = async (parkingdata: ParkingDetailsType, newServices: ChangedType[]) => {
     try {
       // Delete existing services for this parking
       await fetch(
@@ -134,18 +141,18 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       // - First, add existing services
       parkingdata.fietsenstallingen_services.forEach(x => {
         // To be removed?
-        const doRemove = newServices.filter(s => s.ID === x.services.ID && ! s.selected).pop();
-        if(! doRemove) {
+        const doRemove = newServices.filter(s => s.ID === x.services.ID && !s.selected).pop();
+        if (!doRemove) {
           servicesToSave.push({
             ServiceID: x.services.ID,
             FietsenstallingID: parkingdata.ID,
-          });          
+          });
         }
       })
       // - Second, add new services
       newServices.forEach(s => {
         // Don't add if service is not selected
-        if(! s.selected) return;
+        if (!s.selected) return;
 
         servicesToSave.push({
           ServiceID: s.ID,
@@ -163,20 +170,20 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           },
         }
       );
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   }
 
-  const updateCapaciteit = async (parkingdata, newCapaciteit) => {
-    if(! newCapaciteit || newCapaciteit.length <= 0) return;
-    console.log('parkingdata, newCapaciteit', parkingdata, newCapaciteit)
+  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: CapaciteitType[]) => {
+    if (!newCapaciteit || newCapaciteit.length <= 0) return;
+
     try {
       // Get section to save
-      const sectionToSaveResponse = await fetch('/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID='+parkingdata.ID);
+      const sectionToSaveResponse = await fetch('/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID=' + parkingdata.ID);
       const sectionToSave = await sectionToSaveResponse.json();
       const sectionId = sectionToSave.sectieId;
-      
+
       // Save capaciteit
       const savedCapaciteit = await fetch('/api/fietsenstalling_sectie/saveManyFromFullObject', {
         method: 'POST',
@@ -189,31 +196,41 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           "Content-Type": "application/json",
         }
       })
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   }
 
-  const updateParking = async () => {
+  const parkingChanged = () => {
+    console.log("PARKINGCHANGED", newServices.length > 0, newCapaciteit.length > 0, newOpening !== undefined, newOpeningstijden !== undefined);
+
+    return Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !== undefined || newOpeningstijden !== undefined;
+  }
+
+  const handleUpdateParking = async () => {
     // Stop if no parking ID is available
-    if(! parkingdata || ! parkingdata.ID) return;
+    if (!parkingdata) return;
+
+    const isNew = parkingdata.ID === "";
+    if (isNew) {
+      parkingdata.ID = generateRandomId(session ? "" : "VOORSTEL");
+    }
 
     // Check if parking was changed
     const update = getUpdate();
-    const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
 
     // If services are updated: Update services
-    if(newServices.length > 0) {
+    if (newServices.length > 0) {
       updateServices(parkingdata, newServices);
     }
 
     // If capaciteit is updated: Update capaciteit
-    if(newCapaciteit.length > 0) {
+    if (newCapaciteit.length > 0) {
       updateCapaciteit(parkingdata, newCapaciteit);
     }
 
     // If parking data didn't change: stop
-    if(!parkingChanged) {
+    if (!parkingChanged()) {
       // Go back to 'view' mode
       onChange();
       onClose();
@@ -221,38 +238,41 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       return;
     }
 
+    // console.log("store changes", isNew, JSON.stringify(update));
     try {
+      const method = isNew ? "POST" : "PUT";
+      const body = JSON.stringify(isNew ? Object.assign({}, parkingdata, update) : update);
       const result = await fetch(
         "/api/fietsenstallingen?id=" + parkingdata.ID,
         {
-          method: "PUT",
-          body: JSON.stringify(update),
+          method,
+          body,
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
-      if(! result.ok) {
+      if (!result.ok) {
         throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
       }
       // Go back to 'view' mode
       onChange();
-      onClose();
-    } catch(err) {
-      if(err.message) alert(err.message);
+      onClose(isNew ? parkingdata.ID : undefined);
+    } catch (err: any) {
+      if (err.message) alert(err.message);
       else alert(err);
     }
   };
 
-  const update = getUpdate()
-  const parkingChanged = Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !==undefined || newOpeningstijden !== undefined;
+  const update: ParkingEditUpdateStructure = getUpdate()
+  const showUpdateButtons = parkingChanged()
 
   // console.log("@@@ parkingdata", parkingdata);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     // console.log("#### update from map")
     const latlngstring = `${lat},${lng}`;
-    if(latlngstring !== parkingdata.Coordinaten) {
+    if (latlngstring !== parkingdata.Coordinaten) {
       setNewCoordinaten(latlngstring);
     } else {
       setNewCoordinaten(undefined);
@@ -264,44 +284,52 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     // console.log("#### update from form")
     try {
       const latlng = parkingdata.Coordinaten.split(",");
-      if(isLat) {
+      if (isLat) {
         latlng[0] = e.target.value;
       } else {
         latlng[1] = e.target.value;
       }
       setNewCoordinaten(latlng.join(","));
       setCenterCoords(latlng.join(","));
-    } catch(ex) {
-      console.warn('ParkingEditLocation - unable to set coordinates from form: ', ex.message());
+    } catch (ex: any) {
+      if (ex.message) {
+        console.warn('ParkingEditLocation - unable to set coordinates from form: ', ex.message());
+      } else {
+        console.warn('ParkingEditLocation - unable to set coordinates from form');
+      }
     }
-}
+  }
 
   const getCoordinate = (isLat: boolean): string => {
     let coords = parkingdata.Coordinaten;
-    if(newCoordinaten !== undefined) {
+    if (newCoordinaten !== undefined) {
       coords = newCoordinaten;
 
-    } 
-    if(coords === "") return "";
+    }
+    if (coords === "") return "";
 
     const latlng = coords.split(",");
-    if(isLat) {
-      return latlng[0]?.toString()||'';
+    if (isLat) {
+      return latlng[0]?.toString() || '';
     } else {
-      return latlng[1]?.toString()||'';
+      return latlng[1]?.toString() || '';
     }
   }
 
   const renderTabAlgemeen = () => {
     const serviceIsActive = (ID: string): boolean => {
-      const change = newServices.find(s=>(s.ID===ID));
-      if(change!==undefined) {
+      const change = newServices.find(s => (s.ID === ID));
+      if (change !== undefined) {
         // console.log(ID, "changed to ", change.selected);
         return change.selected;
       }
 
-      for(const item of parkingdata.fietsenstallingen_services) {
-        if(item.services.ID===ID) { 
+      if (undefined === parkingdata.fietsenstallingen_services) {
+        return false;
+      }
+
+      for (const item of parkingdata.fietsenstallingen_services) {
+        if (item.services.ID === ID) {
           // console.log("selected in parkingdata", ID, change);
           return true;
         }
@@ -311,11 +339,11 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
 
     const handleSelectService = (ID: string, checked: boolean) => {
-      const index = newServices.findIndex(s=>s.ID===ID);
-      if(index !== -1) {
-        newServices.splice(index, 1);        
+      const index = newServices.findIndex(s => s.ID === ID);
+      if (index !== -1) {
+        newServices.splice(index, 1);
       } else {
-        newServices.push({ID: ID, selected: checked});
+        newServices.push({ ID: ID, selected: checked });
       }
 
       // console.log('newservices - after', JSON.stringify(newServices,0,2));
@@ -326,14 +354,14 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     return (
       <div className="flex justify-between">
         <div data-name="content-left" className="sm:mr-12">
-          <SectionBlockEdit className="flex justify-between text-sm sm:text-base">
+          <SectionBlockEdit>
             <div className="w-full mt-4">
               <FormInput
                 key='i-title'
                 label="Titel"
                 className="border-2 border-black mb-1 w-full"
                 placeholder="titel"
-                onChange={e=>{ setNewTitle(e.target.value)}} value={newTitle!==undefined?newTitle:parkingdata.Title}
+                onChange={e => { setNewTitle(e.target.value) }} value={newTitle !== undefined ? newTitle : parkingdata.Title}
               />
               <br />
               <FormInput
@@ -341,12 +369,12 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
                 label="Straat en huisnummer"
                 className="border-2 border-black mb-1 w-full"
                 placeholder="adres"
-                onChange={e=>{ setNewLocation(e.target.value)}} value={newLocation!==undefined?newLocation:parkingdata.Location}
+                onChange={e => { setNewLocation(e.target.value) }} value={newLocation !== undefined ? newLocation : parkingdata.Location}
               />
               <br />
               <>
-                <FormInput key='i-postcode' label="Postcode" className="border-2 border-black mb-1 w-full" placeholder="postcode" onChange={e=>{ setNewPostcode(e.target.value)}} value={newPostcode!==undefined?newPostcode:parkingdata.Postcode} />
-                <FormInput key='i-plaats' label="Plaats" className="border-2 border-black mb-1 w-full" placeholder="plaats" onChange={e=>{ setNewPlaats(e.target.value)}} value={newPlaats!==undefined?newPlaats:parkingdata.Plaats} />
+                <FormInput key='i-postcode' label="Postcode" className="border-2 border-black mb-1 w-full" placeholder="postcode" onChange={e => { setNewPostcode(e.target.value) }} value={newPostcode !== undefined ? newPostcode : parkingdata.Postcode} />
+                <FormInput key='i-plaats' label="Plaats" className="border-2 border-black mb-1 w-full" placeholder="plaats" onChange={e => { setNewPlaats(e.target.value) }} value={newPlaats !== undefined ? newPlaats : parkingdata.Plaats} />
               </>
               <br />
             </div>
@@ -377,10 +405,10 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           <HorizontalDivider className="my-4" />
 
           <SectionBlock heading="Soort stalling">
-            <select value={newStallingType!==undefined?newStallingType:parkingdata.Type} onChange={(event)=>{setNewStallingType(event.target.value)}}>
+            <select value={newStallingType !== undefined ? newStallingType : parkingdata.Type} onChange={(event) => { setNewStallingType(event.target.value) }}>
               {allTypes.map(type => (
                 <option key={type.id} value={type.id}>
-                    {type.name}
+                  {type.name}
                 </option>
               ))}
             </select>
@@ -393,7 +421,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
         <div data-name="content-right" className="ml-12 hidden sm:block">
           <div className="relative">
-            <ParkingEditLocation parkingCoords={parkingdata.Coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap}/>
+            <ParkingEditLocation parkingCoords={parkingdata.Coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} />
           </div>
           <FormHelperText className="w-full pb-2">
             <Typography className="py-2 text-center" variant="h6">Verschuif de kaart om de coordinaten aan te passen</Typography>
@@ -422,11 +450,11 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const renderTabAfbeelding = () => {
-    return ( 
+    return (
       <div className="flex justify-between w-full mt-10">
-        <ParkingEditAfbeelding parkingdata={parkingdata} onUpdateAfbeelding={onChange}/>
-      </div> );
- }
+        <ParkingEditAfbeelding parkingdata={parkingdata} onUpdateAfbeelding={onChange} />
+      </div>);
+  }
 
   const renderTabOpeningstijden = () => {
     const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
@@ -434,7 +462,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       setNewOpeningstijden(Openingstijden);
       return;
     }
-    return ( 
+    return (
       <div className="flex justify-between w-full mt-10">
         <ParkingEditOpening
           parkingdata={parkingdata}
@@ -444,39 +472,41 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const renderTabTarieven = () => {
-    return ( 
+    return (
       <div className="flex justify-between w-full mt-10">
         <ParkingViewTarief parkingdata={parkingdata} />
       </div>);
 
     return (
       <div className="flex justify-between w-full mt-10">
-          <SectionBlockEdit>
-            <div className="font-bold">Fietsen</div>
-            <div className="ml-2 grid w-full grid-cols-2">
-              <div>Eerste 24 uur:</div>
-              <div className="text-right sm:text-center">gratis</div>
-              <div>Daarna per 24 uur:</div>
-              <div className="text-right sm:text-center">&euro;0,60</div>
-            </div>
-            <div className="mt-4 font-bold">Bromfietsen</div>
-            <div className="ml-2 grid w-full grid-cols-2">
-              <div>Eerste 24 uur:</div>
-              <div className="text-right sm:text-center">&euro;0,60</div>
-            </div>
-          </SectionBlockEdit>
+        <SectionBlockEdit>
+          <div className="font-bold">Fietsen</div>
+          <div className="ml-2 grid w-full grid-cols-2">
+            <div>Eerste 24 uur:</div>
+            <div className="text-right sm:text-center">gratis</div>
+            <div>Daarna per 24 uur:</div>
+            <div className="text-right sm:text-center">&euro;0,60</div>
+          </div>
+          <div className="mt-4 font-bold">Bromfietsen</div>
+          <div className="ml-2 grid w-full grid-cols-2">
+            <div>Eerste 24 uur:</div>
+            <div className="text-right sm:text-center">&euro;0,60</div>
+          </div>
+        </SectionBlockEdit>
       </div>
     );
   }
-    
+
   const renderTabCapaciteit = () => {
-    const handlerSetNewCapaciteit = (capaciteit: any): void => {
+    const handlerSetNewCapaciteit = (capaciteit: React.SetStateAction<CapaciteitType[]>): void => {
+      console.log('handlerSetNewCapaciteit', JSON.stringify(capaciteit, null, 2));
       setNewCapaciteit(capaciteit);
       return;
     }
+
     return (
       <div className="flex justify-between w-full mt-10">
-        <SectionBlockEdit heading="Capaciteit">
+        <SectionBlockEdit>
           <ParkingEditCapaciteit
             parkingdata={parkingdata}
             update={update}
@@ -494,16 +524,16 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       </div>);
     return (
       <div className="flex justify-between w-full mt-10">
-          <SectionBlockEdit heading="Abonnementen">
-            <div className="ml-2 grid grid-cols-3">
-              <div className="col-span-2">Jaarbonnement fiets</div>
-              <div className="text-right sm:text-center">&euro;80,90</div>
-              <div className="col-span-2">Jaarabonnement bromfiets</div>
-              <div className="text-right sm:text-center">&euro;262.97</div>
-            </div>
-          </SectionBlockEdit>
+        <SectionBlockEdit>
+          <div className="ml-2 grid grid-cols-3">
+            <div className="col-span-2">Jaarbonnement fiets</div>
+            <div className="text-right sm:text-center">&euro;80,90</div>
+            <div className="col-span-2">Jaarabonnement bromfiets</div>
+            <div className="text-right sm:text-center">&euro;262.97</div>
+          </div>
+        </SectionBlockEdit>
 
-          {/*<button>Koop abonnement</button>*/}
+        {/*<button>Koop abonnement</button>*/}
       </div>
     );
   }
@@ -516,18 +546,18 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     // console.log("### ParkingViewBeheerder", parkingdata, parkingdata.Exploitant, parkingdata.Beheerder, parkingdata.BeheerderContact);
     if (parkingdata.FMS === true) {
       content = <SectionBlock heading="Beheerder">FMS</SectionBlock>;
-    }  else if(parkingdata?.exploitant) {
+    } else if (parkingdata?.exploitant) {
       content = (
         <SectionBlock heading="Beheerder">
-        <a href={'mailto:'+parkingdata.exploitant.Helpdesk}>{parkingdata.exploitant.CompanyName}</a>
+          <a href={'mailto:' + parkingdata.exploitant.Helpdesk}>{parkingdata.exploitant.CompanyName}</a>
         </SectionBlock>
       )
-    } else if(parkingdata.BeheerderContact !== null) {
+    } else if (parkingdata.BeheerderContact !== null) {
       content = (
         <SectionBlock heading="Beheerder">
           <a href={parkingdata.BeheerderContact}>{parkingdata.Beheerder === null ? 'contact' : parkingdata.Beheerder}</a>
         </SectionBlock>
-        );
+      );
     } else {
       content = null
     }
@@ -541,7 +571,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   return (
     <div
-      className="" style={{minHeight: '60vh'}}
+      className="" style={{ minHeight: '60vh' }}
     >
       <div
         className="
@@ -554,25 +584,20 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           <Button
             key="b-1"
             className="mt-3 sm:mt-0"
-            onClick={(e) => {
+            onClick={(e: any) => {
               if (e) e.preventDefault();
-              if(parkingChanged === true) {
-                updateParking();
-              }
-              else {
-                onClose();
-              }
+              handleUpdateParking();
             }}
           >
-            { parkingChanged === true ? 'Opslaan': 'Terug' }
+            {showUpdateButtons === true ? 'Opslaan' : 'Terug'}
           </Button>
-          {parkingChanged === true && <Button
+          {showUpdateButtons === true && <Button
             key="b-2"
             className="mt-3 ml-2 sm:mt-0"
             variant="secundary"
             onClick={(e: MouseEvent) => {
               if (e) e.preventDefault();
-              if(confirm('Wil je het bewerkformulier verlaten?')) {
+              if (confirm('Wil je het bewerkformulier verlaten?')) {
                 onClose();
               }
             }}
@@ -583,22 +608,22 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       </div>
 
       <Tabs value={selectedTab} onChange={handleChange} aria-label="simple tabs example">
-        <Tab label="Algemeen" value='tab-algemeen'/>
-        <Tab label="Afbeelding" value='tab-afbeelding'/>
-        <Tab label="Openingstijden" value='tab-openingstijden'/>
+        <Tab label="Algemeen" value='tab-algemeen' />
+        <Tab label="Afbeelding" value='tab-afbeelding' />
+        <Tab label="Openingstijden" value='tab-openingstijden' />
         {/* <Tab label="Tarieven" value='tab-tarieven'/> */}
-        <Tab label="Capaciteit" value='tab-capaciteit'/>
-        <Tab label="Abonnementen" value='tab-abonnementen'/>
-        <Tab label="Beheerder" value='tab-beheerder'/>
+        <Tab label="Capaciteit" value='tab-capaciteit' />
+        <Tab label="Abonnementen" value='tab-abonnementen' />
+        <Tab label="Beheerder" value='tab-beheerder' />
       </Tabs>
 
-      { selectedTab === 'tab-algemeen' ? renderTabAlgemeen() : null }
-      { selectedTab === 'tab-afbeelding' ? renderTabAfbeelding() : null }
-      { selectedTab === 'tab-openingstijden' ? renderTabOpeningstijden() : null }
-      { selectedTab === 'tab-tarieven' ? renderTabTarieven() : null }
-      { selectedTab === 'tab-capaciteit' ? renderTabCapaciteit() : null }
-      { selectedTab === 'tab-abonnementen' ? renderTabAbonnementen() : null }
-      { selectedTab === 'tab-beheerder' ? renderTabBeheerder() : null }
+      {selectedTab === 'tab-algemeen' ? renderTabAlgemeen() : null}
+      {selectedTab === 'tab-afbeelding' ? renderTabAfbeelding() : null}
+      {selectedTab === 'tab-openingstijden' ? renderTabOpeningstijden() : null}
+      {selectedTab === 'tab-tarieven' ? renderTabTarieven() : null}
+      {selectedTab === 'tab-capaciteit' ? renderTabCapaciteit() : null}
+      {selectedTab === 'tab-abonnementen' ? renderTabAbonnementen() : null}
+      {selectedTab === 'tab-beheerder' ? renderTabBeheerder() : null}
     </div>
   );
 };

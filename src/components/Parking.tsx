@@ -1,65 +1,81 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/router'
 
 import { type ParkingDetailsType } from "~/types/";
-import { getParkingDetails, generateRandomId } from "~/utils/parkings";
+import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
 
 import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingView from "~/components/parking/ParkingView";
 
-const Parking = ({
-  parkingID,
-  startInEditMode = false
-}: {
-  parkingID: string,
-  startInEditMode?: boolean
-}) => {
+const Parking = () => {
   const session = useSession();
+  const router = useRouter();
 
-  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | null>(null);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
+  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | null>(null);
+  const [editMode, setEditMode] = React.useState(false);
 
   useEffect(() => {
-    const stallingId = parkingID;
+    if (router.query.stallingid === undefined || Array.isArray(router.query.stallingid)) {
+      return;
+    }
+
+    const stallingId = router.query.stallingid;
     if (stallingId === undefined || Array.isArray(stallingId)) {
       console.warn('stallingId is undefined or array', stallingId);
       return;
     }
 
-    if (stallingId === "nieuw") {
-      console.warn('edit of stallingid "nieuw" is not allowed');
-      return;
+    if (stallingId === "aanmelden") {
+      router.replace({ query: {} }, undefined, { shallow: true });
+
+      let prefix = '';
+      if (!session) {
+        // when no user is logged in, a recognizalbe prefix is used
+        prefix = 'VOORSTEL';
+      }
+      setCurrentStalling(getNewStallingDefaultRecord(""));
+      setEditMode(true);
+    } else {
+      getParkingDetails(stallingId).then((stalling) => {
+        if (null !== stalling) {
+          setCurrentStalling(stalling);
+        }
+      });
     }
 
     // console.log(`***** getParkingDetails ${stallingId} -R ${currentRevision} ******`);
-    getParkingDetails(stallingId).then((stalling) => {
-      setCurrentStalling(stalling);
-    });
   }, [
-    parkingID,
+    router.query.stallingid,
     currentRevision
   ]);
 
-  const handleCloseEdit = () => {
-    // console.log("handleCloseEdit");
-    setEditMode(false);
+  const handleCloseEdit = (changeStallingID?: string) => {
+    if (changeStallingID) {
+      router.replace({ query: { stallingid: changeStallingID } }, undefined, { shallow: true });
+      getParkingDetails(changeStallingID).then((stalling) => {
+        if (null !== stalling) {
+          setCurrentStalling(stalling);
+          setEditMode(false);
+        }
+      });
+    } else {
+      setEditMode(false);
+    }
   }
 
   const handleUpdateRevision = () => {
     setCurrentRevision(currentRevision + 1);
   }
 
-  const [editMode, setEditMode] = React.useState(startInEditMode);
-
-  const allowEdit = session.status === "authenticated" || parkingID.substring(0, 8) === "VOORSTEL";
-
+  const allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
   if (null === currentStalling) {
-    return (null);
+    return null;
   }
 
-
   if (allowEdit === true && (editMode === true)) {
-    return (<ParkingEdit parkingdata={currentStalling} onClose={() => handleCloseEdit()} onChange={handleUpdateRevision} />);
+    return (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);
   } else {
     return (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} />);
   }

@@ -10,6 +10,7 @@ import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
 import FooterNav from "~/components/FooterNav";
+import { ParkingDetailsType } from "~/types";
 
 const ParkingFacilities = ({
   fietsenstallingen,
@@ -21,10 +22,16 @@ const ParkingFacilities = ({
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
+  const filterQuery = useSelector(
+    (state: AppState) => state.filter.query
+  );
+  const activeTypes2 = useSelector(
+    (state: AppState) => state.filter.activeTypes2
+  );
 
-  const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
+  // const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
   const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
-  const resetFilter = () => {};
+  const resetFilter = () => { };
 
   // let cards: CardData[] = [];
   let filteredFietsenstallingen: any[] = [];
@@ -38,10 +45,15 @@ const ParkingFacilities = ({
     //     description: x.Description,
     //   };
     // });
-
-    filteredFietsenstallingen = fietsenstallingen.filter(
-      (x: any) => activeTypes.indexOf(x.Type) > -1
-    );
+    if (activeTypes2 && activeTypes2.includes("show_submissions")) {
+      filteredFietsenstallingen = fietsenstallingen.filter(
+        (x: any) => (x.ID.substring(0, 8) === "VOORSTEL")
+      );
+    } else {
+      filteredFietsenstallingen = fietsenstallingen.filter(
+        (x: any) => (x.ID.substring(0, 8) !== "VOORSTEL")
+      );
+    }
   }
 
   return (

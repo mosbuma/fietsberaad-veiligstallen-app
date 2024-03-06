@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FiFilter } from "react-icons/fi";
+import { useSession } from "next-auth/react";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import FilterBoxList, {
   updateActiveTypeStates,
@@ -10,7 +11,7 @@ import FilterBoxPrice, {
   updateActivePriceStates,
 } from "~/components/FilterBoxPrice";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleType } from "~/store/filterSlice";
+import { toggleType, toggleType2 } from "~/store/filterSlice";
 import { AppState } from "~/store/store";
 
 const OPTIONS_1 = [
@@ -67,6 +68,15 @@ const OPTIONS_PRICE = [
   { id: "jaarabonnement", title: "Jaarabonnement", active: true },
 ];
 
+const OPTIONS_SUBMISSIONS = [
+  {
+    id: "show_submissions",
+    name: "show_submissions",
+    title: "Toon Aanmeldingen",
+    active: false,
+  },
+];
+
 type FilterBoxProps = {
   children?: React.ReactNode;
   isOpen: boolean;
@@ -89,6 +99,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
   onReset: Function;
 }) => {
   const dispatch = useDispatch();
+  const { data: session } = useSession()
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -99,15 +110,24 @@ const FilterBox: React.FC<FilterBoxProps> = ({
     dispatch(toggleType({ pfType: optionId }));
   };
 
+  const activeTypes2 = useSelector(
+    (state: AppState) => state.filter.activeTypes2
+  );
+
+  const toggleFilter2 = (optionId: string) => {
+    // ("toggleFilter", optionId);
+    dispatch(toggleType2({ pfType: optionId }));
+  };
+
   const options1_with_state = updateActiveTypeStates(OPTIONS_1, activeTypes);
   const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
   const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, []);
+  const options3_with_state = updateActiveTypeStates(OPTIONS_SUBMISSIONS, activeTypes2);
 
   return (
     <div
-      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${
-        isOpen ? "" : "h-16"
-      } transition-all duration-300 ease-in-out`}
+      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${isOpen ? "" : "h-16"
+        } transition-all duration-300 ease-in-out`}
     >
       <div className="mx-auto max-w-7xl px-4 py-5">
         <div
@@ -146,6 +166,15 @@ const FilterBox: React.FC<FilterBoxProps> = ({
             onToggleFilter={toggleFilter}
           />
         </div>
+
+        {session && session.user ?
+          <div className="mt-5">
+            <FilterBoxList
+              title=""
+              options={options3_with_state}
+              onToggleFilter={toggleFilter2}
+            />
+          </div> : null}
 
         {children}
 
