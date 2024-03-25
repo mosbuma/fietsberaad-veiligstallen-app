@@ -18,12 +18,12 @@ import { setQuery } from "~/store/filterSlice";
 
 import {
   getMunicipalityBasedOnCbsCode,
-  getMunicipalityBasedOnUrlName
+  getMunicipalityBasedOnUrlName,
+  cbsCodeFromMunicipality
 } from "~/utils/municipality";
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
 
-import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingFacilities from "~/components/ParkingFacilities";
 import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
@@ -44,7 +44,6 @@ import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
 import { useSession } from "next-auth/react";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { getParkingDetails, generateRandomId } from "~/utils/parkings";
 import { AppState } from "~/store/store";
 import type { fietsenstallingen } from "@prisma/client";
 // import { undefined } from "zod";
@@ -164,13 +163,16 @@ const Home: NextPage = ({
 
     (async () => {
       // Convert municipality code of DD to VS
-      let cbsCode = activeMunicipality.municipality.replace('GM', '');
-      while (cbsCode.charAt(0) === '0') {
-        cbsCode = cbsCode.substring(1);
+      let cbsCode = cbsCodeFromMunicipality(activeMunicipality);
+      if (cbsCode === false) {
+        // no valid cbsCode for the current location
+        window.history.pushState({}, "", `/`);
+        return;
       }
-      cbsCode = Number(cbsCode);
+
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
+      console.log("got municipalityInfo", municipalityInfo);
       // Set municipality slug in URL
       if (mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
         window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
@@ -245,29 +247,14 @@ const Home: NextPage = ({
 
         <AppHeader />
 
-        {currentStallingId !== undefined && isSm && (<>
-          <Overlay
-            title={""}
-            onClose={() => { updateStallingId(undefined) }}
-          >
-            <Parking
-              key={'parking-sm-' + currentStallingId}
-              parkingID={currentStallingId}
-            />
-          </Overlay>
-        </>)}
-
-        {currentStallingId !== undefined && !isSm && (<>
+        {currentStallingId !== undefined && (
           <Modal
             onClose={() => { updateStallingId(undefined) }}
             clickOutsideClosesDialog={false}
           >
-            <Parking
-              key={'parking-nsm-' + currentStallingId}
-              parkingID={currentStallingId}
-            />
+            <Parking key={'parking-modal-' + currentStallingId} />
           </Modal>
-        </>)}
+        )}
 
         <div
           className={`
@@ -538,7 +525,7 @@ const Home: NextPage = ({
           municipalityInfo={activeMunicipalityInfo}
           buttonClickHandler={() => {
             // Save the fact that user did see welcome modal
-            localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+            localStorage.setItem('VS__didSeeWelcomeModal', Date.now().toString());
 
             setIsInfoModalVisible(false)
           }}

@@ -1,29 +1,29 @@
 
-export const getNavigationItemsForMunicipality = async (siteId) => {
-    try {
-      const response = await fetch(`/api/articles/?SiteID=${siteId}`);
-      const articles = await response.json();
+export const getNavigationItemsForMunicipality = async (siteId: string | null) => {
+  try {
+    const response = await fetch(`/api/articles/?SiteID=${siteId}`);
+    const articles = await response.json();
 
-      let primaryMenuItems = articles;
+    let primaryMenuItems = articles;
 
-      // Only keep items for veiligstallen
-      primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
+    // Only keep items for veiligstallen
+    primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
 
-      return primaryMenuItems;
-    } catch(err) {
-      console.error(err);
-    }
+    return primaryMenuItems;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
-  if(! items) return items;
+  if (!items) return items;
 
   // Only keep items that are unique for this site
-  if(mapZoom >= 12) {
+  if (mapZoom >= 12) {
     items = items.filter(x => x.SiteID !== '1');
   }
   // Hide 'Stallingen' and 'Fietstrommels' for Fietsberaad site
-  if(mapZoom < 12) {
+  if (mapZoom < 12) {
     items = items.filter(x => {
       return x.Title !== 'Stallingen' && x.Title !== 'Buurttrommels';
     });
@@ -34,7 +34,7 @@ export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
 
 export const getPrimary = (items) => {
   let primaryItems = items;
-  if(! primaryItems) return;
+  if (!primaryItems) return;
 
   // Only include 'main' items
   primaryItems = primaryItems.filter(x => x.Navigation === 'main');
@@ -56,7 +56,7 @@ export const getPrimary = (items) => {
 
 export const getSecundary = (items) => {
   let secundaryItems = items;
-  if(! secundaryItems) return [];
+  if (!secundaryItems) return [];
 
   // Only include 'main' items
   secundaryItems = secundaryItems.filter(x => x.Navigation === 'main');
@@ -67,7 +67,11 @@ export const getSecundary = (items) => {
 }
 
 export const getFooter = (items) => {
-  return items.filter((x) => {
-    return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene Voorwaarden';
-  });
+  if (items) {
+    return items.filter((x) => {
+      return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene Voorwaarden';
+    });
+  } else {
+    return null
+  }
 }

@@ -76,6 +76,10 @@ function ParkingEditLocation({
       }
       // }
     });
+    mapboxMap.on('styleimagemissing', (e) => {
+      mapboxMap.addImage(e.id, { width: 0, height: 0, data: new Uint8Array(0) });
+    });
+
 
     // Function that executes if component unloads:
     return () => {

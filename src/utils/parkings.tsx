@@ -21,7 +21,17 @@ export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: strin
 
 export const getParkingDetails = async (stallingId: string): Promise<ParkingDetailsType | null> => {
   try {
-    const response = await fetch(`/api/parking?stallingid=${stallingId}`);
+    // const response = await fetch(`/api/parking?stallingid=${stallingId}`);
+    const response = await fetch(
+      "/api/fietsenstallingen?id=" + stallingId,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     const json = await response.json();
     return json;
   } catch (error: any) {
@@ -70,7 +80,8 @@ export const formatOpeningTimes = (
   parkingdata: ParkingDetailsType,
   dayidx: number,
   day: DayPrefix,
-  label: string
+  label: string,
+  isNS: boolean = false
 ): React.ReactNode => {
   const wkday = new Date().getDay();
 
@@ -90,7 +101,11 @@ export const formatOpeningTimes = (
   // then the parking is open 24 hours per day.
   // #TODO: Combine functions with /src/components/ParkingFacilityBlock.tsx
   if (hoursopen === 1 && hoursclose === 1 && diff === 0) {
-    value = '24h';
+    if (isNS) {
+      value = '24h';
+    } else {
+      value = 'gesloten';
+    }
   }
   else if (diff >= 86340) {
     value = '24h'
@@ -145,7 +160,13 @@ export const isNewStallingID = (stallingID: string): boolean => {
   return stallingID.substring(0, 2) === 'NW' || stallingID.substring(0, 8) === 'VOORSTEL';
 }
 
-export const getNewStallingDefaultRecord = (ID: string) => {
+export const getDefaultLocation = (): string => {
+  return '52.09066,5.121317'
+}
+
+export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | undefined): ParkingDetailsType => {
+  console.log("getNewStallingDefaultRecord", latlong);
+
   const data: ParkingDetailsType = {
     ID,
     Title: 'Nieuwe stalling',
@@ -170,7 +191,7 @@ export const getNewStallingDefaultRecord = (ID: string) => {
     Dicht_zo: new Date(0),
     Openingstijden: "",
     Capacity: 0,
-    Coordinaten: '52.09066,5.121317',
+    Coordinaten: latlong ? latlong.join(',') : getDefaultLocation(),
     FMS: false,
     Beheerder: "",
     BeheerderContact: "",

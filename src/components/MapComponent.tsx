@@ -4,6 +4,7 @@ import maplibregl from "maplibre-gl";
 import * as turf from "@turf/turf";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  setMapCurrentLatLong,
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
@@ -180,6 +181,10 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       zoom: 7,
     });
 
+    mapboxMap.on('styleimagemissing', (e) => {
+      mapboxMap.addImage(e.id, { width: 0, height: 0, data: new Uint8Array(0) });
+    });
+
     mapboxMap.on("load", () => onMapLoaded(mapboxMap));
 
     // Function that executes if component unloads:
@@ -208,9 +213,11 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
       if (
         !stateMap ||
         stateMap === undefined ||
-        "getSource" in stateMap === false
+        "getSource" in stateMap === false ||
+        "getLayer" in stateMap === false
       )
         return;
+
       if (!stateMap.getSource) return;
 
       // Create geojson
@@ -218,6 +225,9 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
 
       // Add or update fietsenstallingen data as sources
       const addOrUpdateSource = (sourceKey) => {
+        if (!stateMap || stateMap === undefined) {
+          return;
+        }
         const source: maplibregl.GeoJSONSource = stateMap.getSource(
           sourceKey
         ) as maplibregl.GeoJSONSource;
@@ -336,7 +346,7 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
   // Filter map markers if filterActiveTypes filter changes
   React.useEffect(() => {
     try {
-      if (!stateMap) return;
+      if (!stateMap || stateMap === undefined) return;
 
       let filter = [
         "all",
@@ -493,6 +503,8 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     })();
 
     // Set values in state
+    const coordinates = [center.geometry.coordinates[0].toString(), center.geometry.coordinates[1].toString()]
+    dispatch(setMapCurrentLatLong(coordinates));
     dispatch(setMapExtent(extent));
     dispatch(setMapZoom(theMap.getZoom()));
   }, []);

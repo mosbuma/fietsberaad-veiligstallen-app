@@ -1,8 +1,9 @@
-import { Prisma } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
+// import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 
-export default async function handle(req, res) {
-  if(! req.query || ! req.query.parkingId) {
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.query || !req.query.parkingId || Array.isArray(req.query.parkingId)) {
     res.json({});
     return;
   }

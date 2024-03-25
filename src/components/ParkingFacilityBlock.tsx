@@ -30,19 +30,21 @@ type ParkingType = {
   Dicht_za?: string;
   Open_zo?: string;
   Dicht_zo?: string;
+  Image?: string;
+  ExtraServices?: string;
 }
 
-const isOpen = (openingTime: Date, closingTime: Date): boolean => {
+const isOpen = (openingTime: Date, closingTime: Date, isNS: boolean = false): boolean => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
   const opening = openingTime.getHours() * 60 + openingTime.getMinutes();
   let closing = closingTime.getHours() * 60 + closingTime.getMinutes();
 
-  // Exception for NS parkings: If NS parking AND open from 1am to 1am,
-  // then the parking is open 24 hours per day.
   // #TODO: Combine functions with /src/utils/parkings.tsx
   if (opening === closing && opening === 60 && closing === 60) {
-    return true;
+    // Exception for NS parkings: If NS parking AND open from 1am to 1am,
+    // then the parking is open 24 hours per day.
+    return isNS;
   }
 
   if (closing < opening) {
@@ -73,7 +75,8 @@ const formatOpeningToday = (parkingdata: any): string => {
   const openinfo = new Date(openstr);
   const closeinfo = new Date(closestr);
 
-  if (isOpen(openinfo, closeinfo)) {
+  const isNS = parkingdata.EditorCreated === "NS-connector";
+  if (isOpen(openinfo, closeinfo, isNS)) {
     let str = `open`;
 
     // Exception: If this is a 24/h a day
@@ -100,7 +103,9 @@ function ParkingFacilityBlock({
 }: {
   id?: any,
   parking: ParkingType,
+  compact: boolean
   openParkingHandler?: Function,
+  expandParkingHandler?: Function,
   showButtons?: false
 }) {
   const { push } = useRouter();
@@ -136,8 +141,8 @@ function ParkingFacilityBlock({
 
   const openingDescription = formatOpeningToday(parking);
 
-  const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
-    }${openingDescription}`;
+  // const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
+  //   }${openingDescription}`;
 
   if (parking.ExtraServices) {
     // console.log('parking', parking)
@@ -174,7 +179,7 @@ function ParkingFacilityBlock({
         }
       `}
       style={{
-        backgroundColor: !compact ? 'rgba(31, 153, 210, 0.1)' : null
+        backgroundColor: !compact ? 'rgba(31, 153, 210, 0.1)' : undefined
       }}
       onClick={() => {
         // Expand parking if expandParkingHandler was given
@@ -182,7 +187,7 @@ function ParkingFacilityBlock({
           expandParkingHandler(parking.ID);
         }
         // Open parking details if ParkingBlock was already active
-        else if (expandParkingHandler && !compact) {
+        else if (expandParkingHandler && openParkingHandler && !compact) {
           openParkingHandler(parking.ID);
         }
         // Open parking if no expand handler was given

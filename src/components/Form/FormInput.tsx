@@ -12,7 +12,8 @@ function FormInput({
   label,
   size,
   style,
-  defaultValue
+  defaultValue,
+  disabled
 }: {
   innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
@@ -25,6 +26,7 @@ function FormInput({
   label?: string,
   size?: number
   style?: object
+  disabled?: boolean
 }) {
   return (
     <>
@@ -32,8 +34,8 @@ function FormInput({
         {label ? <div>
           <b>{label}</b>
         </div> : ''}
-    		<input
-          ref={innerRef} 
+        <input
+          ref={innerRef}
           type={type || 'text'}
           placeholder={placeholder}
           required={required || false}
@@ -50,6 +52,7 @@ function FormInput({
             my-2
             ${className}
           `}
+          disabled={disabled === true}
         />
       </label>
     </>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router'
+import { AppState } from "~/store/store";
 
 import { type ParkingDetailsType } from "~/types/";
 import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
@@ -15,6 +17,10 @@ const Parking = () => {
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | null>(null);
   const [editMode, setEditMode] = React.useState(false);
+
+  const currentLatLong = useSelector(
+    (state: AppState) => state.map.currentLatLng
+  );
 
   useEffect(() => {
     if (router.query.stallingid === undefined || Array.isArray(router.query.stallingid)) {
@@ -35,7 +41,7 @@ const Parking = () => {
         // when no user is logged in, a recognizalbe prefix is used
         prefix = 'VOORSTEL';
       }
-      setCurrentStalling(getNewStallingDefaultRecord(""));
+      setCurrentStalling(getNewStallingDefaultRecord("", currentLatLong));
       setEditMode(true);
     } else {
       getParkingDetails(stallingId).then((stalling) => {
@@ -69,10 +75,11 @@ const Parking = () => {
     setCurrentRevision(currentRevision + 1);
   }
 
-  const allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
   if (null === currentStalling) {
     return null;
   }
+
+  let allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
 
   if (allowEdit === true && (editMode === true)) {
     return (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);

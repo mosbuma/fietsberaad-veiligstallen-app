@@ -25,6 +25,7 @@ export type ParkingDetailsType = {
     Postcode: string,
     Plaats: string,
     Type: string,
+    SiteID: string,
     Image: any;
     Open_ma: Date,
     Dicht_ma: Date,
@@ -70,6 +71,7 @@ export type ParkingDetailsType = {
             conditionsID: string
         }[]
     },
+    ExploitantID: string,
     exploitant: {
         ID: string,
         Helpdesk: string,

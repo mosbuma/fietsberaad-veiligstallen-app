@@ -5,13 +5,14 @@ import { HYDRATE } from "next-redux-wrapper";
 // Type for our state
 export interface MapState {
   extent: Number[];
-  zoom: Number;
-  extent: any[];
+  zoom: Number | undefined;
   municipality: Array[];
-  selectedParkingId: string;
+  selectedParkingId: string | undefined;
   activeMunicipality: any;
   activeMunicipalityInfo: any;
-  initialLatLng: Array;
+  initialLatLng: string[] | undefined;
+  currentLatLng: string[] | undefined;
+  visibleFeatures: string[];
 }
 
 // Initial state
@@ -23,7 +24,8 @@ const initialState: MapState = {
   selectedParkingId: undefined,
   activeMunicipality: undefined,
   activeMunicipalityInfo: undefined,
-  initialLatLng: undefined
+  initialLatLng: undefined,
+  currentLatLng: undefined,
 };
 
 // Actual Slice
@@ -31,6 +33,10 @@ export const mapSlice = createSlice({
   name: "map",
   initialState,
   reducers: {
+    // Action to set the map current center
+    setMapCurrentLatLong(state, action) {
+      state.currentLatLng = action.payload;
+    },
     // Action to set the map extent (boundaries)
     setMapExtent(state, action) {
       state.extent = action.payload;
@@ -77,6 +83,7 @@ export const mapSlice = createSlice({
 });
 
 export const {
+  setMapCurrentLatLong,
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
