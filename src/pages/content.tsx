@@ -59,7 +59,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
   const { push } = useRouter();
   const pathName = usePathname();
 
-  const [currentStallingId, setCurrentStallingId] = useState(undefined);
+  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [pageContent, setPageContent] = useState({});
 
   const currentStalling = fietsenstallingen.find((stalling: any) => {

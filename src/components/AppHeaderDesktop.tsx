@@ -56,8 +56,10 @@ const SecundaryMenuItem = (props: any) => {
 }
 
 function AppHeaderDesktop({
+  onStallingAanmelden,
   children
 }: {
+  onStallingAanmelden?: () => void,
   children?: any
 }) {
   const dispatch = useDispatch();
@@ -141,7 +143,9 @@ function AppHeaderDesktop({
 
 
   const handleNieuweStallingClick = () => {
-    push(`/?stallingid=aanmelden`);
+    if (onStallingAanmelden) {
+      onStallingAanmelden();
+    }
   }
 
   const handleLoginClick = () => {

@@ -3,9 +3,8 @@ import React from "react";
 // Import components
 import PageTitle from "~/components/PageTitle";
 import HorizontalDivider from "~/components/HorizontalDivider";
-import { Button, IconButton } from "~/components/Button";
+import { Button } from "~/components/Button";
 import FormInput from "~/components/Form/FormInput";
-import FormCheckbox from "~/components/Form/FormCheckbox";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import type { ParkingDetailsType, ParkingSections } from "~/types/";
@@ -15,7 +14,7 @@ import {
   getDefaultLocation,
 } from "~/utils/parkings";
 import { cbsCodeFromMunicipality } from "~/utils/municipality";
-import { Tabs, Tab, FormHelperText, FormLabel, Typography } from "@mui/material";
+import { Tabs, Tab, FormHelperText, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
@@ -39,6 +38,9 @@ export type ParkingEditUpdateStructure = {
   Coordinaten?: string;
   Type?: string;
   SiteID?: string;
+  Beheerder?: string,
+  BeheerderContact?: string,
+
   // [key: string]: string | undefined;
   Openingstijden?: any; // Replace with the actual type if different
   fietsenstalling_secties?: ParkingSections; // Replace with the actual type if different
@@ -47,10 +49,12 @@ export type ParkingEditUpdateStructure = {
 type ServiceType = { ID: string, Name: string };
 type ChangedType = { ID: string, selected: boolean };
 
-const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: Function, onChange: Function }) => {
+const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (changeStallingID: string | false) => void, onChange: Function }) => {
 
-  const [selectedTab, setSelectedTab] = React.useState('tab-algemeen');
-  // const [selectedTab, setSelectedTab] = React.useState('tab-capaciteit');  
+  const [selectedTab, setSelectedTab] = React.useState<string>('tab-algemeen');
+  // const [waarschuwing, setWaarschuwing] = React.useState<string>('');
+  // const [allowSave, setAllowSave] = React.useState<boolean>(true);
+  const allowSave = true;
 
   const [newSiteID, setNewSiteID] = React.useState<string | undefined>(undefined);
   const [newTitle, setNewTitle] = React.useState<string | undefined>(undefined);
@@ -71,7 +75,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
   const [newServices, setNewServices] = React.useState<ChangedType[]>([]);
 
-  const [newCapaciteit, setNewCapaciteit] = React.useState<CapaciteitType[]>([]); // capaciteitschema
+  const [newCapaciteit, setNewCapaciteit] = React.useState<ParkingSections>([]); // capaciteitschema
   const [newOpening, setNewOpening] = React.useState<any>(undefined); // openingstijdenschema
   const [newOpeningstijden, setNewOpeningstijden] = React.useState<string | undefined>(undefined); // textveld afwijkende openingstijden
 
@@ -122,10 +126,40 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     newvalue: any
   }
 
+  // React.useEffect(() => {
+  //   const code = cbsCodeFromMunicipality(currentMunicipality || false);
+  //   if (code) {
+  //     checkCanCreateSite(code);
+  //   }
+  // }, [currentMunicipality]);
+
+  // const checkCanCreateSite = (cbsCode: number | false | undefined): boolean => {
+  //   return true;
+
+  //   if (session) {
+  //     if (session?.user?.sites?.includes(cbsCode) === true) {
+  //       console.log("user can save site");
+  //       setWaarschuwing('');
+  //       setAllowSave(true);
+  //     } else {
+  //       console.log("user cannot save site", session?.user?.sites, cbsCode);
+  //       setWaarschuwing('U heeft geen rechten om een stalling aan te maken in deze gemeente.');
+  //       setAllowSave(false);
+  //     }
+  //   } else {
+  //     // check if municipality has a contact
+  //     return false;
+  //   }
+  // }
+
   const updateSiteID = () => {
+    console.log(session);
+
     const currentll = undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
     getMunicipalityBasedOnLatLng(currentll.split(",")).then((result) => {
       if (result !== false) {
+        console.log("*****", result);
+
         setCurrentMunicipality(result);
         const cbsCode = cbsCodeFromMunicipality(result);
         if (cbsCode.toString() !== parkingdata.SiteID) {
@@ -210,6 +244,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     if (newStallingType !== undefined) { update.Type = newStallingType; }
     if (newSiteID !== undefined) { update.SiteID = newSiteID; }
 
+    if (newBeheerder !== undefined) { update.Beheerder = newBeheerder; }
+    if (newBeheerderContact !== undefined) { update.BeheerderContact = newBeheerderContact; }
+
     if (undefined !== newOpening) {
       for (const keystr in newOpening) {
         const key = keystr as keyof ParkingEditUpdateStructure;
@@ -218,11 +255,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
 
     // COULDDO: Save data in update object only, to update parkingdata as 1 full object
-    // console.log('>> parkingdata', parkingdata)
     // if(undefined!==newCapaciteit) {
     //   update.fietsenstalling_sectie = newCapaciteit as FietsenstallingSectiesType
     // }
-    // console.log('>> update', update)
 
     if (undefined !== newOpeningstijden) {
       if (newOpeningstijden !== parkingdata.Openingstijden) {
@@ -243,7 +278,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       // Create servicesToSave object
       const servicesToSave: {}[] = [];
       // - First, add existing services
-      parkingdata.fietsenstallingen_services.forEach(x => {
+      parkingdata.fietsenstallingen_services && parkingdata.fietsenstallingen_services.forEach(x => {
         // To be removed?
         const doRemove = newServices.filter(s => s.ID === x.services.ID && !s.selected).pop();
         if (!doRemove) {
@@ -279,7 +314,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   }
 
-  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: CapaciteitType[]) => {
+  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: ParkingSections) => {
     if (!newCapaciteit || newCapaciteit.length <= 0) return;
 
     try {
@@ -306,18 +341,26 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const parkingChanged = () => {
-    // console.log("PARKINGCHANGED", newServices.length > 0, newCapaciteit.length > 0, newOpening !== undefined, newOpeningstijden !== undefined);
+    try {
+      const isChanged =
+        Object.keys(update).length !== 0 ||
+        newServices.length > 0 ||
+        newCapaciteit && newCapaciteit.length > 0 ||
+        newOpening !== undefined ||
+        newOpeningstijden !== undefined;
 
-    return Object.keys(update).length !== 0 || newServices.length > 0 || newCapaciteit.length > 0 || newOpening !== undefined || newOpeningstijden !== undefined;
+      return isChanged;
+    } catch (ex) {
+      console.error("ParkingEdit - unable to determine if parking data has changed");
+      return false;
+    }
   }
 
-  const acceptParking = async (): Promise<string | boolean> => {
+  const acceptParking = async (): Promise<string> => {
     try {
       const newID = generateRandomId();
 
       // create a new parking record with the given ID
-      console.log(">>>> move parking record from ", parkingdata.ID, " to ", newID);
-      // console.log("store changes", isNew, JSON.stringify(update));
 
       const storedata = Object.assign({}, parkingdata, { ID: newID });
       storedata.Open_ma = new Date(parkingdata.Open_ma); // Datetime
@@ -362,7 +405,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
         toast("De stalling is geaccepteerd.")
 
-        return true;
+        return newID;
       }
 
       // store parking record
@@ -380,55 +423,79 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       // delete old abonnementsvorm_fietsenstalling records
 
       // delete old parking record
-      return false;
+      return "";
     } catch (ex: unknown) {
       console.error("ParkingEdit - unable to move parking record to new ID");
-      return false;
+      return "";
+    }
+  }
+
+  const handleRemoveParking = async () => {
+    try {
+      if (parkingdata.ID.substring(0, 8) !== 'VOORSTEL') {
+        // Update logic for derived tables is not fully implemented!
+        throw Error('Het is niet toegestaan om een definitieve stalling te verwijderen.')
+      }
+
+
+      if (!confirm("Weet u zeker dat u deze stalling wilt verwijderen? Dit kan niet ongedaan worden gemaakt!")) return;
+
+      const result1 = await fetch(
+        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
+        { method: "DELETE" }
+      );
+
+      const result2 = await fetch(
+        "/api/fietsenstallingen?id=" + parkingdata.ID,
+        { method: "DELETE" }
+      );
+
+      if (false === result1.ok || false === result2.ok) {
+        toast("De stalling kon niet worden verwijderd.")
+      } else {
+        toast("De stalling is verwijderd.")
+      }
+
+      onChange();
+      onClose("");
+    } catch (ex) {
+      console.error("ParkingEdit - unable to remove parking record");
     }
   }
 
   const handleUpdateParking = async () => {
-    // Stop if no parking ID is available
-    if (!parkingdata) return;
-
-    const isNew = parkingdata.ID === "";
-    if (isNew) {
-      parkingdata.ID = generateRandomId(session ? "" : "VOORSTEL");
-    }
-
-    const isVoorstel = parkingdata?.ID.substring(0, 8) === 'VOORSTEL'
-
-    if (!validateParkingData()) {
-      console.warn("ParkingEdit - invalid data: update cancelled");
-      return;
-    }
-
-    // Check if parking was changed
-    const update = getUpdate();
-
-    // If services are updated: Update services
-    if (newServices.length > 0) {
-      updateServices(parkingdata, newServices);
-    }
-
-    // If capaciteit is updated: Update capaciteit
-    if (newCapaciteit.length > 0) {
-      updateCapaciteit(parkingdata, newCapaciteit);
-    }
-
-    // If parking data didn't change: stop
-    if (!parkingChanged()) {
-      // Go back to 'view' mode
-      onChange();
-      onClose();
-      // Stop executing
-      return;
-    }
-
-    // console.log("store changes", isNew, JSON.stringify(update));
     try {
+      // Stop if no parking ID is available
+      if (!parkingdata) return;
+
+      const isNew = parkingdata.ID === ""
+      if (parkingdata.ID === "") {
+        // for public users, generate a recognizable ID
+        parkingdata.ID = generateRandomId(session === null ? "VOORSTEL" : "");
+      }
+
+      if (!validateParkingData()) {
+        console.warn("ParkingEdit - invalid data: update cancelled");
+        return;
+      }
+
+      // Check if parking was changed
+      const update = getUpdate();
+
+      const doUpdate =
+        parkingChanged() ||
+        isNew || // default new parking data does not trigger parkingChanged > force update
+        !isNew && (parkingdata.ID.substring(0, 8) === 'VOORSTEL'); // force update if parkingdata.ID for existing parking starts with 'VOORSTEL' -> triggers update of ID to normal ID
+
+      if (false === doUpdate) {
+        onChange();
+        onClose(false);
+        return;
+      }
+
       const method = isNew ? "POST" : "PUT";
       const body = JSON.stringify(isNew ? Object.assign({}, parkingdata, update) : update);
+
       const result = await fetch(
         "/api/fietsenstallingen?id=" + parkingdata.ID,
         {
@@ -441,27 +508,43 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       );
       if (!result.ok) {
         throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
-      } else {
-        if (isVoorstel === false) {
-          toast("De stalling is opgeslagen.", { duration: 5000 })
-        } else {
-          toast(`Uw voorstel wordt aangemeld bij gemeente ${currentMunicipality?.name}.`, { duration: 30000, style: { minWidth: '40vw' } })
-        }
       }
-      // Go back to 'view' mode
-      onChange();
 
-      let newID = undefined;
-      if (isNew) {
-        newID = parkingdata.ID
-      } else if (isVoorstel) {
-        newID = await acceptParking();
-        if (false === newID) {
-          console.log("unable to accept parking");
-          newID = undefined; // unable to update ID  
-        };
+      // If services are updated: Update services
+      if (newServices.length > 0) {
+        await updateServices(parkingdata, newServices);
       }
-      onClose(newID);
+
+      // If capaciteit is updated: Update capaciteit
+      if (newCapaciteit && newCapaciteit.length > 0) {
+        await updateCapaciteit(parkingdata, newCapaciteit);
+      }
+
+      let returnID: string | boolean = parkingdata.ID
+      if (session === null) {
+        toast(`Uw voorstel wordt aangemeld bij gemeente ${currentMunicipality?.name}.`, { duration: 15000, style: { minWidth: '40vw' } })
+
+        onChange();
+        onClose(parkingdata.ID);
+      } else {
+        if (isNew) { // new parking created while logged in
+          toast(`De stallingsgegevens zijn opgeslagen`);
+        } else { // existing parking
+          if (parkingdata.ID.substring(0, 8) === 'VOORSTEL') { // accept proposed parking
+            // when updating a "VOORSTEL parking", it will be moved to a permanent record
+            returnID = await acceptParking()
+            if (returnID === "") {
+              alert(`Er ging iets mis bij het accepteren van dit voorstel. Probeer het later opnieuw.`);
+              return;
+            }
+          } else {
+            toast(`De stallingsgegevens zijn opgeslagen`);
+          }
+        }
+
+        onChange();
+        onClose(returnID); // show modal
+      }
     } catch (err: any) {
       if (err.message) alert(err.message);
       else alert(err);
@@ -469,12 +552,10 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   };
 
   const update: ParkingEditUpdateStructure = getUpdate()
-  const showUpdateButtons = parkingChanged()
-
-  // console.log("@@@ parkingdata", parkingdata);
+  const isVoorstel = parkingdata?.ID.substring(0, 8) === 'VOORSTEL'
+  const showUpdateButtons = isVoorstel || parkingChanged()
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
-    // console.log("#### update from map")
     const latlngstring = `${lat},${lng}`;
     if (latlngstring !== parkingdata.Coordinaten) {
       setNewCoordinaten(latlngstring);
@@ -485,7 +566,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const updateCoordinatesFromForm = (isLat: boolean) => (e: { target: { value: string; }; }) => {
-    // console.log("#### update from form")
     try {
       const latlng = parkingdata.Coordinaten.split(",");
       if (isLat) {
@@ -524,7 +604,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     const serviceIsActive = (ID: string): boolean => {
       const change = newServices.find(s => (s.ID === ID));
       if (change !== undefined) {
-        // console.log(ID, "changed to ", change.selected);
         return change.selected;
       }
 
@@ -534,7 +613,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
       for (const item of parkingdata.fietsenstallingen_services) {
         if (item.services.ID === ID) {
-          // console.log("selected in parkingdata", ID, change);
           return true;
         }
       }
@@ -549,8 +627,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       } else {
         newServices.push({ ID: ID, selected: checked });
       }
-
-      // console.log('newservices - after', JSON.stringify(newServices,0,2));
 
       setNewServices([...newServices]);
     }
@@ -580,7 +656,12 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         let location = ((address.address.road || "---") + " " + (address.address.house_number || "")).trim();
         setNewLocation(location);
         setNewPostcode(address.address.postcode);
-        setNewPlaats(address.address.city || address.address.town || address.address.village || address.address.quarter);
+        const plaats = address.address.city || address.address.town || address.address.village || address.address.quarter;
+        setNewPlaats(plaats);
+
+        if (parkingdata.Title === "" && (newTitle === "" || newTitle === undefined)) {
+          setNewTitle("Nieuwe stalling " + (location + " " + plaats).trim());
+        }
       } else {
         alert("Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.");
       }
@@ -700,7 +781,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabAfbeelding = (visible: boolean = false) => {
     return (
-      <div className="flex justify-between w-full mt-10" style={{ display: visible ? "flex" : "none" }}>
+      <div className="flex justify-between w-full mt-10 - h-full" style={{ display: visible ? "flex" : "none" }}>
         <ParkingEditAfbeelding parkingdata={parkingdata} onUpdateAfbeelding={onChange} />
       </div>);
   }
@@ -747,8 +828,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const renderTabCapaciteit = (visible: boolean = false) => {
-    const handlerSetNewCapaciteit = (capaciteit: React.SetStateAction<CapaciteitType[]>): void => {
-      console.log('handlerSetNewCapaciteit', JSON.stringify(capaciteit, null, 2));
+    const handlerSetNewCapaciteit = (capaciteit: ParkingSections): void => {
       setNewCapaciteit(capaciteit);
       return;
     }
@@ -789,7 +869,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabBeheerder = (visible: boolean = false) => {
     // TODO: uitzoeken & implementeren FMS / ExploitantID logica
-    if (parkingdata.FMS === true || parkingdata.ExploitantID !== null) {
+    if (parkingdata.FMS === true || !(parkingdata.ExploitantID === undefined || parkingdata.ExploitantID == null)) {
       return (
         <div className="flex justify-between" style={{ display: visible ? "flex" : "none" }}>
           <div data-name="content-left" className="sm:mr-12">
@@ -821,7 +901,8 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     parkingTitle += " (voorstel)";
   }
 
-  const parkingIDSet = parkingdata.ID === "";
+  const isLoggedIn = (session !== null);
+  const hasID = (parkingdata.ID !== "");
 
   return (
     <div
@@ -834,8 +915,8 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         "
       >
         <PageTitle className="flex w-full justify-center sm:justify-start">
-          <div className="mr-4 hidden sm:block">{parkingTitle}</div>
-          {showUpdateButtons === true && <Button
+          <div className="mr-4 hidden sm:block">{parkingTitle || newTitle || "Nieuwe Stalling"}</div>
+          {showUpdateButtons === true && allowSave && <Button
             key="b-1"
             className="mt-3 sm:mt-0"
             onClick={(e: any) => {
@@ -843,27 +924,37 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
               handleUpdateParking();
             }}
           >
-            Opslaan
+            {isVoorstel ? "Accepteer voorstel" : "Opslaan"}
+          </Button>}
+          {isVoorstel && <Button
+            key="b-2"
+            className="ml-6 mt-3 sm:mt-0"
+            onClick={(e: any) => {
+              if (e) e.preventDefault();
+              handleRemoveParking();
+            }}
+          >
+            Verwijder
           </Button>}
           {showUpdateButtons === true && <Button
-            key="b-2"
+            key="b-3"
             className="mt-3 ml-2 sm:mt-0"
             variant="secundary"
             onClick={(e: MouseEvent) => {
               if (e) e.preventDefault();
               if (confirm('Wil je het bewerkformulier verlaten?')) {
-                onClose();
+                onClose(false);
               }
             }}
           >
             Annuleer
           </Button>}
           {showUpdateButtons === false && <Button
-            key="b-2"
-            className="mt-3 sm:mt-0"
+            key="b-4"
+            className="ml-2 mt-3 sm:mt-0"
             onClick={(e: any) => {
               if (e) e.preventDefault();
-              onClose();
+              onClose(false);
             }}
           >
             Terug
@@ -873,22 +964,22 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
       <Tabs value={selectedTab} onChange={handleChange} aria-label="simple tabs example">
         <Tab label="Algemeen" value='tab-algemeen' />
-        <Tab label="Afbeelding" value='tab-afbeelding' />
+        {hasID && <Tab label="Afbeelding" value='tab-afbeelding' />}
         <Tab label="Openingstijden" value='tab-openingstijden' />
 
         {/* <Tab label="Tarieven" value='tab-tarieven'/> */}
-        {!parkingIDSet && <Tab label="Capaciteit" value='tab-capaciteit' />}
-        {!parkingIDSet && <Tab label="Abonnementen" value='tab-abonnementen' />}
-        {!parkingIDSet && <Tab label="Beheerder" value='tab-beheerder' />}
+        {hasID && isLoggedIn && <Tab label="Capaciteit" value='tab-capaciteit' />}
+        {hasID && isLoggedIn && <Tab label="Abonnementen" value='tab-abonnementen' />}
+        {isLoggedIn && <Tab label="Beheerder" value='tab-beheerder' />}
       </Tabs>
 
       {renderTabAlgemeen(selectedTab === 'tab-algemeen')}
-      {renderTabAfbeelding(selectedTab === 'tab-afbeelding')}
+      {renderTabAfbeelding(selectedTab === 'tab-afbeelding' && hasID)}
       {renderTabOpeningstijden(selectedTab === 'tab-openingstijden')}
       {renderTabTarieven(selectedTab === 'tab-tarieven')}
-      {renderTabCapaciteit(selectedTab === 'tab-capaciteit' && !parkingIDSet)}
-      {renderTabAbonnementen(selectedTab === 'tab-abonnementen' && !parkingIDSet)}
-      {renderTabBeheerder(selectedTab === 'tab-beheerder' && !parkingIDSet)}
+      {renderTabCapaciteit(selectedTab === 'tab-capaciteit' && hasID && isLoggedIn)}
+      {renderTabAbonnementen(selectedTab === 'tab-abonnementen' && hasID && isLoggedIn)}
+      {renderTabBeheerder(selectedTab === 'tab-beheerder' && isLoggedIn)}
     </div>
   );
 };

@@ -72,6 +72,7 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
     e.preventDefault();
 
     if (!parkingdata || !parkingdata.ID || !file) {
+      console.warn("Missing parking data or file");
       return;
     }
 

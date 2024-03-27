@@ -10,6 +10,7 @@ import {
   setIsMobileNavigationVisible
 } from "~/store/appSlice";
 import {
+  setActiveParkingId,
   setActiveMunicipalityInfo,
   setInitialLatLng,
 } from "~/store/mapSlice";
@@ -55,6 +56,7 @@ export async function getServerSideProps(context: any) {
     const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites);
 
     // TODO: Don't include: EditorCreated, EditorModified
+    console.log("###### sites", sites)
 
     return {
       props: {
@@ -86,10 +88,8 @@ const Home: NextPage = ({
 
   const dispatch = useDispatch();
 
-  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
-  // const [newStalling, setNewStalling] = useState<ParkingDetailsType | false | undefined>(undefined);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
@@ -115,6 +115,10 @@ const Home: NextPage = ({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  const activeParkingId = useSelector(
+    (state: AppState) => state.map.activeParkingId
+  );
+
   const initialLatLng = useSelector((state: AppState) => state.map.initialLatLng);
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
@@ -127,7 +131,7 @@ const Home: NextPage = ({
   useEffect(() => {
     // handle aanmelden sequence
     if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
-      setCurrentStallingId(router.query.stallingid);
+      dispatch(setActiveParkingId(router.query.stallingid));
     }
   }, [
     router.query,
@@ -137,12 +141,12 @@ const Home: NextPage = ({
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
-    if (!router.query.urlName) return;
+    if (router.query.urlName === undefined || Array.isArray(router.query.urlName)) return;
 
     // Get municipality based on urlName
-    (async () => {
+    (async (urlName: string) => {
       // Get municipality
-      const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
+      const municipality = await getMunicipalityBasedOnUrlName(urlName);
       if (!municipality) return;
       // Fly to municipality, on the map
       const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
@@ -151,7 +155,7 @@ const Home: NextPage = ({
       }
       // Set municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipality));
-    })();
+    })(router.query.urlName);
   }, [
     router.query.urlName
   ]);
@@ -172,7 +176,6 @@ const Home: NextPage = ({
 
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
-      console.log("got municipalityInfo", municipalityInfo);
       // Set municipality slug in URL
       if (mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
         window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
@@ -236,24 +239,28 @@ const Home: NextPage = ({
     } else {
       router.push({ query: { ...query, stallingid: id } });
     }
-    if (undefined === id) {
-      setCurrentStallingId(undefined);
+
+    if (activeParkingId !== id) {
+      dispatch(setActiveParkingId(id));
     }
+  }
+
+  const handleCloseParking = () => {
+    if (router.query.stallingid !== undefined) {
+      delete query.stallingid;
+      router.push({ query: { ...query } });
+    }
+    dispatch(setActiveParkingId(undefined));
   }
 
   return (
     <>
       <main className="flex-grow">
 
-        <AppHeader />
+        <AppHeader onStallingAanmelden={() => dispatch(setActiveParkingId("aanmelden"))} />
 
-        {currentStallingId !== undefined && (
-          <Modal
-            onClose={() => { updateStallingId(undefined) }}
-            clickOutsideClosesDialog={false}
-          >
-            <Parking key={'parking-modal-' + currentStallingId} />
-          </Modal>
+        {activeParkingId !== undefined && (
+          <Parking id={'parking-modal-' + activeParkingId} stallingId={activeParkingId} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
         )}
 
         <div
@@ -294,7 +301,7 @@ const Home: NextPage = ({
             <ParkingFacilityBrowser
               showSearchBar={true}
               fietsenstallingen={fietsenstallingen}
-              onShowStallingDetails={(id: any) => { updateStallingId(id) }}
+              onShowStallingDetails={(id: string | undefined) => { updateStallingId(id) }}
             />
           </div>
 
@@ -318,7 +325,7 @@ const Home: NextPage = ({
               <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             </Link>
             <SearchBar
-              filterChanged={(e) => {
+              filterChanged={(e: { target: { value: any; }; }) => {
                 dispatch(setQuery(e.target.value))
                 dispatch(setIsParkingListVisible(true));
               }}
@@ -440,7 +447,7 @@ const Home: NextPage = ({
                 p-4
               "
               >
-                <FilterBox />
+                <FilterBox isOpen={false} />
               </div>
             </div>}
             <div
@@ -486,6 +493,7 @@ const Home: NextPage = ({
 
         <ParkingFacilities
           fietsenstallingen={fietsenstallingen}
+          onStallingAamelden={() => { dispatch(setActiveParkingId("aanmelden")) }}
         />
       </main>
 
@@ -506,7 +514,7 @@ const Home: NextPage = ({
       {isClient && isInfoModalVisible && <Modal
         onClose={() => {
           // Save the fact that user did see welcome modal
-          localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+          localStorage.setItem('VS__didSeeWelcomeModal', Date.now().toString());
 
           setIsInfoModalVisible(false);
         }}

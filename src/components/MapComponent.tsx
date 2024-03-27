@@ -10,27 +10,23 @@ import {
   setMapVisibleFeatures,
   setActiveMunicipality,
   setSelectedParkingId,
+  setActiveParkingId,
 } from "~/store/mapSlice";
 
 import { AppState } from "~/store/store";
 
 // Import utils
-import { getParkingColor } from "~/utils/theme";
 import {
-  // getParkingMarker,
-  // isPointInsidePolygon,
   convertCoordinatenToCoords,
 } from "~/utils/map/index";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 import { mapMoveEndEvents } from "~/utils/map/parkingsFilteringBasedOnExtent";
-// import { parkingTypes } from "~/utils/parkings";
+import useWindowDimensions from "~/hooks/useWindowDimensions";
 
 // Import the mapbox-gl styles so that the map is displayed correctly
 import "maplibre-gl/dist/maplibre-gl.css";
 // Import map styles
 import nine3030 from "../mapStyles/nine3030";
-// Import component styles, i.e. for the markers
-import styles from "./MapComponent.module.css";
 
 // Add custom markers
 // const addMarkerImages = (map: any) => {
@@ -92,9 +88,14 @@ const createGeoJson = (input: GeoJsonFeature[]) => {
   };
 };
 
-function MapboxMap({ fietsenstallingen = [] }: any) {
+function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
+
   // this is where the map instance will be stored after initialization
   const [stateMap, setStateMap] = React.useState<maplibregl.Map>();
+
+  const { width } = useWindowDimensions();
+
+  const isMobile = width <= 640; // keep the same as the sm threshold in tailwind
 
   // Connect to redux store
   const dispatch = useDispatch();
@@ -440,16 +441,29 @@ function MapboxMap({ fietsenstallingen = [] }: any) {
     // This function is called when all rendering has been done
     // mapboxMap.on("idle", function () {
     onMoved(mapboxMap);
+
+    if (!isMobile) {
+      mapboxMap.on('mouseenter', 'fietsenstallingen-markers', function () {
+        mapboxMap.getCanvas().style.cursor = 'pointer';
+      });
+
+      // When the mouse leaves a feature in the 'markers' layer, change the cursor style back
+      mapboxMap.on('mouseleave', 'fietsenstallingen-markers', function () {
+        mapboxMap.getCanvas().style.cursor = '';
+      });
+    }
     // });
     // Show parking info on click
     mapboxMap.on("click", "fietsenstallingen-markers", (e) => {
+      // Enlarge parking icon on click
+      highlighMarker(mapboxMap, e.features[0].properties.id);
       // Make clicked parking active
       dispatch(setSelectedParkingId(e.features[0].properties.id));
+      if (!isMobile) {
+        dispatch(setActiveParkingId(e.features[0].properties.id));
+      }
     });
-    // Enlarge parking icon on click
-    mapboxMap.on("click", "fietsenstallingen-markers", (e) => {
-      highlighMarker(mapboxMap, e.features[0].properties.id);
-    });
+
     // Zoom in on cluster click
     mapboxMap.on("click", "fietsenstallingen-clusters", (e) => {
       // Zoom in

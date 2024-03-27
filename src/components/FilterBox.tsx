@@ -80,9 +80,9 @@ const OPTIONS_SUBMISSIONS = [
 type FilterBoxProps = {
   children?: React.ReactNode;
   isOpen: boolean;
-  onOpen: () => void;
-  onClose: () => void;
-  onReset: () => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onReset?: () => void;
 };
 
 const FilterBox: React.FC<FilterBoxProps> = ({

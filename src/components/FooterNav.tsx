@@ -33,7 +33,29 @@ const FooterNavItem = ({
   </a>
 }
 
-const FooterNav = () => {
+const FooterNavItemClick = ({
+  onClick,
+  children,
+  className
+}: {
+  url?: string,
+  children: any,
+  className?: string,
+}) => {
+  return <div className={`
+    ${className}
+    mx-2
+  `}
+    onClick={onClick}
+  >
+    {children}
+  </div>
+}
+
+const FooterNav = ({ onStallingAanmelden, children }: {
+  onStallingAanmelden?: () => void,
+  children?: any
+}) => {
   const { data: session } = useSession()
 
   const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
@@ -67,11 +89,11 @@ const FooterNav = () => {
       z-10
     ">
       {!session ?
-        <FooterNavItem
-          url={'/?stallingid=aanmelden'}
+        <FooterNavItemClick
+          onClick={() => { onStallingAanmelden && onStallingAanmelden() }}
           className="font-bold">
           Stalling Aanmelden
-        </FooterNavItem> : null}
+        </FooterNavItemClick> : null}
 
       {navItemsPrimary.map(x => <FooterNavItem
         key={x.title}

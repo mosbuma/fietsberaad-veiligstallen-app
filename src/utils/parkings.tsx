@@ -31,7 +31,10 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
         },
       }
     );
-
+    if (response.status !== 200) {
+      console.error("getParkingDetails - request failed with status", response.status);
+      return null;
+    }
     const json = await response.json();
     return json;
   } catch (error: any) {
@@ -165,11 +168,9 @@ export const getDefaultLocation = (): string => {
 }
 
 export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | undefined): ParkingDetailsType => {
-  console.log("getNewStallingDefaultRecord", latlong);
-
   const data: ParkingDetailsType = {
     ID,
-    Title: 'Nieuwe stalling',
+    Title: '',
     Location: "",
     Postcode: "",
     Plaats: "",

@@ -7,7 +7,8 @@ export interface MapState {
   extent: Number[];
   zoom: Number | undefined;
   municipality: Array[];
-  selectedParkingId: string | undefined;
+  selectedParkingId: string | undefined; // selected on map / in list
+  activeParkingId: string | undefined;  // visible in modal
   activeMunicipality: any;
   activeMunicipalityInfo: any;
   initialLatLng: string[] | undefined;
@@ -22,6 +23,7 @@ const initialState: MapState = {
   visibleFeatures: [],
   municipality: [],
   selectedParkingId: undefined,
+  activeParkingId: undefined,
   activeMunicipality: undefined,
   activeMunicipalityInfo: undefined,
   initialLatLng: undefined,
@@ -57,6 +59,11 @@ export const mapSlice = createSlice({
     setSelectedParkingId(state, action) {
       state.selectedParkingId = action.payload;
     },
+    // Set activeParkingId
+    setActiveParkingId(state, action) {
+      console.log('setActiveParkingId', action.payload);
+      state.activeParkingId = action.payload;
+    },
     // setActiveMunicipality
     setActiveMunicipality(state, action) {
       state.activeMunicipality = action.payload;
@@ -88,6 +95,7 @@ export const {
   setMapZoom,
   setMapVisibleFeatures,
   setSelectedParkingId,
+  setActiveParkingId,
   setActiveMunicipality,
   setActiveMunicipalityInfo,
   setInitialLatLng
