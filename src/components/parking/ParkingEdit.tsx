@@ -49,6 +49,17 @@ export type ParkingEditUpdateStructure = {
 type ServiceType = { ID: string, Name: string };
 type ChangedType = { ID: string, selected: boolean };
 
+function formatDate(date: any, format: string) {
+  const map = {
+    mm: date.getMonth() + 1,
+    dd: date.getDate(),
+    yy: date.getFullYear().toString().slice(-2),
+    yyyy: date.getFullYear()
+  }
+
+  return format.replace(/mm|dd|yy|yyy/gi, matched => map[matched])
+}
+
 const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (changeStallingID: string | false) => void, onChange: Function }) => {
 
   const [selectedTab, setSelectedTab] = React.useState<string>('tab-algemeen');
@@ -153,12 +164,12 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   // }
 
   const updateSiteID = () => {
-    console.log(session);
+    // console.log(session);
 
     const currentll = undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
     getMunicipalityBasedOnLatLng(currentll.split(",")).then((result) => {
       if (result !== false) {
-        console.log("*****", result);
+        // console.log("*****", result);
 
         setCurrentMunicipality(result);
         const cbsCode = cbsCodeFromMunicipality(result);
@@ -264,6 +275,14 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         update.Openingstijden = newOpeningstijden;
       }
     }
+
+    // Set DateCreated and DateModified
+    const today = new Date();
+    if (!parkingdata.DateCreated) {
+      update.DateCreated = today;
+      // parkingdata.DateCreated = formatDate(today, 'mm/dd/yy');
+    }
+    update.DateModified = today;
 
     return update;
   }

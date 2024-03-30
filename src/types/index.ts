@@ -44,6 +44,8 @@ export type ParkingDetailsType = {
     Openingstijden: string,
     Capacity: number,
     Coordinaten: string,
+    DateCreated: Date,
+    DateModified: Date,
     FMS: boolean,
     Beheerder: string,
     BeheerderContact: string,
