@@ -212,6 +212,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     if (!parkingdata) return;
 
     const isNew = parkingdata.ID === "";
+
     if (isNew) {
       parkingdata.ID = generateRandomId(session ? "" : "VOORSTEL");
     }

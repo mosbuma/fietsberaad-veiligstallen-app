@@ -2,7 +2,10 @@ import { prisma } from "~/server/db";
 
 import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter"
+
 import type { NextAuthOptions, User } from "next-auth";
+import EmailProvider from "next-auth/providers/email"
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -40,12 +43,32 @@ providers.push(
       const user = await getUserFromCredentials(credentials);
       return user;
     },
+  }),
+  EmailProvider({
+    name: "Magic link",
+    server: {
+      host: process.env.EMAIL_SERVER_HOST,
+      port: process.env.EMAIL_SERVER_PORT,
+      auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD
+      }
+    },
+    from: process.env.EMAIL_FROM,
+    maxAge: 60 * 60, // 1 hour
+    // sendVerificationRequest({
+    //   identifier: email,
+    //   url,
+    //   provider: { server, from }
+    // }) {
+    //   /* your function */
+    // }
   })
 );
 
 export const authOptions: NextAuthOptions = {
   providers,
-
+  adapter: PrismaAdapter(prisma),
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
     // augment jwt token with information that will be used on the server side

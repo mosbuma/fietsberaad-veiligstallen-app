@@ -70,7 +70,7 @@ const FooterNav = () => {
         <FooterNavItem
           url={'/?stallingid=aanmelden'}
           className="font-bold">
-          Stalling Aanmelden
+          Stalling aanmelden
         </FooterNavItem> : null}
 
       {navItemsPrimary.map(x => <FooterNavItem

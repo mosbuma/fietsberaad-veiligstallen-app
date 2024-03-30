@@ -104,7 +104,6 @@ function ParkingFacilityBrowser({
     let allParkings = fietsenstallingen;
     if (filterTypes2 && filterTypes2.includes('show_submissions')) {
       allParkings = allParkings.filter((x) => {
-        // console.log("filter-is", x.ID, x.ID.substring(0, 8), x.ID.substring(0, 7) !== 'VOORSTEL')
         return x.ID.substring(0, 8) === 'VOORSTEL'
       });
     } else {

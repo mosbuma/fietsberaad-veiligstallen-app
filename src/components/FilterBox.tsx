@@ -72,7 +72,7 @@ const OPTIONS_SUBMISSIONS = [
   {
     id: "show_submissions",
     name: "show_submissions",
-    title: "Toon Aanmeldingen",
+    title: "Toon aanmeldingen",
     active: false,
   },
 ];

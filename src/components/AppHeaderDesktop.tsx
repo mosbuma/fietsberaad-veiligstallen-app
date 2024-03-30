@@ -232,25 +232,6 @@ function AppHeaderDesktop({
             />
           </div>
         </div>
-        {showStallingAanmaken ?
-          <button
-            className="
-            mx-2
-            h-10
-            rounded-md
-            px-4
-            font-bold
-            text-white
-            shadow-lg
-          "
-            style={{
-              backgroundColor: themeColor1,
-            }}
-            onClick={handleNieuweStallingClick}
-          >
-            {"Stalling Aanmaken"}
-          </button> : null
-        }
         <div className="flex flex-end">
           {secundaryMenuItems.map((x, idx) => {
             return <SecundaryMenuItem
@@ -259,6 +240,26 @@ function AppHeaderDesktop({
               url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
             />
           })}
+
+          {showStallingAanmaken ?
+            <button
+              className="
+                mx-2
+                h-10
+                rounded-md
+                px-4
+                font-bold
+                text-white
+                shadow-lg
+              "
+              style={{
+                backgroundColor: themeColor1,
+              }}
+              onClick={handleNieuweStallingClick}
+            >
+              {"Stalling aanmelden"}
+            </button> : null
+          }
 
           {session && <a
             href="https://fms.veiligstallen.nl"
@@ -276,7 +277,7 @@ function AppHeaderDesktop({
               justify-center
             "
             style={{
-              backgroundColor: '#c4c4c4',
+              backgroundColor: themeColor1 || themeColor1,
             }}
 
             title="Ga naar het oude FMS beheersysteem"
@@ -295,7 +296,7 @@ function AppHeaderDesktop({
               shadow-lg
             "
             style={{
-              backgroundColor: themeColor1,
+              backgroundColor: themeColor2 || themeColor1,
             }}
             onClick={handleLoginClick}
           >
