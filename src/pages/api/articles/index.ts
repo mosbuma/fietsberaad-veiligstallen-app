@@ -6,18 +6,18 @@ export default async function handle(req, res) {
     Status: "1"
   }
 
-  if(req.query.SiteID) {
+  if (req.query.SiteID) {
     where.OR = [
       { SiteID: req.query.SiteID },
       { SiteID: "1" }// 1 = Default site / menu items
     ]
   }
-  if(req.query.Title) {
+  if (req.query.Title) {
     where.Title = {
       equals: req.query.Title,
     }
   }
-  if(req.query.Navigation) {
+  if (req.query.Navigation) {
     where.Navigation = req.query.Navigation;
   }
 
@@ -28,6 +28,8 @@ export default async function handle(req, res) {
       SiteID: true,
       Title: true,
       DisplayTitle: true,
+      DateCreated: true,
+      DateModified: true,
       Abstract: true,
       Article: true,
       CustomField1_Title: true,
@@ -35,8 +37,7 @@ export default async function handle(req, res) {
       SortOrder: true,
       ShowInNav: true,
       ModuleID: true,
-      Navigation: true,
-      ModuleID: true
+      Navigation: true
     },
     orderBy: [
       {
@@ -46,7 +47,7 @@ export default async function handle(req, res) {
   }
 
   let result;
-  if(req.query.options && req.query.findFirst) {
+  if (req.query.options && req.query.findFirst) {
     result = await prisma.articles.findFirst(query);
   }
   else {

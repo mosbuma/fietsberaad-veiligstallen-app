@@ -158,20 +158,22 @@ function ParkingFacilityBrowser({
         mapZoom >= 12 &&
         (filterQuery && filterQuery.length > 0)
       ) {
+        console.log('filtered', filtered)
         filtered = filtered.filter((p) => {
-          const titleIndex = (p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1)
-          const locationIndex = (p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1)
-          const plaatsIndex = (p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase()) || -1)
+          const titleIndex = p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase())
+          const locationIndex = p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase())
+          const plaatsIndex = p.Plaats?.toLowerCase().indexOf(filterQuery.toLowerCase())
           const inFilter =
             p.SiteID && (
               filterQuery === "" ||
-              titleIndex > -1 ||
-              locationIndex > -1 ||
-              plaatsIndex > -1
+              (titleIndex !== undefined && titleIndex > -1) ||
+              (locationIndex !== undefined && locationIndex > -1) ||
+              (plaatsIndex !== undefined && plaatsIndex > -1)
             );
 
           // Decide if we want to show the parking
           let showParking = inFilter;
+          console.log('showParking', showParking)
 
           return showParking;
         });
