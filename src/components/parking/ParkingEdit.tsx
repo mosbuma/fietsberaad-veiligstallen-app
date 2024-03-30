@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -13,7 +13,7 @@ import {
   generateRandomId,
   getDefaultLocation,
 } from "~/utils/parkings";
-import { cbsCodeFromMunicipality } from "~/utils/municipality";
+import { cbsCodeFromMunicipality, getMunicipalityBasedOnCbsCode } from "~/utils/municipality";
 import { Tabs, Tab, FormHelperText, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
@@ -51,15 +51,26 @@ export type ParkingEditUpdateStructure = {
 type ServiceType = { ID: string, Name: string };
 type ChangedType = { ID: string, selected: boolean };
 
-function formatDate(date: any, format: string) {
-  const map = {
-    mm: date.getMonth() + 1,
-    dd: date.getDate(),
-    yy: date.getFullYear().toString().slice(-2),
-    yyyy: date.getFullYear()
-  }
+const NoClickOverlay = () => {
+  const [didClick, setDidClick] = useState(false);
 
-  return format.replace(/mm|dd|yy|yyy/gi, matched => map[matched])
+  return (
+    <div data-name="no-click-overlay" className={`
+      absolute top-0 right-0 bottom-0 left-0 z-10
+      text-center
+      flex-col justify-center
+      cursor-pointer
+      ${didClick ? 'hidden' : 'flex'}
+    `} style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.4)'
+      }}
+      onClick={() => setDidClick(true)}
+    >
+      <div className="mt-16">
+        Klik om de kaart te bewegen
+      </div>
+    </div>
+  )
 }
 
 const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (changeStallingID: string | false) => void, onChange: Function }) => {
@@ -169,14 +180,31 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     // console.log(session);
 
     const currentll = undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
-    getMunicipalityBasedOnLatLng(currentll.split(",")).then((result) => {
+    getMunicipalityBasedOnLatLng(currentll.split(",")).then(async (result) => {
       if (result !== false) {
         // console.log("*****", result);
 
+        // Set municipality in state
         setCurrentMunicipality(result);
+
+        // Find CBS code of this municipality
         const cbsCode = cbsCodeFromMunicipality(result);
-        if (cbsCode.toString() !== parkingdata.SiteID) {
-          setNewSiteID(cbsCode ? cbsCode.toString() : undefined);
+        // Reset newSiteID if no cbsCode was found
+        if (!cbsCode) {
+          setNewSiteID(undefined);
+          return;
+        }
+
+        // Find municipality row in database based on cbsCode
+        const municipality = await getMunicipalityBasedOnCbsCode(cbsCode)
+        // Reset newSiteID if no municipality row was found
+        if (!municipality) {
+          setNewSiteID(undefined);
+          return;
+        }
+
+        if (municipality.ID !== parkingdata.SiteID) {
+          setNewSiteID(municipality.ID);
         } else {
           setNewSiteID(undefined);
         }
@@ -282,7 +310,6 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     const today = new Date();
     if (!parkingdata.DateCreated) {
       update.DateCreated = today;
-      // parkingdata.DateCreated = formatDate(today, 'mm/dd/yy');
     }
     update.DateModified = today;
 
@@ -758,8 +785,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           {/*<button>Breng mij hier naartoe</button>*/}
         </div>
 
-        <div data-name="content-right" className="ml-12 hidden sm:block">
+        <div data-name="content-right" className="ml-12 hidden sm:block relative">
           <div className="relative">
+            <NoClickOverlay />
             <ParkingEditLocation parkingCoords={newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} />
           </div>
           <FormHelperText className="w-full pb-2">
