@@ -36,6 +36,8 @@ export type ParkingEditUpdateStructure = {
   Postcode?: string;
   Plaats?: string;
   Coordinaten?: string;
+  DateCreated: Date;
+  DateModified: Date;
   Type?: string;
   SiteID?: string;
   Beheerder?: string,
