@@ -1,67 +1,57 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
-import { useRouter } from 'next/router'
+import { AppState } from "~/store/store";
 
 import { type ParkingDetailsType } from "~/types/";
 import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
 
+import Modal from "src/components/Modal";
 import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingView from "~/components/parking/ParkingView";
 
-const Parking = () => {
+const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string, stallingId: string | undefined, onStallingIdChanged: (newId: string | undefined) => void, onClose: () => void }) => {
   const session = useSession();
-  const router = useRouter();
+  // const router = useRouter();
 
   const [currentRevision, setCurrentRevision] = useState<number>(0);
+  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(stallingId);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | null>(null);
   const [editMode, setEditMode] = React.useState(false);
 
+  const currentLatLong = useSelector(
+    (state: AppState) => state.map.currentLatLng
+  );
+
   useEffect(() => {
-    if (router.query.stallingid === undefined || Array.isArray(router.query.stallingid)) {
-      return;
-    }
+    if (currentStallingId === "aanmelden") {
 
-    const stallingId = router.query.stallingid;
-    if (stallingId === undefined || Array.isArray(stallingId)) {
-      console.warn('stallingId is undefined or array', stallingId);
-      return;
-    }
-
-    if (stallingId === "aanmelden") {
-      router.replace({ query: {} }, undefined, { shallow: true });
-
-      let prefix = '';
-      if (!session) {
-        // when no user is logged in, a recognizalbe prefix is used
-        prefix = 'VOORSTEL';
-      }
-      setCurrentStalling(getNewStallingDefaultRecord(""));
+      setCurrentStalling(getNewStallingDefaultRecord("", currentLatLong));
       setEditMode(true);
-    } else {
-      getParkingDetails(stallingId).then((stalling) => {
+    } else if (currentStallingId !== undefined) {
+      getParkingDetails(currentStallingId).then((stalling) => {
         if (null !== stalling) {
           setCurrentStalling(stalling);
+        } else {
+          setCurrentStalling(null);
         }
       });
+    } else {
+      setCurrentStalling(null);
     }
-
-    // console.log(`***** getParkingDetails ${stallingId} -R ${currentRevision} ******`);
   }, [
-    router.query.stallingid,
+    currentStallingId,
     currentRevision
   ]);
 
-  const handleCloseEdit = (changeStallingID?: string) => {
-    if (changeStallingID) {
-      router.replace({ query: { stallingid: changeStallingID } }, undefined, { shallow: true });
-      getParkingDetails(changeStallingID).then((stalling) => {
-        if (null !== stalling) {
-          setCurrentStalling(stalling);
-          setEditMode(false);
-        }
-      });
-    } else {
-      setEditMode(false);
+  const handleCloseEdit = (newStallingId: string | false) => {
+    setEditMode(false);
+
+    if (false !== newStallingId) {
+      setCurrentStallingId(newStallingId);
+      if (newStallingId.substring(0, 8) === 'VOORSTEL' || newStallingId === '') {
+        onClose();
+      }
     }
   }
 
@@ -69,16 +59,37 @@ const Parking = () => {
     setCurrentRevision(currentRevision + 1);
   }
 
-  const allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
   if (null === currentStalling) {
     return null;
   }
 
+  let allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
+
+  let content = undefined;
   if (allowEdit === true && (editMode === true)) {
-    return (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);
+    content = (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);
   } else {
-    return (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} />);
+    content = (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} />);
   }
+
+  return (
+    <Modal
+      key={id}
+      onClose={() => {
+        if (editMode) {
+          if (confirm('Wil je het bewerkformulier verlaten?')) {
+            setEditMode(false);
+            onStallingIdChanged(undefined)
+          }
+        } else {
+          onStallingIdChanged(undefined);
+        }
+      }}
+      clickOutsideClosesDialog={false}
+    >
+      {content}
+    </Modal >
+  )
 };
 
 export default Parking;

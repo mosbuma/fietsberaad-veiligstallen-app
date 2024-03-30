@@ -1,15 +1,11 @@
-// @ts-nocheck
-import React, {useEffect, useState} from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { useRouter } from "next/navigation";
-// import { usePathname } from 'next/navigation';
-// import Link from 'next/link'
-
+import React from "react";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import AppHeaderMobile from "~/components/AppHeaderMobile";
 
 function AppHeader({
+  onStallingAanmelden
 }: {
+  onStallingAanmelden?: () => void
 }) {
 
   return (
@@ -21,7 +17,7 @@ function AppHeader({
           sm:flex
         `}
       >
-        <AppHeaderDesktop />
+        <AppHeaderDesktop onStallingAanmelden={onStallingAanmelden} />
       </div>
 
       <div

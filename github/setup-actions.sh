@@ -10,6 +10,6 @@ gh variable set PROD_AZUREAPPSERVICE_PUBLISHPROFILE_VEILIGSTALLEN < ./github/pro
 gh variable set ACC_AZUREAPPSERVICE_PUBLISHPROFILE_VEILIGSTALLEN < ./github/acceptance.PublishSettings
 
 #enable the ci/cd action
-gh workflow enable azure-webapps-node.yml
+#gh workflow enable azure-webapps-node.yml
 
 gh variable list 

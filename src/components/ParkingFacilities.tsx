@@ -14,8 +14,8 @@ import { ParkingDetailsType } from "~/types";
 
 const ParkingFacilities = ({
   fietsenstallingen,
-  initialLatLng
-}: any) => {
+  onStallingAamelden
+}: { fietsenstallingen: any, onStallingAamelden?: () => void }) => {
   const [mapmode, setMapmode] = useState(true);
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(false);
 
@@ -60,7 +60,7 @@ const ParkingFacilities = ({
     <div data-name="parking-facilities">
       <div
         className="
-        flex flex flex-col items-center justify-center
+        flex flex-col items-center justify-center
       "
       >
         {mapmode ? (
@@ -70,7 +70,7 @@ const ParkingFacilities = ({
         ) : (
           <div className="mx-5 pt-24">
             {filteredFietsenstallingen.map((x: any) => {
-              return <ParkingFacilityBlock key={x.Title} parking={x} />;
+              return <ParkingFacilityBlock compact={false} key={x.Title} parking={x} />;
             })}
           </div>
         )}
@@ -126,7 +126,7 @@ const ParkingFacilities = ({
             onClose={toggleFilterBox}
           />
         </div>
-        <FooterNav />
+        <FooterNav onStallingAanmelden={onStallingAamelden} />
       </div>
     </div>
   );

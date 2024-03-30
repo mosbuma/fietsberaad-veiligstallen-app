@@ -5,46 +5,46 @@ import SectionBlock from "~/components/SectionBlock";
 
 const ParkingViewTarief = ({ parkingdata }: { parkingdata: any }) => {
 
-  const isBetaald = (tariefcode: number): boolean => { return tariefcode===1; };
+  const isBetaald = (tariefcode: number): boolean => { return tariefcode === 1; };
 
   const tariefCode2Text = (tariefcode: number): string => {
     let tariefcodestring: string;
 
     switch (tariefcode) {
-        case 0:
-            tariefcodestring = "tariefcode 0";
-            break;
-        case 1:
-            tariefcodestring = "betaald";
-            break;
-        case 2:
-            tariefcodestring = "gratis";
-            break;
-        case 3:
-            tariefcodestring = "weekend gratis";
-            break;
-        case 4:
-            tariefcodestring = "overdag gratis";
-            break;
-        case 5:
-            tariefcodestring = "eerste dag gratis";
-            break;
-        default:
-            tariefcodestring = "";
+      case 0:
+        tariefcodestring = "tariefcode 0";
+        break;
+      case 1:
+        tariefcodestring = "betaald";
+        break;
+      case 2:
+        tariefcodestring = "gratis";
+        break;
+      case 3:
+        tariefcodestring = "weekend gratis";
+        break;
+      case 4:
+        tariefcodestring = "overdag gratis";
+        break;
+      case 5:
+        tariefcodestring = "eerste dag gratis";
+        break;
+      default:
+        tariefcodestring = "";
     }
 
     return tariefcodestring;
-};
+  };
 
-  console.log("### " + parkingdata.Title + " berekent stallingkosten ###", parkingdata.Tariefcode);
-  
-  if(parkingdata.Tariefcode===null) {
+  // console.log("### " + parkingdata.Title + " berekent stallingkosten ###", parkingdata.Tariefcode);
+
+  if (parkingdata.Tariefcode === null) {
     return null;
   }
   return (
     <>
       <SectionBlock heading="Tarief">
-          { tariefCode2Text(parkingdata.Tariefcode) }
+        {tariefCode2Text(parkingdata.Tariefcode)}
       </SectionBlock>
       <HorizontalDivider className="my-4" />
     </>

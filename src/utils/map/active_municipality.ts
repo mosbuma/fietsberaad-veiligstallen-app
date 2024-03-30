@@ -1,20 +1,28 @@
-let controller;
+let controller: AbortController;
 
-export const getMunicipalityBasedOnLatLng = async (latLng: Array) => {
+export type MunicipalityType = {
+  "municipality": string,
+  "name": string,
+  "owner": string | null,
+  "zone_id": number,
+  "zone_type": string
+}
+
+export const getMunicipalityBasedOnLatLng = async (latLng: string[] | undefined): Promise<MunicipalityType | false> => {
   // Abort active fetch call, if any
-  if(controller) controller.abort();
+  if (controller) controller.abort();
 
   // Create AbortController
   controller = new AbortController();
   const signal = controller.signal;
 
-  if(! latLng) {
+  if (!latLng) {
     console.log('No latLng given');
-    return;
+    return false;
   }
-  if(! latLng[0] || ! latLng[1]) {
+  if (!latLng[0] || !latLng[1]) {
     console.log('No correct latLng given. Given: ', latLng);
-    return;
+    return false;
   }
 
   try {
@@ -25,13 +33,14 @@ export const getMunicipalityBasedOnLatLng = async (latLng: Array) => {
     )
     let json = await response.json();
 
-    if(json && json.message && json.message === 'No municipality found for these coordinates') {
+    if (json && json.message && json.message === 'No municipality found for these coordinates') {
       console.error(json.message);
-      return;
+      return false;
     }
 
     return json;
   } catch (err) {
     // console.error('err', err)
+    return false;
   }
 }

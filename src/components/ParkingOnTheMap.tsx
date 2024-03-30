@@ -80,9 +80,8 @@ function ParkingOnTheMap({ parking }) {
       ? parking.Coordinaten.split(",").map((coord: any) => Number(coord))
       : null; // I.e.: 52.508011,5.473280;
 
-    if (coords[0] < -90 || coords[0] > 90 || coords[1] < -180 || coords[1] > 180) {
+    if (coords === null || (coords[0] < -90 || coords[0] > 90 || coords[1] < -180 || coords[1] > 180)) {
       console.log("***** invalid coordinates for parking", parking.Title, coords);
-      coords = [52.508011, 5.47328];
       return;
     }
 
@@ -97,6 +96,10 @@ function ParkingOnTheMap({ parking }) {
     });
 
     mapboxMap.on("load", () => onMapLoaded(mapboxMap));
+    mapboxMap.on('styleimagemissing', (e) => {
+      mapboxMap.addImage(e.id, { width: 0, height: 0, data: new Uint8Array(0) });
+    });
+
 
     // Function that executes if component unloads:
     return () => {

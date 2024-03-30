@@ -45,7 +45,7 @@ function AppHeaderMobile({
   children
 }: {
   title?: string,
-  handleCloseClick?: Function  ,
+  handleCloseClick?: Function,
   children?: any
 }) {
   const dispatch = useDispatch();
@@ -116,7 +116,7 @@ function AppHeaderMobile({
           </div>
           <a href="#" onClick={(e) => {
             // Custom set action
-            if(handleCloseClick) handleCloseClick(e);
+            if (handleCloseClick) handleCloseClick(e);
             // Or default action
             else dispatch(setIsMobileNavigationVisible(true));
           }} className="
