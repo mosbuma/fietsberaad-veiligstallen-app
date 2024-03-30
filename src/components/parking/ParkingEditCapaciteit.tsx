@@ -113,7 +113,7 @@ const getAllowedValueForFietstype = (fietstypeName: string, capacitydata: capaci
 
 const toggleActive = (fietsenstalling_secties: ParkingSections, fietstypeName: string, isActive: boolean): ParkingSections => {
   // It's mandatory to have at least 1 section
-  if (!fietsenstalling_secties[0]) return fietsenstalling_secties;
+  if (!fietsenstalling_secties || !fietsenstalling_secties[0]) return fietsenstalling_secties;
   if (!fietsenstalling_secties[0].secties_fietstype) return fietsenstalling_secties;
 
   let didUpdateSomething = false;

@@ -91,8 +91,8 @@ const FooterNav = ({ onStallingAanmelden, children }: {
       {!session ?
         <FooterNavItemClick
           onClick={() => { onStallingAanmelden && onStallingAanmelden() }}
-          className="font-bold">
-          Stalling Aanmelden
+          className="cursor-pointer font-bold">
+          Stalling aanmelden
         </FooterNavItemClick> : null}
 
       {navItemsPrimary.map(x => <FooterNavItem

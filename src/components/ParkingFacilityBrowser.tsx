@@ -158,7 +158,6 @@ function ParkingFacilityBrowser({
         mapZoom >= 12 &&
         (filterQuery && filterQuery.length > 0)
       ) {
-        console.log('filtered', filtered)
         filtered = filtered.filter((p) => {
           const titleIndex = p.Title?.toLowerCase().indexOf(filterQuery.toLowerCase())
           const locationIndex = p.Location?.toLowerCase().indexOf(filterQuery.toLowerCase())
@@ -173,7 +172,6 @@ function ParkingFacilityBrowser({
 
           // Decide if we want to show the parking
           let showParking = inFilter;
-          console.log('showParking', showParking)
 
           return showParking;
         });

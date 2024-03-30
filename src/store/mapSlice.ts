@@ -61,7 +61,7 @@ export const mapSlice = createSlice({
     },
     // Set activeParkingId
     setActiveParkingId(state, action) {
-      console.log('setActiveParkingId', action.payload);
+      // console.log('setActiveParkingId', action.payload);
       state.activeParkingId = action.payload;
     },
     // setActiveMunicipality
