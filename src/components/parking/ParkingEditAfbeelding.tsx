@@ -5,31 +5,31 @@ import { Button } from "~/components/Button";
 import ImageSlider from "~/components/ImageSlider";
 
 // based on https://codersteps.com/articles/how-to-build-a-file-uploader-with-next-js-and-formidable
-const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdata: ParkingDetailsType, onUpdateAfbeelding: Function }) => {
+const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdata: ParkingDetailsType, onUpdateAfbeelding?: Function }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const onRemoveAfbeelding   = async () => {
-   const update = { Image: '' }
-   try {
-     const result = await fetch(
-       "/api/fietsenstallingen?id=" + parkingdata.ID,
-       {
-         method: "PUT",
-         body: JSON.stringify(update),
-         headers: {
-           "Content-Type": "application/json",
-         },
-       }
-     );
-     if(! result.ok) {
-       throw Error('Er ging iets fout bij het verwijderen. Probeer je het later nog eens.')
-     }
+  const onRemoveAfbeelding = async () => {
+    const update = { Image: '' }
+    try {
+      const result = await fetch(
+        "/api/fietsenstallingen?id=" + parkingdata.ID,
+        {
+          method: "PUT",
+          body: JSON.stringify(update),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!result.ok) {
+        throw Error('Er ging iets fout bij het verwijderen. Probeer je het later nog eens.')
+      }
 
-     if(onUpdateAfbeelding) { 
-        onUpdateAfbeelding('') 
+      if (onUpdateAfbeelding) {
+        onUpdateAfbeelding('')
       };
-    } catch(err) {
+    } catch (err) {
       console.error('onRemoveAfbeelding - error', err);
     }
   }
@@ -37,13 +37,13 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
   const onFileUploadChange = (e: ChangeEvent<HTMLInputElement>) => {
     const fileInput = e.target;
 
-    if (!fileInput.files || fileInput.files.length === 0||!fileInput.files[0]) {
+    if (!fileInput.files || fileInput.files.length === 0 || !fileInput.files[0]) {
       console.warn("Files list is empty");
       return;
     }
 
     const file = fileInput.files[0];
-    
+
     /** File validation */
     if (!file.type.startsWith("image")) {
       alert("Ongeldig bestandstype geselecteerd. Alleen afbeeldingen zijn toegestaan.");
@@ -71,7 +71,8 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
   const onUploadFile = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if(! parkingdata || ! parkingdata.ID || !file) {
+    if (!parkingdata || !parkingdata.ID || !file) {
+      console.warn("Missing parking data or file");
       return;
     }
 
@@ -112,16 +113,16 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
             },
           }
         );
-        if(! result.ok) {
+        if (!result.ok) {
           throw Error('Er ging iets fout bij het opslaan. Probeer je het later nog eens.')
         }
 
-        onUpdateAfbeelding();
-      } catch(err: any) {
-        if(err.message) alert(err.message);
+        onUpdateAfbeelding && onUpdateAfbeelding();
+      } catch (err: any) {
+        if (err.message) alert(err.message);
         else alert(err);
       }
-      
+
       // onUpdateAfbeelding(data.url);
     } catch (error) {
       console.error(error);
@@ -129,7 +130,7 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
     }
   };
 
-  if(parkingdata.Image) {
+  if (parkingdata.Image) {
     // render current image
     return (
       <div className="w-full flex flex-col justify-center p-3 border border-gray-500 border-dashed">
@@ -137,14 +138,14 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
           <ImageSlider images={[parkingdata.Image]} />
         </div>
         <Button
-            className="mt-4 w-max-content mx-auto"
-            onClick={onRemoveAfbeelding}
-          >
-            Afbeelding verwijderen
-          </Button>
+          className="mt-4 w-max-content mx-auto"
+          onClick={onRemoveAfbeelding}
+        >
+          Afbeelding verwijderen
+        </Button>
       </div>
-    )    
-  } else if(previewUrl) {
+    )
+  } else if (previewUrl) {
     // render preview image
     return (
       <div className="w-full flex flex-col justify-center p-3 border border-gray-500 border-dashed">
@@ -165,8 +166,8 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
           Afbeelding gebruiken
         </Button>
         <Button
-            className="w-content mx-auto mt-2"
-            onClick={onCancelFile}>
+          className="w-content mx-auto mt-2"
+          onClick={onCancelFile}>
           Afbreken
         </Button>
       </div>
@@ -197,9 +198,9 @@ const ParkingEditAfbeelding = ({ parkingdata, onUpdateAfbeelding }: { parkingdat
             type="file"
             onChange={onFileUploadChange}
           />
-        </label>      
+        </label>
       </div>
-     );
+    );
   }
 };
 

@@ -18,7 +18,6 @@ import {
   filterNavItemsBasedOnMapZoom,
   getPrimary,
   getSecundary,
-  getFooter
 } from "~/utils/navigation";
 
 const PrimaryMenuItem = (props: any) => {
@@ -57,8 +56,10 @@ const SecundaryMenuItem = (props: any) => {
 }
 
 function AppHeaderDesktop({
+  onStallingAanmelden,
   children
 }: {
+  onStallingAanmelden?: () => void,
   children?: any
 }) {
   const dispatch = useDispatch();
@@ -70,9 +71,9 @@ function AppHeaderDesktop({
   const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
   const [didNavOverflow, setDidNavOverflow] = useState(false);
 
-  const isAuthenticated = useSelector(
-    (state: AppState) => state.auth.authState
-  );
+  // const isAuthenticated = useSelector(
+  //   (state: AppState) => state.auth.authState
+  // );
 
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
@@ -140,6 +141,13 @@ function AppHeaderDesktop({
     setDidNavOverflow(navOverflow);
   };
 
+
+  const handleNieuweStallingClick = () => {
+    if (onStallingAanmelden) {
+      onStallingAanmelden();
+    }
+  }
+
   const handleLoginClick = () => {
     if (!session) {
       push('/login');
@@ -162,6 +170,8 @@ function AppHeaderDesktop({
   const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
   const primaryMenuItems = getPrimary(allMenuItems)
   const secundaryMenuItems = getSecundary(allMenuItems);
+
+  const showStallingAanmaken = session && mapZoom >= 13 && activeMunicipalityInfo;
 
   return (
     <>
@@ -235,6 +245,26 @@ function AppHeaderDesktop({
             />
           })}
 
+          {showStallingAanmaken ?
+            <button
+              className="
+                mx-2
+                h-10
+                rounded-md
+                px-4
+                font-bold
+                text-white
+                shadow-lg
+              "
+              style={{
+                backgroundColor: themeColor1,
+              }}
+              onClick={handleNieuweStallingClick}
+            >
+              {"Stalling aanmelden"}
+            </button> : null
+          }
+
           {session && <a
             href="https://fms.veiligstallen.nl"
             target="_blank"
@@ -251,7 +281,7 @@ function AppHeaderDesktop({
               justify-center
             "
             style={{
-              backgroundColor: '#c4c4c4',
+              backgroundColor: themeColor1 || themeColor1,
             }}
 
             title="Ga naar het oude FMS beheersysteem"
@@ -270,7 +300,7 @@ function AppHeaderDesktop({
               shadow-lg
             "
             style={{
-              backgroundColor: themeColor1,
+              backgroundColor: themeColor2 || themeColor1,
             }}
             onClick={handleLoginClick}
           >
@@ -279,9 +309,6 @@ function AppHeaderDesktop({
 
         </div>
       </div>
-
-      {children}
-
     </>
   );
 }

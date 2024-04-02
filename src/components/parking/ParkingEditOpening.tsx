@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
 
 import SectionBlock from "~/components/SectionBlock";
@@ -8,19 +8,19 @@ import FormTextArea from "~/components/Form/FormTextArea";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 
 type OpeningDetailsType = {
-  Open_ma : Date,
+  Open_ma: Date,
   Dicht_ma: Date,
-  Open_di : Date,
+  Open_di: Date,
   Dicht_di: Date,
-  Open_wo : Date,
+  Open_wo: Date,
   Dicht_wo: Date,
-  Open_do : Date,
+  Open_do: Date,
   Dicht_do: Date,
-  Open_vr : Date,
+  Open_vr: Date,
   Dicht_vr: Date,
-  Open_za : Date,
+  Open_za: Date,
   Dicht_za: Date,
-  Open_zo : Date,
+  Open_zo: Date,
   Dicht_zo: Date,
 }
 
@@ -30,11 +30,11 @@ export type OpeningChangedType = {
 
 const getOpenTimeKey = (day: DayPrefix): keyof OpeningDetailsType => {
   return ('Open_' + day) as keyof OpeningDetailsType;
-}  
+}
 
 const getDichtTimeKey = (day: DayPrefix): keyof OpeningDetailsType => {
   return ('Dicht_' + day) as keyof OpeningDetailsType;
-}  
+}
 
 const formatOpeningTimesForEdit = (
   parkingdata: OpeningDetailsType,
@@ -56,75 +56,75 @@ const formatOpeningTimesForEdit = (
   let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
 
   let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
-  if(diff>=86340) {
+  if (diff >= 86340) {
     value = '24h'
-  } else if(diff===0) {
+  } else if (diff === 0) {
     value = 'gesloten'
   }
 
-  const showtimes = diff>0 && diff<86340;
+  const showtimes = diff > 0 && diff < 86340;
   return (
     <tr className="h-14">
       <td>{label}</td>
       <td>
-        <FormCheckbox key={"cb-"+day} checked={diff>=86340} onChange={handlerChangeChecks(day, true)}>
+        <FormCheckbox key={"cb-" + day} checked={diff >= 86340} onChange={handlerChangeChecks(day, true)}>
           24h
         </FormCheckbox>
       </td>
       <td>
-        <FormCheckbox key={"cb-"+day} checked={diff===0} onChange={handlerChangeChecks(day, false)}>
+        <FormCheckbox key={"cb-" + day} checked={diff === 0} onChange={handlerChangeChecks(day, false)}>
           gesloten
         </FormCheckbox>
       </td>
       <td>
-      { showtimes ? 
+        {showtimes ?
           <div className="flex flex-row">
             <FormInput
               type="number"
               value={hoursopen}
-              style={{width: '80px', borderRadius: '10px 0 0 10px', textAlign: 'right'}}
+              style={{ width: '80px', borderRadius: '10px 0 0 10px', textAlign: 'right' }}
               onChange={handlerChange(day, true, true)}
-            /> 
+            />
             <FormInput
               type="number"
               value={minutesopen}
-              style={{width: '80px', borderRadius: '0 10px 10px 0'}}
+              style={{ width: '80px', borderRadius: '0 10px 10px 0' }}
               onChange={handlerChange(day, true, false)}
             />
           </div>
-          : 
-        null }      
+          :
+          null}
       </td>
       <td>
-        { showtimes ? 't/m': '' }
+        {showtimes ? 't/m' : ''}
       </td>
       <td>
-      { showtimes ? 
-        <div className="flex flex-row">
-          <FormInput
+        {showtimes ?
+          <div className="flex flex-row">
+            <FormInput
               type="number"
               value={hoursclose}
               size={4}
-              style={{width: '80px', borderRadius: '10px 0 0 10px', textAlign: 'right'}}
+              style={{ width: '80px', borderRadius: '10px 0 0 10px', textAlign: 'right' }}
               onChange={handlerChange(day, false, true)}
-            />  
-          <FormInput
+            />
+            <FormInput
               type="number"
               value={minutesclose}
               size={4}
-              style={{width: '80px', borderRadius: '0 10px 10px 0'}}
+              style={{ width: '80px', borderRadius: '0 10px 10px 0' }}
               onChange={handlerChange(day, false, false)}
-            /> 
-        </div>
-          : 
-          null }
-        </td>
-        <td className="px-10">[{value}]</td>
+            />
+          </div>
+          :
+          null}
+      </td>
+      <td className="px-10">[{value}]</td>
     </tr>
   );
 };
 
-const extractParkingFields = (parkingdata: ParkingDetailsType):OpeningDetailsType => {
+const extractParkingFields = (parkingdata: ParkingDetailsType): OpeningDetailsType => {
   return {
     Open_ma: parkingdata.Open_ma,
     Dicht_ma: parkingdata.Dicht_ma,
@@ -165,11 +165,11 @@ const setMinutesInDate = (date: Date, newMinutes: number): Date => {
 
 const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any, openingChanged: Function }) => {
   const startValues = extractParkingFields(parkingdata);
-  const [changes, setChanges ] = useState<OpeningChangedType>({});
-  const [openingstijden, setOpeningstijden ] = useState<string|undefined>(undefined);
+  const [changes, setChanges] = useState<OpeningChangedType>({});
+  const [openingstijden, setOpeningstijden] = useState<string | undefined>(undefined);
 
-  useEffect(()=>{
-    if(Object.keys(changes).length>0) {
+  useEffect(() => {
+    if (Object.keys(changes).length > 0) {
       openingChanged(changes, openingstijden);
     } else {
       openingChanged(undefined, openingstijden);
@@ -177,25 +177,25 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
   }, [changes, openingstijden]);
 
   // Function that runs if the capacity changes
-  const handleChange = (day: DayPrefix, isOpeningTime:boolean, isHoursField:boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (day: DayPrefix, isOpeningTime: boolean, isHoursField: boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
 
     const key = isOpeningTime ? getOpenTimeKey(day) : getDichtTimeKey(day);
     // determine new time
-    
+
     // let oldtime: Date = new Date((key in currentValues) ? currentValues[key]: startValues[key]);
-    let oldtime: Date = new Date((key in changes) ? changes[key] as Date: startValues[key]);
+    let oldtime: Date = new Date((key in changes) ? changes[key] as Date : startValues[key]);
     let newtime = undefined;
 
-    const newval:number = Number(e.target.value);
-    if(isHoursField) {
-      if(newval<0 || newval>23) {
+    const newval: number = Number(e.target.value);
+    if (isHoursField) {
+      if (newval < 0 || newval > 23) {
         return; // invalid value
       }
 
       newtime = setHourInDate(oldtime, newval);
     } else {
-      if(newval<0 || newval>59) {
+      if (newval < 0 || newval > 59) {
         return; // invalid value
       }
 
@@ -203,7 +203,7 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     }
 
     // setCurrentValues({...currentValues, [key]: newtime.toString()});
-    setChanges({...changes, [key]: newtime});
+    setChanges({ ...changes, [key]: newtime });
   }
 
   // Function that runs if the active state changes
@@ -211,24 +211,24 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     const openkey = getOpenTimeKey(day)
     const dichtkey = getDichtTimeKey(day);
 
-    if(e.target.checked) {
+    if (e.target.checked) {
       const newopen = new Date(0);
 
       // add 24 hours for full day open, otherwise 0 for full day closed
-      const newdicht = new Date(is24hourscheck ? (86340*1000): 0);
+      const newdicht = new Date(is24hourscheck ? (86340 * 1000) : 0);
 
-      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
+      setChanges({ ...changes, [openkey]: newopen, [dichtkey]: newdicht });
     } else {
       const newopen = setHourInDate(new Date(0), 10);
       const newdicht = setHourInDate(new Date(0), 17);
 
-      setChanges({...changes, [openkey]: newopen, [dichtkey]: newdicht});
+      setChanges({ ...changes, [openkey]: newopen, [dichtkey]: newdicht });
     }
   }
 
   // Function that runs if extra description field changes
   const handleChangeOpeningstijden = () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if(e.target.value===parkingdata.Openingstijden) {
+    if (e.target.value === parkingdata.Openingstijden) {
       setOpeningstijden(undefined);
     } else {
       setOpeningstijden(e.target.value);
@@ -236,8 +236,8 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
   }
 
   const data = Object.assign(
-    {...startValues},
-    {...changes}
+    { ...startValues },
+    { ...changes }
   );
 
   return (
@@ -246,26 +246,28 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
         heading="Openingstijden"
       >
         <table className="w-full">
-          {formatOpeningTimesForEdit(data, "ma", "Maandag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "di", "Dinsdag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "wo", "Woensdag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "do", "Donderdag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "vr", "Vrijdag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "za", "Zaterdag", handleChange, handleChangeChecks)}
-          {formatOpeningTimesForEdit(data, "zo", "Zondag", handleChange, handleChangeChecks)}
+          <tbody>
+            {formatOpeningTimesForEdit(data, "ma", "Maandag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "di", "Dinsdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "wo", "Woensdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "do", "Donderdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "vr", "Vrijdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "za", "Zaterdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, "zo", "Zondag", handleChange, handleChangeChecks)}
+          </tbody>
         </table>
       </SectionBlock>
       <HorizontalDivider className="my-4" />
       <SectionBlock
         heading="Afwijkende Openingstijden"
         contentClasses="w-full">
-            <FormTextArea
-              value={undefined===openingstijden ? (parkingdata.Openingstijden!==null ? parkingdata.Openingstijden.replaceAll("<br />", "\n") : '') : openingstijden}
-              style={{width: '100%', borderRadius: '0 10px 10px 0'}}
-              className="w-full"
-              onChange={handleChangeOpeningstijden()}
-              rows={10}
-            />
+        <FormTextArea
+          value={undefined === openingstijden ? (parkingdata.Openingstijden !== null ? parkingdata.Openingstijden.replaceAll("<br />", "\n") : '') : openingstijden}
+          style={{ width: '100%', borderRadius: '0 10px 10px 0' }}
+          className="w-full"
+          onChange={handleChangeOpeningstijden()}
+          rows={10}
+        />
       </SectionBlock>
     </div>
   );

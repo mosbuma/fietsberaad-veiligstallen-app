@@ -10,21 +10,28 @@ import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
 import FooterNav from "~/components/FooterNav";
+import { ParkingDetailsType } from "~/types";
 
 const ParkingFacilities = ({
   fietsenstallingen,
-  initialLatLng
-}: any) => {
+  onStallingAamelden
+}: { fietsenstallingen: any, onStallingAamelden?: () => void }) => {
   const [mapmode, setMapmode] = useState(true);
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState<boolean>(false);
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
+  const filterQuery = useSelector(
+    (state: AppState) => state.filter.query
+  );
+  const activeTypes2 = useSelector(
+    (state: AppState) => state.filter.activeTypes2
+  );
 
-  const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
+  // const toggleParkingFacilitiesView = () => setMapmode(!mapmode);
   const toggleFilterBox = () => setIsFilterBoxOpen(!isFilterBoxOpen);
-  const resetFilter = () => {};
+  const resetFilter = () => { };
 
   // let cards: CardData[] = [];
   let filteredFietsenstallingen: any[] = [];
@@ -38,17 +45,22 @@ const ParkingFacilities = ({
     //     description: x.Description,
     //   };
     // });
-
-    filteredFietsenstallingen = fietsenstallingen.filter(
-      (x: any) => activeTypes.indexOf(x.Type) > -1
-    );
+    if (activeTypes2 && activeTypes2.includes("show_submissions")) {
+      filteredFietsenstallingen = fietsenstallingen.filter(
+        (x: any) => (x.ID.substring(0, 8) === "VOORSTEL")
+      );
+    } else {
+      filteredFietsenstallingen = fietsenstallingen.filter(
+        (x: any) => (x.ID.substring(0, 8) !== "VOORSTEL")
+      );
+    }
   }
 
   return (
     <div data-name="parking-facilities">
       <div
         className="
-        flex flex flex-col items-center justify-center
+        flex flex-col items-center justify-center
       "
       >
         {mapmode ? (
@@ -58,7 +70,7 @@ const ParkingFacilities = ({
         ) : (
           <div className="mx-5 pt-24">
             {filteredFietsenstallingen.map((x: any) => {
-              return <ParkingFacilityBlock key={x.Title} parking={x} />;
+              return <ParkingFacilityBlock compact={false} key={x.Title} parking={x} />;
             })}
           </div>
         )}
@@ -114,7 +126,7 @@ const ParkingFacilities = ({
             onClose={toggleFilterBox}
           />
         </div>
-        <FooterNav />
+        <FooterNav onStallingAanmelden={onStallingAamelden} />
       </div>
     </div>
   );

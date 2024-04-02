@@ -6,6 +6,7 @@ import { HYDRATE } from "next-redux-wrapper";
 export interface FilterState {
   activeTypes: String[];
   query: String;
+  activeTypes2: String[]; // used to store the showSubmissions filter
 }
 
 // Initial state
@@ -16,6 +17,7 @@ const initialState: FilterState = {
     "toezicht"
   ],
   query: "",
+  activeTypes2: []
 };
 
 const allowedTypes = [
@@ -26,6 +28,10 @@ const allowedTypes = [
   'buurtstalling',
   'fietstrommel',
   'fietskluizen'
+];
+
+const allowedTypes2 = [
+  'show_submissions',
 ];
 
 // Actual Slice
@@ -50,20 +56,51 @@ export const filterSlice = createSlice({
       const typesToSet = action.payload;
       // Check if given types are valid
       let isInvalidInput = false;
-      if(! typesToSet) {
+      if (!typesToSet) {
         isInvalidInput = true;
       }
-      for(let key in typesToSet) {
+      for (let key in typesToSet) {
         const typeToSet = typesToSet[key];
-        if(allowedTypes.indexOf(typeToSet) <= -1) {
+        if (allowedTypes.indexOf(typeToSet) <= -1) {
           isInvalidInput = true;
         }
       }
-      if(isInvalidInput) {
+      if (isInvalidInput) {
         return;
       }
 
       state.activeTypes = typesToSet;
+    },
+    toggleType2(state, action) {
+      const pfType = action.payload.pfType;
+      const index = state.activeTypes2.indexOf(pfType);
+      if (index === -1) {
+        // Add the type to the array if it's not present
+        state.activeTypes2.push(pfType);
+      } else {
+        // Remove the type from the array if it's present
+        state.activeTypes2.splice(index, 1);
+      }
+    },
+    // Action to toggle the type
+    setTypes2(state, action) {
+      const typesToSet = action.payload;
+      // Check if given types are valid
+      let isInvalidInput = false;
+      if (!typesToSet) {
+        isInvalidInput = true;
+      }
+      for (let key in typesToSet) {
+        const typeToSet = typesToSet[key];
+        if (allowedTypes2.indexOf(typeToSet) <= -1) {
+          isInvalidInput = true;
+        }
+      }
+      if (isInvalidInput) {
+        return;
+      }
+
+      state.activeTypes2 = typesToSet;
     },
     setQuery(state, action) {
       state.query = action.payload;
@@ -83,6 +120,8 @@ export const filterSlice = createSlice({
 
 export const {
   toggleType,
-  setQuery,
-  setTypes
+  toggleType2,
+  setTypes,
+  setTypes2,
+  setQuery
 } = filterSlice.actions;

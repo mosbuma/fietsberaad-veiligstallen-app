@@ -13,16 +13,16 @@ import {
 import { findParkingIndex } from "~/utils/parkings";
 
 interface Props {
-  cards: CardData[];
+  fietsenstallingen: any;
   cardsPerSlide?: number;
-  onShowStallingDetails?: Function;
+  onShowStallingDetails?: (id: string) => void;
 }
 
 const CardList: React.FC<Props> = ({
   fietsenstallingen,
   cardsPerSlide = 3,
   onShowStallingDetails
-}) => {
+}: Props) => {
   const dispatch = useDispatch();
 
   const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);

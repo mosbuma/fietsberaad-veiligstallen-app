@@ -2,12 +2,15 @@ import { prisma } from "~/server/db";
 
 import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
+// import { PrismaAdapter } from "@auth/prisma-adapter"
+
 import type { NextAuthOptions, User } from "next-auth";
+// import EmailProvider from "next-auth/providers/email"
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import {
-  Account, getUserFromCredentials,
+  getUserFromCredentials,
 } from "../../../utils/auth-tools";
 
 const providers: Provider[] = [];
@@ -33,24 +36,44 @@ providers.push(
       },
     },
     async authorize(
-      credentials,
+      credentials: Record<"email" | "password", string> | undefined,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      req
-    ): Promise<Account | undefined> {
+      req: Pick<RequestInternal, "body" | "method" | "headers" | "query">
+    ): Promise<User | null> {
       const user = await getUserFromCredentials(credentials);
       return user;
     },
-  })
+  }),
+  // EmailProvider({
+  //   name: "Magic link",
+  //   server: {
+  //     host: process.env.EMAIL_SERVER_HOST,
+  //     port: process.env.EMAIL_SERVER_PORT,
+  //     auth: {
+  //       user: process.env.EMAIL_SERVER_USER,
+  //       pass: process.env.EMAIL_SERVER_PASSWORD
+  //     }
+  //   },
+  //   from: process.env.EMAIL_FROM,
+  //   maxAge: 60 * 60, // 1 hour
+  //   // sendVerificationRequest({
+  //   //   identifier: email,
+  //   //   url,
+  //   //   provider: { server, from }
+  //   // }) {
+  //   //   /* your function */
+  //   // }
+  // })
 );
 
 export const authOptions: NextAuthOptions = {
   providers,
-
+  // adapter: PrismaAdapter(prisma),
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
     // augment jwt token with information that will be used on the server side
     async jwt({ user, token, account: accountParam }) {
-      if(token && 'OrgUserID' in token ===false && user) {
+      if (token && 'OrgUserID' in token === false && user) {
         token.OrgUserID = user.OrgUserID;
       }
 
@@ -61,12 +84,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session?.user && token?.OrgUserID) {
         const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
-        if(account) {
-          session.user.OrgUserID = token.orgUserID;
+        if (account) {
+          // console.log("session - token", JSON.stringify(token, null, 2));
+          session.user.OrgUserID = token.OrgUserID;
           session.user.RoleID = account.RoleID;
 
           const sites = await prisma.security_users_sites.findMany({ where: { UserID: token.OrgUserID } });
-          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID||-1 } });
+          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID || -1 } });
 
           session.user.sites = sites.map((s) => s.SiteID);
           session.user.GroupID = role?.GroupID;

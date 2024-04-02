@@ -29,6 +29,12 @@ const Login: NextPage = () => {
 			emailRef.current && emailRef.current.value !== '' &&
 			passwordRef.current && passwordRef.current.value !== ''
 		) {
+			// console.log('signing in with magic link')
+			// signIn("email", {
+			// 	email: emailRef.current.value.trim(),
+			// 	// password: passwordRef.current.value,
+			// 	// callbackUrl: "/",
+			// });
 			signIn("credentials", {
 				email: emailRef.current.value.trim(),
 				password: passwordRef.current.value,

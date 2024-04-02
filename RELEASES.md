@@ -1,5 +1,34 @@
 # App updates VeiligStallen
 
+## VeiligStallen 2024-04-02
+
+**Algemeen**
+
+- Nieuwe "Stalling aanmaken" in app header, voor ingelogde gebruikers
+
+**Stallingen-beheer**
+
+- Meld een nieuwe stalling aan als gastgebruiker
+- Bij aanmelden stalling als gast: Verberg Capaciteit, Abonnementen en Beheerder
+- Na opslaan voorgestelde stalling: Toon dat deze stalling 'doorgestuurd' is aan gemeente, en mogelijk later online komt
+
+- Keur een aangemelde stalling goed als ingelogde gebruiker
+- Knop: zet automatisch een marker op de kaart, op basis van adres
+- Knop: vind automatisch adresgegevens op basis van de kaart-marker
+- In bewerkmodus: geef de kaart 'vrij' voordat je de kaart-marker kunt verplaatsen
+- Krijg validatie-meldingen voor stallingsvelden in bewerkdialoog (bijv: postcode)
+- Zie notificatie na opslaan van een stalling
+
+- Sla op wanneer de stalling is aangemaakt, en wanneer voor het laatst gewijzigd
+
+**Stallingen-kaart**
+
+- Op desktop, open direct stalling bij klik op kaart-marker
+
+**Stallingen-filters**
+
+- Nieuw "Aangemelde stallingen" filter, dat alleen gesuggereerde stallingen toont
+
 ## VeiligStallen 2024-03-03
 
 **Algemeen**

@@ -2,15 +2,17 @@ import React from "react";
 import HorizontalDivider from "~/components/HorizontalDivider";
 
 import SectionBlock from "~/components/SectionBlock";
-import { ParkingDetailsType } from '~/types';
-  
+import { ParkingDetailsType } from "~/types";
+
 type capacitydata = {
   unknown: boolean;
   total: number;
-  detailed: { [key: string]: {
-    Toegestaan: boolean;
-    Capaciteit: number;
-  } };
+  detailed: {
+    [key: string]: {
+      Toegestaan: boolean;
+      Capaciteit: number;
+    }
+  };
 };
 
 const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null => {
@@ -36,9 +38,14 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
             }
           }
 
-          capacity.detailed[name].Toegestaan = capacity.detailed[name].Toegestaan || data.Toegestaan!==null && data.Toegestaan;
-          capacity.detailed[name].Capaciteit += data.Capaciteit||0;
-          capacity.total += data.Capaciteit||0;
+          let detailed = capacity.detailed[name];
+          if (detailed !== undefined) {
+            detailed.Toegestaan = detailed.Toegestaan || (data.Toegestaan !== null && data.Toegestaan);
+            detailed.Capaciteit += detailed.Capaciteit || 0;
+          }
+          // capacity.detailed[name].Toegestaan = capacity.detailed[name].Toegestaan || data.Toegestaan !== null && data.Toegestaan;
+          // capacity.detailed[name].Capaciteit += data.Capaciteit || 0;
+          capacity.total += data.Capaciteit || 0;
         });
       });
     }
@@ -56,9 +63,9 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
   const capacitydata = calculateCapacityData(parkingdata);
   // console.log("#### capacitydata", capacitydata, parkingdata);
 
-  if (capacitydata===null || capacitydata?.unknown) {
+  if (capacitydata === null || capacitydata?.unknown) {
     content = "Onbekend";
-  } else if (capacitydata.detailed===null || Object.keys(capacitydata.detailed).length === 0) {
+  } else if (capacitydata.detailed === null || Object.keys(capacitydata.detailed).length === 0) {
     content = (
       <>
         <div className="">{parkingdata.Capacity}</div>

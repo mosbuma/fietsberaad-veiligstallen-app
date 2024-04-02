@@ -81,7 +81,7 @@ const ParkingView = ({
             <Button
               key="b-1"
               className="mt-3 sm:mt-0 hidden sm:block"
-              onClick={(e) => {
+              onClick={(e: any) => {
                 if (e) e.preventDefault();
                 onEdit();
               }}
@@ -115,7 +115,7 @@ const ParkingView = ({
           <ParkingViewAbonnementen parkingdata={parkingdata} />
 
           <SectionBlock heading="Soort stalling">
-            {parkingdata.fietsenstalling_type.name}
+            {parkingdata.fietsenstalling_type?.name || "Onbekend"}
           </SectionBlock>
 
           <HorizontalDivider className="my-4" />
@@ -129,7 +129,7 @@ const ParkingView = ({
 
         <div data-name="content-right" className="ml-12 hidden lg:block">
           <div className="relative">
-            
+
             <ParkingOnTheMap parking={parkingdata} />
 
             <Button

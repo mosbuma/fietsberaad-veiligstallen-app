@@ -43,19 +43,19 @@ export default async function handle(
           Plaats: true,
           Type: true,
           Image: true,
-          Open_ma : true,
+          Open_ma: true,
           Dicht_ma: true,
-          Open_di : true,
+          Open_di: true,
           Dicht_di: true,
-          Open_wo : true,
+          Open_wo: true,
           Dicht_wo: true,
-          Open_do : true,
+          Open_do: true,
           Dicht_do: true,
-          Open_vr : true,
+          Open_vr: true,
           Dicht_vr: true,
-          Open_za : true,
+          Open_za: true,
           Dicht_za: true,
-          Open_zo : true,
+          Open_zo: true,
           Dicht_zo: true,
           Openingstijden: true,
           Capacity: true,
@@ -85,23 +85,23 @@ export default async function handle(
             select: {
               abonnementsvormen: {
                 select: {
-                    ID: true,
-                    naam: true,
-                    omschrijving: true,
-                    prijs: true,
-                    tijdsduur: true,
-                    conditions: true,
-                    siteID: true,
-                    bikeparkTypeID: true,
-                    isActief: true,
-                    exploitantSiteID: true,
-                    idmiddelen: true,
-                    contractID: true,
-                    paymentAuthorizationID: true,
-                    conditionsID: true
-                  }
+                  ID: true,
+                  naam: true,
+                  omschrijving: true,
+                  prijs: true,
+                  tijdsduur: true,
+                  conditions: true,
+                  siteID: true,
+                  bikeparkTypeID: true,
+                  isActief: true,
+                  exploitantSiteID: true,
+                  idmiddelen: true,
+                  contractID: true,
+                  paymentAuthorizationID: true,
+                  conditionsID: true
                 }
               }
+            }
           },
           exploitant: {
             select: {
@@ -124,7 +124,7 @@ export default async function handle(
       })) as unknown as ParkingDetailsType;
 
 
-      if(parking!==null) {
+      if (parking !== null) {
         fixFieldsForParking(parking);
       }
 

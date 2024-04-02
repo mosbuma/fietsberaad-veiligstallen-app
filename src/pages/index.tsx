@@ -1,11 +1,8 @@
-import { SetStateAction, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
-import Head from "next/head";
-import superjson from "superjson";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import type { ParkingDetailsType } from "~/types";
 
 import {
   setIsParkingListVisible,
@@ -13,6 +10,7 @@ import {
   setIsMobileNavigationVisible
 } from "~/store/appSlice";
 import {
+  setActiveParkingId,
   setActiveMunicipalityInfo,
   setInitialLatLng,
 } from "~/store/mapSlice";
@@ -21,7 +19,8 @@ import { setQuery } from "~/store/filterSlice";
 
 import {
   getMunicipalityBasedOnCbsCode,
-  getMunicipalityBasedOnUrlName
+  getMunicipalityBasedOnUrlName,
+  cbsCodeFromMunicipality
 } from "~/utils/municipality";
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
@@ -44,21 +43,24 @@ import WelcomeToMunicipality from "~/components/WelcomeToMunicipality";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next"
+import { useSession } from "next-auth/react";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { getParkingDetails, generateRandomId } from "~/utils/parkings";
+import { AppState } from "~/store/store";
+import type { fietsenstallingen } from "@prisma/client";
+// import { undefined } from "zod";
 
 export async function getServerSideProps(context: any) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
-    // console.log(">>>>> session", session);
     const sites = session?.user?.sites || [];
-    const fietsenstallingen = await getParkingsFromDatabase(sites);
+    const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites);
 
     // TODO: Don't include: EditorCreated, EditorModified
+    console.log("###### sites", sites)
 
     return {
       props: {
-        fietsenstallingen: fietsenstallingen,
+        fietsenstallingen,
         online: true,
         message: "",
       },
@@ -82,10 +84,10 @@ const Home: NextPage = ({
 }: any) => {
   const router = useRouter();
   const { query } = useRouter();
+  const { data: session } = useSession()
 
   const dispatch = useDispatch();
 
-  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState<boolean>(false);
 
@@ -113,6 +115,10 @@ const Home: NextPage = ({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
+  const activeParkingId = useSelector(
+    (state: AppState) => state.map.activeParkingId
+  );
+
   const initialLatLng = useSelector((state: AppState) => state.map.initialLatLng);
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
@@ -123,52 +129,24 @@ const Home: NextPage = ({
   }, []);
 
   useEffect(() => {
+    // handle aanmelden sequence
     if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
-      if (router.query.stallingid === 'nieuw') {
-        const voorstelid = generateRandomId('VOORSTEL')
-        const data = {
-          ID: voorstelid,
-          Title: 'Nieuwe stalling',
-          Type: 'bewaakt',
-          Coordinaten: '52.09066,5.121317',
-        }
-
-        fetch(
-          "/api/fietsenstallingen",
-          {
-            method: "POST",
-            body: JSON.stringify(data),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ).then(response => {
-          if (response) {
-            response.json().then(json => {
-              router.push(`?stallingid=${json.ID}&editmode`); // refreshes the page to show the edits
-            })
-          } else {
-            console.error('create new parking failed', response);
-          }
-        });
-      } else {
-        setCurrentStallingId(router.query.stallingid);
-      }
+      dispatch(setActiveParkingId(router.query.stallingid));
     }
-
   }, [
+    router.query,
     router.query.stallingid,
-    router.query.revision
+    router.query.revision,
   ]);
 
   // Do things is municipality if municipality is given by URL
   useEffect(() => {
-    if (!router.query.urlName) return;
+    if (router.query.urlName === undefined || Array.isArray(router.query.urlName)) return;
 
     // Get municipality based on urlName
-    (async () => {
+    (async (urlName: string) => {
       // Get municipality
-      const municipality = await getMunicipalityBasedOnUrlName(router.query.urlName);
+      const municipality = await getMunicipalityBasedOnUrlName(urlName);
       if (!municipality) return;
       // Fly to municipality, on the map
       const initialLatLng = convertCoordinatenToCoords(municipality.Coordinaten);
@@ -177,7 +155,7 @@ const Home: NextPage = ({
       }
       // Set municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipality));
-    })();
+    })(router.query.urlName);
   }, [
     router.query.urlName
   ]);
@@ -189,11 +167,13 @@ const Home: NextPage = ({
 
     (async () => {
       // Convert municipality code of DD to VS
-      let cbsCode = activeMunicipality.municipality.replace('GM', '');
-      while (cbsCode.charAt(0) === '0') {
-        cbsCode = cbsCode.substring(1);
+      let cbsCode = cbsCodeFromMunicipality(activeMunicipality);
+      if (cbsCode === false) {
+        // no valid cbsCode for the current location
+        window.history.pushState({}, "", `/`);
+        return;
       }
-      cbsCode = Number(cbsCode);
+
       // Get the municipality info from the database
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
       // Set municipality slug in URL
@@ -212,13 +192,20 @@ const Home: NextPage = ({
   ])
 
   // Open municipality info modal
-  let TO_showWelcomeModal;
+  let TO_showWelcomeModal: NodeJS.Timeout | undefined = undefined;
   useEffect(() => {
     if (TO_showWelcomeModal) clearTimeout(TO_showWelcomeModal);
     TO_showWelcomeModal = setTimeout(() => {
       if (!initialLatLng || !activeMunicipalityInfo) return;
       // Save the fact that user did see welcome modal
-      const VS__didSeeWelcomeModal = localStorage.getItem('VS__didSeeWelcomeModal');
+      const VS__didSeeWelcomeModalString: string = localStorage.getItem('VS__didSeeWelcomeModal') || '';
+      let VS__didSeeWelcomeModal: number = 0;
+      try {
+        VS__didSeeWelcomeModal = parseInt(VS__didSeeWelcomeModalString);
+      } catch (ex) {
+        VS__didSeeWelcomeModal = 0
+      }
+
       // console.log('GET timestamp', VS__didSeeWelcomeModal, Date.now() - VS__didSeeWelcomeModal, 'Date.now()', Date.now())
       // Only show modal once per 15 minutes
       if (!VS__didSeeWelcomeModal || (Date.now() - VS__didSeeWelcomeModal > (3600 * 1000 / 4))) {
@@ -231,7 +218,7 @@ const Home: NextPage = ({
   ]);
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
-  const isLg = typeof window !== "undefined" && window.innerWidth < 768;
+  // const isLg = typeof window !== "undefined" && window.innerWidth < 768;
 
   const isCardListVisible = !isParkingListVisible && !isFilterBoxVisible;
 
@@ -252,42 +239,29 @@ const Home: NextPage = ({
     } else {
       router.push({ query: { ...query, stallingid: id } });
     }
-    if (undefined === id) {
-      setCurrentStallingId(undefined);
+
+    if (activeParkingId !== id) {
+      dispatch(setActiveParkingId(id));
     }
+  }
+
+  const handleCloseParking = () => {
+    if (router.query.stallingid !== undefined) {
+      delete query.stallingid;
+      router.push({ query: { ...query } });
+    }
+    dispatch(setActiveParkingId(undefined));
   }
 
   return (
     <>
       <main className="flex-grow">
 
-        <AppHeader />
+        <AppHeader onStallingAanmelden={() => dispatch(setActiveParkingId("aanmelden"))} />
 
-        {currentStallingId !== undefined && isSm && (<>
-          <Overlay
-            title={""}
-            onClose={() => { updateStallingId(undefined) }}
-          >
-            <Parking
-              key={'parking-sm-' + currentStallingId}
-              parkingID={currentStallingId}
-              startInEditMode={'editmode' in router.query}
-            />
-          </Overlay>
-        </>)}
-
-        {currentStallingId !== undefined && !isSm && (<>
-          <Modal
-            onClose={() => { updateStallingId(undefined) }}
-            clickOutsideClosesDialog={false}
-          >
-            <Parking
-              key={'parking-nsm-' + currentStallingId}
-              parkingID={currentStallingId}
-              startInEditMode={'editmode' in router.query}
-            />
-          </Modal>
-        </>)}
+        {activeParkingId !== undefined && (
+          <Parking id={'parking-modal-' + activeParkingId} stallingId={activeParkingId} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
+        )}
 
         <div
           className={`
@@ -327,7 +301,7 @@ const Home: NextPage = ({
             <ParkingFacilityBrowser
               showSearchBar={true}
               fietsenstallingen={fietsenstallingen}
-              onShowStallingDetails={(id: any) => { updateStallingId(id) }}
+              onShowStallingDetails={(id: string | undefined) => { updateStallingId(id) }}
             />
           </div>
 
@@ -351,7 +325,7 @@ const Home: NextPage = ({
               <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             </Link>
             <SearchBar
-              filterChanged={(e) => {
+              filterChanged={(e: { target: { value: any; }; }) => {
                 dispatch(setQuery(e.target.value))
                 dispatch(setIsParkingListVisible(true));
               }}
@@ -473,7 +447,7 @@ const Home: NextPage = ({
                 p-4
               "
               >
-                <FilterBox />
+                <FilterBox isOpen={false} />
               </div>
             </div>}
             <div
@@ -519,6 +493,7 @@ const Home: NextPage = ({
 
         <ParkingFacilities
           fietsenstallingen={fietsenstallingen}
+          onStallingAamelden={() => { dispatch(setActiveParkingId("aanmelden")) }}
         />
       </main>
 
@@ -539,7 +514,7 @@ const Home: NextPage = ({
       {isClient && isInfoModalVisible && <Modal
         onClose={() => {
           // Save the fact that user did see welcome modal
-          localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+          localStorage.setItem('VS__didSeeWelcomeModal', Date.now().toString());
 
           setIsInfoModalVisible(false);
         }}
@@ -558,7 +533,7 @@ const Home: NextPage = ({
           municipalityInfo={activeMunicipalityInfo}
           buttonClickHandler={() => {
             // Save the fact that user did see welcome modal
-            localStorage.setItem('VS__didSeeWelcomeModal', Date.now());
+            localStorage.setItem('VS__didSeeWelcomeModal', Date.now().toString());
 
             setIsInfoModalVisible(false)
           }}
