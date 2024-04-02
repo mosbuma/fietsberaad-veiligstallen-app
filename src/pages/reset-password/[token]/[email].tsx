@@ -3,7 +3,7 @@ import React from 'react'
 import { ErrModal, SuccessModal } from '~/components/Modals'
 // import { authEndpoints } from '../endpoints'
 
-export const DefaultResetPassword = () => {
+const DefaultResetPassword = () => {
     const [resetSuccess, setResestSuccess] = React.useState()
     const [resetError, setResetError] = React.useState()
 
@@ -22,16 +22,14 @@ export const DefaultResetPassword = () => {
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                },
-            })
-            setResestSuccess(response.data.msg)
-            setLoading(false)
-            setResetError('')
-        } catch (error) {
+                }
+            });
             setLoading(false)
             const { data } = error.response
-            setResetError(data.msg)
-            setResestSuccess(null)
+            setResetError(data.msg);
+            setResestSuccess(null);
+        } catch (err) {
+            console.error(err)
         }
     }
 
@@ -65,3 +63,5 @@ export const DefaultResetPassword = () => {
         </div>
     )
 }
+
+export default DefaultResetPassword;
