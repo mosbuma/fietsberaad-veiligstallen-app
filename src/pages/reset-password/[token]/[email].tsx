@@ -1,7 +1,7 @@
 import React from 'react'
-import axios from 'axios'
+// import axios from 'axios'
 import { ErrModal, SuccessModal } from '~/components/Modals'
-import { authEndpoints } from '../endpoints'
+// import { authEndpoints } from '../endpoints'
 
 export const DefaultResetPassword = () => {
     const [resetSuccess, setResestSuccess] = React.useState()
@@ -16,7 +16,7 @@ export const DefaultResetPassword = () => {
             setLoading(true)
             const response = await axios({
                 method: 'POST',
-                url: authEndpoints.recover,
+                url: '',//authEndpoints.recover,
                 data: {
                     email,
                 },
