@@ -28,9 +28,14 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
     return false;
   }
 
-  if (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined) {
+  if (
+    (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined)
+    && !parkingdata.ExtraServices
+  ) {
     return null
   }
+
+  console.log('parkingdata in ParkinViewServices: ', parkingdata)
 
   return <>
     <SectionBlock heading="Services">
