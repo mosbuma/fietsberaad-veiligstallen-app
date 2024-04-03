@@ -88,6 +88,7 @@ export const formatOpeningTimes = (
 ): React.ReactNode => {
   const wkday = new Date().getDay();
 
+  console.log('parkingdata[getOpenTimeKey(day)]', parkingdata[getOpenTimeKey(day)]);
   const tmpopen: Date = new Date(parkingdata[getOpenTimeKey(day)]);
   const hoursopen = tmpopen.getHours();
   const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
