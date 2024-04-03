@@ -30,7 +30,6 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
 
   if (
     (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined)
-    && !parkingdata.ExtraServices
   ) {
     return null
   }
@@ -48,15 +47,6 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
             </div>
           );
         })}
-        {(parkingdata && parkingdata.ExtraServices) && <>
-          {parkingdata.ExtraServices.split(', ').map((service: string) => {
-            return (
-              <div key={service}>
-                {service}
-              </div>
-            );
-          })}
-        </>}
       </div>
     </SectionBlock>
     <HorizontalDivider className="my-4" />
@@ -64,3 +54,13 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
 };
 
 export default ParkingViewServices;
+
+// {(parkingdata && parkingdata.ExtraServices) && <>
+//   {parkingdata.ExtraServices.split(', ').map((service: string) => {
+//     return (
+//       <div key={service}>
+//         {service}
+//       </div>
+//     );
+//   })}
+// </>}
