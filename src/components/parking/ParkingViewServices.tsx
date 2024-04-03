@@ -43,6 +43,15 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
             </div>
           );
         })}
+        {(parkingdata && parkingdata.ExtraServices) && <>
+          {parkingdata.ExtraServices.split(', ').map((service: string) => {
+            return (
+              <div key={service}>
+                {service}
+              </div>
+            );
+          })}
+        </>}
       </div>
     </SectionBlock>
     <HorizontalDivider className="my-4" />
