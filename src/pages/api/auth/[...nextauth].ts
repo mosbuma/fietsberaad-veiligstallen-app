@@ -2,10 +2,10 @@ import { prisma } from "~/server/db";
 
 import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
-// import { PrismaAdapter } from "@auth/prisma-adapter"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 
 import type { NextAuthOptions, User } from "next-auth";
-// import EmailProvider from "next-auth/providers/email"
+import EmailProvider from "next-auth/providers/email"
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -40,39 +40,49 @@ providers.push(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       req: Pick<RequestInternal, "body" | "method" | "headers" | "query">
     ): Promise<User | null> {
+      console.log('== authorize called')
       const user = await getUserFromCredentials(credentials);
       return user;
     },
   }),
-  // EmailProvider({
-  //   name: "Magic link",
-  //   server: {
-  //     host: process.env.EMAIL_SERVER_HOST,
-  //     port: process.env.EMAIL_SERVER_PORT,
-  //     auth: {
-  //       user: process.env.EMAIL_SERVER_USER,
-  //       pass: process.env.EMAIL_SERVER_PASSWORD
-  //     }
-  //   },
-  //   from: process.env.EMAIL_FROM,
-  //   maxAge: 60 * 60, // 1 hour
-  //   // sendVerificationRequest({
-  //   //   identifier: email,
-  //   //   url,
-  //   //   provider: { server, from }
-  //   // }) {
-  //   //   /* your function */
-  //   // }
-  // })
+  EmailProvider({
+    server: {
+      host: process.env.EMAIL_SERVER_HOST,
+      port: process.env.EMAIL_SERVER_PORT,
+      auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD
+      },
+    },
+    from: process.env.EMAIL_FROM,
+    maxAge: 60 * 60, // 1 hour
+    // sendVerificationRequest({
+    //   identifier: email,
+    //   url,
+    //   provider: { server, from },
+    // }) {
+
+    // }
+  })
 );
 
 export const authOptions: NextAuthOptions = {
+  debug: true,
+  adapter: PrismaAdapter(prisma),
   providers,
-  // adapter: PrismaAdapter(prisma),
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log('== SIGNIN called');
+      if (account && account.provider === "email") {
+        return true;
+      }
+      return false;
+    },
+
     // augment jwt token with information that will be used on the server side
     async jwt({ user, token, account: accountParam }) {
+      console.log('== async jwt called')
       if (token && 'OrgUserID' in token === false && user) {
         token.OrgUserID = user.OrgUserID;
       }
@@ -82,6 +92,7 @@ export const authOptions: NextAuthOptions = {
 
     // augment session with information that will be used on the client side
     async session({ session, token }) {
+      console.log('== async session({ session, token }) called')
       if (session?.user && token?.OrgUserID) {
         const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
         if (account) {
@@ -112,6 +123,8 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     // signOut: '/',
     // error: '/login', // Error code passed in query string as ?error=
+    verifyRequest: '/auth/verify-request', // (used for check email message)
+    // newUser: '/auth/new-user' // New users will be directed here on first sign in (leave the property out if not of interest)
   },
 };
 
