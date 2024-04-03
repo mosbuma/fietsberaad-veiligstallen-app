@@ -56,7 +56,7 @@ const isOpen = (openingTime: Date, closingTime: Date, isNS: boolean = false): bo
 };
 
 const formatTime = (time: Date): string => {
-  const hours = time.getHours().toString().padStart(2, "0");
+  const hours = (time.getHours() - 1).toString().padStart(2, "0");//TODO
   const minutes = time.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 };
