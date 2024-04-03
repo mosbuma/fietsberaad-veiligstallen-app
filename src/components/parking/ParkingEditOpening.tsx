@@ -46,11 +46,11 @@ const formatOpeningTimesForEdit = (
   const wkday = new Date().getDay();
 
   const tmpopen: Date = new Date(parkingdata[getOpenTimeKey(day)]);
-  const hoursopen = tmpopen.getHours();
+  const hoursopen = tmpopen.getHours() - 1;//TODO
   const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
 
   const tmpclose: Date = new Date(parkingdata[getDichtTimeKey(day)]);
-  const hoursclose = tmpclose.getHours();
+  const hoursclose = tmpclose.getHours() - 1;//TODO
   const minutesclose = String(tmpclose.getMinutes()).padStart(2, "0");
 
   let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
