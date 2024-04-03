@@ -109,7 +109,19 @@ const Login: NextPage = () => {
                                 </PageTitle>
 
                                 <div>
-                                    Ben je je wachtwoord vergeten? Neem dan contact op met <a href="mailto:fietsberaad@crow.nl?subject=VeiligStallen wachtwoord vergeten" className="underline">fietsberaad@crow.nl</a> en vraag om een nieuw wachtwoord.
+                                    <p className="my-2">
+                                        Ben je je wachtwoord vergeten? Neem dan contact op met <a href="mailto:fietsberaad@crow.nl?subject=VeiligStallen wachtwoord vergeten" className="underline">fietsberaad@crow.nl</a> en vraag om een nieuw wachtwoord.
+                                    </p>
+                                    <p className="my-2 mt-6">
+                                        Of:
+                                    </p>
+                                    <ol className="my-2">
+                                        <li className="list-decimal ml-4">Ga naar <a href="https://fms.veiligstallen.nl/security/login.cfm" className="underline" target="_blank">fms.veiligstallen.nl</a></li>
+                                        <li className="list-decimal ml-4">Klik op <b>Wachtwoord vergeten?</b></li>
+                                        <li className="list-decimal ml-4">Vul je e-mailadres in</li>
+                                        <li className="list-decimal ml-4">Klik op <b>Verzenden</b></li>
+                                        <li className="list-decimal ml-4">Log daarna <a href="/login" className="underline">hier</a> in</li>
+                                    </ol>
                                 </div>
                             </div>
 
@@ -128,7 +140,7 @@ const Login: NextPage = () => {
                     </div>
 
                 </div>
-            </div>
+            </div >
         </>
     );
 };
