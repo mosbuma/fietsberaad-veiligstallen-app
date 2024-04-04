@@ -76,6 +76,8 @@ const NoClickOverlay = () => {
 
 const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (changeStallingID: string | false) => void, onChange: Function }) => {
 
+  console.log("***", parkingdata);
+
   const [selectedTab, setSelectedTab] = React.useState<string>('tab-algemeen');
   // const [waarschuwing, setWaarschuwing] = React.useState<string>('');
   // const [allowSave, setAllowSave] = React.useState<boolean>(true);
@@ -569,9 +571,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       // If capaciteit is updated: Update capaciteit
-      // if (newCapaciteit && newCapaciteit.length > 0) {
-      //   await updateCapaciteit(parkingdata, newCapaciteit);
-      // }
+      if (newCapaciteit && newCapaciteit.length > 0) {
+        await updateCapaciteit(parkingdata, newCapaciteit);
+      }
 
       let returnID: string | boolean = parkingdata.ID
       if (session === null) {
@@ -883,7 +885,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabCapaciteit = (visible: boolean = false) => {
     const handlerSetNewCapaciteit = (capaciteit: ParkingSections): void => {
-      setNewCapaciteit(capaciteit);
+      setNewCapaciteit({ ...capaciteit });
       return;
     }
 

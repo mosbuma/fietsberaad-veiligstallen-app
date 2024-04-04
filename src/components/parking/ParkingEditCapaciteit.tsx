@@ -210,13 +210,12 @@ const ParkingEditCapaciteit = ({
   const [allFietstypen, setAllFietstypen] = React.useState<fietstypen[]>([]);
 
   // Set 'allFietstypen' local state
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       const result = await getAllFietstypen();
       setAllFietstypen(result);
     })();
   }, [])
-
 
   const capacitydata = calculateCapacityData(parkingdata);
 

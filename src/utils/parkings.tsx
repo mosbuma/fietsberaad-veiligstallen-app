@@ -167,31 +167,35 @@ export const getDefaultLocation = (): string => {
   return '52.09066,5.121317'
 }
 
-// const getNewStallingSectieDefaultRecord = () => {
-//   const sectieId = generateRandomId();
-
-//   return {
-//     sectieId,
-//     externalId: "",
-//     titel: "sectie 1",
-//     omschrijving: "",
-//     capaciteit: 0,
-//     CapaciteitBromfiets: 0,
-//     kleur: "00FF00",
-//     // fietsenstallingsId: null,
-//     isKluis: 0,
-//     reserveringskostenPerDag: null,
-//     urlwebservice: 0,
-//     Reservable: 0,
-//     NotaVerwijssysteem: null,
-//     Bezetting: 0,
-//     isactief: 1,
-//     qualificatie: "NONE",
-//     secties_fietstype: []
-//   }
-// }
-
 export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | undefined): ParkingDetailsType => {
+  const fietsenstalling_secties = [{
+    "externalId": "",
+    "titel": "Capaciteit Fietsenstalling",
+    "omschrijving": "",
+    "capaciteit": 0,
+    "CapaciteitBromfiets": null,
+    "kleur": "00FF00",
+    // fietsenstallingsId: data.parkingID,
+    "isKluis": false,
+    "reserveringskostenPerDag": null,
+    "urlwebservice": "",
+    "Reservable": false,
+    "NotaVerwijssysteem": null,
+    "Bezetting": 0,
+    "isactief": true,
+    "qualificatie": "NONE",
+    "secties_fietstype": {
+      create: [1, 2, 3, 4, 5, 6, 7, 8].map(fietstypeID => {
+        return {
+          "Capaciteit": 0,
+          "Toegestaan": false,
+          "BikeTypeID": fietstypeID,
+          "sectieID": 1
+        }
+      })
+    }
+  }]
+
   const data: ParkingDetailsType = {
     ID,
     Title: '',
@@ -221,7 +225,7 @@ export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | und
     Beheerder: "",
     BeheerderContact: "",
 
-    // fietsenstalling_secties: [getNewStallingSectieDefaultRecord()],
+    fietsenstalling_secties,
   }
 
   return data

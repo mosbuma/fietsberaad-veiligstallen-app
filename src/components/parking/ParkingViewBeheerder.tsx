@@ -4,7 +4,6 @@ import HorizontalDivider from "~/components/HorizontalDivider";
 import SectionBlock from "~/components/SectionBlock";
 
 const ParkingViewBeheerder = ({ parkingdata }: { parkingdata: any }) => {
-  console.log("### ParkingViewBeheerder", parkingdata, parkingdata.Exploitant, parkingdata.Beheerder, parkingdata.BeheerderContact);
   // if (parkingdata.FMS === true) {
   //   return <SectionBlock heading="Beheerder">FMS</SectionBlock>;
   // }  else
