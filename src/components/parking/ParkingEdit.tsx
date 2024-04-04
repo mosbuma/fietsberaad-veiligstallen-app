@@ -925,7 +925,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
             <br />
             <ParkingViewBeheerder parkingdata={parkingdata} />
             <br />
-            <h1>Wijzigen van de beheerder is op dit moment niet mogelijk</h1>
+            <h1>Wijzigen van de beheerder is op dit moment alleen mogelijk via het <a href="https://fms.veiligstallen.nl/" target="_blank" className="underline">FMS</a></h1>
           </div>
         </div>
       )
