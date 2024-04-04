@@ -56,7 +56,6 @@ export async function getServerSideProps(context: any) {
     const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites);
 
     // TODO: Don't include: EditorCreated, EditorModified
-    console.log("###### sites", sites)
 
     return {
       props: {

@@ -8,9 +8,11 @@ const FietsenstallingenServicesService: ICrudService<fietsenstallingen_services>
     return await prisma.fietsenstallingen_services.findMany();
   },
   getOne: async (fietsenstallingId: string) => {
-    return await prisma.fietsenstallingen_services.findFirst({ where: {
-      FietsenstallingID: fietsenstallingId
-    } });
+    return await prisma.fietsenstallingen_services.findFirst({
+      where: {
+        FietsenstallingID: fietsenstallingId
+      }
+    });
   },
   create: async (_data: fietsenstallingen_services): Promise<fietsenstallingen_services> => {
     return await prisma.fietsenstallingen_services.create({ data: _data });

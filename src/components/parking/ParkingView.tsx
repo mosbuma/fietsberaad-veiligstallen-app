@@ -115,7 +115,7 @@ const ParkingView = ({
           <ParkingViewAbonnementen parkingdata={parkingdata} />
 
           <SectionBlock heading="Soort stalling">
-            {parkingdata.fietsenstalling_type?.name || "Onbekend"}
+            {parkingdata.Type || "Onbekend"}
           </SectionBlock>
 
           <HorizontalDivider className="my-4" />
@@ -141,7 +141,7 @@ const ParkingView = ({
                 sm:absolute
                 sm:bottom-1
               "
-              onClick={(e) => {
+              onClick={(e: any) => {
                 if (e) e.preventDefault();
                 openRoute(parkingdata.Coordinaten);
               }}
@@ -158,7 +158,7 @@ const ParkingView = ({
         </div>
       </div>
 
-    </div>
+    </div >
   );
 };
 

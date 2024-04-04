@@ -7,6 +7,8 @@ import {
   getAllServices
 } from "~/utils/parkings";
 
+export type ServiceType = { ID: string, Name: string };
+
 const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
   const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
 
@@ -30,6 +32,12 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
 
   if (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined) {
     return null
+  }
+
+  const activeServices = allServices && allServices.filter((service: any) => serviceIsActive(service)) || [];
+  if (activeServices.length === 0) {
+    // dont show services header if there are none
+    return null;
   }
 
   return <>
