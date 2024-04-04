@@ -23,8 +23,11 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
       detailed: {},
     };
 
-    if (parking === null || parking.Capacity === 0) {
-      capacity.unknown = true;
+    if (parking === null) {
+      capacity.unknown = true
+    } else if (parking.fietsenstalling_secties.length === 0) {
+      capacity.unknown = false;
+      capacity.total = parking.Capacity || 0;
     } else {
       // Get parking section (new: 1 per parking, to make it easy)
       parking.fietsenstalling_secties.forEach((sectie) => {
@@ -41,7 +44,7 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
           let detailed = capacity.detailed[name];
           if (detailed !== undefined) {
             detailed.Toegestaan = detailed.Toegestaan || (data.Toegestaan !== null && data.Toegestaan);
-            detailed.Capaciteit += detailed.Capaciteit || 0;
+            detailed.Capaciteit += data.Capaciteit || 0;
           }
           // capacity.detailed[name].Toegestaan = capacity.detailed[name].Toegestaan || data.Toegestaan !== null && data.Toegestaan;
           // capacity.detailed[name].Capaciteit += data.Capaciteit || 0;
@@ -63,9 +66,11 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
   const capacitydata = calculateCapacityData(parkingdata);
   // console.log("#### capacitydata", capacitydata, parkingdata);
 
-  if (capacitydata === null || capacitydata?.unknown) {
-    content = "Onbekend";
-  } else if (capacitydata.detailed === null || Object.keys(capacitydata.detailed).length === 0) {
+  if (capacitydata === null || capacitydata?.unknown || (Object.keys(capacitydata.detailed).length === 0 && capacitydata.total === 0)) {
+    return null;
+  }
+
+  if (capacitydata.detailed === null || Object.keys(capacitydata.detailed).length === 0) {
     content = (
       <>
         <div className="">{parkingdata.Capacity}</div>
@@ -96,6 +101,10 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
         return null;
       }
     });
+  }
+
+  if (content === null) {
+    return null;
   }
 
   return (

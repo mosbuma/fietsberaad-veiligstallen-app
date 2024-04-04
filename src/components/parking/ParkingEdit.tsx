@@ -18,6 +18,8 @@ import { Tabs, Tab, FormHelperText, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
+import type { ServiceType } from "~/components/parking/ParkingViewServices";
+
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
 import ParkingEditCapaciteit, { type CapaciteitType } from "~/components/parking/ParkingEditCapaciteit";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
@@ -36,8 +38,8 @@ export type ParkingEditUpdateStructure = {
   Postcode?: string;
   Plaats?: string;
   Coordinaten?: string;
-  DateCreated: Date;
-  DateModified: Date;
+  DateCreated?: Date;
+  DateModified?: Date;
   Type?: string;
   SiteID?: string;
   Beheerder?: string,
@@ -48,7 +50,6 @@ export type ParkingEditUpdateStructure = {
   fietsenstalling_secties?: ParkingSections; // Replace with the actual type if different
 }
 
-type ServiceType = { ID: string, Name: string };
 type ChangedType = { ID: string, selected: boolean };
 
 const NoClickOverlay = () => {
@@ -237,11 +238,11 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     let checks: checkInfo[] = [
       { type: "string", text: "invoer van de titel", value: parkingdata.Title, newvalue: newTitle },
       { type: "string", text: "invoer van de straat en huisnummer", value: parkingdata.Location, newvalue: newLocation },
-      { type: "string", text: "invoer van de postcode", value: parkingdata.Postcode, newvalue: newPostcode },
       { type: "string", text: "invoer van de plaats", value: parkingdata.Plaats, newvalue: newPlaats },
       { type: "string", text: "selectie van de gemeente", value: parkingdata.SiteID, newvalue: newSiteID },
       { type: "coordinaten", text: "instellen van de locatie op de kaart", value: parkingdata.Coordinaten, newvalue: newCoordinaten },
     ]
+    // parkingdata.Postcode is optional
 
     // FMS & ExploitantID cannot be changed for now, so no need to check those for changes
     if (parkingdata.FMS !== true && parkingdata.ExploitantID === null) {
@@ -311,6 +312,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     if (!parkingdata.DateCreated) {
       update.DateCreated = today;
     }
+
     update.DateModified = today;
 
     return update;
@@ -363,6 +365,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   }
 
   const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: ParkingSections) => {
+    console.log("update capaciteit", newCapaciteit);
     if (!newCapaciteit || newCapaciteit.length <= 0) return;
 
     try {
@@ -541,8 +544,10 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         return;
       }
 
+
       const method = isNew ? "POST" : "PUT";
       const body = JSON.stringify(isNew ? Object.assign({}, parkingdata, update) : update);
+      console.log("update %s / %s", isNew, method, update);
 
       const result = await fetch(
         "/api/fietsenstallingen?id=" + parkingdata.ID,
@@ -564,9 +569,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       // If capaciteit is updated: Update capaciteit
-      if (newCapaciteit && newCapaciteit.length > 0) {
-        await updateCapaciteit(parkingdata, newCapaciteit);
-      }
+      // if (newCapaciteit && newCapaciteit.length > 0) {
+      //   await updateCapaciteit(parkingdata, newCapaciteit);
+      // }
 
       let returnID: string | boolean = parkingdata.ID
       if (session === null) {
