@@ -4,7 +4,7 @@ import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
 // import { PrismaAdapter } from "@auth/prisma-adapter"
 
-import type { NextAuthOptions, User } from "next-auth";
+import type { NextAuthOptions, RequestInternal, User } from "next-auth";
 // import EmailProvider from "next-auth/providers/email"
 
 import CredentialsProvider from "next-auth/providers/credentials";

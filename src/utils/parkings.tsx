@@ -167,6 +167,30 @@ export const getDefaultLocation = (): string => {
   return '52.09066,5.121317'
 }
 
+// const getNewStallingSectieDefaultRecord = () => {
+//   const sectieId = generateRandomId();
+
+//   return {
+//     sectieId,
+//     externalId: "",
+//     titel: "sectie 1",
+//     omschrijving: "",
+//     capaciteit: 0,
+//     CapaciteitBromfiets: 0,
+//     kleur: "00FF00",
+//     // fietsenstallingsId: null,
+//     isKluis: 0,
+//     reserveringskostenPerDag: null,
+//     urlwebservice: 0,
+//     Reservable: 0,
+//     NotaVerwijssysteem: null,
+//     Bezetting: 0,
+//     isactief: 1,
+//     qualificatie: "NONE",
+//     secties_fietstype: []
+//   }
+// }
+
 export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | undefined): ParkingDetailsType => {
   const data: ParkingDetailsType = {
     ID,
@@ -196,6 +220,8 @@ export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | und
     FMS: false,
     Beheerder: "",
     BeheerderContact: "",
+
+    // fietsenstalling_secties: [getNewStallingSectieDefaultRecord()],
   }
 
   return data

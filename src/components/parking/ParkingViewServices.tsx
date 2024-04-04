@@ -7,6 +7,8 @@ import {
   getAllServices
 } from "~/utils/parkings";
 
+export type ServiceType = { ID: string, Name: string };
+
 const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
   const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
 
@@ -28,13 +30,15 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
     return false;
   }
 
-  if (
-    (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined)
-  ) {
+  if (parkingdata.fietsenstallingen_services === null || parkingdata.fietsenstallingen_services === undefined) {
     return null
   }
 
-  console.log('parkingdata in ParkinViewServices: ', parkingdata)
+  const activeServices = allServices && allServices.filter((service: any) => serviceIsActive(service)) || [];
+  if (activeServices.length === 0) {
+    // dont show services header if there are none
+    return null;
+  }
 
   return <>
     <SectionBlock heading="Services">
@@ -54,13 +58,3 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
 };
 
 export default ParkingViewServices;
-
-// {(parkingdata && parkingdata.ExtraServices) && <>
-//   {parkingdata.ExtraServices.split(', ').map((service: string) => {
-//     return (
-//       <div key={service}>
-//         {service}
-//       </div>
-//     );
-//   })}
-// </>}
