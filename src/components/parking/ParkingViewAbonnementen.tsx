@@ -15,25 +15,25 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
     (state: any) => state.map.activeMunicipalityInfo
   );
 
-  console.log('activeMunicipalityInfo', activeMunicipalityInfo.UrlName)
+  console.log('activeMunicipalityInfo', activeMunicipalityInfo, parkingdata)
 
   return (
     <>
       <SectionBlock heading="Abonnementen">
         <div className="ml-2 grid grid-cols-3">
-          {parkingdata.abonnementsvorm_fietsenstalling ? parkingdata.abonnementsvorm_fietsenstalling.map((x) => {
+          {(parkingdata.abonnementsvorm_fietsenstalling) ? parkingdata.abonnementsvorm_fietsenstalling.map((x) => {
             return <Fragment key={x.naam}>
               <div className="col-span-2">{x.abonnementsvormen.naam}</div>
               <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs.toLocaleString('nl-NL')}</div>
             </Fragment>
           }) : <></>}
-          <div className="text-right sm:text-center">
+          {parkingdata.Beheerder !== 'NS Fiets' && <div className="text-right sm:text-center">
             <Button className="mt-4" onClick={() => {
               window.open(`https://veiligstallen.nl/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : 'utrecht'}/abonnement`, '_blank');
             }}>
               Koop abonnement
             </Button>
-          </div>
+          </div>}
         </div>
       </SectionBlock>
 
