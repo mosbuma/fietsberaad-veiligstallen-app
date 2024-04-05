@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
@@ -9,6 +10,12 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
   // if(!parkingdata.abonnementsvorm_fietsenstalling || parkingdata.abonnementsvorm_fietsenstalling.length === 0) {
   //   return null;
   // }
+
+  const activeMunicipalityInfo = useSelector(
+    (state: any) => state.map.activeMunicipalityInfo
+  );
+
+  console.log('activeMunicipalityInfo', activeMunicipalityInfo.UrlName)
 
   return (
     <>
@@ -22,7 +29,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
           }) : <></>}
           <div className="text-right sm:text-center">
             <Button className="mt-4" onClick={() => {
-              window.open('https://veiligstallen.nl/utrecht/abonnement', '_blank');
+              window.open(`https://veiligstallen.nl/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : 'utrecht'}/abonnement`, '_blank');
             }}>
               Koop abonnement
             </Button>
