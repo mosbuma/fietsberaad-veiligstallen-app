@@ -1,4 +1,4 @@
-import { abonnementsvorm_fietsenstalling, fietsenstallingtypen } from '@prisma/client';
+import { abonnementsvorm_fietsenstalling, abonnementsvormen, fietsenstallingtypen } from '@prisma/client';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -60,25 +60,29 @@ export type ParkingDetailsType = {
     BeheerderContact: string,
     fietsenstalling_type: fietsenstallingtypen[],
     fietsenstalling_secties: ParkingSections,
-    abonnementen: abonnementsvorm_fietsenstalling[],
+    // abonnementen: abonnementsvorm_fietsenstalling[],
     abonnementsvorm_fietsenstalling: {
-        abonnementsvormen: {
-            ID: string,
-            naam: string,
-            omschrijving: string,
-            prijs: string,
-            tijdsduur: string,
-            conditions: string,
-            siteID: string,
-            bikeparkTypeID: string,
-            isActief: string,
-            exploitantSiteID: string,
-            idmiddelen: string,
-            contractID: string,
-            paymentAuthorizationID: string,
-            conditionsID: string
-        }[]
-    },
+        SubscriptionTypeID: number,
+        BikeparkID: string,
+        abonnementsvormen: abonnementsvormen
+    }[],
+    // abonnementsvormen: {
+    //     ID: string,
+    //     naam: string,
+    //     omschrijving: string,
+    //     prijs: string,
+    //     tijdsduur: string,
+    //     conditions: string,
+    //     siteID: string,
+    //     bikeparkTypeID: string,
+    //     isActief: string,
+    //     exploitantSiteID: string,
+    //     idmiddelen: string,
+    //     contractID: string,
+    //     paymentAuthorizationID: string,
+    //     conditionsID: string
+    // }[]
+    // },
     ExploitantID: string,
     exploitant: {
         ID: string,

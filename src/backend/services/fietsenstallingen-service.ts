@@ -22,6 +22,11 @@ const include = {
     include: {
       services: true
     }
+  },
+  abonnementsvorm_fietsenstalling: {
+    include: {
+      abonnementsvormen: true
+    }
   }
 }
 

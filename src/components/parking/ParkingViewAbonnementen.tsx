@@ -1,13 +1,12 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fietsenstallingen } from "@prisma/client";
+import { useSelector } from "react-redux";
 
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
 import SectionBlock from "~/components/SectionBlock";
 import { ParkingDetailsType } from "~/types";
 
-const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
+const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsType }) => {
 
   // if(!parkingdata.abonnementsvorm_fietsenstalling || parkingdata.abonnementsvorm_fietsenstalling.length === 0) {
   //   return null;
@@ -17,16 +16,19 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: any }) => {
     (state: any) => state.map.activeMunicipalityInfo
   );
 
-  console.log('activeMunicipalityInfo', activeMunicipalityInfo, parkingdata)
+  // console.log('activeMunicipalityInfo', activeMunicipalityInfo);
+  // parkingdata.abonnementsvorm_fietsenstalling.map(x => console.log('abonnement', x));
+  // console.log("abonnementsvormen", JSON.stringify(parkingdata.abonnementsvorm_fietsenstalling, null, 2));
 
   return (
     <>
       <SectionBlock heading="Abonnementen">
         <div className="ml-2 grid grid-cols-3">
           {(parkingdata.abonnementsvorm_fietsenstalling) ? parkingdata.abonnementsvorm_fietsenstalling.map((x) => {
-            return <Fragment key={x.naam}>
-              <div className="col-span-2">{x.naam}</div>
-              <div className="text-right sm:text-center">&euro;{x.prijs.toLocaleString('nl-NL')}</div>
+            // console.log('abonnement', JSON.stringify(x, null, 2));
+            return <Fragment key={x.abonnementsvormen.naam}>
+              <div className="col-span-2">{x.abonnementsvormen.naam}</div>
+              <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs?.toLocaleString('nl-NL') || "---"}</div>
             </Fragment>
           }) : <></>}
           {parkingdata.Beheerder !== 'NS Fiets' && <div className="text-right sm:text-center">
