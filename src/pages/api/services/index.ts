@@ -1,9 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-// import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
-  const query = {
+  const query: Prisma.servicesFindManyArgs = {
     select: {
       ID: true,
       Name: true,

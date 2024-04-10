@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
-import { ParkingDetailsType, ParkingSections } from '~/types';
-import { ParkingEditUpdateStructure } from './ParkingEdit';
+import { ParkingDetailsType, ParkingSectionPerBikeType, ParkingSections } from '~/types';
 
 import {
   getAllFietstypen
@@ -22,23 +21,31 @@ export type capacitydata = {
   };
 };
 
-const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null => {
+const calculateCapacityData = (parking: ParkingDetailsType, allFietstypen: fietstypen[]): capacitydata | null => {
   try {
     let capacity: capacitydata = {
       unknown: false,
       total: 0,
-      detailed: {},
+      detailed: allFietstypen.reduce((acc: { [key: string]: { Toegestaan: boolean; Capaciteit: number } }, fietstype, idx: number) => {
+        acc[fietstype.Name ? fietstype.Name : 'fietstype' + idx] = {
+          Toegestaan: false,
+          Capaciteit: 0
+        };
+        return acc;
+      }, {})
     };
 
-    if (parking === null || parking.Capacity === 0) {
+    if (parking === null) {
+      console.error("getCapacityDataForParking - parking is null");
       capacity.unknown = true;
-    } else {
+    } else if (undefined !== parking.fietsenstalling_secties) {
       // Get parking section (new: 1 per parking, to make it easy)
       parking.fietsenstalling_secties.forEach((sectie) => {
         // Get capactity per modality for this parking section
         sectie.secties_fietstype.forEach(data => {
           const name = data.fietstype.Name;
           if (name in capacity.detailed === false) {
+            console.warn("getCapacityDataForParking - fietstype not found in allFietstypen: ", name);
             capacity.detailed[name] = {
               Toegestaan: false,
               Capaciteit: 0,
@@ -53,6 +60,8 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
           }
         });
       });
+    } else {
+      // no sections available yet: use default values
     }
 
     return capacity;
@@ -64,8 +73,6 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
 
 const getCapacityForFietstype = (fietstypeName: string, capacitydata: capacitydata | null, localChanges: ParkingSections | undefined) => {
   if (!capacitydata) return 0;
-
-  // console.log("**** GC", JSON.stringify(localChanges, null, 2));
 
   // First, check if we have the value in our local changes
   if (localChanges) {
@@ -94,9 +101,7 @@ const getAllowedValueForFietstype = (fietstypeName: string, capacitydata: capaci
 
   // First, check if we have the value in our local changes
   if (localChanges && localChanges[0]) {
-    const foundRelated = localChanges[0].secties_fietstype.filter((x) => {
-      return x.fietstype.Name === fietstypeName;
-    }).pop();
+    const foundRelated = localChanges[0].secties_fietstype.find((x) => { return x.fietstype.Name === fietstypeName });
     if (foundRelated) {
       return foundRelated.Toegestaan || false;
     }
@@ -111,51 +116,65 @@ const getAllowedValueForFietstype = (fietstypeName: string, capacitydata: capaci
   return false;
 }
 
-const toggleActive = (fietsenstalling_secties: ParkingSections, fietstypeName: string, isActive: boolean): ParkingSections => {
-  // It's mandatory to have at least 1 section
-  if (!fietsenstalling_secties || !fietsenstalling_secties[0]) return fietsenstalling_secties;
-  if (!fietsenstalling_secties[0].secties_fietstype) return fietsenstalling_secties;
+const toggleActive = (fietsenstalling_secties: ParkingSections, fietstypename: string, isActive: boolean): ParkingSections => {
+
+  const sectieNotSetYet =
+    fietsenstalling_secties === undefined ||
+    fietsenstalling_secties[0] === undefined
 
   let didUpdateSomething = false;
-  // Update the isActive/'Toegestaan' value for the 'fietstype' given
-  fietsenstalling_secties[0].secties_fietstype =
-    fietsenstalling_secties[0].secties_fietstype.map(x => {
-      if (x.fietstype.Name === fietstypeName) {
-        didUpdateSomething = true;
+  if (sectieNotSetYet) {
+    didUpdateSomething = true;
+    let newData: ParkingSections = [
+      {
+        titel: "sectie",
+        secties_fietstype: [
+          {
+            Toegestaan: isActive,
+            Capaciteit: 0,
+            fietstype: { Name: fietstypename }
+          }
+        ]
       }
-      // Update 'Toegestaan' value if needed
-      return {
-        Capaciteit: x.Capaciteit,
-        fietstype: x.fietstype,
-        Toegestaan: x.fietstype.Name === fietstypeName
-          ? isActive // Update
-          : x.Toegestaan // Or keep existing value
-      }
-    });
+    ]
+    return newData;
+  } else if (fietsenstalling_secties[0] !== undefined) {
+    // Update the isActive/'Toegestaan' value for the 'fietstype' given
+    fietsenstalling_secties[0].secties_fietstype =
+      fietsenstalling_secties[0].secties_fietstype.map(x => {
+        if (x.fietstype.Name === fietstypename) {
+          didUpdateSomething = true;
+        }
+        // Update 'Toegestaan' value if needed
+        return {
+          Capaciteit: x.Capaciteit,
+          fietstype: x.fietstype,
+          Toegestaan: x.fietstype.Name === fietstypename
+            ? isActive // Update
+            : x.Toegestaan // Or keep existing value
+        }
+      });
 
-  if (!didUpdateSomething) {
-    // If above script didn't update a value, we should add this fietstypeName
-    const newObject = {
-      Toegestaan: isActive,
-      Capaciteit: 0,
-      fietstype: {
-        Name: fietstypeName
+    if (!didUpdateSomething) {
+      // If above script didn't update a value, we should add this fietstypeName
+      const newObject: ParkingSectionPerBikeType = {
+        Toegestaan: isActive,
+        Capaciteit: 0,
+        fietstype: { Name: fietstypename }
       }
+      // Add new object for this fietstype
+      fietsenstalling_secties[0].secties_fietstype.push(newObject);
     }
-    // Add new object for this fietstype
-    fietsenstalling_secties[0].secties_fietstype.push(newObject);
   }
 
   return fietsenstalling_secties;
 }
 
-const handleCapacityChange = (fietsenstalling_secties: ParkingSections, fietstypeName: any, amountstr: string): ParkingSections => {
-  // It's mandatory to have at least 1 section
-  if (!fietsenstalling_secties) {
-    return fietsenstalling_secties;
-  }
-  if (!fietsenstalling_secties[0]) return fietsenstalling_secties;
-  if (!fietsenstalling_secties[0].secties_fietstype) return fietsenstalling_secties;
+const handleCapacityChange = (fietsenstalling_secties: ParkingSections, fietstypename: string, amountstr: string): ParkingSections => {
+
+  const sectieNotSetYet =
+    fietsenstalling_secties === undefined ||
+    fietsenstalling_secties[0] === undefined
 
   // check for valid amount
   let amount = 0
@@ -167,31 +186,48 @@ const handleCapacityChange = (fietsenstalling_secties: ParkingSections, fietstyp
   }
 
   let didUpdateSomething = false;
-  // Update the isActive/'Toegestaan' value for the 'fietstype' given
-  fietsenstalling_secties[0].secties_fietstype =
-    fietsenstalling_secties[0].secties_fietstype.map(x => {
-      if (x.fietstype.Name === fietstypeName) {
-        didUpdateSomething = true;
+  if (sectieNotSetYet) {
+    didUpdateSomething = true;
+    let newData: ParkingSections = [
+      {
+        titel: "sectie",
+        secties_fietstype: [
+          {
+            Toegestaan: false,
+            Capaciteit: amount,
+            fietstype: { Name: fietstypename }
+          }
+        ]
       }
-      // Update 'Toegestaan' value if needed
-      return {
-        Capaciteit: x.fietstype.Name === fietstypeName ? amount : x.Capaciteit,
-        fietstype: x.fietstype,
-        Toegestaan: x.Toegestaan
-      }
-    });
+    ]
+    return newData;
+  } else if (fietsenstalling_secties[0] !== undefined) {
+    // Update the isActive/'Toegestaan' value for the 'fietstype' given
+    fietsenstalling_secties[0].secties_fietstype =
+      fietsenstalling_secties[0].secties_fietstype.map(x => {
+        if (x.fietstype.Name === fietstypename) {
+          didUpdateSomething = true;
+        }
+        // Update 'Toegestaan' value if needed
+        return {
+          Capaciteit: x.fietstype.Name === fietstypename ? amount : x.Capaciteit,
+          fietstype: x.fietstype,
+          Toegestaan: x.Toegestaan
+        }
+      });
 
-  if (!didUpdateSomething) {
-    // If above script didn't update a value, we should add this fietstypeName
-    const newObject = {
-      Toegestaan: false,
-      Capaciteit: amount,
-      fietstype: {
-        Name: fietstypeName
+    if (!didUpdateSomething) {
+      // If above script didn't update a value, we should add this fietstypeName
+      const newObject = {
+        Toegestaan: false,
+        Capaciteit: amount,
+        fietstype: {
+          Name: fietstypename
+        }
       }
+      // Add new object for this fietstype
+      fietsenstalling_secties[0].secties_fietstype.push(newObject);
     }
-    // Add new object for this fietstype
-    fietsenstalling_secties[0].secties_fietstype.push(newObject);
   }
 
   return fietsenstalling_secties;
@@ -204,33 +240,31 @@ const ParkingEditCapaciteit = ({
 }: {
   parkingdata: ParkingDetailsType,
   capaciteitChanged: Function,
-  update: ParkingEditUpdateStructure
+  update: ParkingSections
 }) => {
   // Variable to store the 'alle fietstypen' response
-  const [allFietstypen, setAllFietstypen] = React.useState<fietstypen[]>([]);
+  const [capacitydata, setCapacitydata] = React.useState<capacitydata | null>(null);
+  // const [allFietstypen, setAllFietstypen] = React.useState<fietstypen[]>([]);
 
   // Set 'allFietstypen' local state
   useEffect(() => {
     (async () => {
-      const result = await getAllFietstypen();
-      setAllFietstypen(result);
+      const allFietstypen = await getAllFietstypen();
+      setCapacitydata(calculateCapacityData(parkingdata, allFietstypen));
     })();
   }, [])
-
-  const capacitydata = calculateCapacityData(parkingdata);
 
   let content = null;
   if (capacitydata === null || capacitydata?.unknown) {
     content = "Onbekend";
-  } else if (capacitydata.detailed === null || Object.keys(capacitydata.detailed).length === 0) {
+  } else if (capacitydata.detailed === null) {
     content = (
       <>
         <div className="">{parkingdata.Capacity}</div>
         <div className="text-right"></div>
       </>
     );
-  }
-  else {
+  } else {
     content = Object.keys(capacitydata.detailed).map(key => {
       const detail = capacitydata.detailed[key];
       if (detail === undefined) {
@@ -258,17 +292,14 @@ const ParkingEditCapaciteit = ({
   return (
     <>
       <div className="ml-2 grid grid-cols-4">
-        {allFietstypen.map(x => {
-          if (x.Name === null) {
-            console.warn('Fietstype has no name', x);
-            return null;
-          }
+        {capacitydata && Object.keys(capacitydata.detailed).map(fietstypename => {
+          const item = capacitydata.detailed[fietstypename];
 
-          const capacity = getCapacityForFietstype(x.Name, capacitydata, update.fietsenstalling_secties);
-          const isAllowed = getAllowedValueForFietstype(x.Name, capacitydata, update.fietsenstalling_secties);
-          return <React.Fragment key={x.ID}>
+          const capacity = getCapacityForFietstype(fietstypename, capacitydata, update);
+          const isAllowed = getAllowedValueForFietstype(fietstypename, capacitydata, update);
+          return <React.Fragment key={'ft-' + fietstypename}>
             <div className="col-span-2 flex flex-col justify-center">
-              {x.Name}
+              {fietstypename}
             </div>
             <div className="flex flex-col justify-center">
               <FormInput
@@ -276,26 +307,20 @@ const ParkingEditCapaciteit = ({
                 defaultValue={capacity}
                 size={4}
                 onChange={(e) => {
-                  console.log("**** PDFS", JSON.stringify(parkingdata.fietsenstalling_secties, null, 2));
-                  const newFietsenstallingSecties = handleCapacityChange(parkingdata.fietsenstalling_secties, x.Name, e.target.value);
-                  const getNewCapacity = () => {
-                    let newCapacity = parkingdata;
-                    newCapacity.fietsenstalling_secties = newFietsenstallingSecties;
-                    return newCapacity;
-                  };
-                  capaciteitChanged(getNewCapacity().fietsenstalling_secties)
+                  const newFietsenstallingSecties = handleCapacityChange(parkingdata.fietsenstalling_secties, fietstypename, e.target.value);
+                  capaciteitChanged(newFietsenstallingSecties)
                 }}
                 style={{ width: '100px' }}
               />
             </div>
             <div className=" flex flex-col justify-center">
               <FormCheckbox
-                defaultChecked={isAllowed}
+                defaultChecked={false === isAllowed}
                 onChange={(e) => {
                   if (null === parkingdata.fietsenstalling_secties) return;
-                  if (null === x.Name) return;
+                  if (null === fietstypename) return;
 
-                  const newFietsenstallingSecties = toggleActive(parkingdata.fietsenstalling_secties, x.Name, e.target.checked);
+                  const newFietsenstallingSecties = toggleActive(parkingdata.fietsenstalling_secties, fietstypename, e.target.checked === false);
                   const getNewCapacity = () => {
                     let newCapacity = parkingdata;
                     newCapacity.fietsenstalling_secties = newFietsenstallingSecties;
@@ -304,7 +329,7 @@ const ParkingEditCapaciteit = ({
                   capaciteitChanged(getNewCapacity().fietsenstalling_secties)
                 }}
               >
-                {isAllowed ? 'Actief' : 'Inactief'}
+                {'Niet toegestaan'}
               </FormCheckbox>
             </div>
           </React.Fragment>

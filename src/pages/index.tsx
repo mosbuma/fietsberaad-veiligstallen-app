@@ -47,13 +47,14 @@ import { useSession } from "next-auth/react";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { AppState } from "~/store/store";
 import type { fietsenstallingen } from "@prisma/client";
+import { createNewStalling } from "~/utils/parkings";
 // import { undefined } from "zod";
 
 export async function getServerSideProps(context: any) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
     const sites = session?.user?.sites || [];
-    const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites);
+    const fietsenstallingen: fietsenstallingen[] = await getParkingsFromDatabase(sites, session);
 
     // TODO: Don't include: EditorCreated, EditorModified
 
@@ -84,6 +85,10 @@ const Home: NextPage = ({
   const router = useRouter();
   const { query } = useRouter();
   const { data: session } = useSession()
+
+  const currentLatLong = useSelector(
+    (state: AppState) => state.map.currentLatLng
+  );
 
   const dispatch = useDispatch();
 
@@ -252,14 +257,19 @@ const Home: NextPage = ({
     dispatch(setActiveParkingId(undefined));
   }
 
+  const handleStallingAanmelden = async () => {
+    const newID = await createNewStalling(session, currentLatLong);
+    dispatch(setActiveParkingId(newID))
+  }
+
   return (
     <>
       <main className="flex-grow">
 
-        <AppHeader onStallingAanmelden={() => dispatch(setActiveParkingId("aanmelden"))} />
+        <AppHeader onStallingAanmelden={handleStallingAanmelden} />
 
         {activeParkingId !== undefined && (
-          <Parking id={'parking-modal-' + activeParkingId} stallingId={activeParkingId} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
+          <Parking id={'parking-modal'} stallingId={activeParkingId} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
         )}
 
         <div
@@ -492,7 +502,7 @@ const Home: NextPage = ({
 
         <ParkingFacilities
           fietsenstallingen={fietsenstallingen}
-          onStallingAamelden={() => { dispatch(setActiveParkingId("aanmelden")) }}
+          onStallingAamelden={handleStallingAanmelden}
         />
       </main>
 

@@ -1,3 +1,5 @@
+import { abonnementsvorm_fietsenstalling, fietsenstallingtypen } from '@prisma/client';
+
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
 /* from the "old" database are in use                                            */
@@ -16,10 +18,17 @@ export type ParkingSection = {
     secties_fietstype: ParkingSectionPerBikeType[] // base data for capacity
 }
 
+export type UpdateParkingSectionsData = {
+    parkingId: string,
+    sectionId: number,
+    parkingSections: ParkingSections
+}
+
 export type ParkingSections = ParkingSection[];
 
 export type ParkingDetailsType = {
     ID: string,
+    Status: string,
     Title: string,
     Location: string,
     Postcode: string,
@@ -49,12 +58,9 @@ export type ParkingDetailsType = {
     FMS: boolean,
     Beheerder: string,
     BeheerderContact: string,
-    fietsenstalling_type: {
-        id: string,
-        name: string,
-        sequence: number,
-    }[],
+    fietsenstalling_type: fietsenstallingtypen[],
     fietsenstalling_secties: ParkingSections,
+    abonnementen: abonnementsvorm_fietsenstalling[],
     abonnementsvorm_fietsenstalling: {
         abonnementsvormen: {
             ID: string,
@@ -79,12 +85,11 @@ export type ParkingDetailsType = {
         Helpdesk: string,
         CompanyName: string,
     },
-    fietsenstallingen_services: [
-        {
-            services: {
-                ID: string,
-                Name: string
-            }
+    fietsenstallingen_services:
+    {
+        services: {
+            ID: string,
+            Name: string
         }
-    ]
+    }[]
 }

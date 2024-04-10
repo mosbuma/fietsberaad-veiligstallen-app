@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handle(req, res) {
-  if(! req.query.ID) return;
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.query.ID || Array.isArray(req.query.ID)) return;
 
   const articles = await prisma.articles.findFirst({
     where: {

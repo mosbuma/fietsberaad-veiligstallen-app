@@ -1,5 +1,6 @@
 import React from "react";
 import { Session } from "next-auth";
+import { reverseGeocode } from "~/utils/nomatim";
 
 
 import {
@@ -151,57 +152,64 @@ export const generateRandomId = (prefix = '') => {
 }
 
 
-export const newStallingIDForThisUser = (session?: Session): string | false => {
-  if (session?.user?.OrgUserID) {
-    return 'NW' + session.user.OrgUserID.substring(2);
-  } else {
-    return false;
-  }
-}
-
-export const isNewStallingID = (stallingID: string): boolean => {
-  return stallingID.substring(0, 2) === 'NW' || stallingID.substring(0, 8) === 'VOORSTEL';
-}
-
 export const getDefaultLocation = (): string => {
   return '52.09066,5.121317'
 }
 
-export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | undefined): ParkingDetailsType => {
-  const fietsenstalling_secties = [{
-    "externalId": "",
-    "titel": "Capaciteit Fietsenstalling",
-    "omschrijving": "",
-    "capaciteit": 0,
-    "CapaciteitBromfiets": null,
-    "kleur": "00FF00",
-    // fietsenstallingsId: data.parkingID,
-    "isKluis": false,
-    "reserveringskostenPerDag": null,
-    "urlwebservice": "",
-    "Reservable": false,
-    "NotaVerwijssysteem": null,
-    "Bezetting": 0,
-    "isactief": true,
-    "qualificatie": "NONE",
-    "secties_fietstype": {
-      create: [1, 2, 3, 4, 5, 6, 7, 8].map(fietstypeID => {
-        return {
-          "Capaciteit": 0,
-          "Toegestaan": false,
-          "BikeTypeID": fietstypeID,
-          "sectieID": 1
-        }
-      })
-    }
-  }]
+const determineNewStatus = (session: Session | null): "1" | "aanm" => {
+  if (session === null || !session.user || !session.user.OrgUserID) {
+    return "aanm";
+  } else {
+    return "1";
+  }
+}
 
-  const data: ParkingDetailsType = {
-    ID,
-    Title: '',
-    Location: "",
-    Postcode: "",
-    Plaats: "",
+export const createNewStalling = async (session: Session | null, currentLatLong: string[]): Promise<string | undefined> => {
+  const data = await getNewStallingDefaultRecord(determineNewStatus(session), currentLatLong)
+  const result = await fetch(
+    "/api/fietsenstallingen",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+  if (result.status === 201) {
+    const newstalling = await result.json();
+    return newstalling.ID;
+  } else {
+    console.error("unable to create new stalling - code ", result.status);
+    return undefined;
+  }
+};
+
+
+export const getNewStallingDefaultRecord = async (Status: string, latlong?: string[] | undefined): Promise<Partial<fietsenstallingen>> => {
+  let Location = "";
+  let Postcode = "";
+  let Plaats = "";
+  let Title = "Nieuwe Stalling"
+
+  if (undefined !== latlong) {
+    let address = await reverseGeocode(latlong.toString());
+    if (address && address.address) {
+      Location = ((address.address.road || "---") + " " + (address.address.house_number || "")).trim();
+      Postcode = address.address.postcode || "";
+      Plaats = address.address.city || address.address.town || address.address.village || address.address.quarter || "";
+      Title = "Nieuwe stalling " + (Location + " " + Plaats).trim();
+    }
+  }
+
+
+  const data: Partial<fietsenstallingen> = {
+    ID: generateRandomId(''),
+    Status,
+    Title,
+    Location,
+    Postcode,
+    Plaats,
     Type: "bewaakt",
     Image: null,
     Open_ma: new Date(0),
@@ -224,112 +232,13 @@ export const getNewStallingDefaultRecord = (ID: string, latlong?: string[] | und
     FMS: false,
     Beheerder: "",
     BeheerderContact: "",
-
-    fietsenstalling_secties,
+    SiteID: "",
+    DateCreated: new Date(),
+    DateModified: new Date(),
+    ExploitantID: "",
   }
 
   return data
 }
-
-export const getNewStallingRecord = async (session?: Session): Promise<fietsenstallingen | false> => {
-  try {
-    if (!session) {
-      // when no user is logged in, a default stalling record is created
-      console.log("NO USER LOGGED IN")
-      return getNewStallingDefaultRecord(generateRandomId('VOORSTEL'));
-    } else {
-      const voorstelid = generateRandomId();
-      // for logged in users, the stalling record is fetched from the database
-      const response: Response = await fetch(
-        "/api/fietsenstallingen?id=" + voorstelid,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.status !== 200) {
-        console.log("new stalling does not exist for this user");
-        return false; // new stalling does not exist for this user
-      }
-
-      let data = await response.json();
-      console.log("getNewStallingRecord: got newStallingData", data);
-      return data
-    }
-  } catch (ex) {
-    console.error('getNewStallingForUser', ex);
-    return false;
-  }
-}
-
-// export const removeNewStallingForUser = async (session: Session): Promise<boolean> => {
-//   try {
-//     const data = await getNewStallingRecord(session);
-//     if (false === data) {
-//       console.warn('removeNewStallingForUser: no new stalling record found for this user');
-//       return false;
-//     }
-
-//     console.log('removeNewStallingForUser: remove record with ID', data.ID);
-//     const response = await fetch(
-//       "/api/fietsenstallingen?id=" + data.ID,
-//       {
-//         method: "DELETE",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       });
-//     console.log("delete response", response);
-//     return response.status === 200;
-//   } catch (ex) {
-//     console.error('removeNewStallingForUser: error ', ex);
-//     return false;
-//   }
-// }
-
-// export const finalizeNewStallingForUser = async (session: Session): Promise<boolean> => {
-//   const data = await getNewStallingRecord(session);
-//   if (false === data) {
-//     console.warn('finalizeNewStallingForUser: no new stalling record found for this user');
-//     return false;
-//   }
-
-//   console.log('got newstalling data record', data);
-
-//   const tempID = data.ID;
-//   data.ID = generateRandomId();
-
-//   let response = await fetch(
-//     "/api/fietsenstallingen",
-//     {
-//       method: "POST",
-//       body: JSON.stringify(data),
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-//   if (response.status === 201) {
-//     const response = await fetch(
-//       "/api/fietsenstallingen?id=" + tempID,
-//       {
-//         method: "DELETE",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       });
-//     if (response.status === 200) {
-//       return true;
-//     } else {
-//       alert(`Er is iets misgegaan bij het opslaan van de nieuwe stalling [code 1-${response.status}]. Probeer het later nog eens.`);
-//       return false;
-//     }
-//   } else {
-//     alert(`Er is iets misgegaan bij het opslaan van de nieuwe stalling [code 2-${response.status}]. Probeer het later nog eens.`);
-//     return false;
-//   }
-// }
-
 
 export default generateRandomId;

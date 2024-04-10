@@ -22,9 +22,13 @@ import { type ParkingDetailsType } from "~/types/";
 const ParkingView = ({
   parkingdata,
   onEdit = undefined,
+  onToggleStatus = undefined,
+  isLoggedIn,
 }: {
   parkingdata: ParkingDetailsType;
   onEdit: Function | undefined;
+  onToggleStatus: Function | undefined;
+  isLoggedIn: boolean;
 }) => {
   const renderAddress = () => {
     const location = parkingdata.Location || "";
@@ -64,6 +68,20 @@ const ParkingView = ({
   ].includes(parkingdata.Type);
   const showTarief = false;
 
+  let status = "";
+  switch (parkingdata.Status) {
+    case "0": status = "Verborgen";
+      break;
+    case "1": status = "Zichtbaar";
+      break;
+    case "new":
+    case "aanm":
+      status = "Aanmelding";
+      break
+    default:
+      ;
+  }
+
   return (
     <div
       className="
@@ -87,6 +105,18 @@ const ParkingView = ({
               }}
             >
               Bewerken
+            </Button>
+          ) : null}
+          {isLoggedIn && onToggleStatus !== undefined && ["0", "1"].includes(parkingdata.Status) ? (
+            <Button
+              key="b-2"
+              className="mt-3 ml-3 sm:mt-0 hidden sm:block"
+              onClick={(e: any) => {
+                if (e) e.preventDefault();
+                onToggleStatus();
+              }}
+            >
+              {parkingdata.Status === "0" ? "Zichtbaar maken" : "Verbergen"}
             </Button>
           ) : null}
         </PageTitle>
@@ -121,6 +151,15 @@ const ParkingView = ({
           <HorizontalDivider className="my-4" />
 
           <ParkingViewBeheerder parkingdata={parkingdata} />
+
+          {isLoggedIn && status !== '' ?
+            <>
+              <HorizontalDivider className="my-4" />
+
+              <SectionBlock heading="Status">
+                {status}
+              </SectionBlock>
+            </> : null}
 
           <p className="mb-10">{/*Some spacing*/}</p>
 

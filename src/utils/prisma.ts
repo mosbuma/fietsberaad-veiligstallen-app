@@ -1,31 +1,36 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import { Session } from "next-auth";
 
-const getParkingsFromDatabase = async (sites: any) => {
+const getParkingsFromDatabase = async (sites: any, session: Session | null) => {
 
   let fietsenstallingen;
 
+  let wherefilter = {};
+  if (!session || !session.user) {
+    wherefilter = {
+      Status: "1",
+    }
+  }
+
   if (sites.length === 0) {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
-      where: {
-        Status: "1",
-      },
+      where: wherefilter,
     });
   } else {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
         OR: [{
-          Status: "1",
+          // Status: "1",
           // Plaats: {
           //   not: "",
           // },
           SiteID: { in: sites },
         },
         {
-          ID: {
-            startsWith: 'VOORSTEL'
-          }
-        }],
+          Status: "new"
+        },
+        ]
       }
     });
   }

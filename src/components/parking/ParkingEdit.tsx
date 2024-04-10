@@ -31,23 +31,30 @@ import { type MunicipalityType, getMunicipalityBasedOnLatLng } from "~/utils/map
 import { geocodeAddress, reverseGeocode } from "~/utils/nomatim";
 import toast from 'react-hot-toast';
 
+type connectFietsenstallingType = {
+  connect: {
+    id: string
+  }
+}
+
+
 export type ParkingEditUpdateStructure = {
   ID?: string;
   Title?: string;
+  Status?: "0" | "1" | "new" | "aanm";
   Location?: string;
   Postcode?: string;
   Plaats?: string;
   Coordinaten?: string;
   DateCreated?: Date;
   DateModified?: Date;
-  Type?: string;
   SiteID?: string;
   Beheerder?: string,
   BeheerderContact?: string,
 
   // [key: string]: string | undefined;
   Openingstijden?: any; // Replace with the actual type if different
-  fietsenstalling_secties?: ParkingSections; // Replace with the actual type if different
+  fietsenstalling_type?: connectFietsenstallingType
 }
 
 type ChangedType = { ID: string, selected: boolean };
@@ -74,9 +81,7 @@ const NoClickOverlay = () => {
   )
 }
 
-const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (changeStallingID: string | false) => void, onChange: Function }) => {
-
-  console.log("***", parkingdata);
+const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (closeModal: boolean) => void, onChange: Function }) => {
 
   const [selectedTab, setSelectedTab] = React.useState<string>('tab-algemeen');
   // const [waarschuwing, setWaarschuwing] = React.useState<string>('');
@@ -85,6 +90,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const [newSiteID, setNewSiteID] = React.useState<string | undefined>(undefined);
   const [newTitle, setNewTitle] = React.useState<string | undefined>(undefined);
+  // 
   const [newLocation, setNewLocation] = React.useState<string | undefined>(undefined);
   const [newPostcode, setNewPostcode] = React.useState<string | undefined>(undefined);
   const [newPlaats, setNewPlaats] = React.useState<string | undefined>(undefined);
@@ -153,39 +159,11 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     newvalue: any
   }
 
-  // React.useEffect(() => {
-  //   const code = cbsCodeFromMunicipality(currentMunicipality || false);
-  //   if (code) {
-  //     checkCanCreateSite(code);
-  //   }
-  // }, [currentMunicipality]);
-
-  // const checkCanCreateSite = (cbsCode: number | false | undefined): boolean => {
-  //   return true;
-
-  //   if (session) {
-  //     if (session?.user?.sites?.includes(cbsCode) === true) {
-  //       console.log("user can save site");
-  //       setWaarschuwing('');
-  //       setAllowSave(true);
-  //     } else {
-  //       console.log("user cannot save site", session?.user?.sites, cbsCode);
-  //       setWaarschuwing('U heeft geen rechten om een stalling aan te maken in deze gemeente.');
-  //       setAllowSave(false);
-  //     }
-  //   } else {
-  //     // check if municipality has a contact
-  //     return false;
-  //   }
-  // }
-
   const updateSiteID = () => {
-    // console.log(session);
 
     const currentll = undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
     getMunicipalityBasedOnLatLng(currentll.split(",")).then(async (result) => {
       if (result !== false) {
-        // console.log("*****", result);
 
         // Set municipality in state
         setCurrentMunicipality(result);
@@ -280,16 +258,19 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const getUpdate = () => {
     let update: ParkingEditUpdateStructure = {};
 
+    update.ID = parkingdata.ID;
+
     if (newTitle !== undefined) { update.Title = newTitle; }
     if (newLocation !== undefined) { update.Location = newLocation; }
     if (newPostcode !== undefined) { update.Postcode = newPostcode; }
     if (newPlaats !== undefined) { update.Plaats = newPlaats; }
     if (newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
-    if (newStallingType !== undefined) { update.Type = newStallingType; }
     if (newSiteID !== undefined) { update.SiteID = newSiteID; }
 
     if (newBeheerder !== undefined) { update.Beheerder = newBeheerder; }
     if (newBeheerderContact !== undefined) { update.BeheerderContact = newBeheerderContact; }
+
+    if (newStallingType !== undefined) { update.fietsenstalling_type = { connect: { id: newStallingType } }; }
 
     if (undefined !== newOpening) {
       for (const keystr in newOpening) {
@@ -316,6 +297,8 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
 
     update.DateModified = today;
+
+    // update.fietsenstalling_secties = [];
 
     return update;
   }
@@ -366,18 +349,23 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   }
 
-  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: ParkingSections) => {
-    console.log("update capaciteit", newCapaciteit);
+  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: ParkingSections): Promise<void> => {
     if (!newCapaciteit || newCapaciteit.length <= 0) return;
 
     try {
       // Get section to save
       const sectionToSaveResponse = await fetch('/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID=' + parkingdata.ID);
+      let sectionId = undefined;
       const sectionToSave = await sectionToSaveResponse.json();
-      const sectionId = sectionToSave.sectieId;
+      if (null !== sectionToSave) {
+        sectionId = sectionToSave.sectieId;
+      } else {
+        let result = await fetch('/api/fietsenstalling_sectie/getNewSectieId');
+        sectionId = (await result.json()).sectieId;
+      }
 
       // Save capaciteit
-      const savedCapaciteit = await fetch('/api/fietsenstalling_sectie/saveManyFromFullObject', {
+      await fetch('/api/fietsenstalling_sectie/saveManyFromFullObject', {
         method: 'POST',
         body: JSON.stringify({
           parkingId: parkingdata.ID,
@@ -393,14 +381,14 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   }
 
-  const parkingChanged = () => {
+  const parkingChanged = (update: ParkingEditUpdateStructure) => {
     try {
       const isChanged =
         Object.keys(update).length !== 0 ||
         newServices.length > 0 ||
         newCapaciteit && newCapaciteit.length > 0 ||
         newOpening !== undefined ||
-        newOpeningstijden !== undefined;
+        newOpeningstijden !== undefined
 
       return isChanged;
     } catch (ex) {
@@ -409,89 +397,16 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   }
 
-  const acceptParking = async (): Promise<string> => {
+  const handleRemoveParking = async (message: string = ''): Promise<boolean> => {
     try {
-      const newID = generateRandomId();
-
-      // create a new parking record with the given ID
-
-      const storedata = Object.assign({}, parkingdata, { ID: newID });
-      storedata.Open_ma = new Date(parkingdata.Open_ma); // Datetime
-      storedata.Dicht_ma = new Date(parkingdata.Dicht_ma); // Datetime
-      storedata.Open_di = new Date(parkingdata.Open_di); // Datetime
-      storedata.Dicht_di = new Date(parkingdata.Dicht_di); // Datetime
-      storedata.Open_wo = new Date(parkingdata.Open_wo); // Datetime
-      storedata.Dicht_wo = new Date(parkingdata.Dicht_wo); // Datetime
-      storedata.Open_do = new Date(parkingdata.Open_do); // Datetime
-      storedata.Dicht_do = new Date(parkingdata.Dicht_do); // Datetime
-      storedata.Open_vr = new Date(parkingdata.Open_vr); // Datetime
-      storedata.Dicht_vr = new Date(parkingdata.Dicht_vr); // Datetime
-      storedata.Open_za = new Date(parkingdata.Open_za); // Datetime
-      storedata.Dicht_za = new Date(parkingdata.Dicht_za); // Datetime
-      storedata.Open_zo = new Date(parkingdata.Open_zo); // Datetime
-      storedata.Dicht_zo = new Date(parkingdata.Dicht_zo); // Datetime
-
-      const result = await fetch(
-        "/api/fietsenstallingen?id=" + newID,
-        {
-          method: "POST",
-          body: JSON.stringify(storedata),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!result.ok) {
-        toast("Accpeteren is mislukt. Probeer het later nog eens.")
-
-        await fetch(
-          "/api/fietsenstallingen?id=" + newID,
-          { method: "DELETE" }
-        );
-        throw Error('Er ging iets fout bij het verplaatsen')
-      } else {
-        await fetch(
-          "/api/fietsenstallingen?id=" + parkingdata.ID,
-          { method: "DELETE" }
-        );
-
-        toast("De stalling is geaccepteerd.")
-
-        return newID;
-      }
-
-      // store parking record
-
-      // store fietsenstallingen_services records
-
-      // store fietsenstalling_secties records
-
-      // store abonnementsvorm_fietsenstalling records
-
-      // delete old fietsenstallingen_services records
-
-      // delete old fietsenstalling_secties records
-
-      // delete old abonnementsvorm_fietsenstalling records
-
-      // delete old parking record
-      return "";
-    } catch (ex: unknown) {
-      console.error("ParkingEdit - unable to move parking record to new ID");
-      return "";
-    }
-  }
-
-  const handleRemoveParking = async () => {
-    try {
-      if (parkingdata.ID.substring(0, 8) !== 'VOORSTEL') {
+      if (parkingdata.Status !== 'aanm' && parkingdata.Status !== 'new') {
         // Update logic for derived tables is not fully implemented!
-        throw Error('Het is niet toegestaan om een definitieve stalling te verwijderen.')
+        throw Error('Het is niet toegestaan om een goedgekeurde stalling te verwijderen. Gebruik de knop verbergen om deze onzichtbaar te maken.')
       }
 
-
-      if (!confirm("Weet u zeker dat u deze stalling wilt verwijderen? Dit kan niet ongedaan worden gemaakt!")) return;
+      if (message !== '') {
+        if (!confirm(message)) return false;
+      }
 
       const result1 = await fetch(
         "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
@@ -510,22 +425,18 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       onChange();
-      onClose("");
+      onClose(true);
+
+      return true;
     } catch (ex) {
       console.error("ParkingEdit - unable to remove parking record");
+      return false;
     }
   }
 
   const handleUpdateParking = async () => {
     try {
-      // Stop if no parking ID is available
       if (!parkingdata) return;
-
-      const isNew = parkingdata.ID === ""
-      if (parkingdata.ID === "") {
-        // for public users, generate a recognizable ID
-        parkingdata.ID = generateRandomId(session === null ? "VOORSTEL" : "");
-      }
 
       if (!validateParkingData()) {
         console.warn("ParkingEdit - invalid data: update cancelled");
@@ -535,27 +446,23 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       // Check if parking was changed
       const update = getUpdate();
 
-      const doUpdate =
-        parkingChanged() ||
-        isNew || // default new parking data does not trigger parkingChanged > force update
-        !isNew && (parkingdata.ID.substring(0, 8) === 'VOORSTEL'); // force update if parkingdata.ID for existing parking starts with 'VOORSTEL' -> triggers update of ID to normal ID
-
-      if (false === doUpdate) {
-        onChange();
-        onClose(false);
-        return;
+      if (parkingdata.Status === "aanm") {
+        update.Status = "new"
+      } else if (parkingdata.Status === "new") {
+        update.Status = "1"
       }
 
-
-      const method = isNew ? "POST" : "PUT";
-      const body = JSON.stringify(isNew ? Object.assign({}, parkingdata, update) : update);
-      console.log("update %s / %s", isNew, method, update);
+      if (false === parkingChanged(update)) {
+        onChange();
+        onClose(session === null);
+        return;
+      }
 
       const result = await fetch(
         "/api/fietsenstallingen?id=" + parkingdata.ID,
         {
-          method,
-          body,
+          method: "PUT",
+          body: JSON.stringify(update),
           headers: {
             "Content-Type": "application/json",
           },
@@ -575,31 +482,14 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         await updateCapaciteit(parkingdata, newCapaciteit);
       }
 
-      let returnID: string | boolean = parkingdata.ID
       if (session === null) {
         toast(`Uw voorstel wordt aangemeld bij gemeente ${currentMunicipality?.name}.`, { duration: 15000, style: { minWidth: '40vw' } })
-
-        onChange();
-        onClose(parkingdata.ID);
       } else {
-        if (isNew) { // new parking created while logged in
-          toast(`De stallingsgegevens zijn opgeslagen`);
-        } else { // existing parking
-          if (parkingdata.ID.substring(0, 8) === 'VOORSTEL') { // accept proposed parking
-            // when updating a "VOORSTEL parking", it will be moved to a permanent record
-            returnID = await acceptParking()
-            if (returnID === "") {
-              alert(`Er ging iets mis bij het accepteren van dit voorstel. Probeer het later opnieuw.`);
-              return;
-            }
-          } else {
-            toast(`De stallingsgegevens zijn opgeslagen`);
-          }
-        }
-
-        onChange();
-        onClose(returnID); // show modal
+        toast(`De stallingsgegevens zijn opgeslagen`);
       }
+
+      onChange();
+      onClose(session === null);
     } catch (err: any) {
       if (err.message) alert(err.message);
       else alert(err);
@@ -607,8 +497,8 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   };
 
   const update: ParkingEditUpdateStructure = getUpdate()
-  const isVoorstel = parkingdata?.ID.substring(0, 8) === 'VOORSTEL'
-  const showUpdateButtons = isVoorstel || parkingChanged()
+  const isVoorstel = parkingdata?.Status === 'new'
+  const showUpdateButtons = isVoorstel || parkingChanged(update)
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     const latlngstring = `${lat},${lng}`;
@@ -714,13 +604,22 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         const plaats = address.address.city || address.address.town || address.address.village || address.address.quarter;
         setNewPlaats(plaats);
 
-        if (parkingdata.Title === "" && (newTitle === "" || newTitle === undefined)) {
+        if ((parkingdata.Title === "" && (newTitle === "" || newTitle === undefined)) ||
+          (newTitle && newTitle.startsWith("Nieuwe stalling")) ||
+          (!newTitle && parkingdata.Title.startsWith("Nieuwe stalling"))) {
           setNewTitle("Nieuwe stalling " + (location + " " + plaats).trim());
         }
       } else {
         alert("Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.");
       }
     }
+
+    const statusTypes = [
+      { id: "0", name: "Verborgen" },
+      { id: "1", name: "Actief" },
+      { id: "new", name: "Voorstel" },
+      { id: "aanm", name: "Voorstel" },
+    ]
 
     return (
       <div className="flex justify-between" style={{ display: visible ? "flex" : "none" }}>
@@ -778,7 +677,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           <HorizontalDivider className="my-4" />
 
           <SectionBlock heading="Soort stalling">
-            <select value={newStallingType !== undefined ? newStallingType : parkingdata.Type} onChange={(event) => { setNewStallingType(event.target.value) }}>
+            <select value={newStallingType !== undefined ? newStallingType : parkingdata.fietsenstalling_type[0]?.id} onChange={(event) => { setNewStallingType(event.target.value) }}>
               {allTypes.map(type => (
                 <option key={type.id} value={type.id}>
                   {type.name}
@@ -786,6 +685,20 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
               ))}
             </select>
           </SectionBlock>
+
+          <HorizontalDivider className="my-4" />
+
+          <SectionBlock heading="Status">
+            {/* <select value={parkingdata.Status} onChange={() => { }} disabled>
+              {statusTypes.map(type => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select> */}
+            <label>{statusTypes.find(t => t.id === parkingdata.Status)?.name}</label>
+          </SectionBlock>
+
 
           <p className="mb-10">{/*Some spacing*/}</p>
 
@@ -885,7 +798,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabCapaciteit = (visible: boolean = false) => {
     const handlerSetNewCapaciteit = (capaciteit: ParkingSections): void => {
-      setNewCapaciteit({ ...capaciteit });
+      setNewCapaciteit([...capaciteit]);
       return;
     }
 
@@ -894,7 +807,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         <SectionBlockEdit>
           <ParkingEditCapaciteit
             parkingdata={parkingdata}
-            update={update}
+            update={newCapaciteit}
             capaciteitChanged={handlerSetNewCapaciteit}
           />
         </SectionBlockEdit>
@@ -987,7 +900,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
             className="ml-6 mt-3 sm:mt-0"
             onClick={(e: any) => {
               if (e) e.preventDefault();
-              handleRemoveParking();
+              handleRemoveParking("Weet u zeker dat u deze stalling wilt verwijderen? Dit kan niet ongedaan worden gemaakt!");
             }}
           >
             Verwijder
@@ -998,8 +911,13 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
             variant="secundary"
             onClick={(e: MouseEvent) => {
               if (e) e.preventDefault();
-              if (confirm('Wil je het bewerkformulier verlaten?')) {
-                onClose(false);
+
+              if (parkingdata?.Status === "aanm") {
+                handleRemoveParking("Weet u zeker dat u de invoer wilt afbreken? De ingevoerde gegevens worden niet opgeslagen.");
+              } else {
+                if (confirm('Wil je het bewerkformulier verlaten?')) {
+                  onClose(false);
+                }
               }
             }}
           >
