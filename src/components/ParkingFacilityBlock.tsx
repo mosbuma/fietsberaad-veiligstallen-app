@@ -37,8 +37,8 @@ type ParkingType = {
 const isOpen = (openingTime: Date, closingTime: Date, isNS: boolean = false): boolean => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
-  const opening = openingTime.getHours() * 60 + openingTime.getMinutes();
-  let closing = closingTime.getHours() * 60 + closingTime.getMinutes();
+  const opening = openingTime.getHours() - 1 * 60 + openingTime.getMinutes();//TODO
+  let closing = closingTime.getHours() - 1 * 60 + closingTime.getMinutes();//TODO
 
   // #TODO: Combine functions with /src/utils/parkings.tsx
   if (opening === closing && opening === 60 && closing === 60) {
@@ -56,7 +56,7 @@ const isOpen = (openingTime: Date, closingTime: Date, isNS: boolean = false): bo
 };
 
 const formatTime = (time: Date): string => {
-  const hours = time.getHours().toString().padStart(2, "0");
+  const hours = (time.getHours() - 1).toString().padStart(2, "0");//TODO
   const minutes = time.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 };
