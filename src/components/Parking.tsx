@@ -9,27 +9,19 @@ import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings
 import Modal from "src/components/Modal";
 import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingView from "~/components/parking/ParkingView";
+import toast from 'react-hot-toast';
 
 const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string, stallingId: string | undefined, onStallingIdChanged: (newId: string | undefined) => void, onClose: () => void }) => {
   const session = useSession();
   // const router = useRouter();
 
   const [currentRevision, setCurrentRevision] = useState<number>(0);
-  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(stallingId);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | null>(null);
   const [editMode, setEditMode] = React.useState(false);
 
-  const currentLatLong = useSelector(
-    (state: AppState) => state.map.currentLatLng
-  );
-
   useEffect(() => {
-    if (currentStallingId === "aanmelden") {
-
-      setCurrentStalling(getNewStallingDefaultRecord("", currentLatLong));
-      setEditMode(true);
-    } else if (currentStallingId !== undefined) {
-      getParkingDetails(currentStallingId).then((stalling) => {
+    if (stallingId !== undefined) {
+      getParkingDetails(stallingId).then((stalling) => {
         if (null !== stalling) {
           setCurrentStalling(stalling);
         } else {
@@ -40,18 +32,21 @@ const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string,
       setCurrentStalling(null);
     }
   }, [
-    currentStallingId,
+    stallingId,
     currentRevision
   ]);
 
-  const handleCloseEdit = (newStallingId: string | false) => {
+  useEffect(() => {
+    if (currentStalling && (currentStalling.Status == "aanm")) {
+      setEditMode(true);
+    }
+  }, [currentStalling]);
+
+  const handleCloseEdit = (closeModal: boolean) => {
     setEditMode(false);
 
-    if (false !== newStallingId) {
-      setCurrentStallingId(newStallingId);
-      if (newStallingId.substring(0, 8) === 'VOORSTEL' || newStallingId === '') {
-        onClose();
-      }
+    if (closeModal) {
+      onClose();
     }
   }
 
@@ -59,17 +54,37 @@ const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string,
     setCurrentRevision(currentRevision + 1);
   }
 
+  const handleToggleStatus = async () => {
+    if (!currentStalling) { return }
+
+    const result = await fetch(
+      "/api/fietsenstallingen?id=" + currentStalling.ID,
+      {
+        method: "PUT",
+        body: JSON.stringify({ Status: currentStalling.Status === "0" ? "1" : "0" }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!result.ok) {
+      throw Error('Er ging iets fout bij het opslaan. Probeer het later opnieuw.')
+    }
+    toast(currentStalling.Status === "0" ? "De stalling is nu zichtbaar voor alle gebruikers" : "De stalling is nu alleen zichtbaar voor de beheerder");
+    setCurrentRevision(currentRevision + 1);
+  }
+
   if (null === currentStalling) {
     return null;
   }
 
-  let allowEdit = session.status === "authenticated" || currentStalling && currentStalling.ID === "";
+  let allowEdit = session.status === "authenticated" || currentStalling && currentStalling.Status === "aanm";
 
   let content = undefined;
   if (allowEdit === true && (editMode === true)) {
     content = (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);
   } else {
-    content = (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} />);
+    content = (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} onToggleStatus={handleToggleStatus} isLoggedIn={session.status === "authenticated"} />);
   }
 
   return (

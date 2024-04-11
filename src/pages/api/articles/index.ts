@@ -1,8 +1,13 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handle(req, res) {
-  const where = {
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  if (req.query.SiteID && Array.isArray(req.query.SiteID)) return;
+  if (req.query.Title && Array.isArray(req.query.Title)) return;
+  if (req.query.Navigation && Array.isArray(req.query.Navigation)) return;
+
+  const where: Prisma.articlesWhereInput = {
     Status: "1"
   }
 
@@ -21,8 +26,8 @@ export default async function handle(req, res) {
     where.Navigation = req.query.Navigation;
   }
 
-  const query = {
-    where: where,
+  const query: Prisma.articlesFindFirstArgs = {
+    where,
     select: {
       ID: true,
       SiteID: true,
@@ -39,11 +44,9 @@ export default async function handle(req, res) {
       ModuleID: true,
       Navigation: true
     },
-    orderBy: [
-      {
-        SortOrder: 'asc',
-      },
-    ],
+    orderBy: {
+      SortOrder: 'asc',
+    }
   }
 
   let result;
