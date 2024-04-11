@@ -1,5 +1,21 @@
 # App updates VeiligStallen
 
+## VeiligStallen 2024-04-11
+
+**Stalling-details**
+
+- ✨ Toon "Koop abonnement" knop bij stallingen
+- ✨ Toon de 'extra services' van een stalling
+- 🖌️ Verbeter weergave 'Abonnementen'
+- 🐛 Opgelost: openingstijden toonden de 'wintertijd'
+- 🐛 Tijdelijk bericht: openingstijd-uren kunnen niet worden bewerkt
+
+**Stalling-beheer**
+
+- ✨ Verberg (of activeer) een stalling voor gastgebruikers
+- Verbeter uitleg die verschijnt als velden incorrect ingevuld zijn
+- Verbeter beheer 'capaciteit'
+
 ## VeiligStallen 2024-04-02
 
 **Algemeen**
