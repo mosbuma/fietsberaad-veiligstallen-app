@@ -111,6 +111,7 @@ const ParkingView = ({
             <Button
               key="b-2"
               className="mt-3 ml-3 sm:mt-0 hidden sm:block"
+              variant="secundary"
               onClick={(e: any) => {
                 if (e) e.preventDefault();
                 onToggleStatus();
