@@ -34,11 +34,12 @@ const ParkingViewServices = ({ parkingdata }: { parkingdata: any }) => {
     return null
   }
 
-  const activeServices = allServices && allServices.filter((service: any) => serviceIsActive(service)) || [];
+  const activeServices = allServices && allServices.filter((service: any) => serviceIsActive(service.ID)) || [];
   if (activeServices.length === 0) {
     // dont show services header if there are none
     return null;
   }
+
 
   return <>
     <SectionBlock heading="Services">

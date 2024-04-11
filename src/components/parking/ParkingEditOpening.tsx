@@ -176,7 +176,7 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     }
   }, [changes, openingstijden]);
 
-  // Function that runs if the capacity changes
+  // Function that runs if the opening time changes
   const handleChange = (day: DayPrefix, isOpeningTime: boolean, isHoursField: boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
 
@@ -245,6 +245,9 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
       <SectionBlock
         heading="Openingstijden"
       >
+        <p className="py-2 text-red">
+          Het veranderen van de openingstijden (specifiek uren) werkt tijdelijk niet. We werken hieraan; kom binnenkort terug als je de uren wilt aanpassen.
+        </p>
         <table className="w-full">
           <tbody>
             {formatOpeningTimesForEdit(data, "ma", "Maandag", handleChange, handleChangeChecks)}

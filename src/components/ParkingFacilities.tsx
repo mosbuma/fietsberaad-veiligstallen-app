@@ -47,11 +47,13 @@ const ParkingFacilities = ({
     // });
     if (activeTypes2 && activeTypes2.includes("show_submissions")) {
       filteredFietsenstallingen = fietsenstallingen.filter(
-        (x: any) => (x.ID.substring(0, 8) === "VOORSTEL")
+        (x: any) => {
+          return (x.Status === "new")
+        }
       );
     } else {
       filteredFietsenstallingen = fietsenstallingen.filter(
-        (x: any) => (x.ID.substring(0, 8) !== "VOORSTEL")
+        (x: any) => (x.Status !== "new")
       );
     }
   }

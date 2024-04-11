@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 import type { fietsenstallingen_services } from "@prisma/client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
@@ -21,10 +22,12 @@ const FietsenstallingenServicesService: ICrudService<fietsenstallingen_services>
     _id: string,
     _data: fietsenstallingen_services
   ): Promise<fietsenstallingen_services> => {
-    return await prisma.fietsenstallingen_services.update({
-      where: { ID: _id },
-      data: _data,
-    });
+    // NB code below does not work: where selection field ID does not exist
+    // return await prisma.fietsenstallingen_services.update({
+    //   where: { ID: _id },
+    //   data: _data,
+    // });
+    throw new Error("Not implemented");
   },
   delete: async (_fietsenstallingId: string): Promise<fietsenstallingen_services> => {
     return await prisma.fietsenstallingen_services.delete({

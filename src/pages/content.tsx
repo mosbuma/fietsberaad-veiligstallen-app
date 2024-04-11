@@ -197,7 +197,14 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         >
           {parkingTypesToFilterOn && <ParkingFacilityBrowser
             customFilter={(x) => {
-              return parkingTypesToFilterOn.indexOf(x.Type) > -1 && activeMunicipalityInfo.CompanyName?.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1;
+              return parkingTypesToFilterOn.indexOf(x.Type) > -1
+                && (
+                  // Check if parking municipality == active municipality
+                  (activeMunicipalityInfo.CompanyName && activeMunicipalityInfo.CompanyName.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1)
+                  // Hide parkings without municipality, if municipality is set
+                  // This makes sure not all Dutch NS stallingen are shown on a municipality page
+                  && (x.Plaats && x.Plaats.length > 0)
+                );
             }}
             onShowStallingDetails={(id: any) => {
               setCurrentStallingId(id);

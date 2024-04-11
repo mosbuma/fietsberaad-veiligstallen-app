@@ -1,69 +1,79 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
+import type { ParkingSection, ParkingSectionPerBikeType, UpdateParkingSectionsData } from "~/types/";
+import type { fietstypen } from "@prisma/client";
 
-export default async function handle(req, res) {
-  if((req.method as HttpMethod) !== "POST") return;
+const updateSingleSubSection = async (parkingId: string, sectionId: number, subSectionPerFietstype: ParkingSectionPerBikeType, fietstypen: fietstypen[]) => {
+  const fietstypedata = fietstypen.find((fietstype) => {
+    return fietstype.Name === subSectionPerFietstype.fietstype.Name;
+  })
 
-  const data = req.body as T;
-  console.log('data', data)
+  if (fietstypedata === undefined) {
+    console.error('No vehicle type found');
+    return false
+  }
 
-  // data.sectionId
-  // data.parkingSections
-  // data.parkingId
+  // Check if capaciteit for this vehicle type exists in database
+  const dbCapaciteit = await prisma.sectie_fietstype.findFirst({
+    where: {
+      sectieID: sectionId,
+      BikeTypeID: fietstypedata.ID
+    }
+  });
+
+  // Update parking section capacities
+  if (dbCapaciteit) {
+    const result = await prisma.sectie_fietstype.update({
+      where: {
+        SectionBiketypeID: dbCapaciteit.SectionBiketypeID,
+        BikeTypeID: fietstypedata.ID
+      },
+      data: {
+        Capaciteit: Number(subSectionPerFietstype.Capaciteit),
+        Toegestaan: subSectionPerFietstype.Toegestaan
+      }
+    })
+  } else { // Or create parking section capacity row
+    await prisma.sectie_fietstype.create({
+      data: {
+        BikeTypeID: fietstypedata.ID,
+        sectieID: sectionId,
+        StallingsID: parkingId,
+        Capaciteit: subSectionPerFietstype.Capaciteit,
+        Toegestaan: subSectionPerFietstype.Toegestaan
+      }
+    });
+  }
+}
+
+const updateSingleSection = async (parkingId: string, sectionId: number, section: ParkingSection, fietstypen: fietstypen[]) => {
+  // Go over given sections
+  section.secties_fietstype.map(async (subSectionPerFietstype) => {
+    if (false === await updateSingleSubSection(parkingId, sectionId, subSectionPerFietstype, fietstypen)) {
+      return false;
+    }
+  });
+
+  return true;
+}
+
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  if ((req.method as string) !== "POST") return;
+
+  const data = req.body as UpdateParkingSectionsData;
+
+  if (data.parkingSections.length === 0 || data.parkingSections[0] === undefined) {
+    console.error('No parking sections given');
+    res.status(405).end();
+    return;
+  }
 
   // Get fietstypes
   const fietstypen = await prisma.fietstypen.findMany();
-
-  // Go over given sections
-  data.parkingSections[0].secties_fietstype.map(async (vehicleType) => {
-    // Get vehicle type ID
-    const vehicleTypeId = fietstypen.filter(x => {
-      return x.Name === vehicleType.fietstype.Name;
-    }).pop().ID;
-    // Check if capaciteit for this vehicle type exists in database
-    const dbCapaciteit = await prisma.sectie_fietstype.findFirst({
-      where: {
-        sectieID: data.sectionId,
-        BikeTypeID: vehicleTypeId
-      }
-    });
-
-    // Update parking section capacities
-    if(dbCapaciteit && vehicleTypeId) {
-      if(! dbCapaciteit.sectieID) {
-        res.status(405).end();
-        return;
-      }
-      if(! vehicleTypeId) {
-        res.status(405).end();
-        return;
-      }
-
-      await prisma.sectie_fietstype.update({
-        where: {
-          SectionBiketypeID: dbCapaciteit.SectionBiketypeID,
-          BikeTypeID: vehicleTypeId
-        },
-        data: {
-          Capaciteit: Number(vehicleType.Capaciteit),
-          Toegestaan: vehicleType.Toegestaan
-        }
-      })
-    }
-
-    // Or create parking section capacity row
-    else {
-      await prisma.sectie_fietstype.create({
-        data: {
-          BikeTypeID: vehicleTypeId,
-          sectieID: data.sectionId,
-          StallingsID: data.parkingId,
-          Capaciteit: number(vehicleType.Capaciteit),
-          Toegestaan: vehicleType.Toegestaan
-        }
-      });
-    }
-  });
+  if (!updateSingleSection(data.parkingId, data.sectionId, data.parkingSections[0], fietstypen)) {
+    res.status(405).end();
+  }
 
   res.json({})
 }
