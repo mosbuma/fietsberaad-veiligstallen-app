@@ -35,6 +35,7 @@ export type ParkingDetailsType = {
     Plaats: string,
     Type: string,
     SiteID: string,
+    Description: string;
     Image: any;
     Open_ma: Date,
     Dicht_ma: Date,

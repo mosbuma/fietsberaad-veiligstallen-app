@@ -122,6 +122,10 @@ const ParkingView = ({
           ) : null}
         </PageTitle>
       </div>
+      {parkingdata?.Description && <p className="mb-8">
+        {parkingdata?.Description}
+      </p>}
+
 
       <div className="flex justify-between">
         <div data-name="content-left" className="sm:mr-12">
