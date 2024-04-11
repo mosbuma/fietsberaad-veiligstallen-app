@@ -31,7 +31,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs?.toLocaleString('nl-NL') || "---"}</div>
             </Fragment>
           }) : <></>}
-          {parkingdata.Beheerder !== 'NS Fiets' && <div className="text-right sm:text-center">
+          {(parkingdata.abonnementsvorm_fietsenstalling && parkingdata.abonnementsvorm_fietsenstalling.length > 0) && <div className="text-right sm:text-center">
             <Button className="mt-4" onClick={() => {
               window.open(`https://veiligstallen.nl/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : 'utrecht'}/abonnement`, '_blank');
             }}>
