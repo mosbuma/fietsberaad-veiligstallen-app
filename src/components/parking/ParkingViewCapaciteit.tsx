@@ -73,8 +73,8 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
   if (capacitydata.detailed === null || Object.keys(capacitydata.detailed).length === 0) {
     content = (
       <>
-        <div className="">{parkingdata.Capacity}</div>
-        <div className="text-right"></div>
+        <div key={"c-1"} className="">{parkingdata.Capacity}</div>
+        <div key={"c-2"} className="text-right"></div>
       </>
     );
   }
@@ -86,14 +86,14 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
       } else if (detail.Toegestaan === false) {
         return (
           <>
-            <div className="">{key}</div>
+            <div key={key + "-1"} className="">{key}</div>
             <div className="text-right">Niet toegestaan</div>
           </>
         );
       } else if ((detail.Capaciteit || 0) > 0) {
         return (
           <>
-            <div className="">{key}</div>
+            <div key={key + "-2"} className="">{key}</div>
             <div className="text-right">{detail.Capaciteit}</div>
           </>
         );

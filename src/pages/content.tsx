@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
+import { NextPage } from "next/types";
+import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/navigation'
 import { useSelector, useDispatch } from "react-redux";
 import useQueryParam from '../hooks/useQueryParam';
@@ -7,6 +9,8 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname } from 'next/navigation';
+import type { fietsenstallingen } from "@prisma/client";
+import { AppState } from "~/store/store";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -32,12 +36,13 @@ import { getParkingsFromDatabase } from "~/utils/prisma";
 import {
   setActiveMunicipalityInfo,
 } from "~/store/mapSlice";
+import { ParkingDetailsType } from "~/types";
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   try {
     const session = await getServerSession(context.req, context.res, authOptions)
     const sites = session?.user?.sites || [];
-    const fietsenstallingen = await getParkingsFromDatabase(sites);
+    const fietsenstallingen = await getParkingsFromDatabase(sites, session);
 
     return {
       props: {
@@ -54,17 +59,28 @@ export async function getServerSideProps(context) {
   }
 }
 
-const Content: NextPage = ({ fietsenstallingen }) => {
+const Content: NextPage = ({ fietsenstallingen }: any) => {
   const dispatch = useDispatch();
   const { push } = useRouter();
   const pathName = usePathname();
 
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
-  const [pageContent, setPageContent] = useState({});
+  const [currentStalling, setCurrentStalling] = useState<fietsenstallingen | undefined>(undefined);
+  const [pageContent, setPageContent] = useState<Record<string, any> | undefined>(undefined); // TODO: type -> generic JSON object, make more specific later
 
-  const currentStalling = fietsenstallingen.find((stalling: any) => {
-    return stalling.ID === currentStallingId;
-  });
+  useEffect(() => {
+    if (currentStallingId === undefined) {
+      setCurrentStalling(undefined);
+    }
+
+    const currentStalling = fietsenstallingen.find((stalling: any) => {
+      return stalling.ID === currentStallingId;
+    });
+
+    setCurrentStalling(currentStalling);
+
+  }, [currentStallingId]);
+
 
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
@@ -196,7 +212,7 @@ const Content: NextPage = ({ fietsenstallingen }) => {
           }}
         >
           {parkingTypesToFilterOn && <ParkingFacilityBrowser
-            customFilter={(x) => {
+            customFilter={(x: ParkingDetailsType) => {
               return parkingTypesToFilterOn.indexOf(x.Type) > -1
                 && (
                   // Check if parking municipality == active municipality
@@ -214,14 +230,14 @@ const Content: NextPage = ({ fietsenstallingen }) => {
         </div>
       </div>
 
-      {currentStallingId && isSm && (<>
+      {currentStalling?.ID !== undefined && isSm && (<>
         <Overlay
-          title={currentStalling.Title}
+          title={currentStalling.Title || ""}
           onClose={() => setCurrentStallingId(undefined)}
         >
-          <Parking
-            key={currentStallingId}
-            parkingID={currentStalling.ID}
+          <Parking id={'parking-' + currentStallingId} stallingId={currentStalling.ID}
+            onStallingIdChanged={setCurrentStallingId}
+            onClose={() => setCurrentStallingId(undefined)}
           />
         </Overlay>
       </>)}
@@ -232,10 +248,13 @@ const Content: NextPage = ({ fietsenstallingen }) => {
           clickOutsideClosesDialog={false}
         >
           <Parking
-            key={currentStallingId}
-            parkingID={fietsenstallingen.find((stalling: any) => {
+            id={'parking-' + currentStallingId}
+            stallingId={fietsenstallingen.find((stalling: any) => {
               return stalling.ID === currentStallingId;
             }).ID}
+            onStallingIdChanged={setCurrentStallingId}
+            onClose={() => setCurrentStallingId(undefined)}
+
           />
         </Modal>
       </>)}

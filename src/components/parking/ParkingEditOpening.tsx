@@ -245,9 +245,9 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
       <SectionBlock
         heading="Openingstijden"
       >
-        <p className="py-2 text-red">
+        {/* <p className="py-2 text-red">
           Het veranderen van de openingstijden (specifiek uren) werkt tijdelijk niet. We werken hieraan; kom binnenkort terug als je de uren wilt aanpassen.
-        </p>
+        </p> */}
         <table className="w-full">
           <tbody>
             {formatOpeningTimesForEdit(data, "ma", "Maandag", handleChange, handleChangeChecks)}

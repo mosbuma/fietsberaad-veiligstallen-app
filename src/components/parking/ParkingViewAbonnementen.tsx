@@ -16,10 +16,9 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
     (state: any) => state.map.activeMunicipalityInfo
   );
 
-  // Don't render HTML if no subscriptions are available
-  if (!parkingdata.abonnementsvorm_fietsenstalling || parkingdata.abonnementsvorm_fietsenstalling.length <= 0) {
-    return <></>
-  }
+  // console.log('activeMunicipalityInfo', activeMunicipalityInfo);
+  // parkingdata.abonnementsvorm_fietsenstalling.map(x => console.log('abonnement', x));
+  // console.log("abonnementsvormen", JSON.stringify(parkingdata.abonnementsvorm_fietsenstalling, null, 2));
 
   return (
     <>
@@ -32,15 +31,20 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs?.toLocaleString('nl-NL') || "---"}</div>
             </Fragment>
           }) : <></>}
-          <div className="text-right sm:text-center">
-            <Button className="mt-4" onClick={() => {
-              window.open(`https://veiligstallen.nl/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : 'utrecht'}/abonnement`, '_blank');
-            }}>
-              Koop abonnement
-            </Button>
-          </div>
+          {((parkingdata.abonnementsvorm_fietsenstalling && parkingdata.abonnementsvorm_fietsenstalling.length > 0)) ?
+            <div className="text-right sm:text-center">
+              <Button className="mt-4" onClick={() => {
+                window.open(`https://veiligstallen.nl/${activeMunicipalityInfo ? activeMunicipalityInfo.UrlName : 'utrecht'}/abonnement`, '_blank');
+              }}>
+                Koop abonnement
+              </Button>
+            </div >
+            :
+            <div className="text-start col-span-3">
+              Geen abonnementen beschikbaar
+            </div>}
         </div>
-      </SectionBlock>
+      </SectionBlock >
 
       <HorizontalDivider className="my-4" />
     </>
