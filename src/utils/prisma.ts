@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 import { Session } from "next-auth";
 
-const getParkingsFromDatabase = async (sites: any, session: Session | null) => {
+const getParkingsFromDatabase = async (sites: any, session: Session | null = null) => {
 
   let fietsenstallingen;
 

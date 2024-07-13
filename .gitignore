@@ -56,3 +56,6 @@ mysql-db/export-db.zip
 
 #uploads
 /public/uploads*
+
+#auto generated test scripts
+create-test-user.sql

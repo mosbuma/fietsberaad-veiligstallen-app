@@ -109,7 +109,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const [newServices, setNewServices] = React.useState<ChangedType[]>([]);
 
   const [newCapaciteit, setNewCapaciteit] = React.useState<ParkingSections>([]); // capaciteitschema
-  const [newOpening, setNewOpening] = React.useState<any>(undefined); // openingstijdenschema
+  const [newOpening, setNewOpening] = React.useState<OpeningChangedType | undefined>(undefined); // openingstijdenschema
   const [newOpeningstijden, setNewOpeningstijden] = React.useState<string | undefined>(undefined); // textveld afwijkende openingstijden
 
   type StallingType = { id: string, name: string, sequence: number };
@@ -275,7 +275,13 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     if (undefined !== newOpening) {
       for (const keystr in newOpening) {
         const key = keystr as keyof ParkingEditUpdateStructure;
-        update[key] = new Date(newOpening[key]).toISOString();
+        if (newOpening[key] === null) {
+          update[key] = null
+        } else if (newOpening[key] !== undefined) {
+          update[key] = newOpening[key].format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+        } else {
+          // do nothing
+        }
       }
     }
 
@@ -757,6 +763,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabOpeningstijden = (visible: boolean = false) => {
     const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
+      console.log("set new opening", tijden, Openingstijden);
       setNewOpening(tijden);
       setNewOpeningstijden(Openingstijden);
       return;

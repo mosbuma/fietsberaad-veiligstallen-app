@@ -2,7 +2,6 @@ import React from "react";
 import { Session } from "next-auth";
 import { reverseGeocode } from "~/utils/nomatim";
 
-
 import {
   type fietsenstallingen,
 } from "@prisma/client";
@@ -70,60 +69,6 @@ export const getAllFietstypen = async (): Promise<any> => {
   } catch (err) {
     console.error("get all fietstypen error", err);
   }
-};
-
-const getOpenTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
-  return ('Open_' + day) as keyof ParkingDetailsType;
-}
-
-const getDichtTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
-  return ('Dicht_' + day) as keyof ParkingDetailsType;
-}
-
-export const formatOpeningTimes = (
-  parkingdata: ParkingDetailsType,
-  dayidx: number,
-  day: DayPrefix,
-  label: string,
-  isNS: boolean = false
-): React.ReactNode => {
-  const wkday = new Date().getDay();
-
-  const tmpopen: Date = new Date(parkingdata[getOpenTimeKey(day)]);
-  const hoursopen = tmpopen.getHours() - 1;//TODO
-  const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
-
-  const tmpclose: Date = new Date(parkingdata[getDichtTimeKey(day)]);
-  const hoursclose = tmpclose.getHours() - 1;//TODO
-  const minutesclose = String(tmpclose.getMinutes()).padStart(2, "0");
-
-  let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
-
-  let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
-
-  // Exception for NS parkings: If NS parking AND open from 1am to 1am,
-  // then the parking is open 24 hours per day.
-  // #TODO: Combine functions with /src/components/ParkingFacilityBlock.tsx
-  if (hoursopen === 1 && hoursclose === 1 && diff === 0) {
-    if (isNS) {
-      value = '24h';
-    } else {
-      value = 'gesloten';
-    }
-  }
-  else if (diff >= 86340) {
-    value = '24h'
-  }
-  else if (diff === 0) {
-    value = 'gesloten'
-  }
-
-  return (
-    <>
-      <div className={wkday + 1 === dayidx ? "font-bold" : ""}>{label}</div>
-      <div className="text-right">{value}</div>
-    </>
-  );
 };
 
 const generateRandomChar = () => {
