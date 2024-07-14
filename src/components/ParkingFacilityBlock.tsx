@@ -1,97 +1,13 @@
 import { useRouter } from "next/navigation";
+import moment from "moment";
 
 import { getParkingColor } from "~/utils/theme";
 import { openRoute } from "~/utils/map/index";
 
+import { formatOpeningToday } from "~/utils/parkings-openclose";
+import type { ParkingDetailsType } from "~/types/";
+
 import Styles from "./ParkingFacilityBlock.module.css";
-
-type ParkingType = {
-  ID: string;
-  Title: string;
-  Plaats?: string;
-  Location?: string;
-  Postcode?: any;
-  Status?: any;
-  Coordinaten?: any;
-  Type?: any;
-  Tariefcode?: number;
-  Openingstijden?: string;
-  Open_ma?: string;
-  Dicht_ma?: string;
-  Open_di?: string;
-  Dicht_di?: string;
-  Open_wo?: string;
-  Dicht_wo?: string;
-  Open_do?: string;
-  Dicht_do?: string;
-  Open_vr?: string;
-  Dicht_vr?: string;
-  Open_za?: string;
-  Dicht_za?: string;
-  Open_zo?: string;
-  Dicht_zo?: string;
-  Image?: string;
-  ExtraServices?: string;
-}
-
-const isOpen = (openingTime: Date, closingTime: Date, isNS: boolean = false): boolean => {
-  const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-  const opening = openingTime.getHours() - 1 * 60 + openingTime.getMinutes();//TODO
-  let closing = closingTime.getHours() - 1 * 60 + closingTime.getMinutes();//TODO
-
-  // #TODO: Combine functions with /src/utils/parkings.tsx
-  if (opening === closing && opening === 60 && closing === 60) {
-    // Exception for NS parkings: If NS parking AND open from 1am to 1am,
-    // then the parking is open 24 hours per day.
-    return isNS;
-  }
-
-  if (closing < opening) {
-    // Closing time is on the next day, add 24 hours to closing time
-    closing += 24 * 60;
-  }
-
-  return currentTime >= opening && currentTime <= closing;
-};
-
-const formatTime = (time: Date): string => {
-  const hours = (time.getHours() - 1).toString().padStart(2, "0");//TODO
-  const minutes = time.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
-
-const formatOpeningToday = (parkingdata: any): string => {
-  const dayidx = new Date().getDay();
-  const daytxt = ["za", "zo", "ma", "di", "wo", "do", "vr"];
-
-  const openstr = parkingdata["Open_" + daytxt[dayidx]];
-  const closestr = parkingdata["Dicht_" + daytxt[dayidx]];
-
-  if (null === openstr || null === closestr) {
-    return "";
-  }
-
-  const openinfo = new Date(openstr);
-  const closeinfo = new Date(closestr);
-
-  const isNS = parkingdata.EditorCreated === "NS-connector";
-  if (isOpen(openinfo, closeinfo, isNS)) {
-    let str = `open`;
-
-    // Exception: If this is a 24/h a day
-    // NS parking -> don't show "until ..."
-    if (openstr === closestr) {
-      return str;
-    }
-
-    str += `, sluit om ${formatTime(closeinfo)}`;
-
-    return str;
-  } else {
-    return "gesloten";
-  }
-};
 
 function ParkingFacilityBlock({
   parking,
@@ -102,7 +18,7 @@ function ParkingFacilityBlock({
   showButtons,
 }: {
   id?: any,
-  parking: ParkingType,
+  parking: ParkingDetailsType,
   compact: boolean
   openParkingHandler?: Function,
   expandParkingHandler?: Function,
@@ -139,7 +55,7 @@ function ParkingFacilityBlock({
       break;
   }
 
-  const openingDescription = formatOpeningToday(parking);
+  const openingDescription = formatOpeningToday(parking, moment()).message;
 
   // const detailsLine = `${costDescription}${costDescription && openingDescription ? "| " : ""
   //   }${openingDescription}`;
