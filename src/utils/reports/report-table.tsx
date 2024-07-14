@@ -1,19 +1,6 @@
 import React, { useMemo } from 'react';
+import { ReportContent } from './types';
 import { useTable, Column } from 'react-table';
-
-export interface ReportContent {
-    title: string;
-    data: {
-        columns: string[];
-        records: Record<string, any>[];
-        hidden?: string[];
-        actions?: {
-            name: string;
-            icon: React.ReactNode | undefined;
-            action: (data: Record<string, any>) => void;
-        }[];
-    };
-}
 
 const ReportTable: React.FC<{ reportContent: ReportContent }> = ({ reportContent }) => {
     const data = useMemo(() => reportContent.data.records, [reportContent]);
