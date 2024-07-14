@@ -100,6 +100,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
     setAbonnementUrl(url);
   }
 
+
   return (
     <>
       <SectionBlock heading="Abonnementen">
