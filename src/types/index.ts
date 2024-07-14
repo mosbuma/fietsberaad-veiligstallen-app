@@ -29,12 +29,14 @@ export type ParkingSections = ParkingSection[];
 export type ParkingDetailsType = {
     ID: string,
     Status: string,
+    EditorCreated: string,
     Title: string,
     Location: string,
     Postcode: string,
     Plaats: string,
     Type: string,
     SiteID: string,
+    StallingsID: string,
     Description: string;
     Image: any;
     Open_ma: Date,
@@ -67,6 +69,8 @@ export type ParkingDetailsType = {
         BikeparkID: string,
         abonnementsvormen: abonnementsvormen
     }[],
+    Tariefcode: number,
+    ExtraServices: string,
     // abonnementsvormen: {
     //     ID: string,
     //     naam: string,

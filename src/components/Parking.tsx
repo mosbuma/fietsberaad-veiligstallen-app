@@ -25,6 +25,7 @@ const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string,
         if (null !== stalling) {
           setCurrentStalling(stalling);
         } else {
+          console.error("Failed to load stalling with ID: " + stallingId);
           setCurrentStalling(null);
         }
       });

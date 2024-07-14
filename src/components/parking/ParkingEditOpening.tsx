@@ -7,6 +7,8 @@ import FormInput from "~/components/Form/FormInput";
 import FormTextArea from "~/components/Form/FormTextArea";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 
+import moment from "moment";
+
 type OpeningDetailsType = {
   Open_ma: Date,
   Dicht_ma: Date,
@@ -25,7 +27,7 @@ type OpeningDetailsType = {
 }
 
 export type OpeningChangedType = {
-  [key: string]: Date
+  [key: string]: moment.Moment | null
 }
 
 const getOpenTimeKey = (day: DayPrefix): keyof OpeningDetailsType => {
@@ -38,6 +40,7 @@ const getDichtTimeKey = (day: DayPrefix): keyof OpeningDetailsType => {
 
 const formatOpeningTimesForEdit = (
   parkingdata: OpeningDetailsType,
+  isNS: boolean,
   day: DayPrefix,
   label: string,
   handlerChange: Function,
@@ -45,35 +48,48 @@ const formatOpeningTimesForEdit = (
 ): React.ReactNode => {
   const wkday = new Date().getDay();
 
-  const tmpopen: Date = new Date(parkingdata[getOpenTimeKey(day)]);
-  const hoursopen = tmpopen.getHours() - 1;//TODO
-  const minutesopen = String(tmpopen.getMinutes()).padStart(2, "0");
+  const opentime = parkingdata[getOpenTimeKey(day)];
+  const tmpopen = moment.utc(opentime);
+  const hoursopen = tmpopen.hours();
+  const minutesopen = String(tmpopen.minutes()).padStart(2, "0");
 
-  const tmpclose: Date = new Date(parkingdata[getDichtTimeKey(day)]);
-  const hoursclose = tmpclose.getHours() - 1;//TODO
-  const minutesclose = String(tmpclose.getMinutes()).padStart(2, "0");
+  const closetime = parkingdata[getDichtTimeKey(day)];
+  const tmpclose = moment.utc(closetime);
+  const hoursclose = tmpclose.hours();
+  const minutesclose = String(tmpclose.minutes()).padStart(2, "0");
 
-  let value = `${hoursopen}:${minutesopen} - ${hoursclose}:${minutesclose}`;
+  let onbekend = false;
+  let gesloten = false;
+  let open24h = false;
 
-  let diff = Math.abs((tmpclose.getTime() - tmpopen.getTime()) / 1000);
-  if (diff >= 86340) {
-    value = '24h'
-  } else if (diff === 0) {
-    value = 'gesloten'
+  if (isNS) {
+    onbekend = opentime === null && closetime === null;
+    open24h = tmpopen.hours() === 0 && tmpopen.minutes() === 0 && tmpopen.hours() === 0 && tmpopen.minutes() === 0;
+    gesloten = false;
+  } else {
+    onbekend = opentime === null && closetime === null;
+    open24h = !onbekend && (tmpopen.hours() === 0 && tmpopen.minutes() === 0 && tmpclose.hours() === 23 && tmpclose.minutes() === 59);
+    gesloten = !onbekend && (tmpopen.hours() === 0 && tmpopen.minutes() === 0 && tmpclose.hours() === 0 && tmpclose.minutes() === 0);
   }
 
-  const showtimes = diff > 0 && diff < 86340;
+  const showtimes = !(open24h || gesloten || onbekend);
+
   return (
     <tr className="h-14">
       <td>{label}</td>
       <td>
-        <FormCheckbox key={"cb-" + day} checked={diff >= 86340} onChange={handlerChangeChecks(day, true)}>
+        <FormCheckbox key={"cb-" + day} checked={open24h} onChange={handlerChangeChecks(day, "open24")}>
           24h
         </FormCheckbox>
       </td>
       <td>
-        <FormCheckbox key={"cb-" + day} checked={diff === 0} onChange={handlerChangeChecks(day, false)}>
+        {isNS === false && <FormCheckbox key={"cb-" + day} checked={gesloten} onChange={handlerChangeChecks(day, "gesloten")}>
           gesloten
+        </FormCheckbox>}
+      </td>
+      <td>
+        <FormCheckbox key={"cb-" + day} checked={onbekend} onChange={handlerChangeChecks(day, "onbekend")}>
+          onbekend
         </FormCheckbox>
       </td>
       <td>
@@ -119,7 +135,6 @@ const formatOpeningTimesForEdit = (
           :
           null}
       </td>
-      <td className="px-10">[{value}]</td>
     </tr>
   );
 };
@@ -143,28 +158,29 @@ const extractParkingFields = (parkingdata: ParkingDetailsType): OpeningDetailsTy
   }
 }
 
-const setHourInDate = (date: Date, newHour: number): Date => {
+const setHourInDate = (date: moment.Moment, newHour: number): moment.Moment => {
   if (newHour < 0 || newHour >= 24) {
     throw new Error('Invalid hour value. Hour should be between 0 and 23.');
   }
 
-  const newDate = new Date(date);
-  newDate.setHours(newHour);
+  const newDate = date.clone();
+  newDate.hours(newHour);
   return newDate;
 };
 
-const setMinutesInDate = (date: Date, newMinutes: number): Date => {
+const setMinutesInDate = (date: moment.Moment, newMinutes: number): moment.Moment => {
   if (newMinutes < 0 || newMinutes >= 60) {
     throw new Error('Invalid minutes value. Minutes should be between 0 and 59.');
   }
 
-  const newDate = new Date(date);
-  newDate.setMinutes(newMinutes);
+  const newDate = date.clone();
+  newDate.minutes(newMinutes);
   return newDate;
 };
 
-const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any, openingChanged: Function }) => {
+const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: ParkingDetailsType, openingChanged: Function }) => {
   const startValues = extractParkingFields(parkingdata);
+  const isNS = parkingdata.EditorCreated === "NS-connector";
   const [changes, setChanges] = useState<OpeningChangedType>({});
   const [openingstijden, setOpeningstijden] = useState<string | undefined>(undefined);
 
@@ -184,7 +200,7 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
     // determine new time
 
     // let oldtime: Date = new Date((key in currentValues) ? currentValues[key]: startValues[key]);
-    let oldtime: Date = new Date((key in changes) ? changes[key] as Date : startValues[key]);
+    let oldtime = moment.utc((key in changes) ? changes[key] : startValues[key]);
     let newtime = undefined;
 
     const newval: number = Number(e.target.value);
@@ -207,23 +223,38 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
   }
 
   // Function that runs if the active state changes
-  const handleChangeChecks = (day: DayPrefix, is24hourscheck: boolean) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeChecks = (day: DayPrefix, whichcheck: "open24" | "gesloten" | "onbekend") => (e: React.ChangeEvent<HTMLInputElement>) => {
     const openkey = getOpenTimeKey(day)
     const dichtkey = getDichtTimeKey(day);
 
+    let newopen: moment.Moment | null = null;
+    let newdicht: moment.Moment | null = null;
+
     if (e.target.checked) {
-      const newopen = new Date(0);
-
-      // add 24 hours for full day open, otherwise 0 for full day closed
-      const newdicht = new Date(is24hourscheck ? (86340 * 1000) : 0);
-
-      setChanges({ ...changes, [openkey]: newopen, [dichtkey]: newdicht });
+      switch (whichcheck) {
+        case "open24":
+          if (!isNS) {
+            newopen = moment.utc(0);
+            newdicht = setMinutesInDate(setHourInDate(moment.utc(0), 23), 59);
+          } else {
+            newopen = moment.utc(0);
+            newdicht = moment.utc(0);
+          }
+          break;
+        case "gesloten":
+          newopen = moment.utc(0);
+          newdicht = moment.utc(0);
+          break;
+        case "onbekend":
+          newopen = null;
+          newdicht = null;
+          break;
+      }
     } else {
-      const newopen = setHourInDate(new Date(0), 10);
-      const newdicht = setHourInDate(new Date(0), 17);
-
-      setChanges({ ...changes, [openkey]: newopen, [dichtkey]: newdicht });
+      newopen = setHourInDate(moment.utc(0), 10);
+      newdicht = setHourInDate(moment.utc(0), 17);
     }
+    setChanges({ ...changes, [openkey]: newopen, [dichtkey]: newdicht });
   }
 
   // Function that runs if extra description field changes
@@ -250,13 +281,13 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: any,
         </p> */}
         <table className="w-full">
           <tbody>
-            {formatOpeningTimesForEdit(data, "ma", "Maandag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "di", "Dinsdag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "wo", "Woensdag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "do", "Donderdag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "vr", "Vrijdag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "za", "Zaterdag", handleChange, handleChangeChecks)}
-            {formatOpeningTimesForEdit(data, "zo", "Zondag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "ma", "Maandag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "di", "Dinsdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "wo", "Woensdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "do", "Donderdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "vr", "Vrijdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "za", "Zaterdag", handleChange, handleChangeChecks)}
+            {formatOpeningTimesForEdit(data, isNS, "zo", "Zondag", handleChange, handleChangeChecks)}
           </tbody>
         </table>
       </SectionBlock>
