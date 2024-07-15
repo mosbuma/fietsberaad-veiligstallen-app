@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
 import {
   setIsParkingListVisible,
@@ -567,5 +568,10 @@ const Home: NextPage = ({
     </>
   );
 };
+
+export const metadata: Metadata = {
+  title: 'VeiligStallen',
+  description: 'Nederlandse fietsenstallingen op de kaart',
+}
 
 export default Home;

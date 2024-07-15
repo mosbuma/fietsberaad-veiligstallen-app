@@ -34,6 +34,7 @@ const MyApp: AppType = ({ Component, pageProps: { session, ...pageProps } }) => 
             a.appendChild(r);
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
       `}} />
+        <title>VeiligStallen</title>
       </Head>
       <SessionProvider session={pageProps.session}>
         <Component {...pageProps} />
