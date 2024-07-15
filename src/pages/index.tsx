@@ -13,6 +13,7 @@ import {
   setActiveParkingId,
   setActiveMunicipalityInfo,
   setInitialLatLng,
+  setSelectedParkingId,
 } from "~/store/mapSlice";
 
 import { setQuery } from "~/store/filterSlice";
@@ -135,7 +136,9 @@ const Home: NextPage = ({
   useEffect(() => {
     // handle aanmelden sequence
     if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
+      // Set active parking ID
       dispatch(setActiveParkingId(router.query.stallingid));
+      dispatch(setSelectedParkingId(router.query.stallingid));
     }
   }, [
     router.query,
