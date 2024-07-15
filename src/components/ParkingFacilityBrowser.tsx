@@ -79,6 +79,10 @@ function ParkingFacilityBrowser({
     (state: AppState) => state.map.selectedParkingId
   );
 
+  const filterTypes = useSelector(
+    (state: AppState) => state.filter.activeTypes
+  );
+
   const filterTypes2 = useSelector(
     (state: AppState) => state.filter.activeTypes2
   );
@@ -100,11 +104,14 @@ function ParkingFacilityBrowser({
 
     // Create variable that represents all parkings
     let allParkings = fietsenstallingen;
+    // Show voorstellen only
     if (filterTypes2 && filterTypes2.includes('show_submissions')) {
       allParkings = allParkings.filter((x) => {
         return x.ID.substring(0, 8) === 'VOORSTEL'
       });
-    } else {
+    }
+    // Or show everything except voorstellen
+    else {
       allParkings = allParkings.filter((x) => {
         // console.log("filter-is", x.ID, x.ID.substring(0, 8), x.ID.substring(0, 7) !== 'VOORSTEL')
         return x.ID.substring(0, 8) !== 'VOORSTEL'
@@ -130,6 +137,11 @@ function ParkingFacilityBrowser({
     // - If no active municipality: Search through everything
     // - If active municipality: First show parkings of this municipality, then the rest
     else {
+      // Filter types (like 'bewaakte stalling', 'fietskluis', etc)
+      if (filterTypes && filterTypes.length > 0) {
+        filtered = filtered.filter(x => filterTypes.indexOf(x.Type) > -1);
+      }
+
       // If searchQuery given and zoomed out: Only keep parkings with the searchQuery
       if (
         mapZoom < 12 &&
