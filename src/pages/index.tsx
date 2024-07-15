@@ -167,7 +167,7 @@ const Home: NextPage = ({
     router.query.urlName
   ]);
 
-  // Get municipality theme info
+  // Get municipality theme info and set URL
   useEffect(() => {
     if (!activeMunicipality) return;
     if (!activeMunicipality.municipality) return;
@@ -177,7 +177,7 @@ const Home: NextPage = ({
       let cbsCode = cbsCodeFromMunicipality(activeMunicipality);
       if (cbsCode === false) {
         // no valid cbsCode for the current location
-        window.history.pushState({}, "", `/`);
+        updateUrl('root');
         return;
       }
 
@@ -185,18 +185,18 @@ const Home: NextPage = ({
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
       // Set municipality slug in URL
       if (mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
-        window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
+        updateUrl('municipality', municipalityInfo.UrlName);
       }
       // If zoomed out, have just `/` as URL
       else {
-        window.history.pushState({}, "", `/`);
+        updateUrl('root');
       }
       // Set the municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipalityInfo))
     })();
   }, [
     activeMunicipality
-  ])
+  ]);
 
   // Open municipality info modal
   let TO_showWelcomeModal: NodeJS.Timeout | undefined = undefined;
@@ -223,6 +223,18 @@ const Home: NextPage = ({
     activeMunicipalityInfo,
     initialLatLng
   ]);
+
+  const updateUrl = (to: string, path?: string) => {
+    // If activeParkingId is set: Don't update URL
+    if (activeParkingId) return;
+
+    if (to === 'root') {
+      window.history.pushState({}, "", `/`);
+    }
+    else if (to === 'municipality') {
+      window.history.pushState({}, "", `/${path}`);
+    }
+  }
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   // const isLg = typeof window !== "undefined" && window.innerWidth < 768;
