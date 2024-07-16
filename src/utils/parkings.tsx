@@ -4,7 +4,6 @@ import { reverseGeocode } from "~/utils/nomatim";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 import type { fietsenstallingen, contacts } from "@prisma/client";
-
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
