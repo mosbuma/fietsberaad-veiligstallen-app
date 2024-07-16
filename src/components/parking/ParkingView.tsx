@@ -18,6 +18,7 @@ import ParkingViewBeheerder from "~/components/parking/ParkingViewBeheerder";
 import ParkingViewServices from "~/components/parking/ParkingViewServices";
 
 import { type ParkingDetailsType } from "~/types/";
+import { createVeiligstallenOrgLink } from "~/utils/parkings";
 
 const ParkingView = ({
   parkingdata,
@@ -81,6 +82,25 @@ const ParkingView = ({
     default:
       ;
   }
+
+  const buttonOpwaarderen = <Button
+    key="b-opwaarderen"
+    className="mt-3 text-center flex-shrink"
+    onClick={() => {
+      const doIt = async () => {
+        const url = await createVeiligstallenOrgLink(parkingdata);
+        if (url === "") {
+          alert("Deze stalling kan niet worden opgewaardeerd");
+          return;
+        }
+        window.open(url, '_blank');
+      }
+
+      doIt();
+    }}
+  >
+    Stallingstegoed<br ></br>opwaarderen
+  </Button>
 
   return (
     <div
@@ -150,7 +170,10 @@ const ParkingView = ({
           <ParkingViewAbonnementen parkingdata={parkingdata} />
 
           <SectionBlock heading="Soort stalling">
-            {parkingdata.Type || "Onbekend"}
+            <div className="flex flex-col">
+              {parkingdata.Type || "Onbekend"}
+              {buttonOpwaarderen}
+            </div>
           </SectionBlock>
 
           <HorizontalDivider className="my-4" />

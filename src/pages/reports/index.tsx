@@ -7,12 +7,12 @@ import type { fietsenstallingen } from "@prisma/client";
 import moment from "moment";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
-import { getMunicipalities } from "~/utils/municipality";
 
 import ReportTable from "~/utils/reports/report-table";
 import { noReport, type ReportContent } from "~/utils/reports/types";
 import { createOpeningTimesReport } from "~/utils/reports/openingtimes";
 import { createFixBadDataReport } from "~/utils/reports/baddata";
+import { createStallingKostenReport } from "~/utils/reports/stallingtegoed";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     try {
@@ -112,7 +112,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
 
     const abortControllerRef = useRef<AbortController | null>(null);
 
-    const launchReport = (createReportFunction: (filtered: any) => ReportContent) => {
+    const launchReport = (createReportFunction: (filtered: any) => Promise<ReportContent>) => {
         setLoading(true);
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -120,7 +120,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
         abortControllerRef.current = new AbortController();
         const signal = abortControllerRef.current.signal;
 
-        setTimeout(() => {
+        setTimeout(async () => {
             if (signal.aborted) return;
 
             const filtered = fietsenstallingen.filter((parkingdata: fietsenstallingen) => {
@@ -128,7 +128,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
                     (isNs === 'all' || (isNs === 'true' && parkingdata.EditorCreated === "NS-connector") || (isNs === 'false' && parkingdata.EditorCreated !== "NS-connector"));
             });
 
-            setReportContent(createReportFunction(filtered));
+            setReportContent(await createReportFunction(filtered));
 
             setLoading(false);
         }, 500);
@@ -144,31 +144,40 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
     }, []);
 
     useEffect(() => {
-        const filterSettings = {
-            selectedReport,
-            filterType,
-            isNs,
-            filterDateTime,
-            showData
+        const updateReport = async () => {
+            const filterSettings = {
+                selectedReport,
+                filterType,
+                isNs,
+                filterDateTime,
+                showData
+            }
+            localStorage.setItem('filterSetings', JSON.stringify(filterSettings));
+            switch (selectedReport) {
+                case 'openclose':
+                    launchReport((filtered: any): Promise<ReportContent> => {
+                        return createOpeningTimesReport(filtered, moment(filterDateTime), showData);
+                    });
+                    break;
+                case 'baddata':
+                    launchReport((filtered: any): Promise<ReportContent> => {
+                        return createFixBadDataReport(filtered, contacts, showData);
+                    });
+                    break;
+                case 'stallingkosten':
+                    launchReport((filtered: any): Promise<ReportContent> => {
+                        return createStallingKostenReport(filtered, contacts, showData);
+                    });
+                    break;
+                default:
+                    launchReport((_filtered: any): Promise<ReportContent> => {
+                        return Promise.resolve(noReport);
+                    });
+                    break;
+            }
         }
-        localStorage.setItem('filterSetings', JSON.stringify(filterSettings));
-        switch (selectedReport) {
-            case 'openclose':
-                launchReport((filtered: any): ReportContent => {
-                    return createOpeningTimesReport(filtered, moment(filterDateTime), showData);
-                });
-                break;
-            case 'baddata':
-                launchReport((filtered: any): ReportContent => {
-                    return createFixBadDataReport(filtered, contacts, showData);
-                });
-                break;
-            default:
-                launchReport((filtered: any): ReportContent => {
-                    return noReport;
-                });
-                break;
-        }
+
+        updateReport();
     }, [selectedReport, filterType, isNs, filterDateTime, showData, contacts]);
 
 
@@ -219,6 +228,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
                         <option value="" disabled>Select Report</option>
                         <option value="openclose">Open/Closing times</option>
                         <option value="baddata">Test for Bad Data</option>
+                        <option value="stallingtegoed">Stallingtegoed</option>
                         {/* Add more options as needed */}
                     </select>
 

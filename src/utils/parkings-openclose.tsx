@@ -1,6 +1,5 @@
 import React from "react";
 import moment from "moment";
-import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
 
@@ -177,35 +176,4 @@ export const formatOpeningTimes = (
         </>
     );
 };
-
-export const createVeilistallenOrgLink = async (parkingdata: ParkingDetailsType): Promise<string> => {
-    let url = '';
-    if (parkingdata.EditorCreated === "NS-connector") {
-        url = 'https://www.veiligstallen.nl/ns/stallingen/uto002#uto002'
-    } else {
-        if (!parkingdata.Coordinaten || parkingdata.Coordinaten === "") {
-            // no municipality available
-            return ""
-        }
-        const stallingMunicipalty = await getMunicipalityBasedOnLatLng(parkingdata.Coordinaten.split(","));
-        if (stallingMunicipalty) {
-            switch (parkingdata.Type) {
-                case "fietskluizen":
-                    url = `https://veiligstallen.nl/${stallingMunicipalty.name}/fietskluizen/${parkingdata.StallingsID}`;
-                    break;
-                case "fietstrommel":
-                    url = `https://veiligstallen.nl/${stallingMunicipalty.name}/fietstrommels/${parkingdata.StallingsID}`;
-                    break;
-                case "buurtstalling":
-                    url = `https://veiligstallen.nl/${stallingMunicipalty.name}/buurtstallingen/${parkingdata.StallingsID}`;
-                    break;
-                default:
-                    url = `https://veiligstallen.nl/${stallingMunicipalty.name}/stallingen/${parkingdata.StallingsID}#${parkingdata.StallingsID}`;
-                    break;
-            }
-        }
-    }
-
-    return url;
-}
 
