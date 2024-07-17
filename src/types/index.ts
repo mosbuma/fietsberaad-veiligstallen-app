@@ -61,6 +61,7 @@ export type ParkingDetailsType = {
     FMS: boolean,
     Beheerder: string,
     BeheerderContact: string,
+    BerekentStallingskosten: boolean,
     fietsenstalling_type: fietsenstallingtypen[],
     fietsenstalling_secties: ParkingSections,
     // abonnementen: abonnementsvorm_fietsenstalling[],

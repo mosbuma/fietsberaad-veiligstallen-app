@@ -1,45 +1,21 @@
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "@prisma/client";
 import { ReportContent } from "./types";
 import { ParkingDetailsType } from "~/types";
-import moment from "moment";
-import { formatOpeningTimes, formatOpeningToday } from "~/utils/parkings-openclose";
-import { createVeiligstallenOrgLink } from "~/utils/parkings";
+import { createVeiligstallenOrgOpwaardeerLink, createVeiligstallenOrgLink } from "~/utils/parkings";
 
-export const createOpeningTimesReport = async (fietsenstallingen: fietsenstallingen[], timestamp: moment.Moment, showData: boolean): Promise<ReportContent> => {
+export const createStallingtegoedReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean): Promise<ReportContent> => {
     const alwaysvisibleColumns = [
         "Title",
         "Plaats",
         "Type",
         "isNs",
-        "txt_ma",
-        "txt_di",
-        "txt_wo",
-        "txt_do",
-        "txt_vr",
-        "txt_za",
-        "txt_zo",
-        "txt_today"
+        "button_opwaarderen"
     ];
 
     const allColumns = [
         ...alwaysvisibleColumns,
-        "ID",
-        "Open_ma",
-        "Dicht_ma",
-        "Open_di",
-        "Dicht_di",
-        "Open_wo",
-        "Dicht_wo",
-        "Open_do",
-        "Dicht_do",
-        "Open_vr",
-        "Dicht_vr",
-        "Open_za",
-        "Dicht_za",
-        "Open_zo",
-        "Dicht_zo",
-        "Openingstijden",
-        "EditorCreated"
+        "link_url",
+        "BerekentStallingskosten",
     ];
 
     const hiddenColumns = showData ? [] : allColumns.filter(col => !alwaysvisibleColumns.includes(col));
@@ -56,6 +32,10 @@ export const createOpeningTimesReport = async (fietsenstallingen: fietsenstallin
                     action: async (data) => {
                         const stalling = fietsenstallingen.find((fs) => fs.ID === data.ID) as any as ParkingDetailsType;
                         const url = await createVeiligstallenOrgLink(stalling);
+                        if (url === "") {
+                            alert("Deze stalling kan niet worden opgewaardeerd");
+                            return;
+                        }
                         window.open(url, '_blank');
                     },
                     icon: (<svg
@@ -95,18 +75,42 @@ export const createOpeningTimesReport = async (fietsenstallingen: fietsenstallin
         },
     };
 
-    const formatUtcTime = (dbtime: Date | null) => {
-        if (null === dbtime) {
-            return "null"
-        } else {
-            return moment.utc(dbtime).format('HH:mm');
+    const getOpwaarderenButton = (key: string, url: string) => {
+        if (url === "") {
+            return null;
         }
+
+        return (
+            <button
+                key={'opw-' + key}
+                onClick={() => { window.open(url, '_blank') }}
+                className="flex items-center justify-center px-2 py-1 border border-gray-300 rounded"
+            >
+                <svg
+                    className="h-8 w-8"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path stroke="none" d="M0 0h24v24H0z" />
+                    <path d="M17.2 7a6 7 0 1 0 0 10" />
+                    <path d="M13 10h-8m0 4h8" />
+                </svg>
+            </button>)
     }
 
-    fietsenstallingen.forEach((fietsenstalling: fietsenstallingen) => {
+    for (const fietsenstalling of fietsenstallingen) {
+        // fietsenstallingen.forEach((fietsenstalling: fietsenstallingen) => {
         const parkingdata = fietsenstalling as any as ParkingDetailsType;
         const isNS = parkingdata.EditorCreated === "NS-connector"
-        const wkday = timestamp.day();
+
+        const url = createVeiligstallenOrgOpwaardeerLink(parkingdata, fietsenstallingen, contacts);
+        const toonOpwaarderen = url !== "";
 
         report.data.records.push({
             "ID": parkingdata.ID,
@@ -114,32 +118,11 @@ export const createOpeningTimesReport = async (fietsenstallingen: fietsenstallin
             "Plaats": parkingdata.Plaats,
             "Type": parkingdata.Type,
             "isNs": isNS ? "NS" : "",
-            "txt_ma": formatOpeningTimes(parkingdata, "ma", "Maandag", wkday === 1, isNS),
-            "txt_di": formatOpeningTimes(parkingdata, "di", "Dinsdag", wkday === 2, isNS),
-            "txt_wo": formatOpeningTimes(parkingdata, "wo", "Woensdag", wkday === 3, isNS),
-            "txt_do": formatOpeningTimes(parkingdata, "do", "Donderdag", wkday === 4, isNS),
-            "txt_vr": formatOpeningTimes(parkingdata, "vr", "Vrijdag", wkday === 5, isNS),
-            "txt_za": formatOpeningTimes(parkingdata, "za", "Zaterdag", wkday === 6, isNS),
-            "txt_zo": formatOpeningTimes(parkingdata, "zo", "Zondag", wkday === 0, isNS),
-            "txt_today": formatOpeningToday(parkingdata, timestamp).message,
-            "Open_ma": formatUtcTime(parkingdata.Open_ma),
-            "Dicht_ma": formatUtcTime(parkingdata.Dicht_ma),
-            "Open_di": formatUtcTime(parkingdata.Open_di),
-            "Dicht_di": formatUtcTime(parkingdata.Dicht_di),
-            "Open_wo": formatUtcTime(parkingdata.Open_wo),
-            "Dicht_wo": formatUtcTime(parkingdata.Dicht_wo),
-            "Open_do": formatUtcTime(parkingdata.Open_do),
-            "Dicht_do": formatUtcTime(parkingdata.Dicht_do),
-            "Open_vr": formatUtcTime(parkingdata.Open_vr),
-            "Dicht_vr": formatUtcTime(parkingdata.Dicht_vr),
-            "Open_za": formatUtcTime(parkingdata.Open_za),
-            "Dicht_za": formatUtcTime(parkingdata.Dicht_za),
-            "Open_zo": formatUtcTime(parkingdata.Open_zo),
-            "Dicht_zo": formatUtcTime(parkingdata.Dicht_zo),
-            "Openingstijden": parkingdata.Openingstijden,
-            "EditorCreated": parkingdata.EditorCreated,
+            "button_opwaarderen": toonOpwaarderen ? getOpwaarderenButton(parkingdata.ID, url) : null,
+            "link_url": toonOpwaarderen ? url : "",
+            "BerekentStallingskosten": parkingdata.BerekentStallingskosten ? "Stalling berekent kosten stallingstransacties" : "FMS berekent kosten stallingstransacties",
         });
-    });
+    };
 
     return report;
 }
