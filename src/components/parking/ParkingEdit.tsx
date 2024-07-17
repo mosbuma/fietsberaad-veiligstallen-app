@@ -763,7 +763,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const renderTabOpeningstijden = (visible: boolean = false) => {
     const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
-      console.log("set new opening", tijden, Openingstijden);
+      // console.log("set new opening", tijden, Openingstijden);
       setNewOpening(tijden);
       setNewOpeningstijden(Openingstijden);
       return;

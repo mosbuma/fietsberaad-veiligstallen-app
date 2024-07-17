@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type NextPage } from "next";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
 import {
   setIsParkingListVisible,
@@ -13,6 +14,7 @@ import {
   setActiveParkingId,
   setActiveMunicipalityInfo,
   setInitialLatLng,
+  setSelectedParkingId,
 } from "~/store/mapSlice";
 
 import { setQuery } from "~/store/filterSlice";
@@ -135,7 +137,9 @@ const Home: NextPage = ({
   useEffect(() => {
     // handle aanmelden sequence
     if (router.query.stallingid !== undefined && !Array.isArray(router.query.stallingid)) {
+      // Set active parking ID
       dispatch(setActiveParkingId(router.query.stallingid));
+      dispatch(setSelectedParkingId(router.query.stallingid));
     }
   }, [
     router.query,
@@ -164,7 +168,7 @@ const Home: NextPage = ({
     router.query.urlName
   ]);
 
-  // Get municipality theme info
+  // Get municipality theme info and set URL
   useEffect(() => {
     if (!activeMunicipality) return;
     if (!activeMunicipality.municipality) return;
@@ -174,7 +178,7 @@ const Home: NextPage = ({
       let cbsCode = cbsCodeFromMunicipality(activeMunicipality);
       if (cbsCode === false) {
         // no valid cbsCode for the current location
-        window.history.pushState({}, "", `/`);
+        updateUrl('root');
         return;
       }
 
@@ -182,18 +186,18 @@ const Home: NextPage = ({
       const municipalityInfo = await getMunicipalityBasedOnCbsCode(cbsCode);
       // Set municipality slug in URL
       if (mapZoom >= 12 && municipalityInfo && municipalityInfo.UrlName) {
-        window.history.pushState({}, "", `/${municipalityInfo.UrlName}`);
+        updateUrl('municipality', municipalityInfo.UrlName);
       }
       // If zoomed out, have just `/` as URL
       else {
-        window.history.pushState({}, "", `/`);
+        updateUrl('root');
       }
       // Set the municipality info in redux
       dispatch(setActiveMunicipalityInfo(municipalityInfo))
     })();
   }, [
     activeMunicipality
-  ])
+  ]);
 
   // Open municipality info modal
   let TO_showWelcomeModal: NodeJS.Timeout | undefined = undefined;
@@ -220,6 +224,18 @@ const Home: NextPage = ({
     activeMunicipalityInfo,
     initialLatLng
   ]);
+
+  const updateUrl = (to: string, path?: string) => {
+    // If activeParkingId is set: Don't update URL
+    if (activeParkingId) return;
+
+    if (to === 'root') {
+      window.history.pushState({}, "", `/`);
+    }
+    else if (to === 'municipality') {
+      window.history.pushState({}, "", `/${path}`);
+    }
+  }
 
   const isSm = typeof window !== "undefined" && window.innerWidth < 640;
   // const isLg = typeof window !== "undefined" && window.innerWidth < 768;
@@ -552,5 +568,10 @@ const Home: NextPage = ({
     </>
   );
 };
+
+export const metadata: Metadata = {
+  title: 'VeiligStallen',
+  description: 'Nederlandse fietsenstallingen op de kaart',
+}
 
 export default Home;

@@ -121,7 +121,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               </Button>
             </div >
             :
-            <div className="text-start col-span-3">
+            <div className="text-start col-span-3 -ml-2 -mr-2">
               Geen abonnementen beschikbaar
             </div>}
         </div>
