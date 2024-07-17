@@ -285,7 +285,7 @@ const Home: NextPage = ({
         <AppHeader onStallingAanmelden={handleStallingAanmelden} />
 
         {activeParkingId !== undefined && (
-          <Parking id={'parking-modal'} stallingId={activeParkingId} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
+          <Parking id={'parking-modal'} stallingId={activeParkingId} fietsenstallingen={fietsenstallingen} onStallingIdChanged={(newId) => { updateStallingId(newId) }} onClose={handleCloseParking} />
         )}
 
         <div

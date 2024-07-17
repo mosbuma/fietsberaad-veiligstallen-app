@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { AppState } from "~/store/store";
 
 import { type ParkingDetailsType } from "~/types/";
+import type { fietsenstallingen } from "@prisma/client";
+
 import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
 
 import Modal from "src/components/Modal";
@@ -11,7 +13,7 @@ import ParkingEdit from "~/components/parking/ParkingEdit";
 import ParkingView from "~/components/parking/ParkingView";
 import toast from 'react-hot-toast';
 
-const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string, stallingId: string | undefined, onStallingIdChanged: (newId: string | undefined) => void, onClose: () => void }) => {
+const Parking = ({ id, stallingId, fietsenstallingen, onStallingIdChanged, onClose }: { id: string, stallingId: string | undefined, fietsenstallingen: fietsenstallingen[], onStallingIdChanged: (newId: string | undefined) => void, onClose: () => void }) => {
   const session = useSession();
   // const router = useRouter();
 
@@ -85,7 +87,7 @@ const Parking = ({ id, stallingId, onStallingIdChanged, onClose }: { id: string,
   if (allowEdit === true && (editMode === true)) {
     content = (<ParkingEdit parkingdata={currentStalling} onClose={handleCloseEdit} onChange={handleUpdateRevision} />);
   } else {
-    content = (<ParkingView parkingdata={currentStalling} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} onToggleStatus={handleToggleStatus} isLoggedIn={session.status === "authenticated"} />);
+    content = (<ParkingView parkingdata={currentStalling} fietsenstallingen={fietsenstallingen} onEdit={allowEdit ? () => { setEditMode(true) } : undefined} onToggleStatus={handleToggleStatus} isLoggedIn={session.status === "authenticated"} />);
   }
 
   return (

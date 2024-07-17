@@ -228,21 +228,12 @@ export const createVeiligstallenOrgOpwaardeerLink = (parkingdata: ParkingDetails
   return visible ? `https://veiligstallen.nl/${municipality}/stallingstegoed` : '';
 }
 
-export const createVeiligstallenOrgOpwaardeerLinkForMunicipality = (municipality: string, fietsenstallingen: fietsenstallingen[], contacts: contacts[]): string => {
-  const thecontact = contacts.find((contact: contacts) => {
-    if (contact.Gemeentecode !== null) {
-      return `GM${contact.Gemeentecode.toString().padStart(4, '0')}` === municipality;
-    } else {
-      return false
-    }
-  })
-
-  if (thecontact === undefined) { return '' }
+export const createVeiligstallenOrgOpwaardeerLinkForMunicipality = (municipality: contacts, fietsenstallingen: fietsenstallingen[]): string => {
+  if (municipality === undefined) { return '' }
 
   // check if there are any parkings for this SiteID and BerekentStallingskosten === false -> yes? create URL
-  const others = fietsenstallingen.filter((fs) => (thecontact.ID === fs.SiteID) && (fs.BerekentStallingskosten === false));
+  const others = fietsenstallingen.filter((fs) => (municipality.ID === fs.SiteID) && (fs.BerekentStallingskosten === false));
+  const visible = others.length > 0
 
-  const visible = others.length > 0 && municipality !== ""
-
-  return visible ? `https://veiligstallen.nl/${municipality}/stallingstegoed` : '';
+  return visible ? `https://veiligstallen.nl/${municipality.UrlName}/stallingstegoed` : '';
 }

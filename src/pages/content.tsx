@@ -235,7 +235,9 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
           title={currentStalling.Title || ""}
           onClose={() => setCurrentStallingId(undefined)}
         >
-          <Parking id={'parking-' + currentStallingId} stallingId={currentStalling.ID}
+          <Parking id={'parking-' + currentStallingId}
+            stallingId={currentStalling.ID}
+            fietsenstallingen={fietsenstallingen}
             onStallingIdChanged={setCurrentStallingId}
             onClose={() => setCurrentStallingId(undefined)}
           />
@@ -252,6 +254,7 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
             stallingId={fietsenstallingen.find((stalling: any) => {
               return stalling.ID === currentStallingId;
             }).ID}
+            fietsenstallingen={fietsenstallingen}
             onStallingIdChanged={setCurrentStallingId}
             onClose={() => setCurrentStallingId(undefined)}
 

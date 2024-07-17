@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { openRoute } from "~/utils/map/index";
 import { useRouter } from "next/navigation";
@@ -18,19 +18,59 @@ import ParkingViewBeheerder from "~/components/parking/ParkingViewBeheerder";
 import ParkingViewServices from "~/components/parking/ParkingViewServices";
 
 import { type ParkingDetailsType } from "~/types/";
-import { createVeiligstallenOrgLink } from "~/utils/parkings";
+import type { fietsenstallingen, contacts } from "@prisma/client";
+import { createVeiligstallenOrgOpwaardeerLinkForMunicipality } from "~/utils/parkings";
+
+
+import { getMunicipalities } from "~/utils/municipality";
+import { useDispatch, useSelector } from "react-redux";
+import { setMunicipalities } from "~/store/geoSlice";
+import type { AppState } from "~/store/store";
 
 const ParkingView = ({
   parkingdata,
+  fietsenstallingen,
   onEdit = undefined,
   onToggleStatus = undefined,
   isLoggedIn,
 }: {
   parkingdata: ParkingDetailsType;
+  fietsenstallingen: fietsenstallingen[];
   onEdit: Function | undefined;
   onToggleStatus: Function | undefined;
   isLoggedIn: boolean;
 }) => {
+  const [urlOpwaarderen, setUrlOpwaarderen] = useState<string>("");
+  const dispatch = useDispatch();
+
+  const municipalities = useSelector(
+    (state: AppState) => state.geo.municipalities
+  );
+
+  useEffect(() => {
+    // Don't ask the API if we have all municipalities already
+    if (municipalities && municipalities.length > 0) {
+      return;
+    }
+    (async () => {
+      const response = await getMunicipalities();
+      dispatch(setMunicipalities(response));
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!municipalities) {
+      setUrlOpwaarderen("");
+      return;
+    }
+
+    const municipality = municipalities.find((m: contacts) => m.ID === parkingdata.SiteID) as any as contacts | undefined;
+    if (municipality) {
+      const url = createVeiligstallenOrgOpwaardeerLinkForMunicipality(municipality, fietsenstallingen);
+      setUrlOpwaarderen(url);
+    }
+  }, [municipalities, parkingdata, fietsenstallingen]);
+
   const renderAddress = () => {
     const location = parkingdata.Location || "";
     const pcplaats = (
@@ -87,16 +127,10 @@ const ParkingView = ({
     key="b-opwaarderen"
     className="mt-3 text-center flex-shrink"
     onClick={() => {
-      const doIt = async () => {
-        const url = await createVeiligstallenOrgLink(parkingdata);
-        if (url === "") {
-          alert("Deze stalling kan niet worden opgewaardeerd");
-          return;
-        }
-        window.open(url, '_blank');
+      if (urlOpwaarderen === "") {
+        return;
       }
-
-      doIt();
+      window.open(urlOpwaarderen, '_blank');
     }}
   >
     Stallingstegoed<br ></br>opwaarderen
@@ -172,7 +206,7 @@ const ParkingView = ({
           <SectionBlock heading="Soort stalling">
             <div className="flex flex-col">
               {parkingdata.Type || "Onbekend"}
-              {buttonOpwaarderen}
+              {urlOpwaarderen !== "" ? buttonOpwaarderen : null}
             </div>
           </SectionBlock>
 

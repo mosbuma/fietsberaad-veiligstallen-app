@@ -1,7 +1,7 @@
 import type { fietsenstallingen, contacts } from "@prisma/client";
 import { ReportContent } from "./types";
 import { ParkingDetailsType } from "~/types";
-import { createVeiligstallenOrgOpwaardeerLink, createVeiligstallenOrgLink } from "~/utils/parkings";
+import { createVeiligstallenOrgOpwaardeerLinkForMunicipality, createVeiligstallenOrgLink } from "~/utils/parkings";
 
 export const createStallingtegoedReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean): Promise<ReportContent> => {
     const alwaysvisibleColumns = [
@@ -15,6 +15,7 @@ export const createStallingtegoedReport = async (fietsenstallingen: fietsenstall
     const allColumns = [
         ...alwaysvisibleColumns,
         "link_url",
+        "UrlName",
         "BerekentStallingskosten",
     ];
 
@@ -109,7 +110,9 @@ export const createStallingtegoedReport = async (fietsenstallingen: fietsenstall
         const parkingdata = fietsenstalling as any as ParkingDetailsType;
         const isNS = parkingdata.EditorCreated === "NS-connector"
 
-        const url = createVeiligstallenOrgOpwaardeerLink(parkingdata, fietsenstallingen, contacts);
+
+        const municipality: contacts = contacts.find((c: contacts) => c.ID === parkingdata.SiteID) as any as contacts;
+        let url = municipality ? createVeiligstallenOrgOpwaardeerLinkForMunicipality(municipality, fietsenstallingen) : "";
         const toonOpwaarderen = url !== "";
 
         report.data.records.push({
@@ -120,6 +123,7 @@ export const createStallingtegoedReport = async (fietsenstallingen: fietsenstall
             "isNs": isNS ? "NS" : "",
             "button_opwaarderen": toonOpwaarderen ? getOpwaarderenButton(parkingdata.ID, url) : null,
             "link_url": toonOpwaarderen ? url : "",
+            "UrlName": municipality ? municipality.UrlName : "",
             "BerekentStallingskosten": parkingdata.BerekentStallingskosten ? "Stalling berekent kosten stallingstransacties" : "FMS berekent kosten stallingstransacties",
         });
     };

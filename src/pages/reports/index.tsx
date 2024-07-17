@@ -3,10 +3,11 @@ import { NextPage } from "next/types";
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "@prisma/client";
 import moment from "moment";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
+import { getMunicipalities } from "~/utils/municipality";
 
 import ReportTable from "~/utils/reports/report-table";
 import { noReport, type ReportContent } from "~/utils/reports/types";
@@ -109,6 +110,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const [contacts, setContacts] = useState<any | undefined>(undefined);
+    const [municipalities, setMunicipalities] = useState<any | contacts>(undefined);
 
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -136,8 +138,8 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
 
     useEffect(() => {
         const go = async () => {
-            const response = await fetch(`/api/contacts`);
-            setContacts(await response.json());
+            const response = await getMunicipalities();
+            setContacts(response);
         };
 
         go();
@@ -164,7 +166,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
                         return createFixBadDataReport(filtered, contacts, showData);
                     });
                     break;
-                case 'stallingtegoed':
+                case 'stallingstegoed':
                     launchReport((filtered: any): Promise<ReportContent> => {
                         return createStallingtegoedReport(filtered, contacts, showData);
                     });
@@ -228,7 +230,7 @@ const Report: NextPage = ({ fietsenstallingen }: any) => {
                         <option value="" disabled>Select Report</option>
                         <option value="openclose">Open/Closing times</option>
                         <option value="baddata">Test for Bad Data</option>
-                        <option value="stallingtegoed">Stallingtegoed</option>
+                        <option value="stallingstegoed">Stallingstegoed</option>
                         {/* Add more options as needed */}
                     </select>
 
