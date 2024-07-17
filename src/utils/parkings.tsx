@@ -1,10 +1,9 @@
 import React from "react";
 import { Session } from "next-auth";
 import { reverseGeocode } from "~/utils/nomatim";
+import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
-import {
-  type fietsenstallingen,
-} from "@prisma/client";
+import type { fietsenstallingen, contacts } from "@prisma/client";
 import type { ParkingDetailsType, DayPrefix } from "~/types/";
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
@@ -186,4 +185,64 @@ export const getNewStallingDefaultRecord = async (Status: string, latlong?: stri
   return data
 }
 
-export default generateRandomId;
+export const createVeiligstallenOrgLink = async (parkingdata: ParkingDetailsType): Promise<string> => {
+  let url = '';
+  if (parkingdata.EditorCreated === "NS-connector") {
+    url = `https://www.veiligstallen.nl/ns/stallingen/${parkingdata.StallingsID}#${parkingdata.StallingsID}`
+  } else {
+    if (!parkingdata.Coordinaten || parkingdata.Coordinaten === "") {
+      // no municipality available
+      return ""
+    }
+    const stallingMunicipalty = await getMunicipalityBasedOnLatLng(parkingdata.Coordinaten.split(","));
+    if (stallingMunicipalty) {
+      switch (parkingdata.Type) {
+        case "fietskluizen":
+          url = `https://veiligstallen.nl/${stallingMunicipalty.name}/fietskluizen/${parkingdata.StallingsID}`;
+          break;
+        case "fietstrommel":
+          url = `https://veiligstallen.nl/${stallingMunicipalty.name}/fietstrommels/${parkingdata.StallingsID}`;
+          break;
+        case "buurtstalling":
+          url = `https://veiligstallen.nl/${stallingMunicipalty.name}/buurtstallingen/${parkingdata.StallingsID}`;
+          break;
+        default:
+          url = `https://veiligstallen.nl/${stallingMunicipalty.name}/stallingen/${parkingdata.StallingsID}#${parkingdata.StallingsID}`;
+          break;
+      }
+    }
+  }
+
+  return url;
+}
+
+export const createVeiligstallenOrgOpwaardeerLink = (parkingdata: ParkingDetailsType, fietsenstallingen: fietsenstallingen[], contacts: contacts[]): string => {
+  const thecontact = contacts.find((contact) => contact.ID === parkingdata.SiteID);
+  let municipality = thecontact?.UrlName || ""; // gemeente as used in veiligstallen url
+
+  // check if there are any parkings for this SiteID and BerekentStallingskosten === false -> yes? create URL
+  const others = fietsenstallingen.filter((fs) => (parkingdata.SiteID === fs.SiteID) && (fs.BerekentStallingskosten === false));
+
+  const visible = others.length > 0 && municipality !== ""
+
+  return visible ? `https://veiligstallen.nl/${municipality}/stallingstegoed` : '';
+}
+
+export const createVeiligstallenOrgOpwaardeerLinkForMunicipality = (municipality: string, fietsenstallingen: fietsenstallingen[], contacts: contacts[]): string => {
+  const thecontact = contacts.find((contact: contacts) => {
+    if (contact.Gemeentecode !== null) {
+      return `GM${contact.Gemeentecode.toString().padStart(4, '0')}` === municipality;
+    } else {
+      return false
+    }
+  })
+
+  if (thecontact === undefined) { return '' }
+
+  // check if there are any parkings for this SiteID and BerekentStallingskosten === false -> yes? create URL
+  const others = fietsenstallingen.filter((fs) => (thecontact.ID === fs.SiteID) && (fs.BerekentStallingskosten === false));
+
+  const visible = others.length > 0 && municipality !== ""
+
+  return visible ? `https://veiligstallen.nl/${municipality}/stallingstegoed` : '';
+}
