@@ -1,6 +1,6 @@
 # notes for database import / introspection in prisma
 
-## create script (create-db.sh)
+## create script (setup-db.sh)
 
 - removes the existing database and docker container
 - creates a new docker container running mysql

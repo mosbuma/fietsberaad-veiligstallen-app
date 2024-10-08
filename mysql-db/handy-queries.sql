@@ -26,3 +26,15 @@ WHERE fs.ID="0066B68F-6F95-4C42-BACF7B44C50FA061"
 group by fs.ID
 having count(fss.sectieId)>1
 order by fs.Plaats, fs.Title
+
+
+CREATE USER 'veiligstallen_read'@'localhost' IDENTIFIED BY 'xxxxxx';
+GRANT SELECT ON veiligstallen.* TO 'veiligstallen_read'@'localhost';
+
+CREATE USER 'veiligstallen_readwrite'@'localhost' IDENTIFIED BY 'xxxxx';
+GRANT ALL PRIVILEGES ON veiligstallen.* TO 'veiligstallen_readwrite'@'localhost';
+
+FLUSH PRIVILEGES;
+
+ALTER USER 'veiligstallen_readwrite'@'localhost' IDENTIFIED WITH 'caching_sha2_password' BY 'xxxxx';
+FLUSH PRIVILEGES;
