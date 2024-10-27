@@ -179,6 +179,25 @@ And update the TABLES_ALL variable to hold only the tables that need to be resto
 TABLES_ALL="transacties emails" 
 ````
 
+## working on the prisma schema in a structure only database
+
+Create a copy of the database that does not contain any data (for fast delete/restore of the db during development)
+
+set databasename in .env to veiligstallenprisma -> otherwise it will overwrite the test database
+
+(user access has been set-up already for veiligstallenprisma, if you use another database name you will get instructions for setting up the read and readwrite user)
+
+````
+bash mysqldb-veiligstallen.work/restore-veiligstallenwork.sh
+````
+
+select yes to overwrite/restore structure, no to restore data
+
+
+
+
+
+
 ## References
 * https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04
 * https://www.digitalocean.com/community/tutorials/how-to-move-a-mysql-data-directory-to-a-new-location-on-ubuntu-20-04
