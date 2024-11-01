@@ -82,7 +82,7 @@ const Home: NextPage = ({ fietsenstallingen }: any) => {
       <main>
         <AppHeaderDesktop />
 
-        <ParkingFacilities />
+        <ParkingFacilities fietsenstallingen={fietsenstallingen} />
 
         <div
           className="
