@@ -1,17 +1,38 @@
 // Mock implementations of User and Council interfaces
-import { User, Council, Exploitant } from '../components/beheer/LeftMenu';
+
+export type newModule = 'articles' | 'faq' | 'contacts' | 'producten' | 'reports' | 'logboek' | 'users' | 'permits' | 'barcodereeksen' | 'apis' | 'abonnementen';
+
+export type newUserRole = 'intern_admin' | 'extern_admin' | 'extern_redacteur' | 'exploitantbeheerder' | 'dataanalist' | 'beheerder' | 'user' | 'exploitant' | 'admin' | 'intern_editor' | 'root';
+
+export type newUserRight = 'gemeente' | 'website' | 'locaties' | 'fietskluizen' | 'buurtstallingen' | 'abonnementen' | 'documenten' | 'fietsenwin' | 'diashow' | 'accounts' | 'rapportages' | 'externalApis' | 'permits' | 'sleutelhangerreeksen' | 'registranten' | 'users';
+
+export interface User {
+  displayName: string;
+  role: newUserRole;
+  hasRight: (right: newUserRight) => boolean;
+  getRole: () => newUserRole;
+}
+
+export interface Council {
+  hasModule: (moduleName: string) => boolean;
+  hasSubscriptionType: () => boolean;
+  getID: () => string;
+  getCompanyName: () => string;
+}
+export interface Exploitant {
+  getCompanyName: () => string;
+}
+
 
 export const mockUser: User = {
     displayName: 'John Doe',
     role: 'admin',
-    realRole: 'admin',
     hasRight: (right: string) => {
       // Implement your logic to check user rights
       const rights = ['permits', 'users', 'report'];
       return rights.includes(right);
     },
     getRole: () => 'admin',
-    getRealRole: () => 'admin',
   };
   
   export const mockCouncil: Council = {

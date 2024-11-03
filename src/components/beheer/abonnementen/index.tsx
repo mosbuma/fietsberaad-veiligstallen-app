@@ -1,7 +1,11 @@
 import { useRouter } from 'next/router';
 import React from 'react';
 
-const AbonnementenComponent: React.FC = () => {
+interface AbonnementenComponentProps {
+  type: 'abonnementen' | 'abonnementsvormen';
+}
+
+const AbonnementenComponent: React.FC<AbonnementenComponentProps> = ({ type }) => {
   const router = useRouter();
   const { ...query } = router.query;
 

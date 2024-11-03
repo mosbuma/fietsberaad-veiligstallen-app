@@ -1,7 +1,11 @@
 import { useRouter } from 'next/router';
 import React from 'react';
 
-const FietsenstallingenComponent: React.FC = () => {
+interface FietsenstallingenComponentProps {
+  type: 'fietsenstallingen' | 'fietskluizen' | 'buurtstallingen';
+}
+
+const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({ type }) => {
   const router = useRouter();
   const { ...query } = router.query;
 

@@ -3,40 +3,34 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { mockUser, mockCouncil, mockExploitant } from '../../utils/mock';
+import { mockUser, mockCouncil, mockExploitant, User, Council, Exploitant,newUserRole, newUserRight, newModule } from '../../utils/mock';
 
-import HomeComponent from './home';
-import SettingsComponent from './settings';
+import AbonnementenComponent from './abonnementen';
+import AccountsComponent from './accounts';
+import ApisComponent from './apis';
 import ArticlesComponent from './articles';
-import FaqComponent from './faq';
+import BarcodereeksenComponent from './barcodereeksen';
 import ContactsComponent from './contacts';
+import DocumentsComponent from './documenten';
+import FaqComponent from './faq';
+import HomeComponent from './home';
+import LogboekComponent from './logboek';
+import ParkingComponent from './fietsenstallingen';
+import PermitsComponent from './permits';
+import PresentationsComponent from './presentations';
 import ProductsComponent from './producten';
 import ReportComponent from './reports/';
-import LogboekComponent from './logboek';
+import SettingsComponent from './settings';
+import TrekkingenComponent from './trekkingen';
 import UsersComponent from './users';
-import PermitsComponent from './permits';
-import BarcodereeksenComponent from './barcodereeksen';
-import ApisComponent from './apis';
-// Define interfaces for props
-export type newModule = 'articles' | 'faq' | 'contacts' | 'producten' | 'reports' | 'logboek' | 'users' | 'permits' | 'barcodereeksen' | 'apis';
 
-export type newUserRole = 'intern_admin' | 'extern_admin' | 'extern_redacteur' | 'exploitantbeheerder' | 'dataanalist';
+/* Prompts 
 
-export type newUserRight = 'gemeente' | 'website' | 'locaties' | 'fietskluizen' | 'buurtstallingen' | 'abonnementen' | 'documenten' | 'fietsenwin' | 'diashow' | 'accounts' | 'rapportages' | 'externalApis' | 'permits' | 'sleutelhangerreeksen';
+can you create a table that lists the meny entries  and subentries in both renderXXXUserMenu functions, followed by columns "used in internal menu", "used in external menu", "for roles", "for rights"
 
-export interface User {
-  displayName: string;
-  role: newUserRole;
-  hasRight: (right: newUserRight) => boolean;
-  getRole: () => newUserRole;
-}
+can you check if all entries in this coldfusion menu are present in the converted menu in leftmenu?
 
-export interface Council {
-  hasModule: (moduleName: string) => boolean;
-  hasSubscriptionType: () => boolean;
-  getID: () => string;
-  getCompanyName: () => string;
-}
+*/
 
 interface LeftMenuProps {
   user: User;
@@ -44,10 +38,6 @@ interface LeftMenuProps {
   siteID?: string;
   exploitant?: { getCompanyName: () => string };
   onSelect: (component: React.ReactNode) => void;
-}
-
-export interface Exploitant {
-  getCompanyName: () => string;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
@@ -83,7 +73,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       { formatLi(<HomeComponent />, 'Home') }
       { formatLi(<SettingsComponent />, 'Instellingen') }
 
-      {hasRole('intern_admin') && 
+      {(hasRole('intern_editor') || hasRole('intern_admin') || hasRole('root')) &&
         formatLi(<ArticlesComponent type="articles" />, 'Site beheer', true, false,
           <ul className="ml-4 mt-1">
             { formatLi(<ArticlesComponent type="pages" />, 'Paginabeheer', isSelected('articles'), true) }
@@ -135,404 +125,115 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     return (
 <>
           {/* Home */}
-          <li className="mb-2">
-            <Link
-              href="#"
-              onClick={() => onSelect(<HomeComponent />)}
-              className="block px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Home
-            </Link>
-          </li>
+          { formatLi(<HomeComponent />, 'Home') }
 
           {/* Gegevens gemeente */}
           {hasRight('gemeente') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/contacts', query: { ...query, itemID: siteID } }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('contacts') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Gegevens gemeente
-              </Link>
-            </li>
+            formatLi(<ContactsComponent />, 'Gegevens gemeente', isSelected('contacts'), false)
           )}
 
           {/* Website Beheer */}
           {hasRight('website') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/articles', query }}
-                className={`block px-4 py-2 rounded ${
-                  ['articles', 'faq', 'testimonials'].includes(query.module as string)
-                    ? 'bg-blue-500'
-                    : 'hover:bg-blue-700'
-                }`}
-              >
-                Website beheer
-              </Link>
+            formatLi(<ArticlesComponent  type="pages"/>, 'Website beheer', ['articles', 'faq', 'testimonials'].includes(query.module as string), false,
               <ul className="ml-4 mt-1">
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/articles', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('articles') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Paginabeheer
-                  </Link>
-                </li>
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/faq', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('faq') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    FAQ
-                  </Link>
-                </li>
+                { formatLi(<ArticlesComponent type="pages" />, 'Paginabeheer', isSelected('articles'), true)}
+                { formatLi(<FaqComponent />, 'FAQ', isSelected('faq'), true)}
               </ul>
-            </li>
+            )
           )}
 
           {/* Locatie Stallingen */}
           {hasRight('locaties') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/fietsenstallingen', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('fietsenstallingen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Locatie stallingen
-              </Link>
-            </li>
+            formatLi(<ParkingComponent type="fietsenstallingen"/>, 'Locatie stallingen', isSelected('fietsenstallingen'), false)
           )}
 
           {/* Status Chipkluizen */}
           {council.hasModule('fietskluizen') && hasRight('fietskluizen') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/fietskluizen', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('fietskluizen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Status chipkluizen
-              </Link>
-            </li>
+            formatLi(<ParkingComponent type="fietskluizen"/>, 'Status chipkluizen', isSelected('fietskluizen'), false)
           )}
 
           {/* Buurtstallingen / Fietstrommels */}
           {council.hasModule('buurtstallingen') && hasRight('buurtstallingen') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/buurtstallingen', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('buurtstallingen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Buurtstallingen / fietstrommels
-              </Link>
-            </li>
+            formatLi(<ParkingComponent type="buurtstallingen"/>, 'Buurtstallingen / fietstrommels', isSelected('buurtstallingen'), false)
           )}
 
           {/* Abonnementen */}
           {(council.getID() === '1' ||
             (council.hasModule('abonnementen') && hasRight('abonnementen'))) && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/abonnementen', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('abonnementen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Abonnementen
-              </Link>
+              formatLi(<AbonnementenComponent type="abonnementen"/>, 'Abonnementen', isSelected('abonnementen'), false,
               <ul className="ml-4 mt-1">
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/abonnementen', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('abonnementen', undefined, 'abonnementsvormen')
-                        ? 'bg-blue-500'
-                        : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Abonnementsvormen
-                  </Link>
-                </li>
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/abonnementen', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('abonnementen', undefined, 'abonnementen')
-                        ? 'bg-blue-500'
-                        : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Abonnementen
-                  </Link>
-                </li>
+                { formatLi(<AbonnementenComponent type="abonnementsvormen"/>, 'Abonnementsvormen', isSelected('abonnementen', undefined, 'abonnementsvormen'), true)}
+                { formatLi(<AbonnementenComponent type="abonnementen"/>, 'Abonnementen', isSelected('abonnementen', undefined, 'abonnementen'), true)}
               </ul>
-            </li>
-          )}
+          ))}
 
           {/* Documenten */}
           {council.hasModule('documenten') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/documenten', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('documenten') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Documenten
-              </Link>
-            </li>
+            formatLi(<DocumentsComponent />, 'Documenten', isSelected('documenten'), false)
           )}
 
           {/* Trekkingen & Prijzen */}
           {council.hasModule('fietsenwin') && hasRight('fietsenwin') && (
             <>
               {(user.getRole().includes('root') || user.getRole().includes('admin')) ? (
-                <li className="mb-2">
-                  <Link
-                    href={{ pathname: '/beheer/trekkingen', query }}
-                    className={`block px-4 py-2 rounded ${
-                      ['trekkingen', 'prijzen'].includes(query.module as string)
-                        ? 'bg-blue-500'
-                        : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Trekkingen &amp; Prijzen
-                  </Link>
+                formatLi(<TrekkingenComponent type="trekkingen" />, 'Trekkingen &amp; Prijzen', ['trekkingen', 'prijzen'].includes(query.module as string), false,
                   <ul className="ml-4 mt-1">
-                    <li className="mb-1">
-                      <Link
-                        href={{ pathname: '/beheer/trekkingen', query }}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('trekkingen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Trekkingen
-                      </Link>
-                    </li>
-                    <li className="mb-1">
-                      <Link
-                        href={{ pathname: '/beheer/prijzen', query }}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('prijzen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Prijzen
-                      </Link>
-                    </li>
+                    { formatLi(<TrekkingenComponent type="trekkingen" />, 'Trekkingen', isSelected('trekkingen'), true)}
+                    { formatLi(<TrekkingenComponent type="prijzen" />, 'Prijzen', isSelected('prijzen'), true)}
                   </ul>
-                </li>
+                )
               ) : (
-                <li className="mb-2">
-                  <Link
-                    href={{ pathname: '/beheer/prijzen', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('prijzen') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Prijzen
-                  </Link>
-                </li>
+                formatLi(<TrekkingenComponent type="prijzen" />, 'Prijzen', isSelected('prijzen'), false)
               )}
             </>
           )}
 
-          {/* Diashow */}
           {user.getRole() !== 'exploitant' && hasRight('diashow') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/presentations', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('presentations') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Diashow
-              </Link>
-            </li>
+            formatLi(<PresentationsComponent />, 'Diashow', isSelected('presentations'), false)
           )}
 
-          {/* Registranten */}
           {council.hasModule('fms') && hasRight('registranten') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/accounts', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('accounts') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Registranten
-              </Link>
-            </li>
+            formatLi(<AccountsComponent />, 'Registranten', isSelected('accounts'), false)
           )}
 
-          {/* Rapportages */}
           {council.hasModule('fms') && hasRight('rapportages') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/reports', query }}
-                className={`block px-4 py-2 rounded ${
-                  ['reports', 'logboek'].includes(query.module as string)
-                    ? 'bg-blue-500'
-                    : 'hover:bg-blue-700'
-                }`}
-              >
-                Rapportages
-              </Link>
-              <ul className="ml-4 mt-1">
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/reports', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('reports') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Rapportage
-                  </Link>
-                </li>
-                <li className="mb-1">
-                  <Link
-                    href={{ pathname: '/beheer/logboek', query }}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('logboek') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Logboek
-                  </Link>
-                </li>
+            formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportages', ['reports', 'logboek'].includes(query.module as string), false,
+             <ul className="ml-4 mt-1">
+              { formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportage', isSelected('reports'), true)}
+                formatLi(<LogboekComponent />, 'Logboek', isSelected('logboek'), true)
               </ul>
-            </li>
-          )}
+          ))}
 
-          {/* Gebruikersbeheer (Admin Only) */}
           {hasRight('users') && (
             <>
-              {user.getRealRole() === 'exploitant' ? (
-                <li className="mb-2">
-                  <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                    className={`block px-4 py-2 rounded ${
-                      isSelected('users', 'exploitant') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    Gebruikersbeheer
-                  </Link>
+              {user.getRole() === 'exploitant' ? (
+                formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'exploitant'), false,
                   <ul className="ml-4 mt-1">
                     {user.getRole().includes('admin') && (
-                      <li className="mb-1">
-                        <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                          className={`block px-4 py-2 rounded ${
-                            isSelected('users', 'user') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                          }`}
-                        >
-                          Gebruikers {council.getCompanyName()}
-                        </Link>
-                      </li>
+                      formatLi(<UsersComponent />, 'Gebruikers {council.getCompanyName()}', isSelected('users', 'user'), true)
                     )}
-                    <li className="mb-1">
-                      <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('users', 'exploitant') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Gebruikers {exploitant?.getCompanyName()}
-                      </Link>
-                    </li>
-                    <li className="mb-1">
-                      <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent type="beheerder"/>)}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('users', 'beheerder') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Beheerders
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
+                    {formatLi(<UsersComponent />, `Gebruikers ${exploitant?.getCompanyName()}`, isSelected('users', 'exploitant'), true)}
+                    {formatLi(<UsersComponent type="beheerder"/>, 'Beheerders', isSelected('users', 'beheerder'), true)}
+                  </ul>)
               ) : (
                 <>
                   {(user.getRole().includes('root') || user.getRole().includes('admin')) && (
-                    <li className="mb-2">
-                      <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('users', 'user') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Gebruikersbeheer
-                      </Link>
-                    </li>
+                    formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'user'), false)
                   )}
                   {user.getRole() === 'exploitant' && (
-                    <li className="mb-2">
-                      <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                        className={`block px-4 py-2 rounded ${
-                          isSelected('users', 'exploitant') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                        }`}
-                      >
-                        Gebruikersbeheer
-                      </Link>
+                    formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'exploitant'), false,
                       <ul className="ml-4 mt-1">
-                        <li className="mb-1">
-                          <Link
-                  href="#"
-                  onClick={() => onSelect(<UsersComponent />)}
-                            className={`block px-4 py-2 rounded ${
-                              isSelected('users', 'exploitant') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                            }`}
-                          >
-                            Administrators
-                          </Link>
-                        </li>
-                        <li className="mb-1">
-                          <Link
-                            href={{ pathname: '/beheer/users', query }}
-                            className={`block px-4 py-2 rounded ${
-                              isSelected('users', 'beheerder') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                            }`}
-                          >
-                            Beheerders
-                          </Link>
-                        </li>
+                      { formatLi(<UsersComponent />, 'Administrators', isSelected('users', 'exploitant'), true) }
+                      { formatLi(<UsersComponent type="beheerder"/>, 'Beheerders', isSelected('users', 'beheerder'), true) }
                       </ul>
-                    </li>
-                  )}
+                  ))}
                 </>
               )}
             </>
           )}
 
-          {/* Toegang FMSservice */}
           {council.hasModule('fms') && hasRight('permits') && (
-            <li className="mb-2">
-              <Link
-                href={{ pathname: '/beheer/permits', query }}
-                className={`block px-4 py-2 rounded ${
-                  isSelected('permits', 'permissions') ? 'bg-blue-500' : 'hover:bg-blue-700'
-                }`}
-              >
-                Toegang fmsservice
-              </Link>
-            </li>
+            formatLi(<PermitsComponent />, 'Toegang fmsservice', isSelected('permits', 'permissions'), false)
           )}
         </>)
   }
