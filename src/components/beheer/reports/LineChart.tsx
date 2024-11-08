@@ -1,106 +1,51 @@
+"use client";
+
 import dynamic from 'next/dynamic'
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });// https://stackoverflow.com/a/68844119
+// const ApexCharts: any = dynamic(() => import('react-apexcharts'), { ssr: false });// https://stackoverflow.com/a/70010953
+// https://github.com/apexcharts/react-apexcharts/issues/526#issuecomment-1735973058
 
-const LineChart = () => {
+// After state change of parent component, the graph data is gone.
+// I tried: https://github.com/apexcharts/react-apexcharts/issues/180
+
+const LineChart = ({
+  options,
+  series,
+  type,
+  style
+}: {
+  options: object,
+  series: Array<any>,
+  type: 'line',
+  style?: object
+}) => {
+  const [chartData, setChartData] = useState<{
+    options?: object,
+    series?: Array<any>
+  }>({})
+
   useEffect(() => {
-
-  }, []);
-
-  const chart_data = {
-    options: {
-      chart: {
-        id: "line-chart",
-        zoom: {
-          enabled: true
-        },
-        toolbar: {
-          show: true
-        }
-      },
-      // colors: ['#77B6EA', '#545454'],
-      dataLabels: {
-        enabled: false,
-      },
-      stroke: {
-        // curve: 'smooth'
-      },
-      title: {
-        text: 'Aantal afgeronde transacties per dag',
-        align: 'left'
-      },
-      grid: {
-        borderColor: '#e7e7e7',
-        row: {
-          colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-          opacity: 0.5
-        },
-      },
-      markers: {
-        // size: 1
-      },
-      xaxis: {
-        categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
-        title: {
-          text: 'Weekdag',
-          align: 'left'
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'Aantal afgeronde transacties'
-        },
-        // min: 5,
-        // max: 40
-      },
-      legend: {
-        position: 'right',
-        horizontalAlign: 'center',
-        // floating: true,
-        offsetY: 25,
-        // offsetX: -5
-      }
-    },
-    series: [
-      {
-        name: "Concordiastraat",
-        data: [40, 17, 348, 0, 5, 129, 12]
-      },
-      {
-        name: "Turfschip",
-        data: [43, 20, 327, 0, 1, 134, 11]
-      },
-      {
-        name: "Oude Vest",
-        data: [63, 23, 504, 6, 7, 130, 13]
-      },
-      {
-        name: "Nieuwstraat",
-        data: [100, 44, 768, 7, 13, 232, 36]
-      },
-      {
-        name: "Haven",
-        data: [99, 42, 876, 9, 15, 207, 50]
-      },
-    ]
-  };
+    setChartData({
+      options: options,
+      series: series
+    });
+  }, [
+    // options,
+    // series
+  ]);
 
   return (
-    <div className="app">
-      <div className="row">
-        <div className="mixed-chart">
-          <Chart
-            options={chart_data.options}
-            series={chart_data.series}
-            type="line"
-            width="100%"
-            height="500"
-          />
-        </div>
-      </div>
+    <div>
+      <Chart
+        options={chartData.options}
+        series={chartData.series}
+        type={type}
+        height={360 + Math.floor(Math.random() * 2) + 1}
+      />
     </div>
-  );
+  )
 }
 
 export default LineChart;
