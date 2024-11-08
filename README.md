@@ -8,27 +8,13 @@ This is the code repository of the VeiligStallen frontend app. The codebase uses
 
 Run: `npm install`
 
-Make sure that Docker is installed and working
+### Configure .env file
 
-### Fill in database credentials in the .env file
+Fill in database credentials in the .env file:
 
-Make sure that you have filled in the database config in the .env file. In example:
+DATABASE_URL=mysql://UNAME:PASSWD@127.0.0.1:5555/veiligstallen
 
-    DATABASE_URL="mysql://root:safepark99@localhost:3308/veiligstallen"
-    PORT=3308
-    PASSWD=safepark99
-
-Make sure that you have filled in a Mapbox key in the .env.local file
-
-### Setup database
-
-Next, setup the database:
-
-```bash
-npm run setup-db
-```
-
-This above command creates a Docker container with MySQL loaded with the VeiligStallen test database. The prisma ORM model is recreated automatically.
+Fill in a Mapbox key in the .env.local file.
 
 ### Create key for nextauth
 
@@ -40,9 +26,9 @@ Add the key in `.env`, as value for `NEXTAUTH_SECRET`
 
 ## Running the app
 
-Make sure the database is running:
+Make sure the database tunnel is active:
 
-    npm run start-db
+     ./scripts/launch-ssh-tunnel.sh
 
 For development purposes:
 
@@ -94,3 +80,9 @@ NOTE: Na elke `npm run setup-db` moet schema.prisma worden gerevert.
 `npx prisma generate` daarna: dat maakt de classes in de app op basis van het schema.
 
 (als ik geen setup-db meer doet, blijft alles hetzelfde)
+
+--
+
+Als na pull er prisma errors zijn, dan doe:
+- npx prisma generate
+- npm i
