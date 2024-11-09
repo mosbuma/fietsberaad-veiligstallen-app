@@ -26,7 +26,7 @@ Add the key in `.env`, as value for `NEXTAUTH_SECRET`
 
 ## Running the app
 
-Make sure the database tunnel is active:
+Make sure that a connection to the database is available (by opening an ssh tunnel to the development database server @veiligstallen.work):
 
      ./scripts/launch-ssh-tunnel.sh
 
@@ -47,7 +47,6 @@ Deployment is configured like this:
 
 - Op de testserver wordt een pull van de repository gedaan, daarna een npm build
 - De app wordt gedraaid met de pm2 taakmanager
-- Op de achtergrond draait altijd een Docker container voor de database
 
 ## Exporting postgresql table as MySQL compatible statements
 

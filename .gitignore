@@ -59,3 +59,6 @@ mysql-db/export-db.zip
 
 #auto generated test scripts
 create-test-user.sql
+
+#temporary files
+/broncode

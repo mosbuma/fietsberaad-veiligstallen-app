@@ -2,247 +2,255 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { ReportBikeparks } from './reports/ReportsFilter';
 
-import { mockUser, mockCouncil, mockExploitant, User, Council, Exploitant,newUserRole, newUserRight, newModule } from '../../utils/mock';
+import { User, Council, newUserRole, newUserRight } from '../../utils/mock';
 
-import AbonnementenComponent from './abonnementen';
-import AccountsComponent from './accounts';
-import ApisComponent from './apis';
-import ArticlesComponent from './articles';
-import BarcodereeksenComponent from './barcodereeksen';
-import ContactsComponent from './contacts';
-import DocumentsComponent from './documenten';
-import FaqComponent from './faq';
-import HomeComponent from './home';
-import LogboekComponent from './logboek';
-import ParkingComponent from './fietsenstallingen';
-import PermitsComponent from './permits';
-import PresentationsComponent from './presentations';
-import ProductsComponent from './producten';
-import ReportComponent from './reports/';
-import SettingsComponent from './settings';
-import TrekkingenComponent from './trekkingen';
-import UsersComponent from './users';
-
-/* Prompts 
-
-can you create a table that lists the meny entries  and subentries in both renderXXXUserMenu functions, followed by columns "used in internal menu", "used in external menu", "for roles", "for rights"
-
-can you check if all entries in this coldfusion menu are present in the converted menu in leftmenu?
-
-*/
+export enum AvailableComponents {
+  abonnementen = "abonnementen",
+  abonnementsvormen = "abonnementsvormen",
+  accounts = "accounts",
+  apisgekoppeldelocaties = "apis-gekoppelde-locaties",
+  apisoverzicht = "apis-overzicht",
+  articlesabonnementen = "articles-abonnementen",
+  articlesarticles = "articles-articles",
+  articlesbuurtstallingen = "articles-buurtstallingen",
+  articlesfietskluizen = "articles-fietskluizen",
+  articlespages = "articles-pages",
+  barcodereeksenuitgiftebarcodes = "barcodereeksen-uitgifte-barcodes",
+  barcodereeksensleutelhangers = "barcodereeksen-sleutelhangers",
+  barcodereeksenfietsstickers = "barcodereeksen-fietsstickers",
+  contacts = "contacts",
+  documents = "documents",
+  faq = "faq",
+  home = "home",
+  logboek = "logboek",
+  fietsenstallingen = "fietsenstallingen",
+  fietskluizen = "fietskluizen",
+  buurtstallingen = "buurtstallingen",
+  permits = "permits",
+  presentations = "presentations",
+  products = "products",
+  report = "report",
+  settings = "settings",
+  trekkingen = "trekkingen",
+  trekkingenprijzen = "trekkingenprijzen",
+  usersgebruikersbeheer = "users-gebruikersbeheer",
+  usersexploitanten = "users-exploitanten",
+  usersbeheerders = "users-beheerders"
+}
 
 interface LeftMenuProps {
   user: User;
   council: Council;
-  siteID?: string;
   exploitant?: { getCompanyName: () => string };
-  onSelect: (component: React.ReactNode) => void;
+  bikeparks: ReportBikeparks;
+  activecomponent: AvailableComponents;
+  onSelect: (component: AvailableComponents) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
   user,
   council,
-  siteID,
   exploitant,
+  bikeparks,
+  activecomponent,
   onSelect,
 }) => {
-  const router = useRouter();
-  const { query } = router;
+  // const router = useRouter();
+  // const { query } = router;
 
-  // Utility functions
-  const hasRole = (role: newUserRole) => user.getRole() === role;
-  const hasRight = (right: newUserRight) => user.hasRight(right)||true; /* TODO: remove - for testing, all users have all rights */
-  const isSelected = (module: string, processEntity?: string, view?: string) => {
-    if (query.module !== module) return false;
-    if (processEntity && query.processEntity !== processEntity) return false;
-    if (view && query.view !== view) return false;
-    return true;
-  };
-
-  const formatLi = (component: React.ReactNode, title: string, isSelected: boolean = false, compact: boolean = false, children?: React.ReactNode) => {
-    return <li className={compact?'mb-2':'mb-1'}>
-      <Link href="#" onClick={() => onSelect(component)} className={`block px-4 py-2 rounded ${isSelected?"bg-blue-500":"hover:bg-blue-700"}`}>{title}</Link>
-      {children}
-    </li>
-  }  
-
-  const renderInternalUserMenu = () => {
-    return (
-      <>
-      { formatLi(<HomeComponent />, 'Home') }
-      { formatLi(<SettingsComponent />, 'Instellingen') }
-
-      {(hasRole('intern_editor') || hasRole('intern_admin') || hasRole('root')) &&
-        formatLi(<ArticlesComponent type="articles" />, 'Site beheer', true, false,
-          <ul className="ml-4 mt-1">
-            { formatLi(<ArticlesComponent type="pages" />, 'Paginabeheer', isSelected('articles'), true) }
-            { formatLi(<FaqComponent />, 'FAQ', isSelected('faq'), true) }
-          </ul>)
-      }
-
-      { formatLi(<ContactsComponent />, 'Gemeenten', isSelected('contacts')) }
-      { formatLi(<ProductsComponent />, 'Opwaardeerproducten', isSelected('producten')) }
-
-      {formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportages', ['reports', 'logboek'].includes(query.module as string), false,
-        <ul className="ml-4 mt-1">
-          {formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportage', isSelected('reports'), true)}
-          {formatLi(<LogboekComponent />, 'Logboek', isSelected('logboek'), true)}
-      </ul>      
-    )}
-
-      {/* Gebruikersbeheer (Admin Only) */}
-      {(user.getRole().includes('root') || user.getRole().includes('admin')) && (
-        <>
-          {formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'user')) }
-          {formatLi(<UsersComponent />, 'Exploitanten', isSelected('users', 'exploitant')) }
-          {hasRight('permits') && formatLi(<PermitsComponent />, 'Dataleveranciers', isSelected('permits')) }
-        </>
-      )}
-
-      {/* Uitgifte Barcodes */}
-      {hasRight('sleutelhangerreeksen') && (
-        formatLi(<BarcodereeksenComponent type="uitgifte-barcodes" />, 'Uitgifte barcodes', isSelected('barcodereeksen', 'uitgifte-barcodes'), false,
-          <ul className="ml-4 mt-1">
-            {formatLi(<BarcodereeksenComponent type="sleutelhangers" />, 'Sleutelhangers', isSelected('barcodereeksen', 'sleutelhangers'), true)}
-            {formatLi(<BarcodereeksenComponent type="fietsstickers" />, 'Fietsstickers', isSelected('barcodereeksen', 'stickers'), true)}
-          </ul>)
-        )}
-
-      {/* Externe APIs */}
-      {hasRight('externalApis') && (
-        formatLi(<ApisComponent />, 'Externe API\'s', isSelected('apis'), false,
-          <ul className="ml-4 mt-1">
-            { formatLi(<ApisComponent />, 'Overzicht API\'s', isSelected('apis', 'apis'), true) }
-            { formatLi(<ApisComponent />, 'Gekoppelde locaties', isSelected('apis', 'locations'), true) }
-          </ul>
-      ))}
-    </>)
-  }
-
-  /* TODO: convert to formatLi */
-  const renderExternalUserMenu = () => {
-    return (
-<>
-          {/* Home */}
-          { formatLi(<HomeComponent />, 'Home') }
-
-          {/* Gegevens gemeente */}
-          {hasRight('gemeente') && (
-            formatLi(<ContactsComponent />, 'Gegevens gemeente', isSelected('contacts'), false)
-          )}
-
-          {/* Website Beheer */}
-          {hasRight('website') && (
-            formatLi(<ArticlesComponent  type="pages"/>, 'Website beheer', ['articles', 'faq', 'testimonials'].includes(query.module as string), false,
-              <ul className="ml-4 mt-1">
-                { formatLi(<ArticlesComponent type="pages" />, 'Paginabeheer', isSelected('articles'), true)}
-                { formatLi(<FaqComponent />, 'FAQ', isSelected('faq'), true)}
-              </ul>
-            )
-          )}
-
-          {/* Locatie Stallingen */}
-          {hasRight('locaties') && (
-            formatLi(<ParkingComponent type="fietsenstallingen"/>, 'Locatie stallingen', isSelected('fietsenstallingen'), false)
-          )}
-
-          {/* Status Chipkluizen */}
-          {council.hasModule('fietskluizen') && hasRight('fietskluizen') && (
-            formatLi(<ParkingComponent type="fietskluizen"/>, 'Status chipkluizen', isSelected('fietskluizen'), false)
-          )}
-
-          {/* Buurtstallingen / Fietstrommels */}
-          {council.hasModule('buurtstallingen') && hasRight('buurtstallingen') && (
-            formatLi(<ParkingComponent type="buurtstallingen"/>, 'Buurtstallingen / fietstrommels', isSelected('buurtstallingen'), false)
-          )}
-
-          {/* Abonnementen */}
-          {(council.getID() === '1' ||
-            (council.hasModule('abonnementen') && hasRight('abonnementen'))) && (
-              formatLi(<AbonnementenComponent type="abonnementen"/>, 'Abonnementen', isSelected('abonnementen'), false,
-              <ul className="ml-4 mt-1">
-                { formatLi(<AbonnementenComponent type="abonnementsvormen"/>, 'Abonnementsvormen', isSelected('abonnementen', undefined, 'abonnementsvormen'), true)}
-                { formatLi(<AbonnementenComponent type="abonnementen"/>, 'Abonnementen', isSelected('abonnementen', undefined, 'abonnementen'), true)}
-              </ul>
-          ))}
-
-          {/* Documenten */}
-          {council.hasModule('documenten') && (
-            formatLi(<DocumentsComponent />, 'Documenten', isSelected('documenten'), false)
-          )}
-
-          {/* Trekkingen & Prijzen */}
-          {council.hasModule('fietsenwin') && hasRight('fietsenwin') && (
-            <>
-              {(user.getRole().includes('root') || user.getRole().includes('admin')) ? (
-                formatLi(<TrekkingenComponent type="trekkingen" />, 'Trekkingen &amp; Prijzen', ['trekkingen', 'prijzen'].includes(query.module as string), false,
-                  <ul className="ml-4 mt-1">
-                    { formatLi(<TrekkingenComponent type="trekkingen" />, 'Trekkingen', isSelected('trekkingen'), true)}
-                    { formatLi(<TrekkingenComponent type="prijzen" />, 'Prijzen', isSelected('prijzen'), true)}
-                  </ul>
-                )
-              ) : (
-                formatLi(<TrekkingenComponent type="prijzen" />, 'Prijzen', isSelected('prijzen'), false)
-              )}
-            </>
-          )}
-
-          {user.getRole() !== 'exploitant' && hasRight('diashow') && (
-            formatLi(<PresentationsComponent />, 'Diashow', isSelected('presentations'), false)
-          )}
-
-          {council.hasModule('fms') && hasRight('registranten') && (
-            formatLi(<AccountsComponent />, 'Registranten', isSelected('accounts'), false)
-          )}
-
-          {council.hasModule('fms') && hasRight('rapportages') && (
-            formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportages', ['reports', 'logboek'].includes(query.module as string), false,
-             <ul className="ml-4 mt-1">
-              { formatLi(<ReportComponent siteID={1} council={mockCouncil} report="fietskluizen" subscriptionTypes={[]} dateFirstTransactions={new Date()} limitSelectDate={new Date()} jaar={2024} maanden={[]} bikeparks={[]} onSubmit={() => {}} />, 'Rapportage', isSelected('reports'), true)}
-                formatLi(<LogboekComponent />, 'Logboek', isSelected('logboek'), true)
-              </ul>
-          ))}
-
-          {hasRight('users') && (
-            <>
-              {user.getRole() === 'exploitant' ? (
-                formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'exploitant'), false,
-                  <ul className="ml-4 mt-1">
-                    {user.getRole().includes('admin') && (
-                      formatLi(<UsersComponent />, 'Gebruikers {council.getCompanyName()}', isSelected('users', 'user'), true)
-                    )}
-                    {formatLi(<UsersComponent />, `Gebruikers ${exploitant?.getCompanyName()}`, isSelected('users', 'exploitant'), true)}
-                    {formatLi(<UsersComponent type="beheerder"/>, 'Beheerders', isSelected('users', 'beheerder'), true)}
-                  </ul>)
-              ) : (
-                <>
-                  {(user.getRole().includes('root') || user.getRole().includes('admin')) && (
-                    formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'user'), false)
-                  )}
-                  {user.getRole() === 'exploitant' && (
-                    formatLi(<UsersComponent />, 'Gebruikersbeheer', isSelected('users', 'exploitant'), false,
-                      <ul className="ml-4 mt-1">
-                      { formatLi(<UsersComponent />, 'Administrators', isSelected('users', 'exploitant'), true) }
-                      { formatLi(<UsersComponent type="beheerder"/>, 'Beheerders', isSelected('users', 'beheerder'), true) }
-                      </ul>
-                  ))}
-                </>
-              )}
-            </>
-          )}
-
-          {council.hasModule('fms') && hasRight('permits') && (
-            formatLi(<PermitsComponent />, 'Toegang fmsservice', isSelected('permits', 'permissions'), false)
-          )}
-        </>)
-  }
-  
   // Get current date and time
   const now = new Date();
   const formattedDate = now.toLocaleDateString('en-GB'); // dd/mm/yyyy
   const formattedTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
+
+  // Utility functions
+  const hasRole = (role: newUserRole) => user.getRole() === role;
+  const hasRight = (right: newUserRight) => user.hasRight(right)||true; /* TODO: remove - for testing, all users have all rights */
+
+  const formatLi = (component: AvailableComponents | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
+    const isSelected = component === activecomponent;
+    return <li className={compact?'mb-2':'mb-1'}>
+      <Link href="#" onClick={() => component && onSelect(component)} className={`block px-4 py-2 rounded ${isSelected?"bg-blue-500":"hover:bg-blue-700"}`}>{title}</Link>
+      {children}
+    </li>
+  }  
+
+  const renderInternalUserMenu = () => {
+    const showSiteBeheer = hasRole('intern_editor') || hasRole('intern_admin') || hasRole('root');
+    const showAdminOnly = user.getRole().includes('root') || user.getRole().includes('admin');
+    const showUitgifteBarcodes = hasRight('sleutelhangerreeksen');
+    const showExterneApis = hasRight('externalApis');
+    const showDataleveranciers = hasRight('permits');
+
+    return (
+      <>
+        { formatLi(AvailableComponents.home,  'Home') }
+        { formatLi(AvailableComponents.settings, 'Instellingen') }
+
+        {showSiteBeheer &&
+          formatLi(false, 'Site beheer', false,
+            <ul className="ml-4 mt-1">
+              { formatLi(AvailableComponents.articlespages, 'Paginabeheer', true) }
+              { formatLi(AvailableComponents.faq, 'FAQ', true) }
+            </ul>)
+        }
+
+        { formatLi(AvailableComponents.contacts, 'Gemeenten', ) }
+        { formatLi(AvailableComponents.products, 'Opwaardeerproducten', ) }
+
+        {formatLi(false, 'Rapportages', false,
+          <ul className="ml-4 mt-1">
+            {formatLi(AvailableComponents.report, 'Rapportage', true)}
+            {formatLi(AvailableComponents.logboek, 'Logboek', true)}
+          </ul>      
+        )}
+
+        {showAdminOnly && (
+          <>
+            {formatLi(AvailableComponents.usersgebruikersbeheer, 'Gebruikersbeheer', ) }
+            {formatLi(AvailableComponents.usersexploitanten, 'Exploitanten', ) }
+            {showDataleveranciers && formatLi(AvailableComponents.permits, 'Dataleveranciers', ) }
+          </>
+        )}
+
+        {showUitgifteBarcodes && (
+          formatLi(false, 'Uitgifte barcodes', false,
+            <ul className="ml-4 mt-1">
+              {formatLi(AvailableComponents.barcodereeksenuitgiftebarcodes, 'Uitgifte Barcodes', true)}
+              {formatLi(AvailableComponents.barcodereeksensleutelhangers, 'Sleutelhangers', true)}
+              {formatLi(AvailableComponents.barcodereeksenfietsstickers, 'Fietsstickers', true)}
+            </ul>)
+          )}
+
+        {showExterneApis && (
+          formatLi(false, 'Externe API\'s', false,
+            <ul className="ml-4 mt-1">
+              { formatLi(AvailableComponents.apisoverzicht, 'Overzicht API\'s', true) }
+              { formatLi(AvailableComponents.apisgekoppeldelocaties, 'Gekoppelde locaties', true) }
+            </ul>
+        ))}
+      </>)
+  }
+
+  const renderExternalUserMenu = () => {
+    const showGegevensGemeente = hasRight('gemeente');
+    const showWebsiteBeheer = hasRight('website');
+    const showLocatieStallingen = hasRight('locaties');
+    const showStatusChipkluizen = council.hasModule('fietskluizen') && hasRight('fietskluizen');
+    const showBuurtstallingen = council.hasModule('buurtstallingen') && hasRight('buurtstallingen');
+    const showAbonnementen = council.getID() === '1' || (council.hasModule('abonnementen') && hasRight('abonnementen'));
+    const showDocumenten = council.hasModule('documenten');
+    const showTrekkingenPrijzen = council.hasModule('fietsenwin') && hasRight('fietsenwin');
+    const showTrekkingenInTrekkingenPrijzen = (user.getRole().includes('root') || user.getRole().includes('admin'))
+    const showDiashow = user.getRole() !== 'exploitant' && hasRight('diashow');
+    const showRegistranten = council.hasModule('fms') && hasRight('registranten');
+    const showRapporages = council.hasModule('fms') && hasRight('rapportages');
+    const showUsers = hasRight('users');
+    const showToegangFmsservice = council.hasModule('fms') && hasRight('permits');
+    const showGebruikersBeheerUitgebreid = user.getRole() === 'exploitant'
+    const showGebruikersBeheerUitgebreidGemeente = user.getRole().includes('admin');
+    const showAbonnementenRapporten = true;
+
+    return (
+      <>
+        { formatLi(AvailableComponents.home,  'Home') }
+
+        {showGegevensGemeente && (
+          formatLi(AvailableComponents.contacts, 'Gegevens gemeente', false)
+        )}
+
+        {showWebsiteBeheer && (
+          formatLi(AvailableComponents.articlespages, 'Website beheer', false,
+            <ul className="ml-4 mt-1">
+              { formatLi(AvailableComponents.articlespages, 'Paginabeheer', true)}
+              { formatLi(AvailableComponents.faq, 'FAQ', true)}
+            </ul>
+          )
+        )}
+
+        {showLocatieStallingen && (
+          formatLi(AvailableComponents.fietsenstallingen, 'Locatie stallingen', false)
+        )}
+
+        {showStatusChipkluizen && (
+          formatLi(AvailableComponents.fietskluizen, 'Status chipkluizen', false)
+        )}
+
+        {showBuurtstallingen && (
+          formatLi(AvailableComponents.buurtstallingen, 'Buurtstallingen / fietstrommels', false)
+        )}
+
+        {showAbonnementen && (
+          formatLi(false, 'Abonnementen', false,
+          <ul className="ml-4 mt-1">
+            { formatLi(AvailableComponents.abonnementsvormen, 'Abonnementsvormen', true)}
+            { formatLi(AvailableComponents.abonnementen, 'Abonnementen', true)}
+          </ul>
+        ))}
+
+        {showDocumenten && (
+          formatLi(AvailableComponents.documents, 'Documenten', false)
+        )}
+
+        {showTrekkingenPrijzen && (
+          <>
+            { showTrekkingenInTrekkingenPrijzen ? (
+              formatLi(false, 'Trekkingen &amp; Prijzen', false,
+                <ul className="ml-4 mt-1">
+                  { formatLi(AvailableComponents.trekkingen, 'Trekkingen', true)}
+                  { formatLi(AvailableComponents.trekkingenprijzen, 'Prijzen', true)}
+                </ul>
+              )
+            ) : (
+              formatLi(AvailableComponents.trekkingenprijzen, 'Prijzen', false)
+            )}
+          </>
+        )}
+
+        {showDiashow && (
+          formatLi(AvailableComponents.presentations, 'Diashow', false)
+        )}
+
+        {showRegistranten && (
+          formatLi(AvailableComponents.accounts, 'Registranten', false)
+        )}
+
+        {showRapporages && (
+          formatLi(false, 'Rapportages', false, 
+           <ul className="ml-4 mt-1">
+            { formatLi(AvailableComponents.report, 'Rapportage', true)}
+            { formatLi(AvailableComponents.logboek, 'Logboek', true) }
+            </ul>
+        ))}
+
+        {showUsers && (
+          <>
+            {showGebruikersBeheerUitgebreid && (
+              formatLi(false, 'Gebruikersbeheer', false,
+                <ul className="ml-4 mt-1">
+                  { showGebruikersBeheerUitgebreidGemeente && (
+                    formatLi(AvailableComponents.usersgebruikersbeheer, `Gebruikers ${council.getCompanyName()}`, true)
+                  )}
+                  {formatLi(AvailableComponents.usersexploitanten, `Gebruikers ${exploitant?.getCompanyName()}`, true)}
+                  {formatLi(AvailableComponents.usersbeheerders, 'Beheerders', true)}
+                </ul>)
+            )}
+            {!showGebruikersBeheerUitgebreid && (
+              formatLi(AvailableComponents.usersgebruikersbeheer, 'Gebruikersbeheer', false)
+            )}
+          </>
+        )}
+
+        {showToegangFmsservice && (
+          formatLi(AvailableComponents.permits, 'Toegang fmsservice', false)
+        )}
+      </>
+    )
+  }
+  
   return (
     <ul id="leftMenu" className="bg-gray-800 text-white w-64 min-h-screen p-4">
       <li id="userinfo" className="mb-6">
