@@ -782,6 +782,7 @@ model fietsenstallingen {
     freeHoursReservation       Decimal?                     @db.Decimal(8, 2)
     thirdPartyReservationsUrl  String?                      @db.VarChar(255)
     fietsenstallingen_services fietsenstallingen_services[]
+    transacties_archief transacties_archief[]
     // fmsservice_permit          fmsservice_permit[]
 
     fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
@@ -1362,6 +1363,8 @@ model transacties_archief {
     exploitantid    String?                           @db.VarChar(35)
     modified        DateTime                          @default(now()) @db.Timestamp(0)
     created         DateTime                          @default(now()) @db.Timestamp(0)
+
+    fietsenstallingen fietsenstallingen? @relation(fields: [locationid], references: [StallingsID])
 
     @@index([biketypeid], map: "biketypeid")
     @@index([checkindate], map: "checkindate")
@@ -1960,21 +1963,21 @@ enum security_roles_GroupID {
 //     COMPLETED
 // }
 
-// enum transacties_archief_checkintype {
-//     user
-//     controle
-//     system
-//     sync
-//     reservation
-// }
+enum transacties_archief_checkintype {
+    user
+    controle
+    system
+    sync
+    reservation
+}
 
-// enum transacties_archief_checkouttype {
-//     user
-//     controle
-//     system
-//     sync
-//     reservation
-// }
+enum transacties_archief_checkouttype {
+    user
+    controle
+    system
+    sync
+    reservation
+}
 
 // enum ds_survey_areas_status {
 //     akkoord
