@@ -1341,41 +1341,41 @@ model services {
 //     @@index([dateModified], map: "dateModified")
 // }
 
-// model transacties_archief {
-//     ID              Int                               @id @default(autoincrement())
-//     citycode        String                            @db.VarChar(4)
-//     locationid      String                            @db.VarChar(8)
-//     sectionid       String                            @db.VarChar(13)
-//     sectionid_out   String?                           @db.VarChar(13)
-//     placeid         Int?
-//     externalplaceid String?                           @db.VarChar(100)
-//     checkindate     DateTime                          @db.DateTime(0)
-//     checkoutdate    DateTime?                         @db.DateTime(0)
-//     checkintype     transacties_archief_checkintype
-//     checkouttype    transacties_archief_checkouttype?
-//     daybeginsat     DateTime                          @db.Time(0)
-//     reservationtime Int?
-//     price           Decimal                           @default(0.00) @db.Decimal(8, 2)
-//     clienttypeid    Int
-//     biketypeid      Int
-//     source          String?                           @db.VarChar(35)
-//     exploitantid    String?                           @db.VarChar(35)
-//     modified        DateTime                          @default(now()) @db.Timestamp(0)
-//     created         DateTime                          @default(now()) @db.Timestamp(0)
+model transacties_archief {
+    ID              Int                               @id @default(autoincrement())
+    citycode        String                            @db.VarChar(4)
+    locationid      String                            @db.VarChar(8)
+    sectionid       String                            @db.VarChar(13)
+    sectionid_out   String?                           @db.VarChar(13)
+    placeid         Int?
+    externalplaceid String?                           @db.VarChar(100)
+    checkindate     DateTime                          @db.DateTime(0)
+    checkoutdate    DateTime?                         @db.DateTime(0)
+    checkintype     transacties_archief_checkintype
+    checkouttype    transacties_archief_checkouttype?
+    daybeginsat     DateTime                          @db.Time(0)
+    reservationtime Int?
+    price           Decimal                           @default(0.00) @db.Decimal(8, 2)
+    clienttypeid    Int
+    biketypeid      Int
+    source          String?                           @db.VarChar(35)
+    exploitantid    String?                           @db.VarChar(35)
+    modified        DateTime                          @default(now()) @db.Timestamp(0)
+    created         DateTime                          @default(now()) @db.Timestamp(0)
 
-//     @@index([biketypeid], map: "biketypeid")
-//     @@index([checkindate], map: "checkindate")
-//     @@index([checkoutdate], map: "checkoutdate")
-//     @@index([citycode], map: "citycode")
-//     @@index([clienttypeid], map: "clienttypeid")
-//     @@index([exploitantid], map: "exploitantid")
-//     @@index([locationid], map: "locationid")
-//     @@index([sectionid], map: "sectionid")
-//     @@index([source], map: "source")
-//     @@index([citycode, locationid, checkoutdate, sectionid], map: "idx_citycode_locationid_checkoutdate")
-//     @@index([modified], map: "modified")
-//     @@index([placeid], map: "placeid")
-// }
+    @@index([biketypeid], map: "biketypeid")
+    @@index([checkindate], map: "checkindate")
+    @@index([checkoutdate], map: "checkoutdate")
+    @@index([citycode], map: "citycode")
+    @@index([clienttypeid], map: "clienttypeid")
+    @@index([exploitantid], map: "exploitantid")
+    @@index([locationid], map: "locationid")
+    @@index([sectionid], map: "sectionid")
+    @@index([source], map: "source")
+    @@index([citycode, locationid, checkoutdate, sectionid], map: "idx_citycode_locationid_checkoutdate")
+    @@index([modified], map: "modified")
+    @@index([placeid], map: "placeid")
+}
 
 // model transacties_archief_tmp {
 //     ID              Int                                   @id
