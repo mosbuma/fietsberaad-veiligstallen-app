@@ -1,0 +1,1 @@
+kill $(ps aux | grep '[s]sh -f -N -L 5555:localhost:3306' | awk '{print $2}')
