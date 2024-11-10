@@ -6,54 +6,90 @@ import { ReportBikeparks } from './reports/ReportsFilter';
 
 import { User, Council, newUserRole, newUserRight } from '../../utils/mock';
 
-export enum AvailableComponents {
-  abonnementen = "abonnementen",
-  abonnementsvormen = "abonnementsvormen",
-  accounts = "accounts",
-  apisgekoppeldelocaties = "apis-gekoppelde-locaties",
-  apisoverzicht = "apis-overzicht",
-  articlesabonnementen = "articles-abonnementen",
-  articlesarticles = "articles-articles",
-  articlesbuurtstallingen = "articles-buurtstallingen",
-  articlesfietskluizen = "articles-fietskluizen",
-  articlespages = "articles-pages",
-  barcodereeksenuitgiftebarcodes = "barcodereeksen-uitgifte-barcodes",
-  barcodereeksensleutelhangers = "barcodereeksen-sleutelhangers",
-  barcodereeksenfietsstickers = "barcodereeksen-fietsstickers",
-  contacts = "contacts",
-  documents = "documents",
-  faq = "faq",
-  home = "home",
-  logboek = "logboek",
-  fietsenstallingen = "fietsenstallingen",
-  fietskluizen = "fietskluizen",
-  buurtstallingen = "buurtstallingen",
-  permits = "permits",
-  presentations = "presentations",
-  products = "products",
-  report = "report",
-  settings = "settings",
-  trekkingen = "trekkingen",
-  trekkingenprijzen = "trekkingenprijzen",
-  usersgebruikersbeheer = "users-gebruikersbeheer",
-  usersexploitanten = "users-exploitanten",
-  usersbeheerders = "users-beheerders"
-}
+export type AvailableComponents =
+  | "abonnementen"
+  | "abonnementsvormen"
+  | "accounts"
+  | "apis-gekoppelde-locaties"
+  | "apis-overzicht"
+  | "articles-abonnementen"
+  | "articles-articles"
+  | "articles-buurtstallingen"
+  | "articles-fietskluizen"
+  | "articles-pages"
+  | "barcodereeksen-uitgifte-barcodes"
+  | "barcodereeksen-sleutelhangers"
+  | "barcodereeksen-fietsstickers"
+  | "contacts"
+  | "documents"
+  | "faq"
+  | "home"
+  | "logboek"
+  | "fietsenstallingen"
+  | "fietskluizen"
+  | "buurtstallingen"
+  | "permits"
+  | "presentations"
+  | "products"
+  | "report"
+  | "settings"
+  | "trekkingen"
+  | "trekkingenprijzen"
+  | "users-gebruikersbeheer"
+  | "users-exploitanten"
+  | "users-beheerders";
+
 
 interface LeftMenuProps {
   user: User;
   council: Council;
   exploitant?: { getCompanyName: () => string };
-  bikeparks: ReportBikeparks;
-  activecomponent: AvailableComponents;
+  activecomponent: AvailableComponents | undefined;
   onSelect: (component: AvailableComponents) => void;
+}
+
+export const isAvailableComponent = (value: string): boolean  => {
+  const allcomponents = [
+    "abonnementen",
+    "abonnementsvormen",
+    "accounts",
+    "apis-gekoppelde-locaties",
+    "apis-overzicht",
+    "articles-abonnementen",
+    "articles-articles",
+    "articles-buurtstallingen",
+    "articles-fietskluizen",
+    "articles-pages",
+    "barcodereeksen-uitgifte-barcodes",
+    "barcodereeksen-sleutelhangers",
+    "barcodereeksen-fietsstickers",
+    "contacts",
+    "documents",
+    "faq",
+    "home",
+    "logboek",
+    "fietsenstallingen",
+    "fietskluizen",
+    "buurtstallingen",
+    "permits",
+    "presentations",
+    "products",
+    "report",
+    "settings",
+    "trekkingen",
+    "trekkingenprijzen",
+    "users-gebruikersbeheer",
+    "users-exploitanten",
+    "users-beheerders",
+  ];
+  
+  return allcomponents.includes(value);
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
   user,
   council,
   exploitant,
-  bikeparks,
   activecomponent,
   onSelect,
 }) => {
@@ -72,10 +108,23 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
   const formatLi = (component: AvailableComponents | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
-    return <li className={compact?'mb-2':'mb-1'}>
-      <Link href="#" onClick={() => component && onSelect(component)} className={`block px-4 py-2 rounded ${isSelected?"bg-blue-500":"hover:bg-blue-700"}`}>{title}</Link>
-      {children}
-    </li>
+    const className = `block px-4 py-2 rounded ${isSelected ? "bg-blue-500" : "hover:bg-blue-700"}`;
+    const classNamePassive = `block px-4 py-2 rounded`;
+
+    return (
+      <li className={compact ? 'mb-2' : 'mb-1'}>
+        {component ? (
+          <Link href="#" onClick={(e) => { e.preventDefault(); onSelect(component) }} className={className}>
+            {title}
+          </Link>
+        ) : (
+          <Link href="#" onClick={(e) => { e.preventDefault() }} className={classNamePassive}>
+            {title}
+          </Link>
+        )}
+        {children}
+      </li>
+    );
   }  
 
   const renderInternalUserMenu = () => {
@@ -87,49 +136,49 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        { formatLi(AvailableComponents.home,  'Home') }
-        { formatLi(AvailableComponents.settings, 'Instellingen') }
+        { formatLi("home",  'Home') }
+        { formatLi("settings", 'Instellingen') }
 
         {showSiteBeheer &&
           formatLi(false, 'Site beheer', false,
             <ul className="ml-4 mt-1">
-              { formatLi(AvailableComponents.articlespages, 'Paginabeheer', true) }
-              { formatLi(AvailableComponents.faq, 'FAQ', true) }
+              { formatLi("articles-pages", 'Paginabeheer', true) }
+              { formatLi("faq", 'FAQ', true) }
             </ul>)
         }
 
-        { formatLi(AvailableComponents.contacts, 'Gemeenten', ) }
-        { formatLi(AvailableComponents.products, 'Opwaardeerproducten', ) }
+        { formatLi("contacts", 'Gemeenten', ) }
+        { formatLi("products", 'Opwaardeerproducten', ) }
 
         {formatLi(false, 'Rapportages', false,
           <ul className="ml-4 mt-1">
-            {formatLi(AvailableComponents.report, 'Rapportage', true)}
-            {formatLi(AvailableComponents.logboek, 'Logboek', true)}
+            {formatLi("report", 'Rapportage', true)}
+            {formatLi("logboek", 'Logboek', true)}
           </ul>      
         )}
 
         {showAdminOnly && (
           <>
-            {formatLi(AvailableComponents.usersgebruikersbeheer, 'Gebruikersbeheer', ) }
-            {formatLi(AvailableComponents.usersexploitanten, 'Exploitanten', ) }
-            {showDataleveranciers && formatLi(AvailableComponents.permits, 'Dataleveranciers', ) }
+            {formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false) }
+            {formatLi("users-exploitanten", 'Exploitanten', false) }
+            {showDataleveranciers && formatLi("permits", 'Dataleveranciers', false) }
           </>
         )}
 
         {showUitgifteBarcodes && (
-          formatLi(false, 'Uitgifte barcodes', false,
+          formatLi(false, 'Barcodes', false,
             <ul className="ml-4 mt-1">
-              {formatLi(AvailableComponents.barcodereeksenuitgiftebarcodes, 'Uitgifte Barcodes', true)}
-              {formatLi(AvailableComponents.barcodereeksensleutelhangers, 'Sleutelhangers', true)}
-              {formatLi(AvailableComponents.barcodereeksenfietsstickers, 'Fietsstickers', true)}
+              {formatLi("barcodereeksen-uitgifte-barcodes", 'Uitgifte Barcodes', true)}
+              {formatLi("barcodereeksen-sleutelhangers", 'Sleutelhangers', true)}
+              {formatLi("barcodereeksen-fietsstickers", 'Fietsstickers', true)}
             </ul>)
           )}
 
         {showExterneApis && (
           formatLi(false, 'Externe API\'s', false,
             <ul className="ml-4 mt-1">
-              { formatLi(AvailableComponents.apisoverzicht, 'Overzicht API\'s', true) }
-              { formatLi(AvailableComponents.apisgekoppeldelocaties, 'Gekoppelde locaties', true) }
+              { formatLi("apis-overzicht", 'Overzicht API\'s', true) }
+              { formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true) }
             </ul>
         ))}
       </>)
@@ -156,43 +205,43 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        { formatLi(AvailableComponents.home,  'Home') }
+        { formatLi("home",  'Home') }
 
         {showGegevensGemeente && (
-          formatLi(AvailableComponents.contacts, 'Gegevens gemeente', false)
+          formatLi("contacts", 'Gegevens gemeente', false)
         )}
 
         {showWebsiteBeheer && (
-          formatLi(AvailableComponents.articlespages, 'Website beheer', false,
+          formatLi("articles-pages", 'Website beheer', false,
             <ul className="ml-4 mt-1">
-              { formatLi(AvailableComponents.articlespages, 'Paginabeheer', true)}
-              { formatLi(AvailableComponents.faq, 'FAQ', true)}
+              { formatLi("articles-pages", 'Paginabeheer', true)}
+              { formatLi("faq", 'FAQ', true)}
             </ul>
           )
         )}
 
         {showLocatieStallingen && (
-          formatLi(AvailableComponents.fietsenstallingen, 'Locatie stallingen', false)
+          formatLi("fietsenstallingen", 'Locatie stallingen', false)
         )}
 
         {showStatusChipkluizen && (
-          formatLi(AvailableComponents.fietskluizen, 'Status chipkluizen', false)
+          formatLi("fietskluizen", 'Status chipkluizen', false)
         )}
 
         {showBuurtstallingen && (
-          formatLi(AvailableComponents.buurtstallingen, 'Buurtstallingen / fietstrommels', false)
+          formatLi("buurtstallingen", 'Buurtstallingen / fietstrommels', false)
         )}
 
         {showAbonnementen && (
           formatLi(false, 'Abonnementen', false,
           <ul className="ml-4 mt-1">
-            { formatLi(AvailableComponents.abonnementsvormen, 'Abonnementsvormen', true)}
-            { formatLi(AvailableComponents.abonnementen, 'Abonnementen', true)}
+            { formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
+            { formatLi("abonnementen", 'Abonnementen', true)}
           </ul>
         ))}
 
         {showDocumenten && (
-          formatLi(AvailableComponents.documents, 'Documenten', false)
+          formatLi("documents", 'Documenten', false)
         )}
 
         {showTrekkingenPrijzen && (
@@ -200,29 +249,29 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
             { showTrekkingenInTrekkingenPrijzen ? (
               formatLi(false, 'Trekkingen &amp; Prijzen', false,
                 <ul className="ml-4 mt-1">
-                  { formatLi(AvailableComponents.trekkingen, 'Trekkingen', true)}
-                  { formatLi(AvailableComponents.trekkingenprijzen, 'Prijzen', true)}
+                  { formatLi("trekkingen", 'Trekkingen', true)}
+                  { formatLi("trekkingenprijzen", 'Prijzen', true)}
                 </ul>
               )
             ) : (
-              formatLi(AvailableComponents.trekkingenprijzen, 'Prijzen', false)
+              formatLi("trekkingenprijzen", 'Prijzen', false)
             )}
           </>
         )}
 
         {showDiashow && (
-          formatLi(AvailableComponents.presentations, 'Diashow', false)
+          formatLi("presentations", 'Diashow', false)
         )}
 
         {showRegistranten && (
-          formatLi(AvailableComponents.accounts, 'Registranten', false)
+          formatLi("accounts", 'Registranten', false)
         )}
 
         {showRapporages && (
           formatLi(false, 'Rapportages', false, 
            <ul className="ml-4 mt-1">
-            { formatLi(AvailableComponents.report, 'Rapportage', true)}
-            { formatLi(AvailableComponents.logboek, 'Logboek', true) }
+            { formatLi("report", 'Rapportage', true)}
+            { formatLi("logboek", 'Logboek', true) }
             </ul>
         ))}
 
@@ -232,20 +281,20 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               formatLi(false, 'Gebruikersbeheer', false,
                 <ul className="ml-4 mt-1">
                   { showGebruikersBeheerUitgebreidGemeente && (
-                    formatLi(AvailableComponents.usersgebruikersbeheer, `Gebruikers ${council.getCompanyName()}`, true)
+                    formatLi("users-gebruikersbeheer", `Gebruikers ${council.getCompanyName()}`, true)
                   )}
-                  {formatLi(AvailableComponents.usersexploitanten, `Gebruikers ${exploitant?.getCompanyName()}`, true)}
-                  {formatLi(AvailableComponents.usersbeheerders, 'Beheerders', true)}
+                  {formatLi("users-exploitanten", `Gebruikers ${exploitant?.getCompanyName()}`, true)}
+                  {formatLi("users-beheerders", 'Beheerders', true)}
                 </ul>)
             )}
             {!showGebruikersBeheerUitgebreid && (
-              formatLi(AvailableComponents.usersgebruikersbeheer, 'Gebruikersbeheer', false)
+              formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)
             )}
           </>
         )}
 
         {showToegangFmsservice && (
-          formatLi(AvailableComponents.permits, 'Toegang fmsservice', false)
+          formatLi("permits", 'Toegang fmsservice', false)
         )}
       </>
     )

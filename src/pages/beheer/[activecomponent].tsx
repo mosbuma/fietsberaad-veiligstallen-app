@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import LeftMenu, { AvailableComponents } from '../../components/beheer/LeftMenu';
+import LeftMenu, { AvailableComponents, isAvailableComponent } from '../../components/beheer/LeftMenu';
 import { mockUser, mockCouncil, mockExploitant } from '../../utils/mock';
 import { ReportBikeparks } from '../../components/beheer/reports/ReportsFilter';
 
@@ -34,18 +34,23 @@ const mockBikeparks: ReportBikeparks = [
 
 const BeheerPage: React.FC = () => {
     const router = useRouter();
-    const [activecomponent, setActiveComponent] = useState<AvailableComponents>(AvailableComponents.home);
+
     const [bikeparks, setBikeparks] = useState<ReportBikeparks|undefined>(undefined);
 
     const showAbonnementenRapporten = true;
 
     const dateFirstTransactions = new Date("2018-03-01");
 
-    // let activecomponent = AvailableComponents.home;
-    // if(router.query.activecomponent && false === Array.isArray(router.query.activecomponent) && router.query.activecomponent in AvailableComponents) {
-    //     activecomponent = router.query.activecomponent as AvailableComponents;
-    // }
-    console.log("============ BeheerPage %s ============");
+    let activecomponent: AvailableComponents | undefined = undefined;
+
+    const activeComponentQuery = router.query.activecomponent;
+    if (
+      activeComponentQuery &&
+      typeof activeComponentQuery === 'string' &&
+      isAvailableComponent(activeComponentQuery)
+    ) {
+        activecomponent = activeComponentQuery as AvailableComponents;
+    }
 
   useEffect(() => {
     try {
@@ -55,33 +60,9 @@ const BeheerPage: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    try {
-        if(undefined===bikeparks) {
-            return;
-        }
-        
-      let tmpcomponent = AvailableComponents.home;
-      if (router.query.activecomponent && false === Array.isArray(router.query.activecomponent) && router.query.activecomponent in AvailableComponents) {
-        console.log(">>>> got activecomponent ", tmpcomponent);
-        tmpcomponent = router.query.activecomponent as AvailableComponents;
-      }
-
-      if (tmpcomponent !== activecomponent) {
-        console.log(">>>> change activecomponent to", tmpcomponent);
-        setActiveComponent(tmpcomponent);
-      }
-    } catch (error) {
-      console.error("Error in useEffect for activecomponent:", error);
-    }
-  }, [router.query.activecomponent]);
-
   const handleSelectComponent = (componentKey: AvailableComponents) => {
     try {
-      const url = `/beheer/${componentKey}`;
-      console.log(">>>> push new url", url);
-      router.push(url); //  undefined, { shallow: true }
-      setActiveComponent(componentKey);
+      router.push(`/beheer/${componentKey}`); // this returns a promise!
     } catch (error) {
       console.error("Error in handleSelectComponent:", error);
     }
@@ -89,81 +70,105 @@ const BeheerPage: React.FC = () => {
 
   const renderComponent = () => {
     try {
-      console.log("renderComponent %s", activecomponent);
       let selectedComponent = undefined;
       switch (activecomponent) {
-        case AvailableComponents.home:
+        case "home":
           selectedComponent = <HomeComponent  />;
           break;
-        case AvailableComponents.report:
-          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={bikeparks} />;
+        case "report":
+          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={bikeparks||[]} />;
           break;
-        case AvailableComponents.articlespages:
+        case "articles-pages":
           selectedComponent = <ArticlesComponent type="pages" />;
           break;
-        case AvailableComponents.faq:
+        case "faq":
           selectedComponent = <FaqComponent />;
           break;
-        case AvailableComponents.documents:
+        case "documents":
           selectedComponent = <DocumentsComponent />;
           break;
-        case AvailableComponents.contacts:
+        case "contacts":
           selectedComponent = <ContactsComponent />;
           break;
-        case AvailableComponents.products:
+        case "products":
           selectedComponent = <ProductsComponent />;
           break;
-        case AvailableComponents.logboek:
+        case "logboek":
           selectedComponent = <LogboekComponent />;
           break;
-        case AvailableComponents.usersgebruikersbeheer:
+        case "users-gebruikersbeheer":
           selectedComponent = <UsersComponent type="gebruiker" />;
           break;
-        case AvailableComponents.usersexploitanten:
+        case "users-exploitanten":
           selectedComponent = <UsersComponent type="exploitant" />;
           break;
-        case AvailableComponents.fietsenstallingen:
+        case "users-beheerders":
+          selectedComponent = <UsersComponent type="beheerder"/>;
+          break;
+        case "fietsenstallingen":
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
           break;
-        case AvailableComponents.fietskluizen:
+        case "fietskluizen":
           selectedComponent = <FietsenstallingenComponent type="fietskluizen" />;
           break;
-        case AvailableComponents.buurtstallingen:
+        case "buurtstallingen":
           selectedComponent = <FietsenstallingenComponent type="buurtstallingen" />;
           break;
-        case AvailableComponents.barcodereeksenuitgiftebarcodes:
+        case "barcodereeksen-uitgifte-barcodes":
           selectedComponent = <BarcodereeksenComponent type="uitgifte-barcodes" />;
           break;
-        case AvailableComponents.barcodereeksensleutelhangers:
+        case "barcodereeksen-sleutelhangers":
           selectedComponent = <BarcodereeksenComponent type="sleutelhangers" />;
           break;
-        case AvailableComponents.barcodereeksenfietsstickers:
+        case "barcodereeksen-fietsstickers":
           selectedComponent = <BarcodereeksenComponent type="fietsstickers" />;
           break;
-        case AvailableComponents.permits:
+        case "permits":
           selectedComponent = <PermitsComponent />;
           break;
-        case AvailableComponents.presentations:
+        case "presentations":
           selectedComponent = <PresentationsComponent />;
           break;
-        case AvailableComponents.settings:
+        case "settings":
           console.log(">>>> settings");
           selectedComponent = <SettingsComponent />;
           break;
-        case AvailableComponents.trekkingen:
+        case "trekkingen":
           selectedComponent = <TrekkingenComponent type="trekkingen" />;
           break;
-        case AvailableComponents.trekkingenprijzen:
+        case "trekkingenprijzen":
           selectedComponent = <TrekkingenComponent type="prijzen" />;
           break;
-        case AvailableComponents.abonnementen:
+        case "abonnementen":
           selectedComponent = <AbonnementenComponent type="abonnementen"/>;
           break;
-        case AvailableComponents.abonnementsvormen:
+        case "abonnementsvormen":
           selectedComponent = <AbonnementenComponent type="abonnementsvormen"/>;
           break;
+        case "accounts":
+          selectedComponent = <AccountsComponent />;
+          break;
+        case "apis-gekoppelde-locaties":
+          selectedComponent = <ApisComponent type="gekoppelde-locaties"/>;
+          break;
+        case "apis-overzicht":
+          selectedComponent = <ApisComponent type="overzicht"/>;
+          break;
+        case "articles-abonnementen":
+          selectedComponent = <ArticlesComponent type="abonnementen"/>;
+          break;
+        case "articles-articles":
+          selectedComponent = <ArticlesComponent type="articles"/>;
+          break;
+        case "articles-buurtstallingen":
+          selectedComponent = <ArticlesComponent type="buurtstallingen"/>;
+          break;
+        case "articles-fietskluizen":
+          selectedComponent = <ArticlesComponent type="fietskluizen"/>;
+          break;
         default:
-          selectedComponent = <HomeComponent />;
+          console.warn("unknown component", activecomponent);
+          selectedComponent = undefined;
           break;
       }
 
@@ -180,7 +185,6 @@ const BeheerPage: React.FC = () => {
       <LeftMenu
         user={mockUser}
         council={mockCouncil}
-        bikeparks={bikeparks}
         exploitant={mockExploitant}
         activecomponent={activecomponent}
         onSelect={(componentKey:AvailableComponents) => handleSelectComponent(componentKey)} // Pass the component key

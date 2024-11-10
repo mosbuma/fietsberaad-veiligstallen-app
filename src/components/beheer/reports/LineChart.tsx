@@ -38,12 +38,12 @@ const LineChart = ({
 
   return (
     <div>
-      <Chart
+      {chartData.options && <Chart
         options={chartData.options}
         series={chartData.series}
         type={type}
         height={360 + Math.floor(Math.random() * 2) + 1}
-      />
+      />}
     </div>
   )
 }

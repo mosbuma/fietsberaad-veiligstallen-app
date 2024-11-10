@@ -52,40 +52,10 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     fetchReportData();
   }, [reportParams, counter]);
 
-  const onSubmit = (params: ReportParams) => {
-      console.log("onSubmit", params);
-      setReportParams(params);
-      setCounter(counter+1);
-  }
-
-  console.log(reportData);
-
-  return (
-    <div className="noPrint" id="ReportComponent">
-    <div className="flex flex-col space-y-4">
-      {/* new row, full width */}
-      <ReportsFilterComponent 
-        showAbonnementenRapporten={showAbonnementenRapporten}
-        dateFirstTransactions={dateFirstTransactions}
-        bikeparks={bikeparks}
-        onSubmit={onSubmit}
-      />
-
-      {/* new row, full width */}
-      <div className="flex flex-col space-y-2">
-        {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
-        {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
-      </div>
-
-      {loading ? (
-        <div className="spinner" style={{ margin: "auto" }}>
-          <div className="loader"></div>
-        </div>
-      ) : (
-        <div className="flex flex-col space-y-2">
-          {reportData ? (
-            <>
-      <LineChart
+  const renderChart = (reportData: ReportData) => {
+    try {
+      return (
+        <LineChart
         type="line"
         options={{
           chart: {
@@ -166,27 +136,81 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             data: [99, 42, 876, 9, 15, 207, 50]
           },
         ]}
+        />
+      )
+    } catch (error) {
+      console.error(error);
+      return <div>Error loading chart</div>;
+    }
+  }
+
+  const renderTable = (reportData: ReportData) => {
+    try {
+      return (            
+      <>
+        <h2 className="text-xl font-bold">{reportData.title}</h2>
+        <table className="border-2 border-gray-300 rounded-md">
+          <thead>
+            <tr>
+              {reportData.columns.map((columnName) => (
+                <th key={columnName} className="text-left">{columnName}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {reportData.data.map((row, index) => (
+              <tr key={index}>
+                {row.map((value, idx) => (
+                  <td key={idx}>{value}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </>
+);
+    } catch (error) {
+      console.error(error);
+      return <div>Error loading table</div>;
+    }
+  }
+
+
+  const onSubmit = (params: ReportParams) => {
+      console.log("onSubmit", params);
+      setReportParams(params);
+      setCounter(counter+1);
+  }
+
+  console.log(reportData);
+
+  return (
+    <div className="noPrint" id="ReportComponent">
+    <div className="flex flex-col space-y-4">
+      {/* new row, full width */}
+      <ReportsFilterComponent 
+        showAbonnementenRapporten={showAbonnementenRapporten}
+        dateFirstTransactions={dateFirstTransactions}
+        bikeparks={bikeparks}
+        onSubmit={onSubmit}
       />
 
-              <h2 className="text-xl font-bold">{reportData.title}</h2>
-              <table className="border-2 border-gray-300 rounded-md">
-                <thead>
-                  <tr>
-                    {reportData.columns.map((columnName) => (
-                      <th key={columnName} className="text-left">{columnName}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportData.data.map((row, index) => (
-                    <tr key={index}>
-                      {row.map((value, idx) => (
-                        <td key={idx}>{value}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* new row, full width */}
+      <div className="flex flex-col space-y-2">
+        {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
+        {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
+      </div>
+
+      {loading ? (
+        <div className="spinner" style={{ margin: "auto" }}>
+          <div className="loader"></div>
+        </div>
+      ) : (
+        <div className="flex flex-col space-y-2">
+              {reportData ? (
+            <>
+              {renderChart(reportData)}
+              {renderTable(reportData)}
             </>
           ) : (
             <div>No data available yet</div>
