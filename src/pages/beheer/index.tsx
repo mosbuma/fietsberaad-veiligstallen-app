@@ -1,8 +1,16 @@
-import React from 'react';
-import BeheerPage from './[activecomponent]';
+import React, { useEffect } from 'react';
+import { GetServerSidePropsContext } from 'next';
+import { Gemeente } from '../../utils/mock';
+import { ReportBikepark } from '../../components/beheer/reports/ReportsFilter';
 
-const DefaultBeheerPage: React.FC = () => {
-  return <BeheerPage />;
+import BeheerPage, { getServerSideProps as importedGetServerSideProps } from './[activecomponent]';
+
+export const getServerSideProps = async (_props: GetServerSidePropsContext) => {
+  return importedGetServerSideProps(_props);
+}
+
+const DefaultBeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]}>= ({gemeentes, bikeparks}) => {
+  return <BeheerPage gemeentes={gemeentes} bikeparks={bikeparks} />;
 };
 
 export default DefaultBeheerPage;

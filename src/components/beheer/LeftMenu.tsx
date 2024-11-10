@@ -1,8 +1,6 @@
 // LeftMenu.tsx
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { ReportBikeparks } from './reports/ReportsFilter';
 
 import { User, Council, newUserRole, newUserRight } from '../../utils/mock';
 
@@ -40,14 +38,6 @@ export type AvailableComponents =
   | "users-beheerders";
 
 
-interface LeftMenuProps {
-  user: User;
-  council: Council;
-  exploitant?: { getCompanyName: () => string };
-  activecomponent: AvailableComponents | undefined;
-  onSelect: (component: AvailableComponents) => void;
-}
-
 export const isAvailableComponent = (value: string): boolean  => {
   const allcomponents = [
     "abonnementen",
@@ -84,6 +74,14 @@ export const isAvailableComponent = (value: string): boolean  => {
   ];
   
   return allcomponents.includes(value);
+}
+
+interface LeftMenuProps {
+  user: User;
+  council: Council;
+  exploitant?: { getCompanyName: () => string };
+  activecomponent: AvailableComponents | undefined;
+  onSelect: (component: AvailableComponents) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({

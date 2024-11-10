@@ -6,11 +6,17 @@ export type newUserRole = 'intern_admin' | 'extern_admin' | 'extern_redacteur' |
 
 export type newUserRight = 'gemeente' | 'website' | 'locaties' | 'fietskluizen' | 'buurtstallingen' | 'abonnementen' | 'documenten' | 'fietsenwin' | 'diashow' | 'accounts' | 'rapportages' | 'externalApis' | 'permits' | 'sleutelhangerreeksen' | 'registranten' | 'users';
 
+export interface Gemeente {
+  id: string;
+  title: string;
+}
+
 export interface User {
   displayName: string;
   role: newUserRole;
   hasRight: (right: newUserRight) => boolean;
   getRole: () => newUserRole;
+  getGemeenteIDs: () => string[];
 }
 
 export interface Council {
@@ -22,8 +28,6 @@ export interface Council {
 export interface Exploitant {
   getCompanyName: () => string;
 }
-
-
 export const mockUser: User = {
     displayName: 'John Doe',
     role: 'admin',
@@ -33,6 +37,7 @@ export const mockUser: User = {
       return rights.includes(right);
     },
     getRole: () => 'admin',
+    getGemeenteIDs: () => ["E198D753-B00C-0F41-9A8C0F275D822E6D","E1991A95-08EF-F11D-FF946CE1AA0578FB"],
   };
   
   export const mockCouncil: Council = {

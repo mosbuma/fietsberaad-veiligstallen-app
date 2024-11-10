@@ -114,8 +114,7 @@ function getTransactionsByPeriodSQL(params: GetTransactionsByPeriodParams): GetT
 const getTransactionsByPeriod = async (params: GetTransactionsByPeriodParams): Promise<ReportData> => {
     const { sql, queryParams } = getTransactionsByPeriodSQL(params);
 
-
-    console.log(sql, queryParams);
+    // console.log(sql, queryParams);
     // const transactions = await prisma.$queryRawUnsafe(sql, ...queryParams);
 
     // console.log(transactions);

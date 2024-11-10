@@ -29,7 +29,7 @@ const getMaanden = (dateFirstTransactions: Date, year: number): Array<string> =>
   });
 };
 
-export type ReportBikeparks = Array<{ StallingsID: string; Title: string; hasData: boolean }>;
+export type ReportBikepark = { id: string; title: string; gemeenteID: string; hasData: boolean };
 
 export interface ReportParams {
     reportType: ReportType;
@@ -39,7 +39,7 @@ export interface ReportParams {
 interface ReportsFilterComponentProps {
     showAbonnementenRapporten: boolean;
     dateFirstTransactions: Date;
-    bikeparks: ReportBikeparks;
+    bikeparks: ReportBikepark[];
     onSubmit: (params: ReportParams) => void;
   }
   
@@ -94,6 +94,13 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     useEffect(() => {
         checkInput();
     }, [reportType, reportUnit, selectedBikeparkIDs, year, month, datatype]);
+
+    useEffect(() => {
+      // Filter out any selected bikeparks that are no longer in the bikeparks array
+      setSelectedBikeparkIDs((prevSelected) =>
+        prevSelected.filter((id) => bikeparks.some((park) => park.id === id))
+      );
+    }, [bikeparks]);
 
     const checkInput = () => {
         if (selectedBikeparkIDs.length === 0) {
@@ -352,27 +359,55 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     };
 
     const renderBikeparkSelect = (): React.ReactNode => {
-         return ( <>
-            <div className="title">Stallingen</div>
-            { bikeparks.map((park) => (
-              <div key={park.StallingsID}>
-                <input
-                  type="checkbox"
-                  value={park.StallingsID}
-                  onChange={() =>
-                    setSelectedBikeparkIDs((prev) =>
-                      prev.includes(park.StallingsID)
-                        ? prev.filter((id) => id !== park.StallingsID)
-                        : [...prev, park.StallingsID]
-                    )
-                  }
-                />
-                {park.Title}
+      const isScrollable = bikeparks.length > 10;
+
+      const toggleSelectAll = () => {
+        const newSelection = bikeparks.map(park => park.id).filter(id => !selectedBikeparkIDs.includes(id));
+        setSelectedBikeparkIDs(newSelection.length ? newSelection : []);
+      };
+
+      return (
+        <>
+          <div id='all-bikeparks' className="title" style={{ userSelect: 'none' }}>
+            Stallingen
+            <span
+              onClick={toggleSelectAll}
+              style={{ cursor: 'pointer', marginLeft: '10px', color: 'blue', userSelect: 'none' }}
+              title="Toggle Select All"
+            >
+              ✔️
+            </span>
+          </div>
+          <div
+            style={{
+              maxHeight: isScrollable ? '200px' : 'auto', // Adjust height as needed
+              overflowY: isScrollable ? 'scroll' : 'visible',
+              overflowX: 'hidden', // Prevent horizontal scrolling
+            }}
+          >
+            {bikeparks.map((park) => (
+              <div key={park.id}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedBikeparkIDs.includes(park.id)}
+                    value={park.id}
+                    onChange={() =>
+                      setSelectedBikeparkIDs((prev) =>
+                        prev.includes(park.id)
+                          ? prev.filter((id) => id !== park.id)
+                          : [...prev, park.id]
+                      )
+                    }
+                  />
+                  {park.title}
+                </label>
               </div>
             ))}
-          </>
-        )
-    }
+          </div>
+        </>
+      );
+    };
 
     const renderAbonnementenSelect = (): React.ReactNode => {
         return (

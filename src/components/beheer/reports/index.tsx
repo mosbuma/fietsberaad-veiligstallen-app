@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import ReportsFilterComponent, {ReportParams} from "./ReportsFilter";
 import  {ReportData} from "~/backend/services/reports-service";
+import { ReportBikepark } from "./ReportsFilter";
 import LineChart from './LineChart';
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
   dateFirstTransactions: Date;
-  bikeparks: Array<{ StallingsID: string; Title: string; hasData: boolean }>;
+  bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
 }
@@ -29,17 +30,14 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
     const fetchReportData = async () => {
-      console.log("fetchReportData", reportParams);
       setLoading(true);
       try {
         const response = await fetch(`/api/reports/transactionsPerPeriod`);
-        console.log("response", response);
 
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log("retieved report data", data);
         setReportData(data);
       } catch (error) {
         console.error(error);
@@ -177,47 +175,44 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
 
   const onSubmit = (params: ReportParams) => {
-      console.log("onSubmit", params);
       setReportParams(params);
       setCounter(counter+1);
   }
 
-  console.log(reportData);
-
   return (
     <div className="noPrint" id="ReportComponent">
-    <div className="flex flex-col space-y-4">
-      {/* new row, full width */}
-      <ReportsFilterComponent 
-        showAbonnementenRapporten={showAbonnementenRapporten}
-        dateFirstTransactions={dateFirstTransactions}
-        bikeparks={bikeparks}
-        onSubmit={onSubmit}
-      />
+      <div className="flex flex-col space-y-4">
+        {/* new row, full width */}
+        <ReportsFilterComponent 
+          showAbonnementenRapporten={showAbonnementenRapporten}
+          dateFirstTransactions={dateFirstTransactions}
+          bikeparks={bikeparks}
+          onSubmit={onSubmit}
+        />
 
-      {/* new row, full width */}
-      <div className="flex flex-col space-y-2">
-        {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
-        {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
-      </div>
-
-      {loading ? (
-        <div className="spinner" style={{ margin: "auto" }}>
-          <div className="loader"></div>
-        </div>
-      ) : (
+        {/* new row, full width */}
         <div className="flex flex-col space-y-2">
-              {reportData ? (
-            <>
-              {renderChart(reportData)}
-              {renderTable(reportData)}
-            </>
-          ) : (
-            <div>No data available yet</div>
-          )}
+          {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
+          {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
         </div>
-      )}
-    </div>
+
+        {loading ? (
+          <div className="spinner" style={{ margin: "auto" }}>
+            <div className="loader"></div>
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-2">
+                {reportData ? (
+              <>
+                {renderChart(reportData)}
+                {renderTable(reportData)}
+              </>
+            ) : (
+              <div>No data available yet</div>
+            )}
+          </div>
+        )}
+      </div>
 
 
     </div>

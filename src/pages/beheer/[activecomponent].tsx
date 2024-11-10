@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { GetServerSidePropsContext } from 'next';
+
 import { useRouter } from 'next/router';
 import LeftMenu, { AvailableComponents, isAvailableComponent } from '../../components/beheer/LeftMenu';
-import { mockUser, mockCouncil, mockExploitant } from '../../utils/mock';
-import { ReportBikeparks } from '../../components/beheer/reports/ReportsFilter';
+import TopBar from '../../components/beheer/TopBar';
+import { mockUser, mockCouncil, mockExploitant, Gemeente } from '../../utils/mock';
+import { ReportBikepark } from '../../components/beheer/reports/ReportsFilter';
 
 import AbonnementenComponent from '../../components/beheer/abonnementen';
 import AccountsComponent from '../../components/beheer/accounts';
@@ -23,25 +26,46 @@ import SettingsComponent from '../../components/beheer/settings';
 import TrekkingenComponent from '../../components/beheer/trekkingen';
 import UsersComponent from '../../components/beheer/users';
 
-const mockBikeparks: ReportBikeparks = [
-  { StallingsID: "123", Title: "Bikepark 1", hasData: true },
-  { StallingsID: "456", Title: "Bikepark 2", hasData: false },
-  { StallingsID: "789", Title: "Bikepark 3", hasData: true },
-  { StallingsID: "101", Title: "Bikepark 4", hasData: true },
-  { StallingsID: "102", Title: "Bikepark 5", hasData: false },
-  { StallingsID: "103", Title: "Bikepark 6", hasData: true },
-];
+import { prisma } from '~/server/db';
 
-const BeheerPage: React.FC = () => {
+export const getServerSideProps = async (props: GetServerSidePropsContext) => {
+    const currentUser = mockUser;
+    const activeGemeentes = await prisma.contacts.findMany({
+      where: { ItemType: 'organizations', ID: {in: currentUser.getGemeenteIDs()} },
+      select: { ID: true, CompanyName: true, fietsenstallingen_fietsenstallingen_SiteIDTocontacts: true },
+    });
+    const gemeentes = activeGemeentes.map((gemeente) => ({id: gemeente.ID, title: gemeente.CompanyName} as Gemeente));
+
+    const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeentes using map reduce
+    activeGemeentes.map((gemeente) => {
+      gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.map((stalling) => {
+        bikeparks.push({ id: stalling.ID, title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
+      });
+    });
+
+    bikeparks.sort((a, b) => a.title.localeCompare(b.title));
+
+    return { props: { gemeentes, bikeparks } }
+}
+
+const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[], selectedGemeenteID?: string}> = ({gemeentes, bikeparks}) => {
     const router = useRouter();
 
-    const [bikeparks, setBikeparks] = useState<ReportBikeparks|undefined>(undefined);
+    const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | undefined>(undefined);
 
     const showAbonnementenRapporten = true;
 
     const dateFirstTransactions = new Date("2018-03-01");
 
-    let activecomponent: AvailableComponents | undefined = undefined;
+    let activecomponent: AvailableComponents | undefined = "home";
+
+    useEffect(() => {
+        console.log(">>>> useEffect selectedGemeenteID", selectedGemeenteID);
+        if(selectedGemeenteID === undefined && gemeentes && gemeentes.length > 0 && gemeentes[0] !== undefined) {
+            console.log(">>>> useEffect selectedGemeenteID setting to", gemeentes[0].id);
+            setSelectedGemeenteID(gemeentes[0].id);
+        }
+    }, [gemeentes, selectedGemeenteID]);
 
     const activeComponentQuery = router.query.activecomponent;
     if (
@@ -52,14 +76,6 @@ const BeheerPage: React.FC = () => {
         activecomponent = activeComponentQuery as AvailableComponents;
     }
 
-  useEffect(() => {
-    try {
-      setBikeparks(mockBikeparks);
-    } catch (error) {
-      console.error("Error setting bikeparks:", error);
-    }
-  }, []);
-
   const handleSelectComponent = (componentKey: AvailableComponents) => {
     try {
       router.push(`/beheer/${componentKey}`); // this returns a promise!
@@ -67,6 +83,16 @@ const BeheerPage: React.FC = () => {
       console.error("Error in handleSelectComponent:", error);
     }
   };
+
+  const handleSelectGemeente = (gemeenteID: string) => {
+    try {
+        setSelectedGemeenteID(gemeenteID);
+    } catch (error) {
+      console.error("Error in handleSelectComponent:", error);
+    }
+  };
+
+  const filteredBikeparks = bikeparks?.filter((bikepark) => (selectedGemeenteID !== undefined) && (bikepark.gemeenteID === selectedGemeenteID));
 
   const renderComponent = () => {
     try {
@@ -76,7 +102,7 @@ const BeheerPage: React.FC = () => {
           selectedComponent = <HomeComponent  />;
           break;
         case "report":
-          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={bikeparks||[]} />;
+          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={filteredBikeparks||[]}/>;
           break;
         case "articles-pages":
           selectedComponent = <ArticlesComponent type="pages" />;
@@ -130,7 +156,6 @@ const BeheerPage: React.FC = () => {
           selectedComponent = <PresentationsComponent />;
           break;
         case "settings":
-          console.log(">>>> settings");
           selectedComponent = <SettingsComponent />;
           break;
         case "trekkingen":
@@ -180,8 +205,9 @@ const BeheerPage: React.FC = () => {
   }
 
   return (
-    <div className="flex">
-      {/* Left Menu */}
+    <div className="flex flex-col h-screen">
+      <TopBar title="Veiligstallen Beheer Dashboard" currentComponent={activecomponent||"home"} user={mockUser} gemeentes={gemeentes} selectedGemeenteID={selectedGemeenteID} onGemeenteSelect={handleSelectGemeente} />
+        <div className="flex">
       <LeftMenu
         user={mockUser}
         council={mockCouncil}
@@ -193,8 +219,9 @@ const BeheerPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 p-4">
         <h1 className="text-2xl font-bold">Veiligstallen Beheer Dashboard</h1>
-        {renderComponent()} 
+         {renderComponent()}  
       </div>
+    </div>
     </div>
   );
 };
