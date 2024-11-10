@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ReportsFilterComponent, {ReportParams} from "./ReportsFilter";
-import  {ReportData} from "~/backend/services/reports-service";
+import ReportsFilterComponent, { ReportParams } from "./ReportsFilter";
+import { ReportData } from "~/backend/services/reports-service";
 import { ReportBikepark } from "./ReportsFilter";
 import LineChart from './LineChart';
 
@@ -54,86 +54,86 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     try {
       return (
         <LineChart
-        type="line"
-        options={{
-          chart: {
-            id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
-            zoom: {
-              enabled: true
+          type="line"
+          options={{
+            chart: {
+              id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
+              zoom: {
+                enabled: true
+              },
+              toolbar: {
+                show: true
+              }
             },
-            toolbar: {
-              show: true
-            }
-          },
-          responsive: [{
-            breakpoint: undefined,
-            options: {},
-          }],
-          // colors: ['#77B6EA', '#545454'],
-          dataLabels: {
-            enabled: false,
-          },
-          stroke: {
-            curve: 'straight'
-          },
-          title: {
-            text: 'Aantal afgeronde transacties per dag',
-            align: 'left'
-          },
-          grid: {
-            borderColor: '#e7e7e7',
-            row: {
-              colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-              opacity: 0.5
+            responsive: [{
+              breakpoint: undefined,
+              options: {},
+            }],
+            // colors: ['#77B6EA', '#545454'],
+            dataLabels: {
+              enabled: false,
             },
-          },
-          markers: {
-            // size: 1
-          },
-          xaxis: {
-            categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
+            stroke: {
+              curve: 'straight'
+            },
             title: {
-              text: 'Weekdag',
+              text: reportData.title || '',
               align: 'left'
-            }
-          },
-          yaxis: {
-            title: {
-              text: 'Aantal afgeronde transacties'
             },
-            // min: 5,
-            // max: 40
-          },
-          legend: {
-            position: 'right',
-            horizontalAlign: 'center',
-            // floating: true,
-            offsetY: 25,
-            // offsetX: -5
-          }
-        }}
-        series={[
-          {
-            name: "Concordiastraat",
-            data: [40, 17, 348, 1, 5, 129, 12]
-          },
-          {
-            name: "Turfschip",
-            data: [43, 20, 327, 1, 1, 134, 11]
-          },
-          {
-            name: "Oude Vest",
-            data: [63, 23, 504, 6, 7, 130, 13]
-          },
-          {
-            name: "Nieuwstraat",
-            data: [100, 44, 768, 7, 13, 232, 36]
-          },
-          {
-            name: "Haven",
-            data: [99, 42, 876, 9, 15, 207, 50]
-          },
-        ]}
+            grid: {
+              borderColor: '#e7e7e7',
+              row: {
+                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                opacity: 0.5
+              },
+            },
+            markers: {
+              // size: 1
+            },
+            xaxis: reportData.options?.xaxis || {
+              categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
+              title: {
+                text: 'Weekdag',
+                align: 'left'
+              }
+            },
+            yaxis: {
+              title: {
+                text: 'Aantal afgeronde transacties'
+              },
+              // min: 5,
+              // max: 40
+            },
+            legend: {
+              position: 'right',
+              horizontalAlign: 'center',
+              // floating: true,
+              offsetY: 25,
+              // offsetX: -5
+            }
+          }}
+          series={reportData.series || [
+            {
+              name: "Concordiastraat",
+              data: [40, 17, 348, 1, 5, 129, 12]
+            },
+            {
+              name: "Turfschip",
+              data: [43, 20, 327, 1, 1, 134, 11]
+            },
+            {
+              name: "Oude Vest",
+              data: [63, 23, 504, 6, 7, 130, 13]
+            },
+            {
+              name: "Nieuwstraat",
+              data: [100, 44, 768, 7, 13, 232, 36]
+            },
+            {
+              name: "Haven",
+              data: [99, 42, 876, 9, 15, 207, 50]
+            },
+          ]}
         />
       )
     } catch (error) {
@@ -144,29 +144,29 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   const renderTable = (reportData: ReportData) => {
     try {
-      return (            
-      <>
-        <h2 className="text-xl font-bold">{reportData.title}</h2>
-        <table className="border-2 border-gray-300 rounded-md">
-          <thead>
-            <tr>
-              {reportData.columns.map((columnName) => (
-                <th key={columnName} className="text-left">{columnName}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {reportData.data.map((row, index) => (
-              <tr key={index}>
-                {row.map((value, idx) => (
-                  <td key={idx}>{value}</td>
+      return (
+        <>
+          <h2 className="text-xl font-bold">{reportData.title}</h2>
+          <table className="border-2 border-gray-300 rounded-md">
+            <thead>
+              <tr>
+                {reportData.columns.map((columnName) => (
+                  <th key={columnName} className="text-left">{columnName}</th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </>
-);
+            </thead>
+            <tbody>
+              {reportData.data.map((row, index) => (
+                <tr key={index}>
+                  {row.map((value, idx) => (
+                    <td key={idx}>{value}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      );
     } catch (error) {
       console.error(error);
       return <div>Error loading table</div>;
@@ -175,15 +175,15 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
 
   const onSubmit = (params: ReportParams) => {
-      setReportParams(params);
-      setCounter(counter+1);
+    setReportParams(params);
+    setCounter(counter + 1);
   }
 
   return (
     <div className="noPrint" id="ReportComponent">
       <div className="flex flex-col space-y-4">
         {/* new row, full width */}
-        <ReportsFilterComponent 
+        <ReportsFilterComponent
           showAbonnementenRapporten={showAbonnementenRapporten}
           dateFirstTransactions={dateFirstTransactions}
           bikeparks={bikeparks}
@@ -202,7 +202,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           </div>
         ) : (
           <div className="flex flex-col space-y-2">
-                {reportData ? (
+            {reportData ? (
               <>
                 {renderChart(reportData)}
                 {renderTable(reportData)}
