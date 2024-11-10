@@ -33,6 +33,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       setLoading(true);
       try {
         const response = await fetch(`/api/reports/transactionsPerPeriod`);
+        // reportParams.reportUnit <- I.e. reportUnit_weekDay
 
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
@@ -150,13 +151,13 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           <table className="border-2 border-gray-300 rounded-md">
             <thead>
               <tr>
-                {reportData.columns.map((columnName) => (
+                {reportData && reportData.data && reportData.columns.map((columnName) => (
                   <th key={columnName} className="text-left">{columnName}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {reportData.data.map((row, index) => (
+              {reportData && reportData.data && reportData.data.map((row, index) => (
                 <tr key={index}>
                   {row.map((value, idx) => (
                     <td key={idx}>{value}</td>
@@ -172,7 +173,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       return <div>Error loading table</div>;
     }
   }
-
 
   const onSubmit = (params: ReportParams) => {
     setReportParams(params);
