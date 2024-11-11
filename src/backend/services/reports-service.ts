@@ -1,6 +1,5 @@
 import { IReportService } from "~/backend/handlers/report-service-interface";
 import getTransactionsByPeriod, { GetTransactionsByPeriodParams, PeriodType, SelectType, OutputType } from "~/backend/services/reports/transactionsByPeriod";
-import { useSearchParams } from 'next/navigation'
 
 export interface ReportData {
   title: string;
@@ -11,6 +10,11 @@ export interface ReportData {
       title: {
         text: string;
         align: string;
+      };
+    };
+    yaxis: {
+      title: {
+        text: string;
       };
     };
   };

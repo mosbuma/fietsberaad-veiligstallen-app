@@ -6,7 +6,8 @@ import LineChart from './LineChart';
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
-  dateFirstTransactions: Date;
+  firstDate: Date;
+  lastDate: Date;
   bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
@@ -15,7 +16,8 @@ interface ReportComponentProps {
 
 const ReportComponent: React.FC<ReportComponentProps> = ({
   showAbonnementenRapporten,
-  dateFirstTransactions,
+  firstDate,
+  lastDate,
   bikeparks,
   error,
   warning,
@@ -115,28 +117,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               // offsetX: -5
             }
           }}
-          series={reportData.series || [
-            {
-              name: "Concordiastraat",
-              data: [40, 17, 348, 1, 5, 129, 12]
-            },
-            {
-              name: "Turfschip",
-              data: [43, 20, 327, 1, 1, 134, 11]
-            },
-            {
-              name: "Oude Vest",
-              data: [63, 23, 504, 6, 7, 130, 13]
-            },
-            {
-              name: "Nieuwstraat",
-              data: [100, 44, 768, 7, 13, 232, 36]
-            },
-            {
-              name: "Haven",
-              data: [99, 42, 876, 9, 15, 207, 50]
-            },
-          ]}
+          series={reportData.series}
         />
       )
     } catch (error) {
@@ -189,7 +170,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         {/* new row, full width */}
         <ReportsFilterComponent
           showAbonnementenRapporten={showAbonnementenRapporten}
-          dateFirstTransactions={dateFirstTransactions}
+          firstDate={firstDate}
+          lastDate={lastDate}
           bikeparks={bikeparks}
           onSubmit={onSubmit}
         />
