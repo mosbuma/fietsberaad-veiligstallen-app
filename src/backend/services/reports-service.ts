@@ -12,7 +12,12 @@ export interface ReportData {
           text: string;
           align: string;
         };
+    };
+    yaxis: {
+      title: {
+        text: string;
       };
+    };
   };
   series: { 
     name: string, 

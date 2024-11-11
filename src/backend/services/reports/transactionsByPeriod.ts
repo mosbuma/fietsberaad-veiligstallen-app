@@ -183,36 +183,15 @@ const getTransactionsByPeriod = async (params: GetTransactionsByPeriodParams): P
           align: 'left'
         }
       },
+      yaxis: {
+        title: {
+          text: 'Aantal afgeronde transacties'
+        }
+      }
     },
     series: series
   };
 };
-
-const dummyExampleCalls = async () => {
-  // this function containts example parameters sets for all valid combinations of parameters
-  const exampleparameters = [
-    {
-      zipID: "12345",
-      startDate: new Date(),
-      endDate: new Date(),
-      periodType: PeriodType.WEEK,
-      selectType: SelectType.STALLING,
-      outputType: OutputType.TRANSACTIONS
-    },
-    {
-      zipID: "12345",
-      startDate: new Date(),
-      endDate: new Date(),
-      periodType: PeriodType.WEEK,
-      selectType: SelectType.STALLING,
-      outputType: OutputType.INKOMSTEN,
-    },
-  ]
-
-  for (const params of exampleparameters) {
-    await getTransactionsByPeriod(params);
-  }
-}
 
 export default getTransactionsByPeriod;
 

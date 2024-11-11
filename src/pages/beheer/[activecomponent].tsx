@@ -55,7 +55,10 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
 
     const showAbonnementenRapporten = true;
 
-    const dateFirstTransactions = new Date("2018-03-01");
+    const firstDate = new Date("2018-03-01");
+    
+    const lastDate = new Date();
+    lastDate.setHours(0, 0, 0, 0); // set time to midnight
 
     let activecomponent: AvailableComponents | undefined = "home";
 
@@ -102,7 +105,7 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
           selectedComponent = <HomeComponent  />;
           break;
         case "report":
-          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={filteredBikeparks||[]}/>;
+          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} firstDate={firstDate} lastDate={lastDate} bikeparks={filteredBikeparks||[]}/>;
           break;
         case "articles-pages":
           selectedComponent = <ArticlesComponent type="pages" />;
