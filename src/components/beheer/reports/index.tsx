@@ -151,15 +151,17 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           <table className="border-2 border-gray-300 rounded-md">
             <thead>
               <tr>
-                {reportData && reportData.data && reportData.columns.map((columnName) => (
-                  <th key={columnName} className="text-left">{columnName}</th>
+                <th className="text-left">Series Name</th>
+                {reportData.options.xaxis.categories.map((category) => (
+                  <th key={category} className="text-left">{category}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {reportData && reportData.data && reportData.data.map((row, index) => (
+              {reportData.series.map((seriesItem, index) => (
                 <tr key={index}>
-                  {row.map((value, idx) => (
+                  <td>{seriesItem.name}</td>
+                  {seriesItem.data.map((value, idx) => (
                     <td key={idx}>{value}</td>
                   ))}
                 </tr>
@@ -205,7 +207,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             {reportData ? (
               <>
                 {renderChart(reportData)}
-                {renderTable(reportData)}
+                {renderTable(reportData)} 
               </>
             ) : (
               <div>No data available yet</div>

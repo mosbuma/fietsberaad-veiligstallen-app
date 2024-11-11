@@ -1,10 +1,23 @@
 import { IReportService } from "~/backend/handlers/report-service-interface";
 import getTransactionsByPeriod, { GetTransactionsByPeriodParams, PeriodType, SelectType, OutputType } from "~/backend/services/reports/transactionsByPeriod";
 
-export type ReportData = {
+ 
+  
+export interface ReportData {
   title: string;
-  options: any;
-  series: any[];
+  options: {
+    xaxis: {
+        categories: string[];
+        title: {
+          text: string;
+          align: string;
+        };
+      };
+  };
+  series: { 
+    name: string, 
+    data: any[]
+}[];
 }
 
 const ReportService: IReportService<ReportData | false> = {
@@ -19,11 +32,6 @@ const ReportService: IReportService<ReportData | false> = {
   //   },
   getTransactionsPerPeriodData: async () => {
     try {
-      const dummyData = {
-        title: "Transacties per periode",
-        columns: ["columnA", "columnB"],
-        data: [["dataA1", 1], ["dataA2", 2]]
-      }
 
       const params: GetTransactionsByPeriodParams = {
         zipID: "12345",
@@ -35,7 +43,6 @@ const ReportService: IReportService<ReportData | false> = {
       }
 
       const data = await getTransactionsByPeriod(params);
-      console.log("", data);
 
       return data;
     } catch (error) {
