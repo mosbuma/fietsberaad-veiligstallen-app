@@ -1,23 +1,23 @@
 import { IReportService } from "~/backend/handlers/report-service-interface";
 import getTransactionsByPeriod, { GetTransactionsByPeriodParams, PeriodType, SelectType, OutputType } from "~/backend/services/reports/transactionsByPeriod";
+import { useSearchParams } from 'next/navigation'
 
- 
-  
 export interface ReportData {
   title: string;
   options: {
+    [x: string]: { title: { text: string; }; };
     xaxis: {
-        categories: string[];
-        title: {
-          text: string;
-          align: string;
-        };
+      categories: string[];
+      title: {
+        text: string;
+        align: string;
       };
+    };
   };
-  series: { 
-    name: string, 
+  series: {
+    name: string,
     data: any[]
-}[];
+  }[];
 }
 
 const ReportService: IReportService<ReportData | false> = {
@@ -30,10 +30,12 @@ const ReportService: IReportService<ReportData | false> = {
 
   //     return data;
   //   },
-  getTransactionsPerPeriodData: async () => {
+  getTransactionsPerPeriodData: async (
+    queryParams: { selectedGemeenteID: string; }
+  ) => {
     try {
-
       const params: GetTransactionsByPeriodParams = {
+        selectedGemeenteID: queryParams.selectedGemeenteID,
         zipID: "12345",
         startDate: new Date(2016, 5, 1),
         endDate: new Date(2016, 5, 30),
@@ -41,7 +43,7 @@ const ReportService: IReportService<ReportData | false> = {
         selectType: SelectType.STALLING,
         outputType: OutputType.TRANSACTIONS,
       }
-
+      console.log('params', params)
       const data = await getTransactionsByPeriod(params);
 
       return data;

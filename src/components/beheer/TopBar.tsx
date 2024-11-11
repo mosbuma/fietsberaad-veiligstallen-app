@@ -24,16 +24,16 @@ const TopBar: React.FC<TopBarProps> = ({ title, currentComponent, user, gemeente
       <div className="text-left" style={{ flex: 4 }}>
         <h1 className="text-lg font-semibold">{title}</h1>
       </div>
-      <div className="flex justify-end items-center space-x-4 text-sm" style={{ flex: 3}}>
+      <div className="flex justify-end items-center space-x-4 text-sm" style={{ flex: 3 }}>
         {currentComponent !== "home" && (
           <Link href="/beheer" className="hover:underline">
             Beheer Home
           </Link>
         )}
-        { gemeentes && <select onChange={handleGemeenteChange} className="bg-gray-700 text-white rounded px-2 py-1">
-          <option key="select-gemeente-placeholder" value="" selected={selectedGemeenteID===""}>Selecteer gemeente</option>
-          { gemeentes.map((gemeente) => (<option key={`select-gemeente-option-${gemeente.id}`} value={gemeente.id} selected={gemeente.id === selectedGemeenteID}>{gemeente.title}</option>)) }
-        </select> }
+        {gemeentes && <select onChange={handleGemeenteChange} defaultValue={selectedGemeenteID || ""} className="bg-gray-700 text-white rounded px-2 py-1">
+          <option key="select-gemeente-placeholder" value="">Selecteer gemeente</option>
+          {gemeentes.map((gemeente) => (<option key={`select-gemeente-option-${gemeente.id}`} value={gemeente.id}>{gemeente.title}</option>))}
+        </select>}
         {user !== undefined ? (
           <Link href="#" className="hover:underline">
             Logout

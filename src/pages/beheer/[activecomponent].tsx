@@ -29,52 +29,52 @@ import UsersComponent from '../../components/beheer/users';
 import { prisma } from '~/server/db';
 
 export const getServerSideProps = async (props: GetServerSidePropsContext) => {
-    const currentUser = mockUser;
-    const activeGemeentes = await prisma.contacts.findMany({
-      where: { ItemType: 'organizations', ID: {in: currentUser.getGemeenteIDs()} },
-      select: { ID: true, CompanyName: true, fietsenstallingen_fietsenstallingen_SiteIDTocontacts: true },
+  const currentUser = mockUser;
+  const activeGemeentes = await prisma.contacts.findMany({
+    where: { ItemType: 'organizations', ID: { in: currentUser.getGemeenteIDs() } },
+    select: { ID: true, CompanyName: true, fietsenstallingen_fietsenstallingen_SiteIDTocontacts: true },
+  });
+  const gemeentes = activeGemeentes.map((gemeente) => ({ id: gemeente.ID, title: gemeente.CompanyName } as Gemeente));
+
+  const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeentes using map reduce
+  activeGemeentes.map((gemeente) => {
+    gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.map((stalling) => {
+      bikeparks.push({ id: stalling.ID, title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
     });
-    const gemeentes = activeGemeentes.map((gemeente) => ({id: gemeente.ID, title: gemeente.CompanyName} as Gemeente));
+  });
 
-    const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeentes using map reduce
-    activeGemeentes.map((gemeente) => {
-      gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.map((stalling) => {
-        bikeparks.push({ id: stalling.ID, title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
-      });
-    });
+  bikeparks.sort((a, b) => a.title.localeCompare(b.title));
 
-    bikeparks.sort((a, b) => a.title.localeCompare(b.title));
-
-    return { props: { gemeentes, bikeparks } }
+  return { props: { gemeentes, bikeparks } }
 }
 
-const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[], selectedGemeenteID?: string}> = ({gemeentes, bikeparks}) => {
-    const router = useRouter();
+const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[], selectedGemeenteID?: string }> = ({ gemeentes, bikeparks }) => {
+  const router = useRouter();
 
-    const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | undefined>(undefined);
+  const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | undefined>(undefined);
 
-    const showAbonnementenRapporten = true;
+  const showAbonnementenRapporten = true;
 
-    const dateFirstTransactions = new Date("2018-03-01");
+  const dateFirstTransactions = new Date("2018-03-01");
 
-    let activecomponent: AvailableComponents | undefined = "home";
+  let activecomponent: AvailableComponents | undefined = "home";
 
-    useEffect(() => {
-        console.log(">>>> useEffect selectedGemeenteID", selectedGemeenteID);
-        if(selectedGemeenteID === undefined && gemeentes && gemeentes.length > 0 && gemeentes[0] !== undefined) {
-            console.log(">>>> useEffect selectedGemeenteID setting to", gemeentes[0].id);
-            setSelectedGemeenteID(gemeentes[0].id);
-        }
-    }, [gemeentes, selectedGemeenteID]);
-
-    const activeComponentQuery = router.query.activecomponent;
-    if (
-      activeComponentQuery &&
-      typeof activeComponentQuery === 'string' &&
-      isAvailableComponent(activeComponentQuery)
-    ) {
-        activecomponent = activeComponentQuery as AvailableComponents;
+  useEffect(() => {
+    console.log(">>>> useEffect selectedGemeenteID", selectedGemeenteID);
+    if (selectedGemeenteID === undefined && gemeentes && gemeentes.length > 0 && gemeentes[0] !== undefined) {
+      console.log(">>>> useEffect selectedGemeenteID setting to", gemeentes[0].id);
+      setSelectedGemeenteID(gemeentes[0].id);
     }
+  }, [gemeentes, selectedGemeenteID]);
+
+  const activeComponentQuery = router.query.activecomponent;
+  if (
+    activeComponentQuery &&
+    typeof activeComponentQuery === 'string' &&
+    isAvailableComponent(activeComponentQuery)
+  ) {
+    activecomponent = activeComponentQuery as AvailableComponents;
+  }
 
   const handleSelectComponent = (componentKey: AvailableComponents) => {
     try {
@@ -86,7 +86,7 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
 
   const handleSelectGemeente = (gemeenteID: string) => {
     try {
-        setSelectedGemeenteID(gemeenteID);
+      setSelectedGemeenteID(gemeenteID);
     } catch (error) {
       console.error("Error in handleSelectComponent:", error);
     }
@@ -99,10 +99,15 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
       let selectedComponent = undefined;
       switch (activecomponent) {
         case "home":
-          selectedComponent = <HomeComponent  />;
+          selectedComponent = <HomeComponent />;
           break;
         case "report":
-          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} dateFirstTransactions={dateFirstTransactions} bikeparks={filteredBikeparks||[]}/>;
+          selectedComponent = <ReportComponent
+            showAbonnementenRapporten={showAbonnementenRapporten}
+            dateFirstTransactions={dateFirstTransactions}
+            bikeparks={filteredBikeparks || []}
+            selectedGemeenteID={selectedGemeenteID}
+          />;
           break;
         case "articles-pages":
           selectedComponent = <ArticlesComponent type="pages" />;
@@ -129,7 +134,7 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
           selectedComponent = <UsersComponent type="exploitant" />;
           break;
         case "users-beheerders":
-          selectedComponent = <UsersComponent type="beheerder"/>;
+          selectedComponent = <UsersComponent type="beheerder" />;
           break;
         case "fietsenstallingen":
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
@@ -165,31 +170,31 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
           selectedComponent = <TrekkingenComponent type="prijzen" />;
           break;
         case "abonnementen":
-          selectedComponent = <AbonnementenComponent type="abonnementen"/>;
+          selectedComponent = <AbonnementenComponent type="abonnementen" />;
           break;
         case "abonnementsvormen":
-          selectedComponent = <AbonnementenComponent type="abonnementsvormen"/>;
+          selectedComponent = <AbonnementenComponent type="abonnementsvormen" />;
           break;
         case "accounts":
           selectedComponent = <AccountsComponent />;
           break;
         case "apis-gekoppelde-locaties":
-          selectedComponent = <ApisComponent type="gekoppelde-locaties"/>;
+          selectedComponent = <ApisComponent type="gekoppelde-locaties" />;
           break;
         case "apis-overzicht":
-          selectedComponent = <ApisComponent type="overzicht"/>;
+          selectedComponent = <ApisComponent type="overzicht" />;
           break;
         case "articles-abonnementen":
-          selectedComponent = <ArticlesComponent type="abonnementen"/>;
+          selectedComponent = <ArticlesComponent type="abonnementen" />;
           break;
         case "articles-articles":
-          selectedComponent = <ArticlesComponent type="articles"/>;
+          selectedComponent = <ArticlesComponent type="articles" />;
           break;
         case "articles-buurtstallingen":
-          selectedComponent = <ArticlesComponent type="buurtstallingen"/>;
+          selectedComponent = <ArticlesComponent type="buurtstallingen" />;
           break;
         case "articles-fietskluizen":
-          selectedComponent = <ArticlesComponent type="fietskluizen"/>;
+          selectedComponent = <ArticlesComponent type="fietskluizen" />;
           break;
         default:
           console.warn("unknown component", activecomponent);
@@ -206,22 +211,22 @@ const BeheerPage: React.FC<{gemeentes?: Gemeente[], bikeparks?: ReportBikepark[]
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Veiligstallen Beheer Dashboard" currentComponent={activecomponent||"home"} user={mockUser} gemeentes={gemeentes} selectedGemeenteID={selectedGemeenteID} onGemeenteSelect={handleSelectGemeente} />
-        <div className="flex">
-      <LeftMenu
-        user={mockUser}
-        council={mockCouncil}
-        exploitant={mockExploitant}
-        activecomponent={activecomponent}
-        onSelect={(componentKey:AvailableComponents) => handleSelectComponent(componentKey)} // Pass the component key
-      />
+      <TopBar title="Veiligstallen Beheer Dashboard" currentComponent={activecomponent || "home"} user={mockUser} gemeentes={gemeentes} selectedGemeenteID={selectedGemeenteID} onGemeenteSelect={handleSelectGemeente} />
+      <div className="flex">
+        <LeftMenu
+          user={mockUser}
+          council={mockCouncil}
+          exploitant={mockExploitant}
+          activecomponent={activecomponent}
+          onSelect={(componentKey: AvailableComponents) => handleSelectComponent(componentKey)} // Pass the component key
+        />
 
-      {/* Main Content */}
-      <div className="flex-1 p-4">
-        <h1 className="text-2xl font-bold">Veiligstallen Beheer Dashboard</h1>
-         {renderComponent()}  
+        {/* Main Content */}
+        <div className="flex-1 p-4">
+          <h1 className="text-2xl font-bold">Veiligstallen Beheer Dashboard</h1>
+          {renderComponent()}
+        </div>
       </div>
-    </div>
     </div>
   );
 };

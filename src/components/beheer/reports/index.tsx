@@ -10,6 +10,7 @@ interface ReportComponentProps {
   bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
+  selectedGemeenteID?: string;
 }
 
 const ReportComponent: React.FC<ReportComponentProps> = ({
@@ -18,6 +19,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   bikeparks,
   error,
   warning,
+  selectedGemeenteID
 }) => {
   const [errorState, setErrorState] = useState(error);
   const [warningState, setWarningState] = useState(warning);
@@ -32,7 +34,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     const fetchReportData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/reports/transactionsPerPeriod`);
+        const response = await fetch(`/api/reports/transactionsPerPeriod?selectedGemeenteID=${selectedGemeenteID}`);
         // reportParams.reportUnit <- I.e. reportUnit_weekDay
 
         if (!response.ok) {
@@ -98,7 +100,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                 align: 'left'
               }
             },
-            yaxis: {
+            yaxis: reportData.options?.yaxis || {
               title: {
                 text: 'Aantal afgeronde transacties'
               },
@@ -207,7 +209,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             {reportData ? (
               <>
                 {renderChart(reportData)}
-                {renderTable(reportData)} 
+                {renderTable(reportData)}
               </>
             ) : (
               <div>No data available yet</div>

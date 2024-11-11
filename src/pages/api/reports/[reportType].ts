@@ -11,7 +11,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
     switch (req.query.reportType) {
       case "transactionsPerPeriod":
-        data = await ReportService.getTransactionsPerPeriodData();
+        data = await ReportService.getTransactionsPerPeriodData(req.query);
         console.log("sending report data", data);
         res.json(data);
         break;

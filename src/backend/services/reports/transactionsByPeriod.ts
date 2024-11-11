@@ -24,6 +24,7 @@ export enum OutputType {
 }
 
 export interface GetTransactionsByPeriodParams {
+  selectedGemeenteID?: string | null | undefined;
   zipID: string;
   bikeParkId?: string;
   sectionID?: string;
@@ -43,6 +44,7 @@ interface GetTransactionsByPeriodSQLResult {
 
 function getTransactionsByPeriodSQL(params: GetTransactionsByPeriodParams): GetTransactionsByPeriodSQLResult {
   const {
+    selectedGemeenteID,
     zipID,
     bikeParkId = '',
     sectionID = '',
@@ -79,7 +81,9 @@ function getTransactionsByPeriodSQL(params: GetTransactionsByPeriodParams): GetT
             ${outputType === 'transacties_voltooid' ? `, COUNT(*) AS totalTransactions` : ''}
             ${outputType === 'inkomsten' ? `, SUM(price) AS totalTransactions` : ''}
         FROM transacties_archief
-        WHERE citycode = 7300 -- Breda
+        LEFT JOIN fietsenstallingen ON stallingsId = locationid
+        LEFT JOIN contacts ON contacts.ID = fietsenstallingen.SiteID
+        WHERE contacts.ID = ?
         -- ${bikeParkId ? `AND locationid IN (?)` : `AND sectionid LIKE ?`}
         -- ${selectType === 'BIKETYPE' || selectType === 'CLIENTTYPE' ? `AND sectionid = ?` : ''}
         AND checkoutdate BETWEEN ? AND ?
@@ -101,6 +105,7 @@ function getTransactionsByPeriodSQL(params: GetTransactionsByPeriodParams): GetT
 
   // Prepare parameters for the query
   const queryParams = [
+    selectedGemeenteID ?? '', // Use nullish coalescing to provide empty string as fallback
     // zipID,
     // bikeParkId || `${zipID || ''}%`,
     // sectionID,
@@ -108,6 +113,7 @@ function getTransactionsByPeriodSQL(params: GetTransactionsByPeriodParams): GetT
     adjustedEndDate.format('YYYY-MM-DD HH:mm:ss')
   ];
 
+  console.log('selectedGemeenteID', selectedGemeenteID, queryParams)
   return { sql, queryParams };
 }
 
