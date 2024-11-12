@@ -1,5 +1,6 @@
 import { IReportService } from "~/backend/handlers/report-service-interface";
-import getTransactionsByPeriod, { GetTransactionsByPeriodParams, PeriodType, SelectType, OutputType } from "~/backend/services/reports/transactionsByPeriod";
+import getTransactionsByPeriod from "~/backend/services/reports/transactionsByPeriod";
+import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 
 export interface ReportData {
   title: string;
@@ -34,20 +35,8 @@ const ReportService: IReportService<ReportData | false> = {
 
   //     return data;
   //   },
-  getTransactionsPerPeriodData: async (
-    queryParams: { selectedGemeenteID: string; }
-  ) => {
+  getTransactionsPerPeriodData: async (params: ReportParams) => {
     try {
-      const params: GetTransactionsByPeriodParams = {
-        selectedGemeenteID: queryParams.selectedGemeenteID,
-        zipID: "12345",
-        startDate: new Date(2016, 5, 1),
-        endDate: new Date(2016, 5, 30),
-        periodType: PeriodType.YEAR,
-        selectType: SelectType.STALLING,
-        outputType: OutputType.TRANSACTIONS,
-      }
-      console.log('params', params)
       const data = await getTransactionsByPeriod(params);
 
       return data;

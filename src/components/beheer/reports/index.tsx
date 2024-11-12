@@ -34,9 +34,22 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
     const fetchReportData = async () => {
+      if (undefined === reportParams) {
+        return;
+      }
+
       setLoading(true);
       try {
-        const response = await fetch(`/api/reports/transactionsPerPeriod?selectedGemeenteID=${selectedGemeenteID}`);
+        console.log(">>> START fetchReportData", JSON.stringify(reportParams));
+        const response = await fetch(`/api/reports/transactionsPerPeriod`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportParams
+          }),
+        });
         // reportParams.reportUnit <- I.e. reportUnit_weekDay
 
         if (!response.ok) {
@@ -48,6 +61,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         console.error(error);
         setErrorState("Unable to fetch report data");
       } finally {
+        console.log(">>> END fetchReportData", JSON.stringify(reportParams));
         setLoading(false);
       }
     };

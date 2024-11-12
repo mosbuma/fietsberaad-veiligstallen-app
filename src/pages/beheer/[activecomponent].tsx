@@ -38,9 +38,11 @@ export const getServerSideProps = async (props: GetServerSidePropsContext) => {
 
   const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeentes using map reduce
   activeGemeentes.map((gemeente) => {
-    gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.map((stalling) => {
-      bikeparks.push({ id: stalling.ID, title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
-    });
+    gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
+        .filter(stalling => stalling.StallingsID !== null)
+        .map((stalling) => {
+          bikeparks.push({ id: stalling.ID, stallingsID: stalling.StallingsID||"---", title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
+        });
   });
 
   bikeparks.sort((a, b) => a.title.localeCompare(b.title));
@@ -63,9 +65,7 @@ const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[
   let activecomponent: AvailableComponents | undefined = "home";
 
   useEffect(() => {
-    console.log(">>>> useEffect selectedGemeenteID", selectedGemeenteID);
     if (selectedGemeenteID === undefined && gemeentes && gemeentes.length > 0 && gemeentes[0] !== undefined) {
-      console.log(">>>> useEffect selectedGemeenteID setting to", gemeentes[0].id);
       setSelectedGemeenteID(gemeentes[0].id);
     }
   }, [gemeentes, selectedGemeenteID]);
