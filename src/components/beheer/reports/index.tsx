@@ -57,6 +57,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         }
         const data = await response.json();
         setReportData(data);
+        setErrorState("");
       } catch (error) {
         console.error(error);
         setErrorState("Unable to fetch report data");

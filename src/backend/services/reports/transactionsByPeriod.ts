@@ -9,7 +9,7 @@ interface GetTransactionsByPeriodSQLResult {
   // queryParams: string[];
 }
 
-function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeriodSQLResult {
+function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeriodSQLResult | false {
   const {
     reportType,
     reportUnit,
@@ -17,6 +17,11 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
     startDT: startDate,
     endDT: endDate,
   } = params;
+
+  if(["transacties_voltooid","inkomsten"].includes(reportType)===false) {
+    throw new Error("Invalid report type");
+    return false;
+  }
 
   const dayBeginsAt = new Date(0, 0, 0);
 
@@ -32,8 +37,8 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
       if(reportUnit === "reportUnit_quarter") return `QUARTER(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
       if(reportUnit === "reportUnit_month") return `MONTH(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
       if(reportUnit === "reportUnit_week") return `WEEKOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_weekDay") return `DAYOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_day") return `WEEKDAY(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1`;
+      if(reportUnit === "reportUnit_weekDay") return `WEEKDAY(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+      if(reportUnit === "reportUnit_day") return `DAYOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1`;
     }
     
 
@@ -89,22 +94,6 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
   return { sql: sqlfilledin }; // , queryParams TODO: make queryParams work: 
 }
 
-const getAggregatorKeyForPeriod = (reportUnit: ReportUnit) => {
-  if (reportUnit === 'reportUnit_year')
-    return 'checkoutYear';
-  else if (reportUnit === 'reportUnit_quarter')
-    return 'checkoutQuarter';
-  else if (reportUnit === 'reportUnit_month')
-    return 'checkoutMonth';
-  else if (reportUnit === 'reportUnit_week')
-    return 'checkoutWeekOfYear';
-  else if (reportUnit === 'reportUnit_weekDay')
-    return 'checkoutDayOfWeek';
-  else if (reportUnit === 'reportUnit_day')
-    return 'checkoutDayOfWeek';
-  return 'reportUnit'
-}
-
 interface Transaction {
   name: string;
   TIMEGROUP: string;
@@ -127,7 +116,7 @@ const getTransactionsByPeriodSeries = async (transactions: Transaction[], params
         data: {}
       };
     }
-    acc[tx.name].data[tx["TIMEGROUP"]] = Number(tx.totalTransactions);
+    acc[tx.name].data[tx.timegroup] = Number(tx.totalTransactions);
     return acc;
   }, {});
 
@@ -172,33 +161,37 @@ const getCategoriesForXAxis = (reportUnit: ReportUnit) => {
 
 const getTransactionsByPeriod = async (params: ReportParams): Promise<ReportData|false> => {
     try {
-        const { sql } = getTransactionsByPeriodSQL(params); // , queryParams
-
+        const result = getTransactionsByPeriodSQL(params); // , queryParams
+        if(!result) {
+            console.error("No result from getTransactionsByPeriodSQL");
+            return false;
+        }
+        const { sql } = result;
   
-  // Cast the result to Transaction[]
-  const transactions = await prisma.$queryRawUnsafe<Transaction[]>(sql);
+        // Cast the result to Transaction[]
+        const transactions = await prisma.$queryRawUnsafe<Transaction[]>(sql);
 
-  // Get series for 'year'
-  let series = await getTransactionsByPeriodSeries(transactions, params);
+        // Get series for 'year'
+        let series = await getTransactionsByPeriodSeries(transactions, params);
 
-  return {
-    title: "Transacties per periode",
-    options: {
-      xaxis: {
-        categories: getCategoriesForXAxis(params.reportUnit),
-        title: {
-          text: 'Weekdag',
-          align: 'left'
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'Aantal afgeronde transacties'
-        }
-      }
-    },
-    series: series
-  };
+        return {
+            title: "Transacties per periode",
+            options: {
+            xaxis: {
+                categories: getCategoriesForXAxis(params.reportUnit),
+                title: {
+                text: 'Weekdag',
+                align: 'left'
+                }
+            },
+            yaxis: {
+                title: {
+                text: 'Aantal afgeronde transacties'
+                }
+            }
+            },
+            series: series
+        };
     } catch (error) {
         console.error(error);
         return false;
