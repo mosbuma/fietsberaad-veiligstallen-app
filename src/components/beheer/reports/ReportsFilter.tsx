@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BikeparkSelect from './BikeparkSelect';
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
@@ -502,57 +503,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       );
     };
 
-    const renderBikeparkSelect = (): React.ReactNode => {
-      const isScrollable = bikeparks.length > 10;
-
-      const toggleSelectAll = () => {
-        const newSelection = bikeparks.map(park => park.stallingsID).filter(id => !selectedBikeparkIDs.includes(id));
-        setSelectedBikeparkIDs(newSelection.length ? newSelection : []);
-      };
-
-      return (
-        <>
-          <div id='all-bikeparks' className="title" style={{ userSelect: 'none' }}>
-            Stallingen
-            <span
-              onClick={toggleSelectAll}
-              style={{ cursor: 'pointer', marginLeft: '10px', color: 'blue', userSelect: 'none' }}
-              title="Toggle Select All"
-            >
-              ✔️
-            </span>
-          </div>
-          <div
-            style={{
-              maxHeight: isScrollable ? '200px' : 'auto', // Adjust height as needed
-              overflowY: isScrollable ? 'scroll' : 'visible',
-              overflowX: 'hidden', // Prevent horizontal scrolling
-            }}
-          >
-            {bikeparks.map((park) => (
-              <div key={park.stallingsID}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBikeparkIDs.includes(park.stallingsID)}
-                    value={park.stallingsID}
-                    onChange={() =>
-                      setSelectedBikeparkIDs((prev) =>
-                        prev.includes(park.stallingsID)
-                          ? prev.filter((id) => id !== park.stallingsID)
-                          : [...prev, park.stallingsID]
-                      )
-                    }
-                  />
-                  {park.title}
-                </label>
-              </div>
-            ))}
-          </div>
-        </>
-      );
-    };
-
     const renderAbonnementenSelect = (): React.ReactNode => {
         return (
           <div>
@@ -651,8 +601,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
             {/* column 2 */}
             {bikeparks.length > 1 && (
-              <div>
-                {renderBikeparkSelect()}
+              <div className="w-96">
+                <BikeparkSelect
+                  bikeparks={bikeparks}
+                  selectedBikeparkIDs={selectedBikeparkIDs}
+                  setSelectedBikeparkIDs={setSelectedBikeparkIDs}
+                />
               </div>
             )}
 
@@ -676,7 +630,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             Go!
           </div>
           </div>
-
 
           {/* new row, full width */}
           <div className="flex flex-col space-y-2">

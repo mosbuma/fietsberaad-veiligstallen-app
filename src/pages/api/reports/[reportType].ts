@@ -5,7 +5,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   if (req.method === 'POST') {
     let data = undefined;
 
-
     switch (req.query.reportType) {
       case "transactionsPerPeriod":
         let reportParams = req.body.reportParams;

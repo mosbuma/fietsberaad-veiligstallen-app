@@ -1,14 +1,18 @@
-import { IReportService } from "~/backend/handlers/report-service-interface";
 import getTransactionsByPeriod from "~/backend/services/reports/transactionsByPeriod";
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 
+export interface ReportSeriesData {
+    name: string;
+    data: number[];
+  }
+  
 export interface ReportData {
   title: string;
   options: {
     [x: string]: { title: { text: string; }; };
     xaxis: {
-      categories: string[];
-      title: {
+        categories: string[];
+        title: {
         text: string;
         align: string;
       };
@@ -19,13 +23,10 @@ export interface ReportData {
       };
     };
   };
-  series: {
-    name: string,
-    data: any[]
-  }[];
+  series: ReportSeriesData[];
 }
 
-const ReportService: IReportService<ReportData | false> = {
+const ReportService = {
   //   getStallingduurData: async () => {
   //     const data: ReportData = {
   //         title: "Stallingduur",

@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import { ReportData } from "~/backend/services/reports-service";
+import { ReportData, ReportSeriesData } from "~/backend/services/reports-service";
 import { ReportParams, ReportType, ReportUnit } from "~/components/beheer/reports/ReportsFilter";
 import moment from 'moment';
 
@@ -9,7 +9,7 @@ interface GetTransactionsByPeriodSQLResult {
   // queryParams: string[];
 }
 
-function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeriodSQLResult | false {
+const getTransactionsByPeriodSQL = (params: ReportParams, useCache: boolean = true): GetTransactionsByPeriodSQLResult | false => {
   const {
     reportType,
     reportUnit,
@@ -18,42 +18,58 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
     endDT: endDate,
   } = params;
 
-  if(["transacties_voltooid","inkomsten"].includes(reportType)===false) {
-    throw new Error("Invalid report type");
-    return false;
-  }
-
-  const dayBeginsAt = new Date(0, 0, 0);
-
-  // Calculate time interval in minutes
-  const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
-
-  // Adjust start and end dates using moment
-  const adjustedStartDate = moment(startDate).add(timeIntervalInMinutes, 'minutes');
-  const adjustedEndDate = moment(endDate).add(timeIntervalInMinutes, 'minutes');
-
-    const getFunctionForPeriod = (reportUnit: ReportUnit) => {
-      if(reportUnit === "reportUnit_year") return `YEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_quarter") return `QUARTER(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_month") return `MONTH(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_week") return `WEEKOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_weekDay") return `WEEKDAY(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
-      if(reportUnit === "reportUnit_day") return `DAYOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1`;
+    if(["transacties_voltooid","inkomsten"].includes(reportType)===false) {
+        throw new Error("Invalid report type");
+        return false;
     }
-    
+
+    const dayBeginsAt = new Date(0, 0, 0);
+
+    // Calculate time interval in minutes
+    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+
+    // Adjust start and end dates using moment
+    const adjustedStartDate = moment(startDate).add(timeIntervalInMinutes, 'minutes');
+    const adjustedEndDate = moment(endDate).add(timeIntervalInMinutes, 'minutes');
+
+    const getFunctionForPeriod = (reportUnit: ReportUnit, useCache: boolean = true) => {
+        if(false===useCache) {
+            if(reportUnit === "reportUnit_year") return `YEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+            if(reportUnit === "reportUnit_quarter") return `QUARTER(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+            if(reportUnit === "reportUnit_month") return `MONTH(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+            if(reportUnit === "reportUnit_week") return `WEEKOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+            if(reportUnit === "reportUnit_weekDay") return `WEEKDAY(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
+            if(reportUnit === "reportUnit_day") return `DAYOFYEAR(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1`;
+        } else {
+            if(reportUnit === "reportUnit_year") return `YEAR(checkoutdate)`;
+            if(reportUnit === "reportUnit_quarter") return `QUARTER(checkoutdate)`;
+            if(reportUnit === "reportUnit_month") return `MONTH(checkoutdate)`;
+            if(reportUnit === "reportUnit_week") return `WEEKOFYEAR(checkoutdate)`;
+            if(reportUnit === "reportUnit_weekDay") return `WEEKDAY(checkoutdate)`;
+            if(reportUnit === "reportUnit_day") return `DAYOFYEAR(checkoutdate) + 1`;
+        }
+    }
 
     const statementItems = [];
     statementItems.push(`SELECT`);
     statementItems.push(`  locationID AS stallingID,`);
     statementItems.push(`  Title AS name,`);
     statementItems.push(`  ${getFunctionForPeriod(reportUnit)} AS TIMEGROUP,`);
-    if(reportType === "transacties_voltooid") { 
-        statementItems.push(`COUNT(*) AS totalTransactions`);
-    } else if(reportType === "inkomsten") {
-        statementItems.push(`SUM(price) AS totalTransactions`);
+    if(false===useCache) {
+        if(reportType === "transacties_voltooid") {
+            statementItems.push(`COUNT(*) AS totalTransactions`);
+        } else if(reportType === "inkomsten") {
+            statementItems.push(`SUM(price) AS totalTransactions`);
+        }
+    } else {
+        if(reportType === "transacties_voltooid") {
+            statementItems.push(`SUM(count_transacties) AS totalTransactions`);
+        } else if(reportType === "inkomsten") {
+            statementItems.push(`SUM(sum_inkomsten) AS totalTransactions`);
+        }
     }
 
-    statementItems.push(`FROM transacties_archief`)
+    statementItems.push(`FROM ${false===useCache ? 'transacties_archief' : 'transacties_archief_day_cache'}`)
     statementItems.push(`LEFT JOIN fietsenstallingen ON stallingsId = locationid`)
     // statementItems.push(`  LEFT JOIN contacts ON contacts.ID = fietsenstallingen.SiteID`)
     statementItems.push(`WHERE locationID IN ( ? )`)
@@ -61,7 +77,7 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
     // statementItems.push(`-- ${selectType === 'BIKETYPE' || selectType === 'CLIENTTYPE' ? `AND sectionid = ?` : ''}`)
     statementItems.push(`AND checkoutdate BETWEEN ? AND ?`)
     statementItems.push(`GROUP BY`);
-    statementItems.push(`  locationID, Name,TIMEGROUP;`);
+    statementItems.push(`  locationID, name,TIMEGROUP;`);
 
 
     // ORDER BY ${reportUnit === 'reportUnit_stalling' ? 'locationid' : ''}
@@ -78,7 +94,6 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
     adjustedEndDate.format('YYYY-MM-DD HH:mm:ss')
   ];
 
-  // debug function to interpolate the SQL query
   const interpolateSQL = (sql: string, params: string[]): string => {
     let interpolatedSQL = sql;
     interpolatedSQL = interpolatedSQL.replace('?', `${queryParams[0]}`);
@@ -88,8 +103,6 @@ function getTransactionsByPeriodSQL(params: ReportParams): GetTransactionsByPeri
     return interpolatedSQL;
   }
 
-//   console.log(interpolateSQL(sql, queryParams));
-//   console.log(queryParams);
   const sqlfilledin = interpolateSQL(sql, queryParams);
   return { sql: sqlfilledin }; // , queryParams TODO: make queryParams work: 
 }
@@ -100,23 +113,18 @@ interface Transaction {
   totalTransactions: number;
 }
 
-interface SeriesData {
-  name: string;
-  data: number[];
-}
-
-const getTransactionsByPeriodSeries = async (transactions: Transaction[], params: ReportParams): Promise<SeriesData[]> => {
-  let series: SeriesData[] = [];
+const getTransactionsByPeriodSeries = async (transactions: Transaction[], params: ReportParams): Promise<ReportSeriesData[]> => {
+  let series: ReportSeriesData[] = [];
 
   // Group transactions by FietsenstallingID
-  const groupedByStalling = transactions.reduce((acc: any, tx: any) => {
+  const groupedByStalling = transactions.reduce((acc:any, tx:any) => {
     if (!acc[tx.name]) {
       acc[tx.name] = {
         name: tx.name,
         data: {}
       };
     }
-    acc[tx.name].data[tx.timegroup] = Number(tx.totalTransactions);
+    acc[tx.name].data[tx.TIMEGROUP] = Number(tx.totalTransactions);
     return acc;
   }, {});
 
@@ -139,6 +147,23 @@ const getTransactionsByPeriodSeries = async (transactions: Transaction[], params
   }));
 
   return series;
+}
+
+const getReportTitle = (reportType: ReportType) => {
+  if(reportType === "transacties_voltooid") return "Transacties per periode";
+  if(reportType === "inkomsten") return "Inkomsten per periode";
+  return "";
+}
+
+const getXAxisTitle = (reportUnit: ReportUnit) => {
+  switch(reportUnit) {
+    case 'reportUnit_weekDay': return 'Dag van de week';
+    case 'reportUnit_day': return 'Dag';
+    case 'reportUnit_month': return 'Maand';
+    case 'reportUnit_quarter': return 'Kwartaal';
+    case 'reportUnit_year': return 'Jaar';
+    default: return 'onbekend';
+  }
 }
 
 const getCategoriesForXAxis = (reportUnit: ReportUnit) => {
@@ -168,25 +193,23 @@ const getTransactionsByPeriod = async (params: ReportParams): Promise<ReportData
         }
         const { sql } = result;
   
-        // Cast the result to Transaction[]
         const transactions = await prisma.$queryRawUnsafe<Transaction[]>(sql);
 
-        // Get series for 'year'
         let series = await getTransactionsByPeriodSeries(transactions, params);
 
         return {
-            title: "Transacties per periode",
+            title: getReportTitle(params.reportType),
             options: {
             xaxis: {
                 categories: getCategoriesForXAxis(params.reportUnit),
                 title: {
-                text: 'Weekdag',
-                align: 'left'
-                }
+                    text: getXAxisTitle(params.reportUnit),
+                    align: 'left'
+                },
             },
             yaxis: {
                 title: {
-                text: 'Aantal afgeronde transacties'
+                text: getReportTitle(params.reportType)
                 }
             }
             },

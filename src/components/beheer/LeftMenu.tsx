@@ -19,6 +19,7 @@ export type AvailableComponents =
   | "barcodereeksen-sleutelhangers"
   | "barcodereeksen-fietsstickers"
   | "contacts"
+  | "database"
   | "documents"
   | "faq"
   | "home"
@@ -54,6 +55,7 @@ export const isAvailableComponent = (value: string): boolean  => {
     "barcodereeksen-sleutelhangers",
     "barcodereeksen-fietsstickers",
     "contacts",
+    "database",
     "documents",
     "faq",
     "home",
@@ -179,6 +181,10 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               { formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true) }
             </ul>
         ))}
+
+        {showAdminOnly && (
+          formatLi("database", 'Database', false)
+        )}
       </>)
   }
 

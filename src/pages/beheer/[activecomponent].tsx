@@ -25,6 +25,7 @@ import ReportComponent from '../../components/beheer/reports';
 import SettingsComponent from '../../components/beheer/settings';
 import TrekkingenComponent from '../../components/beheer/trekkingen';
 import UsersComponent from '../../components/beheer/users';
+import DatabaseComponent from '../../components/beheer/database';
 
 import { prisma } from '~/server/db';
 
@@ -112,6 +113,9 @@ const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[
           break;
         case "faq":
           selectedComponent = <FaqComponent />;
+          break;
+        case "database":
+          selectedComponent = <DatabaseComponent bikeparks={bikeparks} firstDate={firstDate} lastDate={lastDate} />;
           break;
         case "documents":
           selectedComponent = <DocumentsComponent />;
@@ -221,7 +225,6 @@ const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[
 
         {/* Main Content */}
         <div className="flex-1 p-4">
-          <h1 className="text-2xl font-bold">Veiligstallen Beheer Dashboard</h1>
           {renderComponent()}
         </div>
       </div>
