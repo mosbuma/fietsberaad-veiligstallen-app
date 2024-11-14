@@ -33,9 +33,15 @@ export const updateTransactionCache = async (params: TransactionCacheParams) => 
         return false;
     }
 
+    const dayBeginsAt = new Date(0, 0, 0);
+    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+
+    // TODO: check if timeinterval offset works correctly, link to offset settings in database
+    // current db model links to contacts.DayBeginsAt field
+
     const conditions = [];
     if (!params.allDates) {
-        conditions.push(`checkoutdate >= '${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}'`);
+        conditions.push(`checkoutdate >= DATE_ADD('${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
     }
     if (!params.allBikeparks) {
         conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);
@@ -46,28 +52,22 @@ export const updateTransactionCache = async (params: TransactionCacheParams) => 
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const sql = `
-      INSERT INTO transacties_archief_day_cache (locationID, checkoutdate, year, month,quarter, weekofyear, weekday, dayofyear, count_transacties, sum_inkomsten)
+      INSERT INTO transacties_archief_day_cache (locationID, checkoutdate, count_transacties, sum_inkomsten)
       SELECT 
         locationID,
-        DATE(checkoutdate) AS date,
-        YEAR(checkoutdate) AS year,
-        MONTH(checkoutdate) AS month,
-        QUARTER(checkoutdate) AS quarter,
-        WEEKOFYEAR(checkoutdate) AS weekofyear,
-        WEEKDAY(checkoutdate) AS weekday,
-        DAYOFYEAR(checkoutdate) AS dayofyear,
+        DATE(DATE_ADD(checkoutdate, INTERVAL -${timeIntervalInMinutes} MINUTE)) AS date,
         COUNT(*) AS count_transacties,
         SUM(price) AS sum_inkomsten
       FROM transacties_archief
       ${whereClause}
-      GROUP BY locationID, date, year, month, quarter, weekofyear, weekday, dayofyear;`
+      GROUP BY locationID, date;`
     /* const result = */ await prisma.$executeRawUnsafe(sql);
     return getTransactionCacheStatus(params);
 }
 
 export const clearTransactionCache = async (params: TransactionCacheParams) => {
     if(!params.allDates && !params.startDate) {
-        console.error(">>> clearTransactionCache ERROR No start checkoutdate provided");
+        console.error(">>> clearTransactionCache ERROR No start date provided");
         return false;
     }
     if (!params.allBikeparks && (!params.selectedBikeparkIDs || params.selectedBikeparkIDs.length===0)) {
@@ -95,12 +95,6 @@ export const createTransactionCacheTable = async (params: TransactionCacheParams
         ID int NOT NULL AUTO_INCREMENT,
         locationID varchar(8),
         checkoutdate DATE NULL,
-        year INT NULL,
-        month INT NULL,
-        quarter INT NULL,
-        weekofyear INT NULL,
-        weekday INT NULL,
-        dayofyear INT NULL,
         count_transacties INT,
         sum_inkomsten DECIMAL(10, 2),
         PRIMARY KEY (ID)

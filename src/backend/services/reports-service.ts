@@ -15,7 +15,10 @@ export interface ReportData {
         title: {
         text: string;
         align: string;
-      };
+        };
+        labels: {
+          formatter: (value: string) => string;
+        };
     };
     yaxis: {
       title: {

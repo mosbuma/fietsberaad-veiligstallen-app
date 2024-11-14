@@ -2,35 +2,36 @@ import React, { useEffect, useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
 
 import { useRouter } from 'next/router';
-import LeftMenu, { AvailableComponents, isAvailableComponent } from '../../components/beheer/LeftMenu';
-import TopBar from '../../components/beheer/TopBar';
-import { mockUser, mockCouncil, mockExploitant, Gemeente } from '../../utils/mock';
-import { ReportBikepark } from '../../components/beheer/reports/ReportsFilter';
+import LeftMenu, { AvailableComponents, isAvailableComponent } from '../../../components/beheer/LeftMenu';
+import TopBar from '../../../components/beheer/TopBar';
+import { mockUser, mockCouncil, mockExploitant, Gemeente, User, MockUser } from '../../../utils/mock';
+import { ReportBikepark } from '../../../components/beheer/reports/ReportsFilter';
 
-import AbonnementenComponent from '../../components/beheer/abonnementen';
-import AccountsComponent from '../../components/beheer/accounts';
-import ApisComponent from '../../components/beheer/apis';
-import ArticlesComponent from '../../components/beheer/articles';
-import BarcodereeksenComponent from '../../components/beheer/barcodereeksen';
-import ContactsComponent from '../../components/beheer/contacts';
-import DocumentsComponent from '../../components/beheer/documenten';
-import FaqComponent from '../../components/beheer/faq';
-import HomeComponent from '../../components/beheer/home';
-import LogboekComponent from '../../components/beheer/logboek';
-import FietsenstallingenComponent from '../../components/beheer/fietsenstallingen';
-import PermitsComponent from '../../components/beheer/permits';
-import PresentationsComponent from '../../components/beheer/presentations';
-import ProductsComponent from '../../components/beheer/producten';
-import ReportComponent from '../../components/beheer/reports';
-import SettingsComponent from '../../components/beheer/settings';
-import TrekkingenComponent from '../../components/beheer/trekkingen';
-import UsersComponent from '../../components/beheer/users';
-import DatabaseComponent from '../../components/beheer/database';
+import AbonnementenComponent from '../../../components/beheer/abonnementen';
+import AccountsComponent from '../../../components/beheer/accounts';
+import ApisComponent from '../../../components/beheer/apis';
+import ArticlesComponent from '../../../components/beheer/articles';
+import BarcodereeksenComponent from '../../../components/beheer/barcodereeksen';
+import ContactsComponent from '../../../components/beheer/contacts';
+import DocumentsComponent from '../../../components/beheer/documenten';
+import FaqComponent from '../../../components/beheer/faq';
+import HomeComponent from '../../../components/beheer/home';
+import LogboekComponent from '../../../components/beheer/logboek';
+import FietsenstallingenComponent from '../../../components/beheer/fietsenstallingen';
+import PermitsComponent from '../../../components/beheer/permits';
+import PresentationsComponent from '../../../components/beheer/presentations';
+import ProductsComponent from '../../../components/beheer/producten';
+import ReportComponent from '../../../components/beheer/reports';
+import SettingsComponent from '../../../components/beheer/settings';
+import TrekkingenComponent from '../../../components/beheer/trekkingen';
+import UsersComponent from '../../../components/beheer/users';
+import DatabaseComponent from '../../../components/beheer/database';
 
 import { prisma } from '~/server/db';
-
+import { security_users, security_roles } from '@prisma/client';
 export const getServerSideProps = async (props: GetServerSidePropsContext) => {
   const currentUser = mockUser;
+
   const activeGemeentes = await prisma.contacts.findMany({
     where: { ItemType: 'organizations', ID: { in: currentUser.getGemeenteIDs() } },
     select: { ID: true, CompanyName: true, fietsenstallingen_fietsenstallingen_SiteIDTocontacts: true },
@@ -48,10 +49,39 @@ export const getServerSideProps = async (props: GetServerSidePropsContext) => {
 
   bikeparks.sort((a, b) => a.title.localeCompare(b.title));
 
-  return { props: { gemeentes, bikeparks } }
+  const users = await prisma.security_users.findMany({
+    select: {
+      UserID: true,
+      UserName: true,
+      DisplayName: true,
+      RoleID: true,
+      Status: true,
+      GroupID: true,
+      security_roles: {
+        select: {
+          RoleID: true,
+          Role: true,
+          Description: true,
+        }
+      }
+    }
+  });
+  users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
+
+  const roles = await prisma.security_roles.findMany({});
+  return { props: { gemeentes, bikeparks, users, roles } }
 }
 
-const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[], selectedGemeenteID?: string }> = ({ gemeentes, bikeparks }) => {
+export type BeheerPageProps = { 
+  gemeentes?: Gemeente[], 
+  bikeparks?: ReportBikepark[], 
+  selectedGemeenteID?: string, 
+  users?: security_users[], 
+  roles?: security_roles[] 
+}
+
+const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, roles}) => {
+
   const router = useRouter();
 
   const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | undefined>(undefined);
@@ -79,6 +109,9 @@ const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[
   ) {
     activecomponent = activeComponentQuery as AvailableComponents;
   }
+
+  const activeIDQuery = router.query.id;
+  const activeId = typeof activeIDQuery === 'string' ? router.query.id as string : undefined;
 
   const handleSelectComponent = (componentKey: AvailableComponents) => {
     try {
@@ -130,13 +163,13 @@ const BeheerPage: React.FC<{ gemeentes?: Gemeente[], bikeparks?: ReportBikepark[
           selectedComponent = <LogboekComponent />;
           break;
         case "users-gebruikersbeheer":
-          selectedComponent = <UsersComponent type="gebruiker" />;
+          selectedComponent = <UsersComponent type="gebruiker" users={users || []} roles={roles || []} id={activeId} />;
           break;
         case "users-exploitanten":
-          selectedComponent = <UsersComponent type="exploitant" />;
+          selectedComponent = <UsersComponent type="exploitant" users={users || []} roles={roles || []} id={activeId} />;
           break;
         case "users-beheerders":
-          selectedComponent = <UsersComponent type="beheerder" />;
+          selectedComponent = <UsersComponent type="beheerder" users={users || []} roles={roles || []} id={activeId} />;
           break;
         case "fietsenstallingen":
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;

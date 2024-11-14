@@ -40,7 +40,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
       setLoading(true);
       try {
-        console.log(">>> START fetchReportData", JSON.stringify(reportParams));
         const response = await fetch(`/api/reports/transactionsPerPeriod`, {
           method: 'POST',
           headers: {
@@ -62,7 +61,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         console.error(error);
         setErrorState("Unable to fetch report data");
       } finally {
-        console.log(">>> END fetchReportData", JSON.stringify(reportParams));
         setLoading(false);
       }
     };
