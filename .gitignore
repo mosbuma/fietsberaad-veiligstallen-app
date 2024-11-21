@@ -62,3 +62,4 @@ create-test-user.sql
 
 #temporary files
 /broncode
+debug.log

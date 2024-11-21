@@ -1,4 +1,5 @@
 import getTransactionsByPeriod from "~/backend/services/reports/transactionsByPeriod";
+import getBezettingsdataByPeriod from "~/backend/services/reports/bezettingsdataByPeriod";
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 
 export interface ReportSeriesData {
@@ -42,6 +43,16 @@ const ReportService = {
   getTransactionsPerPeriodData: async (params: ReportParams) => {
     try {
       const data = await getTransactionsByPeriod(params);
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  },
+  getBezettingsdataPerPeriodData: async (params: ReportParams) => {
+    try {
+      const data = await getBezettingsdataByPeriod(params);
 
       return data;
     } catch (error) {

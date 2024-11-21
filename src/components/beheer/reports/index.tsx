@@ -40,7 +40,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/reports/transactionsPerPeriod`, {
+        const apiEndpoint = reportParams.reportType === "bezetting" ? "/api/reports/bezettingsdataPerPeriod" : "/api/reports/transactionsPerPeriod";
+        const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

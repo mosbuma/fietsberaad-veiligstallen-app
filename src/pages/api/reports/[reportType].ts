@@ -20,6 +20,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
             res.status(500).end();
         }
         break;
+      case "bezettingsdataPerPeriod":
+        data = await ReportService.getBezettingsdataPerPeriodData(reportParams);
+        res.json(data);
+        break;
       default: {
         res.status(405).end() // Method Not Allowed
       }

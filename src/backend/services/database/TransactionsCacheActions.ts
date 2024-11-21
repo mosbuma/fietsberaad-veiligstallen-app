@@ -1,11 +1,12 @@
 import { prisma } from "~/server/db";
-import { TransactionCacheParams, TransactionCacheStatus } from "~/backend/services/database-service";
+import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
-export const getTransactionCacheStatus = async (params: TransactionCacheParams) => {
+
+export const getTransactionCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'transacties_archief_day_cache'`
 
     let tableExists = false;
-    let status: TransactionCacheStatus | false = { status: 'missing', size: undefined, firstUpdate: undefined, lastUpdate: undefined };
+    let status: CacheStatus | false = { status: 'missing', size: undefined, firstUpdate: undefined, lastUpdate: undefined };
     try {
         const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable); //  as 
         tableExists = result && result.length>0 && result[0] ? result[0].count > 0: false;
@@ -27,7 +28,7 @@ export const getTransactionCacheStatus = async (params: TransactionCacheParams) 
     }
 }
 
-export const updateTransactionCache = async (params: TransactionCacheParams) => {
+export const updateTransactionCache = async (params: CacheParams) => {
     if(false=== await clearTransactionCache(params)) {
         console.error(">>> updateTransactionCache ERROR Unable to clear transaction cache");
         return false;
@@ -65,7 +66,7 @@ export const updateTransactionCache = async (params: TransactionCacheParams) => 
     return getTransactionCacheStatus(params);
 }
 
-export const clearTransactionCache = async (params: TransactionCacheParams) => {
+export const clearTransactionCache = async (params: CacheParams) => {
     if(!params.allDates && !params.startDate) {
         console.error(">>> clearTransactionCache ERROR No start date provided");
         return false;
@@ -90,7 +91,7 @@ export const clearTransactionCache = async (params: TransactionCacheParams) => {
     return getTransactionCacheStatus(params);
 }
 
-export const createTransactionCacheTable = async (params: TransactionCacheParams) => {
+export const createTransactionCacheTable = async (params: CacheParams) => {
     const sqlCreateTable = `CREATE TABLE IF NOT EXISTS transacties_archief_day_cache (
         ID int NOT NULL AUTO_INCREMENT,
         locationID varchar(8),
@@ -117,7 +118,7 @@ export const createTransactionCacheTable = async (params: TransactionCacheParams
     return getTransactionCacheStatus(params);
 }
 
-export const dropTransactionCacheTable = async (params: TransactionCacheParams) => {
+export const dropTransactionCacheTable = async (params: CacheParams) => {
     const sql = "DROP TABLE IF EXISTS transacties_archief_day_cache";
 
     const result = await prisma.$queryRawUnsafe(sql);
