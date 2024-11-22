@@ -20,9 +20,16 @@ export interface CacheParams {
 
 export interface CacheStatus {
   status: 'missing' | 'available' | 'error';
+
+  // stats for the cache table
   size: number | undefined;
   firstUpdate: Date | null | undefined; // null -> no data yet
   lastUpdate: Date | null | undefined; // null -> no data yet
+
+  // stats for the original table
+  originalSize: number | undefined;
+  originalFirstUpdate: Date | null | undefined; // null -> no data yet
+  originalLastUpdate: Date | null | undefined; // null -> no data yet
 }
 
 const DatabaseService = {

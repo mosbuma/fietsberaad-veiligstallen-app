@@ -6,7 +6,16 @@ export const getBezettingCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'bezettingsdata_day_hour_cache'`;
 
     let tableExists = false;
-    let status: CacheStatus | false = { status: 'missing', size: undefined, firstUpdate: undefined, lastUpdate: undefined };
+    let status: CacheStatus | false = { 
+        status: 'missing', 
+        size: undefined, 
+        firstUpdate: undefined, 
+        lastUpdate: undefined, 
+        originalSize: undefined, 
+        originalFirstUpdate: undefined, 
+        originalLastUpdate: undefined 
+    };
+    
     try {
         const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable);
         tableExists = result && result.length > 0 && result[0] ? result[0].count > 0 : false;
@@ -19,6 +28,14 @@ export const getBezettingCacheStatus = async (params: CacheParams) => {
                 status.size = parseInt(resultStatistics[0].count.toString());
                 status.firstUpdate = resultStatistics[0].firstUpdate;
                 status.lastUpdate = resultStatistics[0].lastupdate;
+            }
+
+            const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(timestamp) AS firstUpdate, MAX(timestamp) AS lastupdate FROM bezettingsdata WHERE NOT ISNULL(timestamp)`;
+            const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastupdate: Date }[]>(sqlGetOriginalStatistics);
+            if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
+                status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
+                status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
+                status.originalLastUpdate = resultOriginalStatistics[0].lastupdate;
             }
         }
         return status;
@@ -51,23 +68,42 @@ export const updateBezettingCache = async (params: CacheParams) => {
 
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-
     const sql = `
     INSERT INTO bezettingsdata_day_hour_cache (
-      timestamp, bikeparkID, sectionID, source, totalCheckins, totalCheckouts, totalOccupation, totalCapacity
+      timestamp, 
+      \`interval\`,
+      bikeparkID, 
+      sectionID, 
+      source, 
+      fillup, 
+      open,
+      totalCheckins, 
+      totalCheckouts, 
+      totalOccupation, 
+      totalCapacity
     )
     SELECT
       DATE_FORMAT(DATE_ADD(timestamp, INTERVAL -${timeIntervalInMinutes} MINUTE), '%Y-%m-%d %H:00:00') AS datehour,
+      \`interval\`,
       bikeparkID,
       sectionID,
       source,
+      fillup,
+      open,
       SUM(checkins) AS totalCheckins,
       SUM(checkouts) AS totalCheckouts,
       SUM(occupation) AS totalOccupation,
       SUM(capacity) AS totalCapacity
     FROM bezettingsdata
       ${whereClause}
-    GROUP BY DATE_FORMAT(DATE_ADD(timestamp, INTERVAL -${timeIntervalInMinutes} MINUTE), '%Y-%m-%d %H:00:00'), bikeparkID, sectionID, source;`;    
+    GROUP BY 
+      DATE_FORMAT(DATE_ADD(timestamp, INTERVAL -${timeIntervalInMinutes} MINUTE), '%Y-%m-%d %H:00:00'), 
+      \`interval\`,
+      bikeparkID, 
+      sectionID, 
+      source,
+      fillup,
+      open;`;    
 
     console.log("++++++++++++++++++++++")
     console.log(sql);
@@ -104,16 +140,17 @@ export const createBezettingCacheTable = async (params: CacheParams) => {
     const sqlCreateTable = `CREATE TABLE IF NOT EXISTS bezettingsdata_day_hour_cache (
         ID int NOT NULL AUTO_INCREMENT,
         timestamp DATETIME NULL,
+        \`interval\` INT DEFAULT '1',
         bikeparkID VARCHAR(255),
         sectionID VARCHAR(255),
         source VARCHAR(255),
+        fillup BOOLEAN,
+        open BOOLEAN,
         totalCheckins INT,
         totalCheckouts INT,
         totalOccupation INT,
         totalCapacity INT,
         perc_occupation DECIMAL(5, 2),
-        fillup BOOLEAN,
-        open BOOLEAN,
         PRIMARY KEY (ID)
     );`;
 

@@ -6,7 +6,15 @@ export const getTransactionCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'transacties_archief_day_cache'`
 
     let tableExists = false;
-    let status: CacheStatus | false = { status: 'missing', size: undefined, firstUpdate: undefined, lastUpdate: undefined };
+    let status: CacheStatus | false = { 
+        status: 'missing', 
+        size: undefined, 
+        firstUpdate: undefined, 
+        lastUpdate: undefined, 
+        originalSize: undefined, 
+        originalFirstUpdate: undefined, 
+        originalLastUpdate: undefined 
+    };
     try {
         const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable); //  as 
         tableExists = result && result.length>0 && result[0] ? result[0].count > 0: false;
@@ -20,6 +28,15 @@ export const getTransactionCacheStatus = async (params: CacheParams) => {
                 status.firstUpdate = resultStatistics[0].firstUpdate;
                 status.lastUpdate = resultStatistics[0].lastupdate;
             };
+
+            const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(checkoutdate) AS firstUpdate, MAX(checkoutdate) AS lastUpdate FROM transacties_archief WHERE NOT ISNULL(checkoutdate)`;
+            const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastUpdate: Date }[]>(sqlGetOriginalStatistics);
+            if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
+                status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
+                status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
+                status.originalLastUpdate = resultOriginalStatistics[0].lastUpdate;
+            }
+
         } 
         return status;
     } catch (error) {

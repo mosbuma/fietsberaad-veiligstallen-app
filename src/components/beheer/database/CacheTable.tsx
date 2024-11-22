@@ -208,25 +208,33 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
     <div className="bg-gray-200 border-2  border-gray-400 p-2 pl-4 rounded mb-2">
         <h2 className="text-xl font-semibold">{title}</h2>
         <div className="mt-4">
-            {cacheStatus?.status==='available' ? (
+            {cacheStatus && cacheStatus?.status==='available' && (
                 <table className="table-auto">
                 <tbody>
                     <tr>
-                    <td className="font-semibold">Aantal records:</td>
-                    <td className="pl-2">{cacheStatus.size}</td>
+                      <td className="font-semibold">Aantal records:</td>
+                      {cacheStatus.size && <td className="pl-2">{cacheStatus.size}</td>}
+                      </tr>
+                    <tr>
+                      <td className="font-semibold">Compressie:</td>
+                      {cacheStatus.size && cacheStatus.originalSize && <td className="pl-2">{Math.round((1 - cacheStatus.size / cacheStatus.originalSize )* 100 * 10)/10}%</td> }
                     </tr>
                     <tr>
-                    <td className="font-semibold">Eerste update:</td>
-                    <td className="pl-2">{firstUpdate ? firstUpdate.toLocaleDateString() : 'nog geen data'}</td>
+                      <td className="font-semibold">Eerste update:</td>
+                      <td className="pl-2">{firstUpdate ? firstUpdate.toLocaleDateString() : 'nog geen data'}</td>
                     </tr>
                     <tr>
-                    <td className="font-semibold">Laatste update:</td>
-                    <td className="pl-2">{lastUpdate ? lastUpdate.toLocaleDateString() : 'nog geen data'}</td> 
+                      <td className="font-semibold">Laatste update:</td>
+                      <td className="pl-2">{lastUpdate ? lastUpdate.toLocaleDateString() : 'nog geen data'}</td> 
                     </tr>
                 </tbody>
                 </table>
-            ) : (
-                <div>Cache niet aanwezig</div>
+            )}
+            {cacheStatus && cacheStatus?.status==='missing' && (
+                <div>Cache niet beschikbaar</div>
+            )}
+            {cacheStatus && cacheStatus?.status==='error' && (
+                <div>Cache fout</div>
             )}
             </div>
             <div className="mt-4">

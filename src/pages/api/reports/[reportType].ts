@@ -6,7 +6,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     let data = undefined;
 
     switch (req.query.reportType) {
-      case "transactionsPerPeriod":
+      case "transactionsPerPeriod": {
         let reportParams = req.body.reportParams;
     
         if (undefined === reportParams) {
@@ -20,10 +20,18 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
             res.status(500).end();
         }
         break;
-      case "bezettingsdataPerPeriod":
-        data = await ReportService.getBezettingsdataPerPeriodData(reportParams);
+      }
+      case "bezettingsdataPerPeriod": {
+        let reportParams = req.body.reportParams;
+    
+        if (undefined === reportParams) {
+          res.status(405).end() // Method Not Allowed
+        }
+
+        data = await ReportService.getQBezettingsdata(reportParams);
         res.json(data);
         break;
+      }
       default: {
         res.status(405).end() // Method Not Allowed
       }

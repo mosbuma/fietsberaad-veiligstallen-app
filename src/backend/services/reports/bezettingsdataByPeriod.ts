@@ -4,12 +4,12 @@ import { ReportParams, ReportType, ReportUnit } from "~/components/beheer/report
 import moment from 'moment';
 import fs from 'fs';
 
-interface GetBezettingsdataByPeriodSQLResult {
+interface getBezettingsdataSQLResult {
   sql: string;
   // queryParams: string[];
 }
 
-const getBezettingsdataByPeriodSQL = (params: ReportParams, useCache: boolean = true): GetBezettingsdataByPeriodSQLResult | false => {
+const getBezettingsdataSQL = (params: ReportParams, useCache: boolean = true): getBezettingsdataSQLResult | false => {
   const {
     reportType,
     reportUnit,
@@ -51,6 +51,35 @@ const getBezettingsdataByPeriodSQL = (params: ReportParams, useCache: boolean = 
         }
     }
 
+    // const queryexample = const query = `
+    // SELECT
+    //   timestamp,
+    //   c.zipID as authorityId,
+    //   bikeparkID,
+    //   ${groupBySection ? "SectionID," : ""}
+    //   interval,
+    //   source,
+    //   fillup,
+    //   open,
+    //   SUM(checkins) AS totalCheckins,
+    //   SUM(checkouts) AS totalCheckouts,
+    //   SUM(b.capacity) as capacity,
+    //   SUM(occupation) as occupation,
+    // FROM bezettingsdata b
+    // INNER JOIN fietsenstallingen f ON f.StallingsID = b.bikeparkID
+    // INNER JOIN contacts c ON c.ID = f.siteID
+    // WHERE 0 = 0
+    // ${!fillups ? "AND `fillup` = 0" : ""}
+    // ${locationid ? `AND \`bikeparkID\` IN (${locationid.split(',').map(id => `'${id}'`).join(',')})` : ""}
+    // ${source ? `AND \`source\` = '${source}'` : ""}
+    // AND \`interval\` = 15
+    // AND \`timestamp\` > '${startDate.toISOString()}'
+    // AND \`timestamp\` <= '${endDate.toISOString()}'
+    // GROUP BY source, timestamp_Year, timestamp_Month, timestamp_Day, timestamp_Hour, timestamp_Minute, bikeparkID
+    // ${groupBySection ? ", SectionID" : ""}
+    // ORDER BY ${orderBy} ${orderDirection}`;
+
+  
     const statementItems = [];
     statementItems.push(`SELECT`);
     statementItems.push(`  bikeparkID AS stallingID,`);
@@ -121,7 +150,7 @@ const debugLog = (message: string, truncate: boolean = false) => {
   }
 }
 
-const getBezettingsdataByPeriodSeries = async (transactions: Transaction[], params: ReportParams): Promise<ReportSeriesData[]> => {
+const getQBezettingsdataSeries = async (transactions: Transaction[], params: ReportParams): Promise<ReportSeriesData[]> => {
   let series: ReportSeriesData[] = [];
 
   // debugLog(`GROUPED BY STALLING - TRANSACTIONS`);
@@ -278,21 +307,21 @@ const getXAxisFormatter = (labels: XAxisLabels[]) => (): ((value: string) => str
   return (value: string) => labelMap[value] || value;
 }
 
-const getBezettingsdataByPeriod = async (params: ReportParams): Promise<ReportData|false> => {
+const getQBezettingsdata = async (params: ReportParams): Promise<ReportData|false> => {
     try {
       console.log("TEST REPORT UNIT LABELS");
       testReportUnitLabels();
 
-        const result = getBezettingsdataByPeriodSQL(params); // , queryParams
+        const result = getBezettingsdataSQL(params); // , queryParams
         if(!result) {
-            console.error("No result from getBezettingsdataByPeriodSQL");
+            console.error("No result from getBezettingsdataSQL");
             return false;
         }
         const { sql } = result;
   
         const transactions = await prisma.$queryRawUnsafe<Transaction[]>(sql);
 
-        let series = await getBezettingsdataByPeriodSeries(transactions, params);
+        let series = await getQBezettingsdataSeries(transactions, params);
         let xaxisLabels = getLabelsForXAxis(params.reportUnit, params.startDT || new Date(), params.endDT || new Date());
         debugLog("XAXISLABELS", true);
 
@@ -326,5 +355,5 @@ const getBezettingsdataByPeriod = async (params: ReportParams): Promise<ReportDa
     }
 };
 
-export default getBezettingsdataByPeriod;
+export default getQBezettingsdata;
 
