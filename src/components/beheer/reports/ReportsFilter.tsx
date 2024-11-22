@@ -3,16 +3,23 @@ import BikeparkSelect from './BikeparkSelect';
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
-export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "reportUnit_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
+export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year" 
+export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "range_quarter" | "range_week" 
+// export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
 
 export type ReportBikepark = { id: string; stallingsID: string; title: string; gemeenteID: string; hasData: boolean };
 
 export interface ReportParams {
     reportType: ReportType;
-    reportUnit: ReportUnit;
+    reportGrouping: ReportGrouping;
+    reportRangeUnit: ReportRangeUnit;
+    reportRangeValue: number | "lastPeriod";
+//    reportUnit: ReportUnit;
     bikeparkIDs: string[];
     startDT: Date | undefined;
     endDT: Date | undefined;
+    fillups: boolean;
+    source?: string;
 }
 
 const getWeekNumber = (date: Date): number => {
@@ -49,17 +56,13 @@ const getMaanden = (): Array<string> => {
 
 const getSingleYearRange = (year: number|"lastPeriod") => {
     let filteryear: number, filtermonth: number;
+    console.log("getSingleYearRange", year);
     if(year === "lastPeriod") {
         const now = new Date();
         filteryear = now.getFullYear()
-        filtermonth = now.getMonth()
-        // use this code to exclude current month
-        // if(filtermonth === 0) { 
-        //     filteryear -= 1
-        //     filtermonth = 11
-        // } else {
-        //     filtermonth -= 1
-        // }
+        filtermonth = now.getMonth()+1
+
+        console.log("lastPeriod", filteryear, filtermonth);
     } else {
         filteryear = year
         filtermonth = 12
@@ -68,6 +71,63 @@ const getSingleYearRange = (year: number|"lastPeriod") => {
     startDT.setHours(0,0,0,0);
     const endDT = new Date(filteryear, filtermonth, 0);
     endDT.setHours(23, 59, 59, 999);
+
+    startDT.setHours(0,0,0,0);
+    endDT.setHours(23, 59, 59, 999);
+
+    return { startDT, endDT};
+}
+
+const getSingleMonthRange = (year: number | "lastPeriod", month: number | "lastPeriod") => {
+  let startDT, endDT;
+  if(month === "lastPeriod" || year === "lastPeriod") {
+    const now = new Date();
+    startDT = new Date(now.getFullYear(), now.getMonth(), 1);
+    endDT = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  } else {
+    console.log("month", year, month);
+    startDT = new Date(year, month, 1);
+    endDT = new Date(year, month+1, 0);
+  }
+  startDT.setHours(0,0,0,0);
+  endDT.setHours(23, 59, 59, 999);
+
+  return { startDT, endDT};
+}
+
+const getSingleQuarterRange = (year: number | "lastPeriod", quarter: number | "lastPeriod") => {
+  let startDT, endDT, currentYear, currentQuarter;
+
+    if(year === "lastPeriod" || quarter === "lastPeriod") {
+      const now = new Date();
+      currentQuarter = getQuarter(now);
+      console.log("currentQuarter", currentQuarter); // 1 .. 4
+      currentYear = now.getFullYear();
+    } else {
+      currentQuarter = quarter;
+      currentYear = year;
+    }
+
+    startDT = new Date(currentYear, (currentQuarter - 1) * 3, 1);
+    endDT = new Date(currentYear, (currentQuarter * 3), 0);
+    startDT.setHours(0,0,0,0);
+    endDT.setHours(23, 59, 59, 999);
+
+    return { startDT, endDT};
+}
+
+const getSingleWeekRange = (year: number | "lastPeriod", week: number | "lastPeriod") => {
+  let startDT, endDT;
+    const theWeek = week === "lastPeriod" ? getWeekNumber(new Date()) : week;
+
+    if(year === "lastPeriod" || week === "lastPeriod") {
+      const now = new Date();
+      startDT = firstDayOfWeek(now.getFullYear(), theWeek);
+      endDT = lastDayOfWeek(now.getFullYear(), theWeek);
+    } else {
+      startDT = firstDayOfWeek(year, theWeek);
+      endDT = lastDayOfWeek(year, theWeek);
+    }
 
     startDT.setHours(0,0,0,0);
     endDT.setHours(23, 59, 59, 999);
@@ -118,14 +178,16 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     onSubmit,
   }) => {
     const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
-    const [reportUnit, setReportUnit] = useState<ReportUnit>("reportUnit_year");
+    const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
+    const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>("range_year");
+    //const [reportUnit, setReportUnit] = useState<ReportUnit>("reportUnit_year");
     const [datatype, setDatatype] = useState<ReportDatatype|undefined>(undefined);
     const [week, setWeek] = useState<number|"lastPeriod">("lastPeriod");
-    const [weekDay, setWeekDay] = useState("");
-    const [month, setMonth] = useState("");
-    const [quarter, setQuarter] = useState("");
+    const [month, setMonth] = useState<number|"lastPeriod">("lastPeriod");
+    const [quarter, setQuarter] = useState<number|"lastPeriod">("lastPeriod");
     const [year, setYear] = useState<number|"lastPeriod">("lastPeriod"); // new Date().getFullYear()
     const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>([]);
+    const [fillups, setFillups] = useState(false);
     const [grouped, setGrouped] = useState("0");
     const [percBusy, setPercBusy] = useState("");
     const [percQuiet, setPercQuiet] = useState("");
@@ -138,27 +200,21 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
     useEffect(() => {
      if(["bezetting"].includes(reportType)) {
-        setReportUnit("reportUnit_week");
+        setReportGrouping("per_week");
       } else if(["stallingsduur", "gelijktijdig_vol"].includes(reportType)) {
-        setReportUnit("reportUnit_quarter");
+        setReportGrouping("per_quarter");
       } else {
-        setReportUnit("reportUnit_month");
+        setReportGrouping("per_month");
       }
     }, [reportType]);
 
     useEffect(() => {
-      // check for valid date selection when reportUnit or reportType changes
-      checkInput();
-    }, [reportUnit, reportType]);
-
-    useEffect(() => {
         setTimerange(getStartEndDT());
-    }, [reportUnit, year, month, week, quarter]);
-
+    }, [reportRangeUnit, year, month, week, quarter]);
 
     useEffect(() => {
         checkInput();
-    }, [reportType, reportUnit, selectedBikeparkIDs, year, month, datatype]);
+    }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]);
 
     useEffect(() => {
       // Filter out any selected bikeparks that are no longer in the bikeparks array
@@ -176,7 +232,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         }
 
         if (reportType === "downloads" && datatype === "bezettingsdata") {
-            const endPeriod = new Date(year === "lastPeriod" ? new Date().getFullYear() : year, parseInt(month), 1);
+            const endPeriod = new Date(year === "lastPeriod" ? new Date().getFullYear() : year, month === "lastPeriod" ? new Date().getMonth() : month, 1);
             if (endPeriod > new Date()) {
                 setWarningState("Zeer recente bezettingsdata op basis van in- en uitchecks is onbetrouwbaar omdat deze nog niet gecorrigeerd zijn middels controlescans");
             }
@@ -186,94 +242,33 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     }
 
     const getStartEndDT = () => {
-        switch(reportUnit) {
-            case "reportUnit_year": {
-                const startDT = firstDate;
-                startDT.setHours(0,0,0,0);
-                const endDT = lastDate;
-                endDT.setHours(23, 59, 59, 999);
+        switch(reportRangeUnit) {
+          case "range_all": {
+            const startDT = firstDate;
+            startDT.setHours(0,0,0,0);
+            const endDT = lastDate;
+            endDT.setHours(23, 59, 59, 999);
 
-                return { startDT, endDT};
-            }
+            return { startDT, endDT};
+          }
+          case "range_year": {
+            return getSingleYearRange(year);
+          }
             // case "reportUnit_oneyear": 
-            case "reportUnit_month": 
-            case "reportUnit_weekDay":
-            case "reportUnit_week":
-                return getSingleYearRange(year);
-            case "reportUnit_quarter": {
-                let filteryear: number, filterquarter: number;
-                if(year === "lastPeriod") {
-                    // set startDT and endDT to last 4 quarters (including current quarter)
-                    const now = new Date();
-                    filteryear = now.getFullYear()
-                    filterquarter = getQuarter(now)
-                    // use this code to exclude current quarter
-                    // if(filterquarter === 1) { 
-                    //     filteryear -= 1
-                    //     filterquarter = 4
-                    // } else {
-                    //     filterquarter -= 1
-                    // }
-                } else {
-                    filteryear = year
-                    filterquarter = 4
-                } 
-
-                const startDT = new Date(filteryear - (filterquarter === 4 ? 0 : 1), (filterquarter === 4 ? 0: filterquarter) *3 , 1);
-                startDT.setHours(0,0,0,0);
-                const endDT = new Date(filteryear, filterquarter * 3, 0);
-                endDT.setHours(23, 59, 59, 999);
-        
-                return { startDT, endDT};
+            case "range_month": {
+              return getSingleMonthRange(year, month);
             }
-            // case "reportUnit_onequarter": {
-            //     console.log("ONEQUARTER '%s'", quarter);
-            //     if(quarter === "lastPeriod") {
-            //         // set startDT and endDT to last 12 weeks
-            //         const now = new Date();
-            //         const filteryear = now.getFullYear();
-            //         const endweek = getWeekNumber(now);
-            //         const startweek = calculateStartWeek(endweek, filteryear);
-
-            //         const startDT = firstDayOfWeek(filteryear, startweek);
-            //         startDT.setHours(0,0,0,0);
-            //         const endDT = lastDayOfWeek(filteryear, endweek);
-            //         endDT.setHours(23, 59, 59, 999);
-
-            //         console.log("ONEQUARTER lastPeriod", filteryear, startweek, endweek, startDT, endDT);
-            
-            //         return { startDT, endDT};
-            //     } else {
-            //         const filterquarter = parseInt(quarter)
-
-            //         const filteryear = typeof year === "number" ? year : new Date().getFullYear();
-            //         const startDT = new Date(filteryear, (filterquarter-1) *3 , 1);
-            //         startDT.setHours(0,0,0,0);
-            //         const endDT = new Date(filteryear, filterquarter * 3, 0);
-            //         endDT.setHours(23, 59, 59, 999);
-            
-            //         return { startDT, endDT};
-            //     } 
-            // }
-            case "reportUnit_day": {
-                let filteryear: number, filterweek: number;
-                if(week === "lastPeriod") {
-                    filteryear = new Date().getFullYear()
-                    filterweek = getWeekNumber(new Date())
-                } else {
-                    filteryear = typeof year === "number" ? year : new Date().getFullYear();
-                    filterweek = week;
-                }
-                
-                const startDT = firstDayOfWeek(filteryear, filterweek);
-                startDT.setHours(0,0,0,0);
-                const endDT = lastDayOfWeek(filteryear, filterweek);
-                endDT.setHours(23, 59, 59, 999);
-
-                return { startDT, endDT};
+            case "range_week": {
+              return getSingleWeekRange(year, week);
+            }
+            case "range_quarter": {
+              return getSingleQuarterRange(year, quarter);
+            }
+            case "range_week": {
+              return getSingleWeekRange(year, week);
             }
             default: {
-                console.warn("Unhandled reportUnit", reportUnit);
+                console.warn("Unhandled reportUnit", reportRangeUnit);
                 return { startDT: new Date(), endDT: new Date()};
             };
         }
@@ -282,7 +277,25 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     const handleSubmit = () => {
         if(!checkInput()) return;
 
-        onSubmit({reportType, reportUnit, bikeparkIDs: selectedBikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT});
+        let reportRangeValue: number | "lastPeriod";
+        switch(reportRangeUnit) {
+          case "range_week":
+            reportRangeValue = week;
+            break;
+          case "range_month":
+            reportRangeValue = month;
+            break;
+          case "range_quarter":
+            reportRangeValue = quarter;
+            break;
+          case "range_year":
+            reportRangeValue = year;
+            break;
+          default:
+            reportRangeValue = "lastPeriod";
+        }
+
+        onSubmit({reportType, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: selectedBikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups});
     };
 
     const renderReportTypeSelect = () => {
@@ -306,28 +319,119 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       )
     }
 
+    const renderWeekSelect = (showLastPeriod: boolean = true) => {
+      console.log("render week", week);
+      return (
+        <>
+          <select
+            value={week}
+            onChange={(e) => {
+              const value = e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value);
+              console.log("setWeek", value);
+              setWeek(value)}
+            }
+            name="week"
+            id="week"
+            className="p-2 border-2 border-gray-300 rounded-md"
+            required>
+              { showLastPeriod && <option value="lastPeriod">Afgelopen week</option>}
+              {[...Array(53).keys()].map((_week) => {
+                const weekNumber = _week + 1;
+                const isValidWeek =
+                  !(year === firstDate.getFullYear() && weekNumber < getWeekNumber(firstDate)) &&
+                  !(year === lastDate.getFullYear() && weekNumber > getWeekNumber(lastDate));
+                return (
+                  isValidWeek && (
+                    <option key={weekNumber} value={weekNumber}>
+                      Week {weekNumber}
+                      </option>
+                    )
+                  );
+                })}
+          </select>
+          {week!=="lastPeriod" && renderYearSelect(false) }
+        </>
+      )      
+    }
+
+    const renderMonthSelect = (showLastPeriod: boolean = true) => {   
+      return ( 
+        <>
+          <select value={month} onChange={(e) => setMonth(e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value))} className="p-2 border-2 border-gray-300 rounded-md" required>
+            { showLastPeriod && <option value="lastPeriod">Afgelopen maand</option>}
+            {getMaanden().map((maand, index) => (
+                <option key={index} value={index}>
+                  {maand}
+                </option>
+              ))}
+          </select>
+          {month!=="lastPeriod" && renderYearSelect(false) }
+        </>               
+      )
+    }
+
+    const renderQuarterSelect = (showLastPeriod: boolean = true) => {
+      return (
+        <>
+          <select
+            value={quarter}
+            onChange={(e) => setQuarter(e.target.value as number | "lastPeriod")}
+            name="quarter"
+            id="quarter"
+            className="p-2 border-2 border-gray-300 rounded-md"
+            required
+          >
+            { showLastPeriod && <option value="lastPeriod">Afgelopen kwartaal</option>}
+            {[1, 2, 3, 4].map((kwartaal) => {
+              const isValidQuarter =
+                !(year === firstDate.getFullYear() && kwartaal < getQuarter(firstDate)) &&
+                !(year === lastDate.getFullYear() && kwartaal > getQuarter(lastDate));
+              return (
+                isValidQuarter && (
+                  <option key={kwartaal} value={kwartaal}>
+                    Kwartaal {kwartaal}
+                  </option>
+                )
+              );
+            })}
+          </select>
+          {quarter!=="lastPeriod" && renderYearSelect(false) }
+          </>
+      )
+    }
+
+    const renderYearSelect = (showLastPeriod: boolean = true) => {
+      return (
+          <select
+            value={year}
+            onChange={(e) => {
+              const value = e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value);
+              setYear(value)}
+            }
+            name="year"
+            id="year"
+            className="p-2 border-2 border-gray-300 rounded-md"
+            required
+          >
+            {showLastPeriod && <option value="lastPeriod">Afgelopen jaar</option>}
+            {Array.from({ length: lastDate.getFullYear() - firstDate.getFullYear() + 1 }, (_, i) => {
+              const jaar = firstDate.getFullYear() + i;
+              return <option key={jaar} value={jaar}>{jaar}</option>;
+            })}
+          </select>
+      )
+    }
+
     const renderUnitSelect = () => {
       if (undefined === reportType) return null;
 
-      const showPerDagWeekdag = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
-      const showPerWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting"].includes(reportType)
-      const showPerMaand = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
-      const showPerKwartaal = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "stallingsduur"].includes(reportType)
-      const showPerJaar = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "stallingsduur"].includes(reportType)
-      // const showGelijktijdigVol = ["gelijktijdig_vol"].includes(reportType)
-      const showJaarAfgelopen12Maanden = reportUnit === 'reportUnit_month'  || reportUnit === "reportUnit_week" ||reportUnit === "reportUnit_weekDay"
-      const showJaarAfgelopen4Kwartalen = reportUnit === 'reportUnit_quarter' // && year === lastDate.getFullYear()
+      const showRangeWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
+      const showRangeAll = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
+      const showRangeMaand = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
+      const showRangeKwartaal = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "stallingsduur"].includes(reportType)
+      const showRangeJaar = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "stallingsduur"].includes(reportType)
 
-      const selectShowAll = false; // for debugging
-      const selectDag = reportUnit === "reportUnit_day"; //  && (selectShowAll || ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType||""))
-      // const selectWeekdag = reportUnit === "reportUnit_weekDay" && (selectShowAll || ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType||""))
-      const selectWeekdag = false; // In new design, weekDay is not used
-      const selectKwartaalBeperkt = false; // reportUnit === "reportUnit_onequarter" && (selectShowAll || ['transacties_voltooid', 'inkomsten', 'volmeldingen', 'gelijktijdig_vol'].includes(reportType||""))
-      const selectWeek = false; reportUnit === "reportUnit_week"; //  && (selectShowAll || ["downloads", "bezetting", "stallingsduur"].includes(reportType||"")) && reportType !== "downloads"
-      const selectMaand = false; reportUnit === "reportUnit_month"; // && (selectShowAll || ["downloads", "bezetting", "stallingsduur"].includes(reportType||""))
-      const selectKwartaal = false; // reportUnit === "reportUnit_quarter"; //  && (selectShowAll || ["downloads", "bezetting", "stallingsduur"].includes(reportType||""))
-      const hideYear = false; // reportType === "gelijktijdig_vol" && reportUnit === "reportUnit_onequarter" && quarter === "lastPeriod"
-      const selectYear = reportUnit !== "reportUnit_year" && !hideYear
+      const showLastPeriod = true; // TODO: range calculations are not yet implemented correctly for lastPeriod
 
       return (
           <div className="flex flex-col columns-1">
@@ -346,32 +450,46 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
               </div>
             )}
 
-            <div className="font-bold">Tijdsperiode</div>
+            <div className="font-bold">Groepering</div>
             <select
-              value={reportUnit}
-              onChange={(e) => setReportUnit(e.target.value as ReportUnit)}
-              name="reportUnit"
-              id="reportUnit"
+              value={reportGrouping}
+              onChange={(e) => setReportGrouping(e.target.value as ReportGrouping)}
+              name="reportGrouping"
+              id="reportGrouping"
               className="p-2 border-2 border-gray-300 rounded-md"
               required
             >
-              {showPerDagWeekdag && (
-                <>
-                  <option value="reportUnit_day">Per dag</option>
-                  <option value="reportUnit_weekDay">Per weekdag</option>
-                </>
+              <option value="per_year">Jaar</option>
+              <option value="per_month">Maand</option>
+              <option value="per_quarter">Kwartaal</option>
+              <option value="per_week">Week</option>
+              <option value="per_day">Dag</option>
+              <option value="per_weekday">Dag van de week</option>
+              <option value="per_hour">Uur van de dag</option>
+            </select>
+            <div className="font-bold">Tijdsperiode</div>
+            <select
+              value={reportRangeUnit}
+              onChange={(e) => setReportRangeUnit(e.target.value as ReportRangeUnit)}
+              name="reportRangeUnit"
+              id="reportRangeUnit"
+              className="p-2 border-2 border-gray-300 rounded-md"
+              required
+            >
+              {showRangeWeek && (
+                <option value="range_week">Week</option>
               )}
-              {showPerWeek && (
-                <option value="reportUnit_week">Per week</option>
+              {showRangeMaand && (
+                <option value="range_month">Maand</option>
               )}
-              {showPerMaand && (
-                <option value="reportUnit_month">Per maand</option>
+              {showRangeKwartaal && (
+                <option value="range_quarter">Kwartaal</option>
               )}
-              {showPerKwartaal && (
-                <option value="reportUnit_quarter">Per kwartaal</option>
+              {showRangeJaar && (
+                <option value="range_year">Jaar</option>
               )}
-              {showPerJaar && (
-                <option value="reportUnit_year">Per jaar</option>
+              {showRangeAll && (
+                <option value="range_all">Alles</option>
               )}
               {/* {showGelijktijdigVol && (
                 <>
@@ -381,124 +499,10 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
               )} */}
             </select>
 
-              {selectWeek && (
-                <select 
-                  value={week} 
-                  onChange={(e) => setWeek(e.target.value as number | "lastPeriod")} 
-                  className="p-2 border-2 border-gray-300 rounded-md"
-                  required>
-                  {[...Array(53).keys()].map((w) => (
-                    <option key={w} value={w}>
-                      Week {w}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {selectMaand && (
-                <select value={month} onChange={(e) => setMonth(e.target.value)} className="p-2 border-2 border-gray-300 rounded-md" required>
-                  {getMaanden().map((maand, index) => (
-                    <option key={index} value={index + 1}>
-                      {maand}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {selectKwartaal && (
-                <select value={quarter} onChange={(e) => setQuarter(e.target.value)} className="p-2 border-2 border-gray-300 rounded-md" required>
-                  {[1, 2, 3, 4].map((q) => (
-                    <option key={q} value={q}>
-                      Kwartaal {q}
-                    </option>
-                  ))}
-                </select>
-              )}
-              { selectDag && (
-                <select
-                  value={week}
-                onChange={(e) => setWeek(parseInt(e.target.value))}
-                name="week"
-                id="week"
-                className="p-2 border-2 border-gray-300 rounded-md"
-                required
-              >
-                {year === lastDate.getFullYear() && (
-                  <option value="lastPeriod">Afgelopen week</option>
-                )}
-                {[...Array(53).keys()].map((_week) => {
-                  const weekNumber = _week + 1;
-                  const isValidWeek =
-                    !(year === firstDate.getFullYear() && weekNumber < getWeekNumber(firstDate)) &&
-                    !(year === lastDate.getFullYear() && weekNumber > getWeekNumber(lastDate));
-                  return (
-                    isValidWeek && (
-                      <option key={weekNumber} value={weekNumber}>
-                        Week {weekNumber}
-                      </option>
-                    )
-                  );
-                })}
-              </select> )}
-          {selectWeekdag && (
-            <select
-              value={weekDay}
-              onChange={(e) => setWeekDay(e.target.value)}
-              name="weekDay"
-              id="weekDay"
-              className="p-2 border-2 border-gray-300 rounded-md"
-              required
-            >
-              <option value="1">Maandag</option>
-              <option value="2">Dinsdag</option>
-              <option value="3">Woensdag</option>
-              <option value="4">Donderdag</option>
-              <option value="5">Vrijdag</option>
-              <option value="6">Zaterdag</option>
-              <option value="7">Zondag</option>
-            </select>
-          )}
-          {selectKwartaalBeperkt && (
-              <select
-                value={quarter}
-                onChange={(e) => setQuarter(e.target.value)}
-                name="quarter"
-                id="quarter"
-                className="p-2 border-2 border-gray-300 rounded-md"
-                required
-              >
-                <option value="lastPeriod">Afgelopen 12 weken</option>
-                {[1, 2, 3, 4].map((kwartaal) => {
-                  const isValidQuarter =
-                    !(year === firstDate.getFullYear() && kwartaal < getQuarter(firstDate)) &&
-                    !(year === lastDate.getFullYear() && kwartaal > getQuarter(lastDate));
-                  return (
-                    isValidQuarter && (
-                      <option key={kwartaal} value={kwartaal}>
-                        Kwartaal {kwartaal}
-                      </option>
-                    )
-                  );
-                })}
-              </select>
-          )}
-          { selectYear && <select
-            value={year}
-            onChange={(e) => setYear(e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value))}
-            name="year"
-            id="year"
-            className="p-2 border-2 border-gray-300 rounded-md"
-            required
-          >
-            {showJaarAfgelopen12Maanden && (
-              <option value="lastPeriod">Afgelopen 12 maanden</option>
-            )}
-            {showJaarAfgelopen4Kwartalen && (
-              <option value="lastPeriod">Afgelopen 4 kwartalen</option>
-            )}
-            {Array.from({ length: lastDate.getFullYear() - firstDate.getFullYear() + 1 }, (_, i) => {
-              const jaar = firstDate.getFullYear() + i;
-              return <option key={jaar} value={jaar}>{jaar}</option>;
-            })}
-          </select>}
+            { reportRangeUnit === "range_week" && renderWeekSelect(showLastPeriod) } 
+            { reportRangeUnit === "range_month" && renderMonthSelect(showLastPeriod) }
+            { reportRangeUnit === "range_quarter" && renderQuarterSelect(showLastPeriod) } 
+            { reportRangeUnit === "range_year" && renderYearSelect(showLastPeriod) }
         </div>
       );
     };
@@ -544,7 +548,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
                 </tr>
                 <tr>
                   <td>Tijdsperiode</td>
-                  <td>{reportUnit}</td>
+                  <td>{reportRangeUnit}</td>
                 </tr>
                 <tr>
                   <td>Aantal Stallingen</td>
@@ -622,13 +626,13 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
                 {renderVolmeldingenSelect()}
               </div>
             )}
+          </div>
           <div 
             className={`${errorState===undefined ? 'bg-blue-500': 'bg-gray-300'} hover:bg-blue-700 text-white font-bold py-2 px-4 rounded max-w-20 max-h-10 inline-block text-center cursor-pointer ${errorState===undefined ? "": "cursor-not-allowed"}`}
             role="button" 
             onClick={errorState===undefined ? handleSubmit : undefined}
           >
             Go!
-          </div>
           </div>
 
           {/* new row, full width */}
