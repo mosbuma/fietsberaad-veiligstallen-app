@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { User, Gemeente } from '../../utils/mock';
 interface TopBarProps {
@@ -10,7 +10,9 @@ interface TopBarProps {
   onGemeenteSelect: (gemeente: string) => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ title, currentComponent, user, gemeentes, selectedGemeenteID, onGemeenteSelect }) => {
+const TopBar: React.FC<TopBarProps> = ({
+  title, currentComponent, user, gemeentes, selectedGemeenteID, onGemeenteSelect
+}) => {
   const handleGemeenteChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     event.preventDefault();
     onGemeenteSelect(event.target.value);
@@ -30,9 +32,13 @@ const TopBar: React.FC<TopBarProps> = ({ title, currentComponent, user, gemeente
             Beheer Home
           </Link>
         )}
-        {gemeentes && <select onChange={handleGemeenteChange} defaultValue={selectedGemeenteID || ""} className="bg-gray-700 text-white rounded px-2 py-1">
+        {gemeentes && <select onChange={handleGemeenteChange} value={selectedGemeenteID || ""} className="bg-gray-700 text-white rounded px-2 py-1">
           <option key="select-gemeente-placeholder" value="">Selecteer gemeente</option>
-          {gemeentes.map((gemeente) => (<option key={`select-gemeente-option-${gemeente.id}`} value={gemeente.id}>{gemeente.title}</option>))}
+          {gemeentes.map((gemeente) => (
+            <option key={`select-gemeente-option-${gemeente.id}`} value={gemeente.id}>
+              {gemeente.title}
+            </option>
+          ))}
         </select>}
         {user !== undefined ? (
           <Link href="#" className="hover:underline">
