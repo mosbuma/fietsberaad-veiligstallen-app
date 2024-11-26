@@ -56,6 +56,9 @@ model abonnementsvorm_fietsenstalling {
     SubscriptiontypeID Int
     BikeparkID         String @db.VarChar(35)
 
+    abonnementsvormen abonnementsvormen? @relation(fields: [SubscriptiontypeID], references: [ID])
+    fietsenstallingen fietsenstallingen? @relation(fields: [BikeparkID], references: [ID])
+
     @@unique([SubscriptiontypeID, BikeparkID], map: "SubscriptiontypeID")
     @@unique([SubscriptiontypeID, BikeparkID], map: "prismaID")
 }
@@ -63,6 +66,9 @@ model abonnementsvorm_fietsenstalling {
 model abonnementsvorm_fietstype {
     SubscriptiontypeID Int
     BikeTypeID         Int
+
+    abonnementsvorm abonnementsvormen @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_av")
+    fietstype       fietstypen        @relation(fields: [SubscriptiontypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_ft")
 
     @@unique([SubscriptiontypeID, BikeTypeID], map: "prismaID")
 }
@@ -83,6 +89,9 @@ model abonnementsvormen {
     paymentAuthorizationID String?        @db.VarChar(35)
     conditionsID           String?        @db.VarChar(255)
     abonnementen           abonnementen[]
+
+    abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+    abonnementsvorm_fietstype       abonnementsvorm_fietstype[]
 }
 
 model account_transacties {
@@ -451,6 +460,8 @@ model contacts {
     presentations                                              presentations[]
     presentations_ticker                                       presentations_ticker[]
 
+    fietsenstallingen          fietsenstallingen[]
+
     @@unique([ItemType, CompanyName], map: "ItemType")
     @@index([CompanyName], map: "CompanyName")
     @@index([ItemType], map: "ItemType_idx")
@@ -607,6 +618,9 @@ model fietsenstalling_sectie {
     isactief                 Boolean @default(dbgenerated("b'1'")) @db.Bit(1)
     qualificatie             String? @default("NONE") @db.VarChar(255)
 
+    fietsenstalling   fietsenstallingen? @relation(fields: [fietsenstallingsId], references: [ID])
+    secties_fietstype sectie_fietstype[]
+
     @@index([fietsenstallingsId], map: "FKA8FBA192D2C0280D")
     @@index([fietsenstallingsId], map: "fietsenstallingsId")
     @@index([isactief], map: "isactief")
@@ -693,6 +707,10 @@ model fietsenstallingen {
 
     transacties_archief transacties_archief[]
     fmsservice_permit   fmsservice_permit[]
+    fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
+    fietsenstalling_secties fietsenstalling_sectie[]
+    abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+    exploitant contacts? @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
 
     @@index([ExploitantID], map: "ExploitantID")
     @@index([SiteID], map: "FKF4836A55668AE523")
@@ -727,12 +745,16 @@ model fietsenstallingtypen {
     id       String  @id @db.VarChar(15)
     name     String? @db.VarChar(255)
     sequence Int     @db.SmallInt
+    fietsenstallingen fietsenstallingen[]
 }
 
 model fietstypen {
     ID            Int     @id @default(autoincrement())
     Name          String? @db.VarChar(255)
     naamenkelvoud String  @db.VarChar(255)
+
+    sectie_fietstype          sectie_fietstype[]
+    abonnementsvorm_fietstype abonnementsvorm_fietstype[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -1096,6 +1118,9 @@ model sectie_fietstype {
     sectieID          Int?
     StallingsID       String?  @db.VarChar(35)
     BikeTypeID        Int?
+
+    fietsenstalling_sectie fietsenstalling_sectie? @relation(fields: [sectieID], references: [sectieId], onDelete: NoAction, map: "FK_sectie_fietstype_sectie")
+    fietstype              fietstypen?             @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, map: "FK_sectie_fietstype_fietstype")
 
     @@unique([sectieID, StallingsID, BikeTypeID], map: "sectieID_2")
     @@index([BikeTypeID], map: "BikeTypeID")
