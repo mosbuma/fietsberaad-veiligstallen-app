@@ -41,10 +41,10 @@ export const getServerSideProps = async (props: GetServerSidePropsContext) => {
   const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeentes using map reduce
   activeGemeentes.map((gemeente) => {
     gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
-        .filter(stalling => stalling.StallingsID !== null)
-        .map((stalling) => {
-          bikeparks.push({ id: stalling.ID, stallingsID: stalling.StallingsID||"---", title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
-        });
+      .filter(stalling => stalling.StallingsID !== null)
+      .map((stalling) => {
+        bikeparks.push({ id: stalling.ID, stallingsID: stalling.StallingsID || "---", title: stalling.Title || `Stalling ${stalling.ID}`, gemeenteID: gemeente.ID, hasData: true });
+      });
   });
 
   bikeparks.sort((a, b) => a.title.localeCompare(b.title));
@@ -72,15 +72,15 @@ export const getServerSideProps = async (props: GetServerSidePropsContext) => {
   return { props: { gemeentes, bikeparks, users, roles } }
 }
 
-export type BeheerPageProps = { 
-  gemeentes?: Gemeente[], 
-  bikeparks?: ReportBikepark[], 
-  selectedGemeenteID?: string, 
-  users?: security_users[], 
-  roles?: security_roles[] 
+export type BeheerPageProps = {
+  gemeentes?: Gemeente[],
+  bikeparks?: ReportBikepark[],
+  selectedGemeenteID?: string,
+  users?: security_users[],
+  roles?: security_roles[]
 }
 
-const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, roles}) => {
+const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, roles }) => {
 
   const router = useRouter();
 
@@ -139,7 +139,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, ro
           selectedComponent = <HomeComponent />;
           break;
         case "report":
-          selectedComponent = <ReportComponent showAbonnementenRapporten={showAbonnementenRapporten} firstDate={firstDate} lastDate={lastDate} bikeparks={filteredBikeparks || []} selectedGemeenteID={selectedGemeenteID} />;
+          selectedComponent = <ReportComponent
+            showAbonnementenRapporten={showAbonnementenRapporten}
+            firstDate={firstDate}
+            lastDate={lastDate}
+            bikeparks={filteredBikeparks || []}
+            selectedGemeenteID={selectedGemeenteID}
+          />;
           break;
         case "articles-pages":
           selectedComponent = <ArticlesComponent type="pages" />;
@@ -246,7 +252,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, ro
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Veiligstallen Beheer Dashboard" currentComponent={activecomponent || "home"} user={mockUser} gemeentes={gemeentes} selectedGemeenteID={selectedGemeenteID} onGemeenteSelect={handleSelectGemeente} />
+      <TopBar
+        title="Veiligstallen Beheer Dashboard"
+        currentComponent={activecomponent || "home"}
+        user={mockUser} gemeentes={gemeentes}
+        selectedGemeenteID={selectedGemeenteID}
+        onGemeenteSelect={handleSelectGemeente}
+      />
       <div className="flex">
         <LeftMenu
           user={mockUser}

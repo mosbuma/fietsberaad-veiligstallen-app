@@ -82,6 +82,9 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               },
               toolbar: {
                 show: true
+              },
+              animations: {
+                enabled: false
               }
             },
             responsive: [{
@@ -145,7 +148,10 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       return (
         <>
           <h2 className="text-xl font-bold">{reportData.title}</h2>
-          <table className="border-2 border-gray-300 rounded-md">
+          <table className="
+            border-2 border-gray-300 rounded-md
+            w-full whitespace-nowrap overflow-x-auto
+          ">
             <thead>
               <tr>
                 <th className="text-left">Series Name</th>
