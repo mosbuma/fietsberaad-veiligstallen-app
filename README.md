@@ -63,6 +63,8 @@ Deployment is configured like this:
 - De app wordt gedraaid met de pm2 taakmanager
 - Op de achtergrond draait altijd een Docker container voor de database
 
+^ DIT IS OUDE INFORMATIE - DEPLOYMENT VINDT AUTOMATISCH PLAATS VIA GITLAB CI/CD PIPELINES (ACTIONS)
+
 ## Exporting postgresql table as MySQL compatible statements
 
     pg_dump -h localhost -U deelfietsdashboard -d deelfietsdashboard -t zones --port 5431 --format=c --inserts > zones.sql
