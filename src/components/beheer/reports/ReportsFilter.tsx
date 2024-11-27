@@ -156,6 +156,7 @@ interface ReportsFilterComponentProps {
   firstDate: Date;
   lastDate: Date;
   bikeparks: ReportBikepark[];
+  defaultSelectedBikeparkIDs?: string[];
   onSubmit: (params: ReportParams) => void;
 }
 
@@ -175,6 +176,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   firstDate,
   lastDate,
   bikeparks,
+  defaultSelectedBikeparkIDs,
   onSubmit,
 }) => {
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
@@ -215,6 +217,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   useEffect(() => {
     checkInput();
   }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]);
+
+  useEffect(() => {
+    // Set default selected bikeparkIDs
+    if (!defaultSelectedBikeparkIDs || defaultSelectedBikeparkIDs.length === 0) return;
+    setSelectedBikeparkIDs(defaultSelectedBikeparkIDs);
+  }, [defaultSelectedBikeparkIDs]);
 
   useEffect(() => {
     // Filter out any selected bikeparks that are no longer in the bikeparks array

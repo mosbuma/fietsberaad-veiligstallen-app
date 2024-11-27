@@ -144,7 +144,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, ro
             firstDate={firstDate}
             lastDate={lastDate}
             bikeparks={filteredBikeparks || []}
-            selectedGemeenteID={selectedGemeenteID}
           />;
           break;
         case "articles-pages":
