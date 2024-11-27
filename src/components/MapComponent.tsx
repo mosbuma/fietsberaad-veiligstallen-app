@@ -363,9 +363,6 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
           }
         });
       })();
-
-      // stateMap.setFilter("fietsenstallingen-clusters", getLayerFilter('fietsenstallingen-clusters', filterActiveTypes, filterQuery));
-      // stateMap.setFilter("fietsenstallingen-clusters-count", getLayerFilter('fietsenstallingen-clusters-count', filterActiveTypes, filterQuery));
     } catch (ex) {
       console.warn("error in MapComponent layer setfilter useEffect call", ex);
     }
