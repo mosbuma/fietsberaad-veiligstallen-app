@@ -3,6 +3,8 @@ import BikeparkSelect from './BikeparkSelect';
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
+export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant"
+
 export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year"
 export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "range_quarter" | "range_week"
 // export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
@@ -12,6 +14,7 @@ export type ReportBikepark = { id: string; stallingsID: string; title: string; g
 export interface ReportParams {
   reportType: ReportType;
   reportGrouping: ReportGrouping;
+  reportCategories: ReportCategories;
   reportRangeUnit: ReportRangeUnit;
   reportRangeValue: number | "lastPeriod";
   //    reportUnit: ReportUnit;
@@ -181,6 +184,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 }) => {
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
   const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
+  const [reportCategories, setReportCategories] = useState<ReportCategories>("per_stalling");
   const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>("range_year");
   //const [reportUnit, setReportUnit] = useState<ReportUnit>("reportUnit_year");
   const [datatype, setDatatype] = useState<ReportDatatype | undefined>(undefined);
@@ -303,7 +307,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         reportRangeValue = "lastPeriod";
     }
 
-    onSubmit({ reportType, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: selectedBikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
+    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: selectedBikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
   };
 
   const renderReportTypeSelect = () => {
@@ -435,6 +439,9 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const renderUnitSelect = () => {
     if (undefined === reportType) return null;
 
+    const showCategorySection = ["bezetting"].includes(reportType);
+    const showGroupByHour = ["bezetting"].includes(reportType) === false;
+
     const showRangeWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
     const showRangeAll = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
     const showRangeMaand = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
@@ -460,6 +467,21 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           </div>
         )}
 
+          <div className="font-bold">Categorieen</div>
+          <select
+            value={reportCategories}
+            onChange={(e) => setReportCategories(e.target.value as ReportCategories)}
+            name="reportCategories"
+            id="reportCategories"
+            className="p-2 border-2 border-gray-300 rounded-md"
+            required
+          >
+            <option value="none">Geen</option>
+            <option value="per_stalling">Per stalling</option>
+            <option value="per_weekday">Per dag van de week</option>
+            { showCategorySection && <option value="per_section">Per sectie</option>}
+            {/* <option value="per_type_klant">Per type klant</option> */}
+          </select>
         <div className="font-bold">Groepering</div>
         <select
           value={reportGrouping}
@@ -475,7 +497,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           <option value="per_week">Week</option>
           <option value="per_day">Dag</option>
           <option value="per_weekday">Dag van de week</option>
-          <option value="per_hour">Uur van de dag</option>
+          { showGroupByHour && <option value="per_hour">Uur van de dag</option> }
         </select>
         <div className="font-bold">Tijdsperiode</div>
         <select

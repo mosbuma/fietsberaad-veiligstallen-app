@@ -28,7 +28,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
           res.status(405).end() // Method Not Allowed
         }
 
-        data = await ReportService.getQBezettingsdata(reportParams);
+        data = await ReportService.getBezettingsdata(reportParams);
         res.json(data);
         break;
       }

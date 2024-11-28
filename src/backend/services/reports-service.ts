@@ -1,6 +1,7 @@
-import getTransactionsByPeriod from "~/backend/services/reports/transactionsByPeriod";
-import getQBezettingsdata from "~/backend/services/reports/bezettingsdataByPeriod";
+import { getSQL as getTransactionsByPeriodSQL } from "~/backend/services/reports/transactionsByPeriod";
+import { getSQL as getBezettingsdataSQL} from "~/backend/services/reports/bezettingsdataByPeriod";
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
+import { getData } from "~/backend/services/reports/ReportFunctions";
 
 export interface ReportSeriesData {
     name: string;
@@ -10,14 +11,13 @@ export interface ReportSeriesData {
 export interface ReportData {
   title: string;
   options: {
-    [x: string]: { title: { text: string; }; };
     xaxis: {
-        categories: string[];
-        title: {
-        text: string;
-        align: string;
+        categories?: string[];
+        title?: {
+          text?: string;
+          align?: string;
         };
-        labels: {
+        labels?: {
           formatter: (value: string) => string;
         };
     };
@@ -42,7 +42,13 @@ const ReportService = {
   //   },
   getTransactionsPerPeriodData: async (params: ReportParams) => {
     try {
-      const data = await getTransactionsByPeriod(params);
+      const sql = getTransactionsByPeriodSQL(params);
+      if(!sql) {
+        console.error("No result from getTransactionsByPeriodSQL");
+        return false;
+      }
+      
+      const data = await getData(sql, params);
 
       return data;
     } catch (error) {
@@ -50,9 +56,15 @@ const ReportService = {
       return false;
     }
   },
-  getQBezettingsdata: async (params: ReportParams) => {
+  getBezettingsdata: async (params: ReportParams) => {
     try {
-      const data = await getQBezettingsdata(params);
+      const sql = getBezettingsdataSQL(params); // , queryParams
+      if(!sql) {
+          console.error("No result from getBezettingsdataSQL");
+          return false;
+      }
+
+      const data = await getData(sql, params);
 
       return data;
     } catch (error) {

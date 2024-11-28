@@ -96,7 +96,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               enabled: false,
             },
             stroke: {
-              curve: 'straight'
+              curve: 'straight',
+              // width: reportData.series.some(s => s.data.length === 1) ? 0 : 2, // Disable line for single data point
             },
             title: {
               text: reportData.title || '',
@@ -110,7 +111,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               },
             },
             markers: {
-              // size: 1
+              // size: reportData.series.some(s => s.data.length === 1) ? 5 : undefined,
             },
             xaxis: reportData.options?.xaxis || {
               categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
@@ -143,41 +144,41 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     }
   }
 
-  const renderTable = (reportData: ReportData) => {
-    try {
-      return (
-        <>
-          <h2 className="text-xl font-bold">{reportData.title}</h2>
-          <table className="
-            border-2 border-gray-300 rounded-md
-            w-full whitespace-nowrap overflow-x-auto
-          ">
-            <thead>
-              <tr>
-                <th className="text-left">Series Name</th>
-                {reportData.options.xaxis.categories.map((category) => (
-                  <th key={category} className="text-left">{category}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.series.map((seriesItem, index) => (
-                <tr key={index}>
-                  <td>{seriesItem.name}</td>
-                  {seriesItem.data.map((value, idx) => (
-                    <td key={idx}>{value}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      );
-    } catch (error) {
-      console.error(error);
-      return <div>Error loading table</div>;
-    }
-  }
+  // const renderTable = (reportData: ReportData) => {
+  //   try {
+  //     return (
+  //       <>
+  //         <h2 className="text-xl font-bold">{reportData.title}</h2>
+  //         <table className="
+  //           border-2 border-gray-300 rounded-md
+  //           w-full whitespace-nowrap overflow-x-auto
+  //         ">
+  //           <thead>
+  //             <tr>
+  //               <th className="text-left">Series Name</th>
+  //               {reportData.options.xaxis.categories.map((category) => (
+  //                 <th key={category} className="text-left">{category}</th>
+  //               ))}
+  //             </tr>
+  //           </thead>
+  //           <tbody>
+  //             {reportData.series.map((seriesItem, index) => (
+  //               <tr key={index}>
+  //                 <td>{seriesItem.name}</td>
+  //                 {seriesItem.data.map((value, idx) => (
+  //                   <td key={idx}>{value}</td>
+  //                 ))}
+  //               </tr>
+  //             ))}
+  //           </tbody>
+  //         </table>
+  //       </>
+  //     );
+  //   } catch (error) {
+  //     console.error(error);
+  //     return <div>Error loading table</div>;
+  //   }
+  // }
 
   const onSubmit = (params: ReportParams) => {
     setReportParams(params);
@@ -212,7 +213,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             {reportData ? (
               <>
                 {renderChart(reportData)}
-                {renderTable(reportData)}
+                {/* {renderTable(reportData)} */}
               </>
             ) : (
               <div>No data available yet</div>

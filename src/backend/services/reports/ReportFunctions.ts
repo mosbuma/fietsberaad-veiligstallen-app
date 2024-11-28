@@ -1,6 +1,54 @@
-import { ReportGrouping, ReportType } from "~/components/beheer/reports/ReportsFilter";
-import moment from "moment";
+import { ReportSeriesData } from "~/backend/services/reports-service";
+import { ReportParams, ReportGrouping, ReportType } from "~/components/beheer/reports/ReportsFilter";
+import { getLabelMapForXAxis, getXAxisTitle } from "~/backend/services/reports/ReportAxisFunctions";
+
+import { prisma } from "~/server/db";
 import fs from "fs";
+
+export interface SingleResult {
+  name: string;
+  TIMEGROUP: string;
+  value: number;
+}
+
+export const convertToSeries = async (
+  results: SingleResult[], 
+  params: ReportParams,): Promise<ReportSeriesData[]> => {
+  let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
+        
+  let series: ReportSeriesData[] = [];
+
+  const categoryNames = await getCategoryNames(params);
+
+  const groupedByCategory = results.reduce((acc:any, tx:any) => {
+    const category = tx.CATEGORY.toString();
+    const timegroup = tx.TIMEGROUP.toString();
+    if (!acc[category]) {
+      acc[category] = {
+        name: category,
+        data: {}
+      };
+    }
+    acc[category].data[timegroup] = { 
+      x: keyToLabelMap[timegroup] || timegroup, 
+      y: Number(tx.value)};
+    return acc;
+  }, {});
+
+  // debugLog(`GROUPED BY STALLING - GROUPED`);
+  // Object.values(groupedByCategory).map(t=>debugLog(JSON.stringify(t)));
+
+  // Convert to series format
+  series = Object.values(groupedByCategory).map((stalling: any) => ({
+    name: categoryNames ? categoryNames.find(c=>c.id===stalling.name)?.name || stalling.name : stalling.name,
+    data: Object.values(stalling.data)
+  }));
+
+  // console.log("SERIES", JSON.stringify(series,null,2));
+
+  return series;
+}
+
 
 export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeIntervalInMinutes: number, fieldname: string, useCache: boolean = true) => {
     if(false===useCache) {
@@ -10,6 +58,7 @@ export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeInterva
         if(reportGrouping === "per_week") return `CONCAT(YEAR(${fieldname}), '-', WEEKOFYEAR(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE)))`;
         if(reportGrouping === "per_weekday") return `WEEKDAY(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
         if(reportGrouping === "per_day") return `CONCAT(YEAR(${fieldname}), '-', DAYOFYEAR(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1)`;
+        if(reportGrouping === "per_hour") return `HOUR(${fieldname})`;
     } else {
         if(reportGrouping === "per_year") return `YEAR(${fieldname})`;
         if(reportGrouping === "per_quarter") return `CONCAT(YEAR(${fieldname}), '-', QUARTER(${fieldname}))`;
@@ -17,6 +66,7 @@ export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeInterva
         if(reportGrouping === "per_week") return `CONCAT(YEAR(${fieldname}), '-', WEEKOFYEAR(${fieldname}))`;
         if(reportGrouping === "per_weekday") return `WEEKDAY(${fieldname})`;
         if(reportGrouping === "per_day") return `CONCAT(YEAR(${fieldname}), '-', DAYOFYEAR(${fieldname}) + 1)`;
+        if(reportGrouping === "per_hour") return `HOUR(${fieldname})`;
     }
 }
 
@@ -65,3 +115,78 @@ export const interpolateSQL = (sql: string, params: string[]): string => {
     }
     return interpolatedSQL;
   }
+
+interface ReportCategory {
+  id: string | number;
+  name: string;
+}
+
+export const getCategoryNames = async (params: ReportParams): Promise<ReportCategory[]|false> => {
+
+    switch(params.reportCategories) {
+      case "none":
+        return false
+      case "per_stalling": {
+        const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE ` + 
+                    `stallingsID IN (${params.bikeparkIDs.map(bp=>`'${bp}'`).join(',')})`;
+        const results = await prisma.$queryRawUnsafe<{StallingsID: string, Title: string}[]>(sql)
+        return results.map(r => ({ id: r.StallingsID, name: r.Title}));
+      }
+      case "per_weekday": {
+        return [
+          { id: "0", name: "Maandag" },
+          { id: "1", name: "Dinsdag" },
+          { id: "2", name: "Woensdag" },
+          { id: "3", name: "Donderdag" },
+          { id: "4", name: "Vrijdag" },
+          { id: "5", name: "Zaterdag" },
+          { id: "6", name: "Zondag" }
+        ];
+      }
+      case "per_section": {
+        const sql = `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel FROM fietsenstallingen f LEFT OUTER JOIN fietsenstalling_sectie s ON (f.id=s.fietsenstallingsId) WHERE NOT ISNULL(s.externalid) AND f.StallingsID in (${params.bikeparkIDs.map(bp=>`'${bp}'`).join(',')})`
+        console.log("CATEGORY NAMES SQL", sql);
+        const results = await prisma.$queryRawUnsafe<{externalid: string, stallingtitel: string, sectietitel: string}[]>(sql)
+        return results.map(r => { 
+          if(r.sectietitel.toLowerCase() === r.stallingtitel.toLowerCase()) {
+            return ({ id: r.externalid, name: r.stallingtitel})
+          } else {
+            return ({ id: r.externalid, name: r.stallingtitel + " - " + r.sectietitel})
+          }
+        });
+      }
+      default:
+        return false;
+    }
+  }
+  
+  export const getData = async (sql: string, params: ReportParams): Promise<ReportData|false> => {
+    try {
+        const results = await prisma.$queryRawUnsafe<SingleResult[]>(sql);
+
+        let series = await convertToSeries(results, params);
+        let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
+
+        return {
+            title: getReportTitle(params.reportType),
+            options: {
+            xaxis: {
+              categories: Object.keys(keyToLabelMap) as string[],
+              title: {
+                    text: getXAxisTitle(params.reportGrouping),
+                    align: 'left'
+                },
+            },
+            yaxis: {
+                title: {
+                text: getReportTitle(params.reportType)
+                }
+            }
+            },
+            series: series
+        };
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+};
