@@ -301,7 +301,6 @@ const Reports = ({ bikeparks }: { bikeparks: ReportBikepark[] }) => {
       showAbonnementenRapporten={showAbonnementenRapporten}
       firstDate={firstDate}
       lastDate={lastDate}
-      defaultSelectedBikeparkIDs={bikeparks.map((bikepark) => bikepark.id)}
       bikeparks={bikeparks || []}
     />
   )

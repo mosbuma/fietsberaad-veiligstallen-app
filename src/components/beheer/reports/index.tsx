@@ -9,7 +9,6 @@ interface ReportComponentProps {
   firstDate: Date;
   lastDate: Date;
   bikeparks: ReportBikepark[];
-  defaultSelectedBikeparkIDs?: string[];
   error?: string;
   warning?: string;
 }
@@ -19,7 +18,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   firstDate,
   lastDate,
   bikeparks,
-  defaultSelectedBikeparkIDs,
   error,
   warning,
 }) => {
@@ -194,7 +192,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           firstDate={firstDate}
           lastDate={lastDate}
           bikeparks={bikeparks}
-          defaultSelectedBikeparkIDs={defaultSelectedBikeparkIDs}
           onSubmit={onSubmit}
         />
 

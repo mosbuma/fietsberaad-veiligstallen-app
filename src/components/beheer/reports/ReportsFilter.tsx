@@ -159,7 +159,6 @@ interface ReportsFilterComponentProps {
   firstDate: Date;
   lastDate: Date;
   bikeparks: ReportBikepark[];
-  defaultSelectedBikeparkIDs?: string[];
   onSubmit: (params: ReportParams) => void;
 }
 
@@ -179,7 +178,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   firstDate,
   lastDate,
   bikeparks,
-  defaultSelectedBikeparkIDs,
   onSubmit,
 }) => {
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
@@ -192,7 +190,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const [month, setMonth] = useState<number | "lastPeriod">("lastPeriod");
   const [quarter, setQuarter] = useState<number | "lastPeriod">("lastPeriod");
   const [year, setYear] = useState<number | "lastPeriod">("lastPeriod"); // new Date().getFullYear()
-  const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>([]);
   const [fillups, setFillups] = useState(false);
   const [grouped, setGrouped] = useState("0");
   const [percBusy, setPercBusy] = useState("");
@@ -220,28 +217,10 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   useEffect(() => {
     checkInput();
-  }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]);
+  }, [reportRangeUnit, reportType, year, month, datatype]); // selectedBikeparkIDs, 
 
-  useEffect(() => {
-    // Set default selected bikeparkIDs
-    if (!defaultSelectedBikeparkIDs || defaultSelectedBikeparkIDs.length === 0) return;
-    setSelectedBikeparkIDs(defaultSelectedBikeparkIDs);
-  }, [defaultSelectedBikeparkIDs]);
-
-  useEffect(() => {
-    // Filter out any selected bikeparks that are no longer in the bikeparks array
-    setSelectedBikeparkIDs((prevSelected) =>
-      prevSelected.filter((id) => bikeparks.some((park) => park.stallingsID === id))
-    );
-  }, [bikeparks]);
 
   const checkInput = () => {
-    if (selectedBikeparkIDs.length === 0) {
-      setErrorState("Selecteer minimaal 1 locatie");
-      return false;
-    } else {
-      setErrorState(undefined);
-    }
 
     if (reportType === "downloads" && datatype === "bezettingsdata") {
       const endPeriod = new Date(year === "lastPeriod" ? new Date().getFullYear() : year, month === "lastPeriod" ? new Date().getMonth() : month, 1);
@@ -307,7 +286,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         reportRangeValue = "lastPeriod";
     }
 
-    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: selectedBikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
+    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: bikeparks.map((bikepark) => bikepark.stallingsID), startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
   };
 
   const renderReportTypeSelect = () => {
@@ -584,7 +563,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             </tr>
             <tr>
               <td>Aantal Stallingen</td>
-              <td>{selectedBikeparkIDs.length}</td>
+              <td>{bikeparks.length}</td>
             </tr>
             <tr>
               <td>Start datum/tijd</td>
@@ -635,16 +614,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             {renderUnitSelect()}
           </div>
 
-          {/* column 2 */}
-          {bikeparks.length > 1 && (
-            <div className="w-96" hidden data-explanation="Hide, because we can toggle in the chart">
-              <BikeparkSelect
-                bikeparks={bikeparks}
-                selectedBikeparkIDs={selectedBikeparkIDs}
-                setSelectedBikeparkIDs={setSelectedBikeparkIDs}
-              />
-            </div>
-          )}
 
           {/* column 3 */}
           {reportType === "abonnementen" && (
