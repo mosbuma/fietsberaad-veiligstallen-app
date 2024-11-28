@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ReportBikepark } from './ReportsFilter'; // Adjust the import path if necessary
 
 interface BikeparkSelectProps {
@@ -12,6 +12,11 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
   selectedBikeparkIDs,
   setSelectedBikeparkIDs,
 }) => {
+  // On component load: select all bikeparks
+  useEffect(() => {
+    toggleSelectAll();
+  }, []);
+
   const isScrollable = bikeparks.length > 10;
 
   const toggleSelectAll = () => {

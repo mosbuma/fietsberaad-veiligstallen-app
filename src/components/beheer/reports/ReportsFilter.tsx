@@ -615,7 +615,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
           {/* column 2 */}
           {bikeparks.length > 1 && (
-            <div className="w-96">
+            <div className="w-96" hidden data-explanation="Hide, because we can toggle in the chart">
               <BikeparkSelect
                 bikeparks={bikeparks}
                 selectedBikeparkIDs={selectedBikeparkIDs}
