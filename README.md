@@ -48,6 +48,8 @@ Deployment is configured like this:
 - Op de testserver wordt een pull van de repository gedaan, daarna een npm build
 - De app wordt gedraaid met de pm2 taakmanager
 
+^ DIT IS OUDE INFORMATIE - DEPLOYMENT VINDT AUTOMATISCH PLAATS VIA GITLAB CI/CD PIPELINES (ACTIONS)
+
 ## Exporting postgresql table as MySQL compatible statements
 
     pg_dump -h localhost -U deelfietsdashboard -d deelfietsdashboard -t zones --port 5431 --format=c --inserts > zones.sql

@@ -113,8 +113,8 @@ const AppNavigationMobile = ({
 
   const title =
     mapZoom >= 12 &&
-    activeMunicipalityInfo &&
-    activeMunicipalityInfo.CompanyName
+      activeMunicipalityInfo &&
+      activeMunicipalityInfo.CompanyName
       ? `Welkom in ${activeMunicipalityInfo.CompanyName}`
       : `Welkom bij VeiligStallen`;
 
@@ -147,7 +147,7 @@ const AppNavigationMobile = ({
           }}
         >
           De kortste weg naar een veilige plek voor je fiets{" "}
-          {mapZoom >= 12 ? "in Utrecht" : ""}
+          {mapZoom >= 12 ? `in ${activeMunicipalityInfo?.CompanyName}` : ""}
         </p>
       </header>
 
@@ -185,10 +185,9 @@ const AppNavigationMobile = ({
                 onClick={(e) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${mapZoom >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
@@ -207,10 +206,9 @@ const AppNavigationMobile = ({
                 onClick={(e) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${mapZoom >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
