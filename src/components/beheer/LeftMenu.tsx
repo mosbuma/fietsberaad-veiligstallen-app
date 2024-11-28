@@ -39,7 +39,7 @@ export type AvailableComponents =
   | "users-beheerders";
 
 
-export const isAvailableComponent = (value: string): boolean  => {
+export const isAvailableComponent = (value: string): boolean => {
   const allcomponents = [
     "abonnementen",
     "abonnementsvormen",
@@ -74,7 +74,7 @@ export const isAvailableComponent = (value: string): boolean  => {
     "users-exploitanten",
     "users-beheerders",
   ];
-  
+
   return allcomponents.includes(value);
 }
 
@@ -96,36 +96,31 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   // const router = useRouter();
   // const { query } = router;
 
-  // Get current date and time
-  const now = new Date();
-  const formattedDate = now.toLocaleDateString('en-GB'); // dd/mm/yyyy
-  const formattedTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-
-
   // Utility functions
   const hasRole = (role: newUserRole) => user.getRole() === role;
-  const hasRight = (right: newUserRight) => user.hasRight(right)||true; /* TODO: remove - for testing, all users have all rights */
+  const hasRight = (right: newUserRight) => user.hasRight(right) || true; /* TODO: remove - for testing, all users have all rights */
 
   const formatLi = (component: AvailableComponents | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
-    const className = `block px-4 py-2 rounded ${isSelected ? "bg-blue-500" : "hover:bg-blue-700"}`;
+    const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
+    const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
     const classNamePassive = `block px-4 py-2 rounded`;
 
     return (
       <li className={compact ? 'mb-2' : 'mb-1'}>
         {component ? (
-          <Link href="#" onClick={(e) => { e.preventDefault(); onSelect(component) }} className={className}>
+          <Link href="#" onClick={(e) => { e.preventDefault(); onSelect(component) }} className={className} style={style}>
             {title}
           </Link>
         ) : (
-          <Link href="#" onClick={(e) => { e.preventDefault() }} className={classNamePassive}>
+          <Link href="#" onClick={(e) => { e.preventDefault() }} className={classNamePassive} style={style}>
             {title}
           </Link>
         )}
         {children}
       </li>
     );
-  }  
+  }
 
   const renderInternalUserMenu = () => {
     const showSiteBeheer = hasRole('intern_editor') || hasRole('intern_admin') || hasRole('root');
@@ -136,32 +131,28 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        { formatLi("home",  'Home') }
-        { formatLi("settings", 'Instellingen') }
+        {formatLi("home", 'Home')}
+        {formatLi("settings", 'Instellingen')}
 
         {showSiteBeheer &&
           formatLi(false, 'Site beheer', false,
             <ul className="ml-4 mt-1">
-              { formatLi("articles-pages", 'Paginabeheer', true) }
-              { formatLi("faq", 'FAQ', true) }
+              {formatLi("articles-pages", 'Paginabeheer', true)}
+              {formatLi("faq", 'FAQ', true)}
             </ul>)
         }
 
-        { formatLi("contacts", 'Gemeenten', ) }
-        { formatLi("products", 'Opwaardeerproducten', ) }
+        {formatLi("contacts", 'Gemeenten',)}
+        {formatLi("products", 'Opwaardeerproducten',)}
 
-        {formatLi(false, 'Rapportages', false,
-          <ul className="ml-4 mt-1">
-            {formatLi("report", 'Rapportage', true)}
-            {formatLi("logboek", 'Logboek', true)}
-          </ul>      
-        )}
+        {formatLi("report", 'Rapportages', true)}
+        {formatLi("logboek", 'Logboek', true)}
 
         {showAdminOnly && (
           <>
-            {formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false) }
-            {formatLi("users-exploitanten", 'Exploitanten', false) }
-            {showDataleveranciers && formatLi("permits", 'Dataleveranciers', false) }
+            {formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)}
+            {formatLi("users-exploitanten", 'Exploitanten', false)}
+            {showDataleveranciers && formatLi("permits", 'Dataleveranciers', false)}
           </>
         )}
 
@@ -172,15 +163,15 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               {formatLi("barcodereeksen-sleutelhangers", 'Sleutelhangers', true)}
               {formatLi("barcodereeksen-fietsstickers", 'Fietsstickers', true)}
             </ul>)
-          )}
+        )}
 
         {showExterneApis && (
           formatLi(false, 'Externe API\'s', false,
             <ul className="ml-4 mt-1">
-              { formatLi("apis-overzicht", 'Overzicht API\'s', true) }
-              { formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true) }
+              {formatLi("apis-overzicht", 'Overzicht API\'s', true)}
+              {formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true)}
             </ul>
-        ))}
+          ))}
 
         {showAdminOnly && (
           formatLi("database", 'Database', false)
@@ -209,7 +200,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        { formatLi("home",  'Home') }
+        {formatLi("home", 'Home')}
 
         {showGegevensGemeente && (
           formatLi("contacts", 'Gegevens gemeente', false)
@@ -218,8 +209,8 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {showWebsiteBeheer && (
           formatLi("articles-pages", 'Website beheer', false,
             <ul className="ml-4 mt-1">
-              { formatLi("articles-pages", 'Paginabeheer', true)}
-              { formatLi("faq", 'FAQ', true)}
+              {formatLi("articles-pages", 'Paginabeheer', true)}
+              {formatLi("faq", 'FAQ', true)}
             </ul>
           )
         )}
@@ -238,11 +229,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
         {showAbonnementen && (
           formatLi(false, 'Abonnementen', false,
-          <ul className="ml-4 mt-1">
-            { formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
-            { formatLi("abonnementen", 'Abonnementen', true)}
-          </ul>
-        ))}
+            <ul className="ml-4 mt-1">
+              {formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
+              {formatLi("abonnementen", 'Abonnementen', true)}
+            </ul>
+          ))}
 
         {showDocumenten && (
           formatLi("documents", 'Documenten', false)
@@ -250,11 +241,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
         {showTrekkingenPrijzen && (
           <>
-            { showTrekkingenInTrekkingenPrijzen ? (
+            {showTrekkingenInTrekkingenPrijzen ? (
               formatLi(false, 'Trekkingen &amp; Prijzen', false,
                 <ul className="ml-4 mt-1">
-                  { formatLi("trekkingen", 'Trekkingen', true)}
-                  { formatLi("trekkingenprijzen", 'Prijzen', true)}
+                  {formatLi("trekkingen", 'Trekkingen', true)}
+                  {formatLi("trekkingenprijzen", 'Prijzen', true)}
                 </ul>
               )
             ) : (
@@ -272,19 +263,19 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         )}
 
         {showRapporages && (
-          formatLi(false, 'Rapportages', false, 
-           <ul className="ml-4 mt-1">
-            { formatLi("report", 'Rapportage', true)}
-            { formatLi("logboek", 'Logboek', true) }
+          formatLi(false, 'Rapportages', false,
+            <ul className="ml-4 mt-1">
+              {formatLi("report", 'Rapportage', true)}
+              {formatLi("logboek", 'Logboek', true)}
             </ul>
-        ))}
+          ))}
 
         {showUsers && (
           <>
             {showGebruikersBeheerUitgebreid && (
               formatLi(false, 'Gebruikersbeheer', false,
                 <ul className="ml-4 mt-1">
-                  { showGebruikersBeheerUitgebreidGemeente && (
+                  {showGebruikersBeheerUitgebreidGemeente && (
                     formatLi("users-gebruikersbeheer", `Gebruikers ${council.getCompanyName()}`, true)
                   )}
                   {formatLi("users-exploitanten", `Gebruikers ${exploitant?.getCompanyName()}`, true)}
@@ -303,14 +294,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       </>
     )
   }
-  
+
   return (
-    <ul id="leftMenu" className="bg-gray-800 text-white w-64 min-h-screen p-4">
+    <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
       <li id="userinfo" className="mb-6">
         <div className="font-semibold">{user.displayName}</div>
-        <div className="text-sm">
-          {formattedDate} {formattedTime}
-        </div>
       </li>
 
       {(!hasRole('user') || !council) && (

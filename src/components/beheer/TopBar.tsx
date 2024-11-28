@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { User, Gemeente } from '../../utils/mock';
+import router from 'next/router';
 interface TopBarProps {
   title: string;
   currentComponent: string;
@@ -19,12 +20,37 @@ const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <div className="bg-gray-800 text-white w-full flex items-center justify-between p-4">
+    <div className="
+      z-10 flex w-full px-5 bg-white shadow
+      w-full flex items-center justify-between
+    ">
       <div style={{ flex: 1 }}>
         <img src="/images/logo.png" alt="Logo" className="h-16 w-auto p-2 bg-white" />
       </div>
-      <div className="text-left" style={{ flex: 4 }}>
-        <h1 className="text-lg font-semibold">{title}</h1>
+      <div className="
+        text-left
+
+        primaryMenuItems-wrapper
+        flex-1 flex flex-start
+        flex-wrap overflow-hidden
+        transition-opacity
+        duration-500
+        opacity-100
+      
+      " style={{ flex: 4 }}>
+        <div className="PrimaryMenuItem px-5 bock">
+          <a href="/" className="flex flex-col justify-center h-full" onClick={(e) => {
+            e.preventDefault();
+            router.push("/");
+          }}>
+            <img src="/images/icon-map.png" style={{ height: "30px" }} />
+          </a>
+        </div>
+        <div className="PrimaryMenuItem px-5">
+          <h1 className="text-lg font-semibold">
+            {title}
+          </h1>
+        </div>
       </div>
       <div className="flex justify-end items-center space-x-4 text-sm" style={{ flex: 3 }}>
         {currentComponent !== "home" && (
@@ -40,14 +66,43 @@ const TopBar: React.FC<TopBarProps> = ({
             </option>
           ))}
         </select>}
+
+        <a
+          href="https://fms.veiligstallen.nl"
+          target="_blank"
+          className="
+              mx-2
+              h-10
+              rounded-md
+              px-4
+              font-bold
+              text-white
+              shadow-lg
+              flex
+              flex-col
+              justify-center
+            "
+          style={{
+            backgroundColor: '#15aeef'
+          }}
+
+          title="Ga naar het oude FMS beheersysteem"
+        >
+          FMS
+        </a>
+
         {user !== undefined ? (
-          <Link href="#" className="hover:underline">
-            Logout
-          </Link>
+          <button className="mx-2 h-10 rounded-md px-4 font-bold text-white shadow-lg" style={{
+            backgroundColor: "#15aeef"
+          }}>
+            Log uit
+          </button>
         ) : (
-          <Link href="#" className="hover:underline">
+          <button className="mx-2 h-10 rounded-md px-4 font-bold text-white shadow-lg" style={{
+            backgroundColor: "#15aeef"
+          }}>
             Login
-          </Link>
+          </button>
         )}
       </div>
     </div>

@@ -266,8 +266,11 @@ function AppHeaderDesktop({
           }
 
           {session && <a
-            href="https://fms.veiligstallen.nl"
-            target="_blank"
+            href="/beheer"
+            onClick={(e) => {
+              e.preventDefault();
+              push('/beheer');
+            }}
             className="
               mx-2
               h-10
@@ -281,12 +284,12 @@ function AppHeaderDesktop({
               justify-center
             "
             style={{
-              backgroundColor: themeColor1 || themeColor1,
+              backgroundColor: themeColor1,
             }}
 
-            title="Ga naar het oude FMS beheersysteem"
+            title="Ga naar het beheer"
           >
-            FMS
+            Beheer
           </a>}
 
           <button
