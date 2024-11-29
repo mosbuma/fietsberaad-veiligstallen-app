@@ -39,7 +39,7 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
       case 'per_day': {
         const labelMap: XAxisLabelMap = {};
         for(let date = moment(startDate); date.isBefore(endDate); date.add(1, 'day')) {
-            labelMap[date.format('YYYY-DDD')] = date.format('DDD');
+            labelMap[date.format('YYYY-DDD')] = date.format('MMM-D');
         }
         return labelMap;
       }
@@ -48,7 +48,7 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
         const startKey = moment(startDate).startOf('month');
         const endKey = moment(endDate).endOf('month');
         for(let date = moment(startKey); date.isBefore(endKey); date.add(1, 'month')) {
-          labelMap[date.format('YYYY-MM')] =date.format('MMM');
+          labelMap[date.format('YYYY-M')] = date.format('MMM');
         }
         return labelMap;
       }
@@ -57,7 +57,7 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
         const startKey = moment(startDate).startOf('week');        
         const endKey = moment(endDate).endOf('week');
         for(let date = moment(startKey); date.isBefore(endKey); date.add(1, 'week')) {
-            labelMap[date.format('YYYY-WW')] =date.format('YYYY-WW');
+            labelMap[date.format('YYYY-W')] =date.format('YYYY-WW');
         }
         return labelMap;
       }
@@ -80,9 +80,9 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
         return labelMap;
       }
       default:
-        return {};
+        return {} as XAxisLabelMap;
     }
-}
+  }
 
 export const testReportUnitLabels = () => {
   debugLog("TEST REPORT UNIT LABELS", true);

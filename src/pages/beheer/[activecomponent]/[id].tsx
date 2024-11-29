@@ -268,7 +268,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, ro
         />
 
         {/* Main Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
           {renderComponent()}
         </div>
       </div>

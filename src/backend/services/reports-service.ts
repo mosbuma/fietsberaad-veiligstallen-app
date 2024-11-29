@@ -3,33 +3,6 @@ import { getSQL as getBezettingsdataSQL} from "~/backend/services/reports/bezett
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 import { getData } from "~/backend/services/reports/ReportFunctions";
 
-export interface ReportSeriesData {
-    name: string;
-    data: number[];
-  }
-  
-export interface ReportData {
-  title: string;
-  options: {
-    xaxis: {
-        categories?: string[];
-        title?: {
-          text?: string;
-          align?: string;
-        };
-        labels?: {
-          formatter: (value: string) => string;
-        };
-    };
-    yaxis: {
-      title: {
-        text: string;
-      };
-    };
-  };
-  series: ReportSeriesData[];
-}
-
 const ReportService = {
   //   getStallingduurData: async () => {
   //     const data: ReportData = {

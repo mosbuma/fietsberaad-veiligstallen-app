@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ReportsFilterComponent, { ReportParams } from "./ReportsFilter";
-import { ReportData } from "~/backend/services/reports-service";
-import { ReportBikepark } from "./ReportsFilter";
+import ReportsFilterComponent, { ReportParams, ReportBikepark } from "./ReportsFilter";
+import { ReportData } from "~/backend/services/reports/ReportFunctions";
 import LineChart from './LineChart';
 
 interface ReportComponentProps {
@@ -142,41 +141,52 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     }
   }
 
-  // const renderTable = (reportData: ReportData) => {
-  //   try {
-  //     return (
-  //       <>
-  //         <h2 className="text-xl font-bold">{reportData.title}</h2>
-  //         <table className="
-  //           border-2 border-gray-300 rounded-md
-  //           w-full whitespace-nowrap overflow-x-auto
-  //         ">
-  //           <thead>
-  //             <tr>
-  //               <th className="text-left">Series Name</th>
-  //               {reportData.options.xaxis.categories.map((category) => (
-  //                 <th key={category} className="text-left">{category}</th>
-  //               ))}
-  //             </tr>
-  //           </thead>
-  //           <tbody>
-  //             {reportData.series.map((seriesItem, index) => (
-  //               <tr key={index}>
-  //                 <td>{seriesItem.name}</td>
-  //                 {seriesItem.data.map((value, idx) => (
-  //                   <td key={idx}>{value}</td>
-  //                 ))}
-  //               </tr>
-  //             ))}
-  //           </tbody>
-  //         </table>
-  //       </>
-  //     );
-  //   } catch (error) {
-  //     console.error(error);
-  //     return <div>Error loading table</div>;
-  //   }
-  // }
+  const renderTable = (reportData: ReportData) => {
+    try {
+      if (!reportData.options?.xaxis?.categories) {
+        throw new Error("No categories found in xaxis");
+      }
+
+      return (
+        <div className="w-full">
+          <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2>
+          <div className="overflow-x-auto flex flex-col justify-center">
+            <table className="border-2 border-gray-300 rounded-md">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="sticky left-0 bg-white text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+                    Series Name
+                  </th>
+                  {reportData.options.xaxis.categories!.map((category) => (
+                    <th key={category} className="text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+                      {category}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {reportData.series.map((serie, serieIndex) => (
+                  <tr key={serieIndex} className="bg-gray-100 even:bg-gray-100">
+                    <td className="sticky left-0 bg-white border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+                      {serie.name}
+                    </td>
+                    {reportData.options.xaxis.categories!.map((label) => (
+                      <td key={label} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
+                        {serie.data.find(d => d.x === label)?.y}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    } catch (error) {
+      console.error(error);
+      return <div>Error loading table</div>;
+    }
+  }
 
   const onSubmit = (params: ReportParams) => {
     setReportParams(params);
@@ -184,9 +194,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   }
 
   return (
-    <div className="noPrint" id="ReportComponent">
-      <div className="flex flex-col space-y-4">
-        {/* new row, full width */}
+    <div className="noPrint w-full" id="ReportComponent">
+      <div className="flex flex-col space-y-4 p-4">
         <ReportsFilterComponent
           showAbonnementenRapporten={showAbonnementenRapporten}
           firstDate={firstDate}
@@ -195,7 +204,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           onSubmit={onSubmit}
         />
 
-        {/* new row, full width */}
         <div className="flex flex-col space-y-2">
           {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
           {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
@@ -206,11 +214,11 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             <div className="loader"></div>
           </div>
         ) : (
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2 overflow-x-auto">
             {reportData ? (
               <>
                 {renderChart(reportData)}
-                {/* {renderTable(reportData)} */}
+                {renderTable(reportData)}
               </>
             ) : (
               <div>No data available yet</div>
@@ -218,8 +226,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           </div>
         )}
       </div>
-
-
     </div>
   );
 };

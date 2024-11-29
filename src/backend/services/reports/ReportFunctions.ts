@@ -1,11 +1,37 @@
-import { ReportSeriesData } from "~/backend/services/reports-service";
 import { ReportParams, ReportGrouping, ReportType } from "~/components/beheer/reports/ReportsFilter";
-import { getLabelMapForXAxis, getXAxisTitle } from "~/backend/services/reports/ReportAxisFunctions";
+import { getLabelMapForXAxis, getXAxisTitle, XAxisLabelMap } from "~/backend/services/reports/ReportAxisFunctions";
 
 import { prisma } from "~/server/db";
 import fs from "fs";
 
-export interface SingleResult {
+export interface ReportSeriesData {
+  name: string;
+  data: {x: string, y: number}[];
+}
+
+export interface ReportData {
+  title: string;  
+  options: {
+    xaxis: {
+      categories?: string[];
+      title?: {
+        text?: string;
+        align?: string;
+      };
+      labels?: {
+        formatter: (value: string) => string;
+      };
+    };
+    yaxis: {
+      title: {
+        text: string;
+      };
+    };
+  };
+  series: ReportSeriesData[];
+}
+
+interface SingleResult {
   name: string;
   TIMEGROUP: string;
   value: number;
@@ -15,7 +41,7 @@ export const convertToSeries = async (
   results: SingleResult[], 
   params: ReportParams,): Promise<ReportSeriesData[]> => {
   let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
-        
+  console.log("KEY TO LABEL MAP", keyToLabelMap);
   let series: ReportSeriesData[] = [];
 
   const categoryNames = await getCategoryNames(params);
@@ -29,6 +55,7 @@ export const convertToSeries = async (
         data: {}
       };
     }
+    console.log("TIMEGROUP _ Label", timegroup, keyToLabelMap[timegroup]);
     acc[category].data[timegroup] = { 
       x: keyToLabelMap[timegroup] || timegroup, 
       y: Number(tx.value)};
@@ -166,22 +193,25 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
 
         let series = await convertToSeries(results, params);
         let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
+        if(!keyToLabelMap) {
+            return false;
+        }
 
         return {
             title: getReportTitle(params.reportType),
             options: {
-            xaxis: {
-              categories: Object.keys(keyToLabelMap) as string[],
-              title: {
-                    text: getXAxisTitle(params.reportGrouping),
-                    align: 'left'
+                xaxis: {
+                    categories: Object.values(keyToLabelMap),
+                    title: {
+                        text: getXAxisTitle(params.reportGrouping),
+                        align: 'left'
+                    },
                 },
-            },
-            yaxis: {
-                title: {
-                text: getReportTitle(params.reportType)
+                yaxis: {
+                    title: {
+                        text: getReportTitle(params.reportType)
+                    }
                 }
-            }
             },
             series: series
         };
