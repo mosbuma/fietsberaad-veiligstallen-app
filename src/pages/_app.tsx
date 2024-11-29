@@ -15,6 +15,9 @@ import "~/styles/globals.css";
 
 import '~/styles/components/AppHeader.css';
 
+import moment from 'moment';
+moment.locale('nl');
+
 const MyApp: AppType = ({ Component, pageProps: { session, ...pageProps } }) => {
   return (
     <>
