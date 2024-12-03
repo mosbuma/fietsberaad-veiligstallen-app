@@ -38,7 +38,6 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
       }
       case 'per_day': {
         const labelMap: XAxisLabelMap = {};
-        console.log("getLabelMapForXAxis per_day", startDate, endDate);
         for(let date = moment(startDate); date.isBefore(endDate); date.add(1, 'day')) {
             labelMap[date.format('YYYY-DDD')] = date.format('MMM-D');
         }

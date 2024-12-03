@@ -41,7 +41,6 @@ export const convertToSeries = async (
   results: SingleResult[], 
   params: ReportParams,): Promise<ReportSeriesData[]> => {
   let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
-  console.log("KEY TO LABEL MAP", keyToLabelMap);
   let series: ReportSeriesData[] = [];
 
   const categoryNames = await getCategoryNames(params);
@@ -55,7 +54,6 @@ export const convertToSeries = async (
         data: {}
       };
     }
-    console.log("TIMEGROUP _ Label", timegroup, keyToLabelMap[timegroup]);
     acc[category].data[timegroup] = { 
       x: keyToLabelMap[timegroup] || timegroup, 
       y: Number(tx.value)};
@@ -172,7 +170,6 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
       }
       case "per_section": {
         const sql = `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel FROM fietsenstallingen f LEFT OUTER JOIN fietsenstalling_sectie s ON (f.id=s.fietsenstallingsId) WHERE NOT ISNULL(s.externalid) AND f.StallingsID in (${params.bikeparkIDs.map(bp=>`'${bp}'`).join(',')})`
-        console.log("CATEGORY NAMES SQL", sql);
         const results = await prisma.$queryRawUnsafe<{externalid: string, stallingtitel: string, sectietitel: string}[]>(sql)
         return results.map(r => { 
           if(r.sectietitel.toLowerCase() === r.stallingtitel.toLowerCase()) {

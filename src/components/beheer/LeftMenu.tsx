@@ -21,6 +21,7 @@ export type AvailableComponents =
   | "contacts"
   | "database"
   | "documents"
+  | "export"
   | "faq"
   | "home"
   | "logboek"
@@ -57,6 +58,7 @@ export const isAvailableComponent = (value: string): boolean => {
     "contacts",
     "database",
     "documents",
+    "export",
     "faq",
     "home",
     "logboek",
@@ -146,6 +148,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {formatLi("products", 'Opwaardeerproducten',)}
 
         {formatLi("report", 'Rapportages', true)}
+        {formatLi("export", 'Export', true)}
         {formatLi("logboek", 'Logboek', true)}
 
         {showAdminOnly && (
@@ -298,7 +301,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   return (
     <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
       <li id="userinfo" className="mb-6">
-        <div className="font-semibold">{user.displayName}</div>
+        <div className="font-semibold">{user.getDisplayName()}</div>
       </li>
 
       {(!hasRole('user') || !council) && (

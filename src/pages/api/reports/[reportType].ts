@@ -32,6 +32,16 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         res.json(data);
         break;
       }
+      case "availableData": {
+        let reportParams = req.body.reportParams;
+    
+        if (undefined === reportParams) {
+          res.status(405).end() // Method Not Allowed
+        }
+        data = await ReportService.getAvailableData(reportParams);
+        res.json(data);
+        break;
+      }
       default: {
         res.status(405).end() // Method Not Allowed
       }

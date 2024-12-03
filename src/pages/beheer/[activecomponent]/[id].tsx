@@ -14,6 +14,7 @@ import ArticlesComponent from '../../../components/beheer/articles';
 import BarcodereeksenComponent from '../../../components/beheer/barcodereeksen';
 import ContactsComponent from '../../../components/beheer/contacts';
 import DocumentsComponent from '../../../components/beheer/documenten';
+import ExportComponent from '../../../components/beheer/exports';
 import FaqComponent from '../../../components/beheer/faq';
 import HomeComponent from '../../../components/beheer/home';
 import LogboekComponent from '../../../components/beheer/logboek';
@@ -154,6 +155,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, ro
           break;
         case "database":
           selectedComponent = <DatabaseComponent bikeparks={bikeparks} firstDate={firstDate} lastDate={lastDate} />;
+          break;
+        case "export":
+          selectedComponent = <ExportComponent
+            firstDate={firstDate}
+            lastDate={lastDate}
+            bikeparks={filteredBikeparks || []}
+          />; 
           break;
         case "documents":
           selectedComponent = <DocumentsComponent />;

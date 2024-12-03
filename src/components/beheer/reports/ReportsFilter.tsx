@@ -160,6 +160,8 @@ interface ReportsFilterComponentProps {
   lastDate: Date;
   bikeparks: ReportBikepark[];
   onSubmit: (params: ReportParams) => void;
+  showDetails?: boolean;
+  showGoButton?: boolean;
 }
 
 // const calculateStartWeek = (endweek: number, year: number): number => {
@@ -179,6 +181,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   lastDate,
   bikeparks,
   onSubmit,
+  showDetails = true,
+  showGoButton = true,
 }) => {
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
   const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
@@ -200,6 +204,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const availableReports = getAvailableReports(showAbonnementenRapporten);
 
   const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
+
+  useEffect(() => {
+    if(!showGoButton) {
+      handleSubmit();
+    }
+  }, [reportType, reportGrouping, reportCategories, reportRangeUnit, fillups, grouped]);
 
   useEffect(() => {
     if (["bezetting"].includes(reportType)) {
@@ -418,6 +428,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const renderUnitSelect = () => {
     if (undefined === reportType) return null;
 
+    if(showDetails === false) return null;
+
     const showCategorySection = ["bezetting"].includes(reportType);
     const showGroupByHour = ["bezetting"].includes(reportType) === false;
 
@@ -628,13 +640,14 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             </div>
           )}
         </div>
-        <div
+        { showGoButton && <div
           className={`${errorState === undefined ? 'bg-blue-500' : 'bg-gray-300'} hover:bg-blue-700 text-white font-bold py-2 px-4 rounded max-w-20 max-h-10 inline-block text-center cursor-pointer ${errorState === undefined ? "" : "cursor-not-allowed"}`}
           role="button"
           onClick={errorState === undefined ? handleSubmit : undefined}
-        >
-          Go!
-        </div>
+          >
+            Go!
+          </div>
+        }
 
         {/* new row, full width */}
         <div className="flex flex-col space-y-2">
