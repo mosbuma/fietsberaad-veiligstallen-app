@@ -1,6 +1,6 @@
 import { getTransactionCacheStatus, updateTransactionCache, clearTransactionCache, createTransactionCacheTable, dropTransactionCacheTable } from "~/backend/services/database/TransactionsCacheActions";
 import { getBezettingCacheStatus, updateBezettingCache, clearBezettingCache, createBezettingCacheTable, dropBezettingCacheTable } from "~/backend/services/database/BezettingCacheActions";
-
+import { getStallingsduurCacheStatus, updateStallingsduurCache, clearStallingsduurCache, createStallingsduurCacheTable, dropStallingsduurCacheTable } from "~/backend/services/database/StallingsduurCacheActions";
 export type CacheActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status';
 
 export interface CacheResult {
@@ -66,7 +66,6 @@ const DatabaseService = {
         const status = await getBezettingCacheStatus(params);
         return { success: status!==undefined, message: "", status };
       case 'update': {
-        console.log("UPDATE BEZETTING CACHE");
         const status = await updateBezettingCache(params);
         return { success: status!==undefined, message: "", status };
       }
@@ -88,6 +87,33 @@ const DatabaseService = {
       }
     }
   },
+  manageStallingsduurCache: async (params: CacheParams): Promise<CacheResult> => {
+    switch (params.action) {
+      case 'status':
+        const status = await getStallingsduurCacheStatus(params);
+        return { success: status!==undefined, message: "", status };
+      case 'update': {
+        const status = await updateStallingsduurCache(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'clear': {
+        const status = await clearStallingsduurCache(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'createtable': {  
+        // TODO: remove when this table has been implemented in the prisma scripts and primary database
+        const status = await createStallingsduurCacheTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'droptable': { // TODO: remove when this table has been implemented in the prisma scripts and primary database
+        const status = await dropStallingsduurCacheTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      default: {
+        return { success: false, message: "Invalid action" };
+      }
+    }
+  }
 };
 
 export default DatabaseService;

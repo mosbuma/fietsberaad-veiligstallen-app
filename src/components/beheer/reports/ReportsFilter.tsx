@@ -5,7 +5,7 @@ export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" |
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
 export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant"
 
-export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year"
+export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year" | "per_bucket"
 export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "range_quarter" | "range_week"
 // export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
 
@@ -443,6 +443,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
     const showCategorySection = ["bezetting"].includes(reportType);
     const showGroupByHour = ["bezetting"].includes(reportType) === true;
+    const showGroupByBucket = ["stallingsduur"].includes(reportType);
 
     const showRangeWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
     const showRangeAll = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
@@ -500,6 +501,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           <option value="per_day">Dag</option>
           <option value="per_weekday">Dag van de week</option>
           {showGroupByHour && <option value="per_hour">Uur van de dag</option>}
+          {showGroupByBucket && <option value="per_bucket">Stallingsduur</option>}
         </select>
         <div className="font-bold">Tijdsperiode</div>
         <select

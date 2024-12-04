@@ -13,6 +13,7 @@ export const getXAxisTitle = (reportGrouping: ReportGrouping) => {
     case 'per_month': return 'Maand';
     case 'per_quarter': return 'Kwartaal';
     case 'per_year': return 'Jaar';
+    case 'per_bucket': return 'Stallingsduur';
     default: return 'onbekend';
   }
 }
@@ -82,6 +83,32 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
         for(let date = moment(startKey); date.isBefore(endKey); date.add(1, 'year')) {
             labelMap[date.format('YYYY')] = date.format('YYYY');
         }
+        return labelMap;
+      }
+      case 'per_bucket': {
+        const labelMap: XAxisLabelMap = {};
+//   const buckets = [
+//     "<30m",
+//     "30-60m",
+//     "1-2h",
+//     "2-4h",
+//     "4-8h",
+//     "8-24h",
+//     "1-2d",
+//     "2-7d",
+//     "7-14d",
+//     ">14d"
+//   ];
+        labelMap['0'] = '<30m';
+        labelMap['1'] = '30-60m';
+        labelMap['2'] = '1-2h';
+        labelMap['3'] = '2-4h';
+        labelMap['4'] = '4-8h';
+        labelMap['5'] = '8-24h';
+        labelMap['6'] = '1-2d';
+        labelMap['7'] = '2-7d';
+        labelMap['8'] = '7-14d';
+        labelMap['9'] = '>14d';
         return labelMap;
       }
       default:

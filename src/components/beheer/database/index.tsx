@@ -30,6 +30,13 @@ const DatabaseComponent: React.FC<DatabaseComponentProps> = ({ firstDate, lastDa
         lastDate={lastDate}
         bikeparks={bikeparks}
       />
+      <CacheTableComponent
+        title="Stallingsduur cache tabel"
+        cacheEndpoint="/api/database/stallingsduurcache"
+        firstDate={firstDate}
+        lastDate={lastDate}
+        bikeparks={bikeparks}
+      />
     </div>
   );
 };

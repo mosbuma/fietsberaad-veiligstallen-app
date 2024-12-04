@@ -84,6 +84,7 @@ export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeInterva
         if(reportGrouping === "per_weekday") return `WEEKDAY(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
         if(reportGrouping === "per_day") return `CONCAT(YEAR(${fieldname}), '-', DAYOFYEAR(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE)) + 1)`;
         if(reportGrouping === "per_hour") return `HOUR(${fieldname})`;
+        if(reportGrouping === "per_bucket") return `bucket`;
     } else {
         if(reportGrouping === "per_year") return `YEAR(${fieldname})`;
         if(reportGrouping === "per_quarter") return `CONCAT(YEAR(${fieldname}), '-', QUARTER(${fieldname}))`;
@@ -92,6 +93,7 @@ export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeInterva
         if(reportGrouping === "per_weekday") return `WEEKDAY(${fieldname})`;
         if(reportGrouping === "per_day") return `CONCAT(YEAR(${fieldname}), '-', DAYOFYEAR(${fieldname}) + 1)`;
         if(reportGrouping === "per_hour") return `HOUR(${fieldname})`;
+        if(reportGrouping === "per_bucket") return `bucket`;
     }
 }
 

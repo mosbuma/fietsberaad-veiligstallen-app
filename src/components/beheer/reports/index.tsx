@@ -37,7 +37,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
       setLoading(true);
       try {
-        const apiEndpoint = reportParams.reportType === "bezetting" ? "/api/reports/bezettingsdataPerPeriod" : "/api/reports/transactionsPerPeriod";
+        let apiEndpoint: string = `/api/reports/${reportParams.reportType}`;          
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
