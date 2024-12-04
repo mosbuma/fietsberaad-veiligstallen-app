@@ -39,8 +39,8 @@ interface SingleResult {
 
 export const convertToSeries = async (
   results: SingleResult[],
-  params: ReportParams,): Promise<ReportSeriesData[]> => {
-  let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
+  params: ReportParams,
+  keyToLabelMap: XAxisLabelMap): Promise<ReportSeriesData[]> => {
   let series: ReportSeriesData[] = [];
 
   const categoryNames = await getCategoryNames(params);
@@ -153,7 +153,7 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
 
   switch (params.reportCategories) {
     case "none":
-      return false
+      return [{ id: "0", name: "Totaal" }];
     case "per_stalling": {
       const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE ` +
         `stallingsID IN (${params.bikeparkIDs.map(bp => `'${bp}'`).join(',')})`;
@@ -191,11 +191,11 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
   try {
     const results = await prisma.$queryRawUnsafe<SingleResult[]>(sql);
 
-    let series = await convertToSeries(results, params);
     let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
     if (!keyToLabelMap) {
       return false;
     }
+    let series = await convertToSeries(results, params, keyToLabelMap);
 
     return {
       title: getReportTitle(params.reportType),

@@ -48,7 +48,7 @@ const getAvailableReports = (showAbonnementenRapporten: boolean) => {
   // availableReports.push({ id: "volmeldingen", title: "Drukke en rustige momenten" });
   // availableReports.push({ id: "gelijktijdig_vol", title: "Gelijktijdig vol" });
   // availableReports.push({ id: "downloads", title: "Download data" });
-  
+
   return availableReports;
 }
 
@@ -82,7 +82,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   const availableReports = getAvailableReports(showAbonnementenRapporten);
 
-  const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
+ //  const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
 
   useEffect(() => {
     if (!showGoButton) {
@@ -93,6 +93,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     reportGrouping,
     reportCategories,
     reportRangeUnit,
+    selectedBikeparkIDs,
     year,
     quarter,
     month,
@@ -111,9 +112,9 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     }
   }, [reportType]);
 
-  useEffect(() => {
-    setTimerange(getStartEndDT());
-  }, [reportRangeUnit, year, month, week, quarter]);
+  // useEffect(() => {
+  //   setTimerange(getStartEndDT());
+  // }, [reportRangeUnit, year, month, week, quarter]);
 
   useEffect(() => {
     checkInput();
@@ -194,7 +195,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     }
 
     const bikeparkIDs = reportCategories !== "per_stalling" ? selectedBikeparkIDs : bikeparks.map((bikepark) => bikepark.stallingsID)
-    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
+    
+    const { startDT, endDT } = getStartEndDT();
+
+    // console.log("SUBMIT", { reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs, startDT: startDT, endDT, fillups: fillups });
+
+    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs, startDT, endDT, fillups: fillups });
   };
 
   const renderReportTypeSelect = () => {

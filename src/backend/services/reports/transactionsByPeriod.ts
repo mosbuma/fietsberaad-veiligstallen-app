@@ -100,6 +100,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  debugLog(sqlfilledin);
+  // debugLog("*********************** TRANSACTIONS");
+  // debugLog(sqlfilledin);
   return sqlfilledin; // , queryParams TODO: make queryParams work: 
 }

@@ -58,6 +58,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       } catch (error) {
         console.error(error);
         setErrorState("Unable to fetch report data");
+        setReportData(undefined);
       } finally {
         setLoading(false);
       }
@@ -65,6 +66,34 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
     fetchReportData();
   }, [reportParams, counter]);
+
+  const renderReportParams = (params: ReportParams) => {
+    const formatValue = (value: any) => {
+      if (Array.isArray(value)) {
+        return value.join(', ');
+      }
+      return value instanceof Date ? value.toLocaleString() : value;
+    };
+
+    return (
+      <table className="min-w-full border-collapse border border-gray-300">
+        <thead>
+          <tr>
+            <th className="border border-gray-300 px-4 py-2">Parameter</th>
+            <th className="border border-gray-300 px-4 py-2">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(params).map(([key, value]) => (
+            <tr key={key}>
+              <td className="border border-gray-300 px-4 py-2">{key}</td>
+              <td className="border border-gray-300 px-4 py-2">{formatValue(value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
 
   const renderChart = (reportData: ReportData) => {
     try {
@@ -198,6 +227,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     setCounter(counter + 1);
   }
 
+  const showReportParams = false; // used for debugging / testing
+
   return (
     <div className="noPrint w-full" id="ReportComponent">
       <div className="flex flex-col space-y-4 p-4">
@@ -224,6 +255,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               <>
                 {renderChart(reportData)}
                 {renderTable(reportData)}
+                {showReportParams && reportParams && renderReportParams(reportParams)}
               </>
             ) : (
               <div>No data available yet</div>

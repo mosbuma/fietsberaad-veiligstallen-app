@@ -88,7 +88,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  debugLog("***********************");
-  debugLog(sqlfilledin);
+  // debugLog("*********************** STALLINGSDUUR");
+  // debugLog(sqlfilledin);
   return sqlfilledin; // , queryParams TODO: make queryParams work: 
 }
