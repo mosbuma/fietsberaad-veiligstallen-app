@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import BikeparkSelect from './BikeparkSelect';
+import { getSingleYearRange, getSingleMonthRange, getSingleWeekRange, getSingleQuarterRange, getMaanden, getWeekNumber, getQuarter } from "./ReportsDateFunctions";
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
@@ -24,136 +25,6 @@ export interface ReportParams {
   fillups: boolean;
   source?: string;
 }
-
-const getWeekNumber = (date: Date): number => {
-  const start = new Date(date.getFullYear(), 0, 1);
-  const diff = date.getTime() - start.getTime();
-  const oneDay = 1000 * 60 * 60 * 24;
-  return Math.ceil((diff / oneDay + start.getDay() + 1) / 7);
-};
-
-const firstDayOfWeek = (year: number, weeknumber: number): Date => {
-  const janFirst = new Date(year, 0, 1);
-  const daysOffset = (weeknumber - 1) * 7;
-  const firstDay = new Date(janFirst.setDate(janFirst.getDate() + daysOffset));
-  const dayOfWeek = firstDay.getDay();
-  const diff = firstDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-  return new Date(firstDay.setDate(diff));
-}
-
-const lastDayOfWeek = (year: number, weeknumber: number): Date => {
-  const firstDay = firstDayOfWeek(year, weeknumber);
-  return new Date(firstDay.setDate(firstDay.getDate() + 6));
-}
-
-const getQuarter = (date: Date): number => {
-  return Math.floor(date.getMonth() / 3) + 1;
-};
-
-const getMaanden = (): Array<string> => {
-  return Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(2024, i, 1);
-    return date.toLocaleDateString('nl-NL', { month: 'long' });
-  });
-};
-
-const getSingleYearRange = (year: number | "lastPeriod") => {
-  let filteryear: number, filtermonth: number;
-  console.log("getSingleYearRange", year);
-  if (year === "lastPeriod") {
-    const now = new Date();
-    filteryear = now.getFullYear()
-    filtermonth = now.getMonth() + 1
-
-    console.log("lastPeriod", filteryear, filtermonth);
-  } else {
-    filteryear = year
-    filtermonth = 12
-  }
-  const startDT = new Date(filteryear - (filtermonth === 12 ? 0 : 1), (filtermonth === 12 ? 1 : filtermonth + 1) - 1, 1);
-  startDT.setHours(0, 0, 0, 0);
-  const endDT = new Date(filteryear, filtermonth, 0);
-  endDT.setHours(23, 59, 59, 999);
-
-  startDT.setHours(0, 0, 0, 0);
-  endDT.setHours(23, 59, 59, 999);
-
-  return { startDT, endDT };
-}
-
-const getSingleMonthRange = (year: number | "lastPeriod", month: number | "lastPeriod") => {
-  let startDT, endDT;
-  if (month === "lastPeriod" || year === "lastPeriod") {
-    const now = new Date();
-    startDT = new Date(now.getFullYear(), now.getMonth(), 1);
-    endDT = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  } else {
-    console.log("month", year, month);
-    startDT = new Date(year, month, 1);
-    endDT = new Date(year, month + 1, 0);
-  }
-  startDT.setHours(0, 0, 0, 0);
-  endDT.setHours(23, 59, 59, 999);
-
-  return { startDT, endDT };
-}
-
-const getSingleQuarterRange = (year: number | "lastPeriod", quarter: number | "lastPeriod") => {
-  let startDT, endDT, currentYear, currentQuarter;
-
-  if (year === "lastPeriod" || quarter === "lastPeriod") {
-    const now = new Date();
-    currentQuarter = getQuarter(now);
-    console.log("currentQuarter", currentQuarter); // 1 .. 4
-    currentYear = now.getFullYear();
-  } else {
-    currentQuarter = quarter;
-    currentYear = year;
-  }
-
-  startDT = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-  endDT = new Date(currentYear, (currentQuarter * 3), 0);
-  startDT.setHours(0, 0, 0, 0);
-  endDT.setHours(23, 59, 59, 999);
-
-  return { startDT, endDT };
-}
-
-const getSingleWeekRange = (year: number | "lastPeriod", week: number | "lastPeriod") => {
-  let startDT, endDT;
-  const theWeek = week === "lastPeriod" ? getWeekNumber(new Date()) : week;
-
-  if (year === "lastPeriod" || week === "lastPeriod") {
-    const now = new Date();
-    startDT = firstDayOfWeek(now.getFullYear(), theWeek);
-    endDT = lastDayOfWeek(now.getFullYear(), theWeek);
-  } else {
-    startDT = firstDayOfWeek(year, theWeek);
-    endDT = lastDayOfWeek(year, theWeek);
-  }
-
-  startDT.setHours(0, 0, 0, 0);
-  endDT.setHours(23, 59, 59, 999);
-
-  return { startDT, endDT };
-}
-
-const getAvailableReports = (showAbonnementenRapporten: boolean) => {
-  const availableReports = [
-    { id: "transacties_voltooid", title: "Aantal afgeronde transacties" },
-  ];
-  // { id: "inkomsten", title: "Inkomsten (€)" },
-  // if(showAbonnementenRapporten) {
-  //     availableReports.push({ id: "abonnementen", title: "Abonnementswijzigingen" });
-  //     availableReports.push({ id: "abonnementen_lopend", title: "Lopende abonnementen" });
-  // }
-  availableReports.push({ id: "bezetting", title: "Procentuele bezetting" });
-  availableReports.push({ id: "stallingsduur", title: "Stallingsduur" });
-  // availableReports.push({ id: "volmeldingen", title: "Drukke en rustige momenten" });
-  // availableReports.push({ id: "gelijktijdig_vol", title: "Gelijktijdig vol" });
-  // availableReports.push({ id: "downloads", title: "Download data" });
-  return availableReports;
-}
 interface ReportsFilterComponentProps {
   showAbonnementenRapporten: boolean;
   firstDate: Date;
@@ -164,16 +35,23 @@ interface ReportsFilterComponentProps {
   showGoButton?: boolean;
 }
 
-// const calculateStartWeek = (endweek: number, year: number): number => {
-//     const weeksInYear = getWeeksInYear(year);
-//     return endweek - 12 < 1 ? weeksInYear + endweek - 12 : endweek - 12;
-// };
+const getAvailableReports = (showAbonnementenRapporten: boolean) => {
+  const availableReports = [];
+  availableReports.push({ id: "transacties_voltooid", title: "Aantal afgeronde transacties" });
+  // availableReports.push({ id: "inkomsten", title: "Inkomsten (€)" });
+  // if(showAbonnementenRapporten) {
+  //     availableReports.push({ id: "abonnementen", title: "Abonnementswijzigingen" });
+  //     availableReports.push({ id: "abonnementen_lopend", title: "Lopende abonnementen" });
+  // }
+  availableReports.push({ id: "bezetting", title: "Procentuele bezetting" });
+  availableReports.push({ id: "stallingsduur", title: "Stallingsduur" });
+  // availableReports.push({ id: "volmeldingen", title: "Drukke en rustige momenten" });
+  // availableReports.push({ id: "gelijktijdig_vol", title: "Gelijktijdig vol" });
+  // availableReports.push({ id: "downloads", title: "Download data" });
+  
+  return availableReports;
+}
 
-// const getWeeksInYear = (year: number): number => {
-//     const lastDayOfYear = new Date(year, 11, 31);
-//     const weekNumber = getWeekNumber(lastDayOfYear);
-//     return weekNumber === 1 ? 52 : weekNumber; // If the last day is in week 1, the year has 52 weeks
-// };
 
 const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   showAbonnementenRapporten,
@@ -189,6 +67,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const [reportCategories, setReportCategories] = useState<ReportCategories>("per_stalling");
   const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>("range_year");
   //const [reportUnit, setReportUnit] = useState<ReportUnit>("reportUnit_year");
+  const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>([]);
   const [datatype, setDatatype] = useState<ReportDatatype | undefined>(undefined);
   const [week, setWeek] = useState<number | "lastPeriod">("lastPeriod");
   const [month, setMonth] = useState<number | "lastPeriod">("lastPeriod");
@@ -238,8 +117,15 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   useEffect(() => {
     checkInput();
-  }, [reportRangeUnit, reportType, year, month, datatype]); // selectedBikeparkIDs, 
+  }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]); 
 
+  useEffect(() => {
+    // Filter out any selected bikeparks that are no longer in the bikeparks array
+    // setSelectedBikeparkIDs((prevSelected) =>
+    //   prevSelected.filter((id) => bikeparks.some((park) => park.stallingsID === id))
+    // );
+    setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.stallingsID));
+  }, [bikeparks]);  
 
   const checkInput = () => {
 
@@ -307,7 +193,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         reportRangeValue = "lastPeriod";
     }
 
-    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs: bikeparks.map((bikepark) => bikepark.stallingsID), startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
+    const bikeparkIDs = reportCategories !== "per_stalling" ? selectedBikeparkIDs : bikeparks.map((bikepark) => bikepark.stallingsID)
+    onSubmit({ reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs, startDT: timerange?.startDT, endDT: timerange?.endDT, fillups: fillups });
   };
 
   const renderReportTypeSelect = () => {
@@ -442,6 +329,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     if (showDetails === false) return null;
 
     const showCategorySection = ["bezetting"].includes(reportType);
+    const showCategoryPerTypeKlant = ["stallingsduur"].includes(reportType);
     const showGroupByHour = ["bezetting"].includes(reportType) === true;
     const showGroupByBucket = ["stallingsduur"].includes(reportType);
 
@@ -483,7 +371,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           <option value="per_stalling">Per stalling</option>
           <option value="per_weekday">Per dag van de week</option>
           {showCategorySection && <option value="per_section">Per sectie</option>}
-          {/* <option value="per_type_klant">Per type klant</option> */}
+          {showCategoryPerTypeKlant &&  <option value="per_type_klant">Per type klant</option> }
         </select>
         <div className="font-bold">Groepering</div>
         <select
@@ -624,23 +512,30 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
+  const showBikeparkSelect = reportCategories !== "per_stalling";
+  console.log("showBikeparkSelect", selectedBikeparkIDs);  
   return (
     <div className="noPrint" id="ReportComponent">
       <div className="flex flex-col space-y-4">
-        {/* new row, full width */}
         <div className="w-full mt-2">
           {renderReportTypeSelect()}
         </div>
 
-        {/* new row, full width, max 3 columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* column 1 */}
           <div>
             {renderUnitSelect()}
           </div>
 
+          {showBikeparkSelect && bikeparks.length > 1 && (
+            <div className="w-96">
+              <BikeparkSelect
+                bikeparks={bikeparks}
+                selectedBikeparkIDs={selectedBikeparkIDs}
+                setSelectedBikeparkIDs={setSelectedBikeparkIDs}
+              />
+            </div>
+          )}          
 
-          {/* column 3 */}
           {reportType === "abonnementen" && (
             <div>
               {renderAbonnementenSelect()}
