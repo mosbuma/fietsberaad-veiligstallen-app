@@ -431,7 +431,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     if(showDetails === false) return null;
 
     const showCategorySection = ["bezetting"].includes(reportType);
-    const showGroupByHour = ["bezetting"].includes(reportType) === false;
+    const showGroupByHour = ["bezetting"].includes(reportType) === true;
 
     const showRangeWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
     const showRangeAll = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
