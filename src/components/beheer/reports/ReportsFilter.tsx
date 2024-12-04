@@ -142,7 +142,7 @@ const getAvailableReports = (showAbonnementenRapporten: boolean) => {
   const availableReports = [
     { id: "transacties_voltooid", title: "Aantal afgeronde transacties" },
   ];
-    // { id: "inkomsten", title: "Inkomsten (€)" },
+  // { id: "inkomsten", title: "Inkomsten (€)" },
   // if(showAbonnementenRapporten) {
   //     availableReports.push({ id: "abonnementen", title: "Abonnementswijzigingen" });
   //     availableReports.push({ id: "abonnementen_lopend", title: "Lopende abonnementen" });
@@ -182,7 +182,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   bikeparks,
   onSubmit,
   showDetails = true,
-  showGoButton = true,
+  showGoButton = false,
 }) => {
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
   const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
@@ -206,10 +206,21 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
 
   useEffect(() => {
-    if(!showGoButton) {
+    if (!showGoButton) {
       handleSubmit();
     }
-  }, [reportType, reportGrouping, reportCategories, reportRangeUnit, fillups, grouped]);
+  }, [
+    reportType,
+    reportGrouping,
+    reportCategories,
+    reportRangeUnit,
+    year,
+    quarter,
+    month,
+    week,
+    fillups,
+    grouped
+  ]);
 
   useEffect(() => {
     if (["bezetting"].includes(reportType)) {
@@ -428,7 +439,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const renderUnitSelect = () => {
     if (undefined === reportType) return null;
 
-    if(showDetails === false) return null;
+    if (showDetails === false) return null;
 
     const showCategorySection = ["bezetting"].includes(reportType);
     const showGroupByHour = ["bezetting"].includes(reportType) === true;
@@ -458,21 +469,21 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           </div>
         )}
 
-          <div className="font-bold">Categorieen</div>
-          <select
-            value={reportCategories}
-            onChange={(e) => setReportCategories(e.target.value as ReportCategories)}
-            name="reportCategories"
-            id="reportCategories"
-            className="p-2 border-2 border-gray-300 rounded-md"
-            required
-          >
-            <option value="none">Geen</option>
-            <option value="per_stalling">Per stalling</option>
-            <option value="per_weekday">Per dag van de week</option>
-            { showCategorySection && <option value="per_section">Per sectie</option>}
-            {/* <option value="per_type_klant">Per type klant</option> */}
-          </select>
+        <div className="font-bold">Categorieen</div>
+        <select
+          value={reportCategories}
+          onChange={(e) => setReportCategories(e.target.value as ReportCategories)}
+          name="reportCategories"
+          id="reportCategories"
+          className="p-2 border-2 border-gray-300 rounded-md"
+          required
+        >
+          <option value="none">Geen</option>
+          <option value="per_stalling">Per stalling</option>
+          <option value="per_weekday">Per dag van de week</option>
+          {showCategorySection && <option value="per_section">Per sectie</option>}
+          {/* <option value="per_type_klant">Per type klant</option> */}
+        </select>
         <div className="font-bold">Groepering</div>
         <select
           value={reportGrouping}
@@ -488,7 +499,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           <option value="per_week">Week</option>
           <option value="per_day">Dag</option>
           <option value="per_weekday">Dag van de week</option>
-          { showGroupByHour && <option value="per_hour">Uur van de dag</option> }
+          {showGroupByHour && <option value="per_hour">Uur van de dag</option>}
         </select>
         <div className="font-bold">Tijdsperiode</div>
         <select
@@ -640,13 +651,13 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             </div>
           )}
         </div>
-        { showGoButton && <div
+        {showGoButton && <div
           className={`${errorState === undefined ? 'bg-blue-500' : 'bg-gray-300'} hover:bg-blue-700 text-white font-bold py-2 px-4 rounded max-w-20 max-h-10 inline-block text-center cursor-pointer ${errorState === undefined ? "" : "cursor-not-allowed"}`}
           role="button"
           onClick={errorState === undefined ? handleSubmit : undefined}
-          >
-            Go!
-          </div>
+        >
+          Go!
+        </div>
         }
 
         {/* new row, full width */}
