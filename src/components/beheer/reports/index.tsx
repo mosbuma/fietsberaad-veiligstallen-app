@@ -68,6 +68,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   const renderChart = (reportData: ReportData) => {
     try {
+      console.log(reportData);
       return (
         <LineChart
           type="line"
@@ -130,6 +131,10 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               // floating: true,
               offsetY: 25,
               // offsetX: -5
+            },
+            tooltip: {
+              enabled: true,
+              shared: true,
             }
           }}
           series={reportData.series}
