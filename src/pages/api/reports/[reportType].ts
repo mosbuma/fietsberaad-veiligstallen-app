@@ -5,9 +5,12 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   if (req.method === 'POST') {
     let data = undefined;
 
+    // one of 
+
     switch (req.query.reportType) {
-      case "transactionsPerPeriod": {
-        let reportParams = req.body.reportParams;
+      case "transacties_voltooid": 
+      case "inkomsten": {
+          let reportParams = req.body.reportParams;
     
         if (undefined === reportParams) {
           res.status(405).end() // Method Not Allowed
@@ -21,7 +24,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         }
         break;
       }
-      case "bezettingsdataPerPeriod": {
+      case "bezetting": {
         let reportParams = req.body.reportParams;
     
         if (undefined === reportParams) {
@@ -32,19 +35,24 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         res.json(data);
         break;
       }
-      case "availableData": {
+      case "stallingsduur": {
         let reportParams = req.body.reportParams;
     
         if (undefined === reportParams) {
           res.status(405).end() // Method Not Allowed
         }
-        data = await ReportService.getAvailableData(reportParams);
+        data = await ReportService.getStallingsduurData(reportParams);
         res.json(data);
         break;
       }
+      case "abonnementen":
+      case "abonnementen_lopend" :
+      case "volmeldingen" :
+      case "gelijktijdig_vol":
+      case "downloads":
       default: {
         res.status(405).end() // Method Not Allowed
-      }
+      }      
     }
   } else {
     res.status(405).end() // Method Not Allowed

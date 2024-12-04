@@ -1,5 +1,6 @@
 import { getSQL as getTransactionsByPeriodSQL } from "~/backend/services/reports/transactionsByPeriod";
 import { getSQL as getBezettingsdataSQL} from "~/backend/services/reports/bezettingsdataByPeriod";
+import { getSQL as getStallingsduurSQL } from "~/backend/services/reports/stallingsduur";
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 import { getData } from "~/backend/services/reports/ReportFunctions";
 import { availableDataResult, getSQL as getAvailableDataSQL } from "~/backend/services/reports/availableData";
@@ -62,6 +63,25 @@ const ReportService = {
         yearmonth: d.yearmonth,
         count: d.total.toString()
       }));
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  },
+
+  getStallingsduurData: async (params: ReportParams) => {
+    try {
+      console.log("************** getStallingsduurData params:", params);
+      const sql = getStallingsduurSQL(params); // , queryParams
+      if(!sql) {
+          console.error("No result from getStallingsduurSQL");
+          return false;
+      }
+
+      const data = await getData(sql, params);
+      // const data: any[] = [];
+
+      return data;
     } catch (error) {
       console.error(error);
       return false;
