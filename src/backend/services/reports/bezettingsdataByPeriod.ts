@@ -61,13 +61,16 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
       // statementItems.push(`SUM(b.occupation) as occupation,`);
       statementItems.push(`SUM(b.occupation) as value`);
     }
-  } else {
+  }
+  // Selects from cache table
+  else {
     if (reportType === "bezetting") {
       // statementItems.push(`SUM(b.totalCheckins) AS totalCheckins,`);
       // statementItems.push(`SUM(b.totalCheckouts) AS totalCheckouts,`);
       // statementItems.push(`SUM(b.totalCapacity) as capacity,`);
       // statementItems.push(`SUM(b.totalOccupation) as occupation`);
-      statementItems.push(`ROUND(SUM(b.totalOccupation)/SUM(b.totalCapacity)*100, 0) as value`);
+      statementItems.push(`ROUND(SUM(b.totalOccupation)/SUM(b.totalCapacity)*100, 0) as value,`);
+      statementItems.push(`MIN(timestamp) as timestamp`);
     }
   }
 
@@ -88,8 +91,9 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   statementItems.push(`AND b.interval = 15`)
 
   statementItems.push(`GROUP BY`);
-  statementItems.push(`  CATEGORY, TIMEGROUP;`); // f.Title, 
+  statementItems.push(`  CATEGORY, TIMEGROUP`); // f.Title, 
 
+  statementItems.push(`ORDER BY timestamp ASC`);
 
   // ORDER BY ${reportUnit === 'reportUnit_stalling' ? 'locationid' : ''}
   // ${selectType === 'SECTIE' ? ', sectionid' : ''}
