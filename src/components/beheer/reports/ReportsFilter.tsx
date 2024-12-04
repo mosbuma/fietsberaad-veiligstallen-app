@@ -141,14 +141,14 @@ const getSingleWeekRange = (year: number | "lastPeriod", week: number | "lastPer
 const getAvailableReports = (showAbonnementenRapporten: boolean) => {
   const availableReports = [
     { id: "transacties_voltooid", title: "Aantal afgeronde transacties" },
-    { id: "inkomsten", title: "Inkomsten (€)" },
   ];
+    // { id: "inkomsten", title: "Inkomsten (€)" },
   // if(showAbonnementenRapporten) {
   //     availableReports.push({ id: "abonnementen", title: "Abonnementswijzigingen" });
   //     availableReports.push({ id: "abonnementen_lopend", title: "Lopende abonnementen" });
   // }
   availableReports.push({ id: "bezetting", title: "Procentuele bezetting" });
-  // availableReports.push({ id: "stallingsduur", title: "Stallingsduur" });
+  availableReports.push({ id: "stallingsduur", title: "Stallingsduur" });
   // availableReports.push({ id: "volmeldingen", title: "Drukke en rustige momenten" });
   // availableReports.push({ id: "gelijktijdig_vol", title: "Gelijktijdig vol" });
   // availableReports.push({ id: "downloads", title: "Download data" });
