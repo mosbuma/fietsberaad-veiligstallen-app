@@ -1,8 +1,8 @@
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 import { 
   getFunctionForPeriod, 
-  debugLog, 
   interpolateSQL } from "~/backend/services/reports/ReportFunctions"; 
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 import moment from "moment";
 
 export const getSQL = (params: ReportParams, useCache: boolean = true): string | false => {
@@ -14,8 +14,6 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     startDT: startDate,
     endDT: endDate,
   } = params;
-  console.log("************** REPORTTYPE:", reportType);
-
     if(["stallingsduur"].includes(reportType)===false) {
         throw new Error("Invalid report type");
         return false;
@@ -26,15 +24,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
       return false;
     }
 
-    const dayBeginsAt = new Date(0, 0, 0);
-
-    // Calculate time interval in minutes
-    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
-
-    let adjustedStartDate = moment(startDate);
-    let adjustedEndDate = moment(endDate);
-    adjustedStartDate = adjustedStartDate.add(timeIntervalInMinutes, 'minutes');
-    adjustedEndDate = adjustedEndDate.add(timeIntervalInMinutes, 'minutes');
+    const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
 
     const statementItems = [];
     switch( reportCategories) {
@@ -82,13 +72,11 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
 
   // Prepare parameters for the query
   const queryParams = [
-    bikeparkIDs.map(bp=>`'${bp}'`).join(','),
+    bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""',
     moment(startDate).format('YYYY-MM-DD 00:00:00'),
     moment(endDate).format('YYYY-MM-DD 23:59:59')
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  // debugLog("*********************** STALLINGSDUUR");
-  // debugLog(sqlfilledin);
-  return sqlfilledin; // , queryParams TODO: make queryParams work: 
+  return sqlfilledin; 
 }

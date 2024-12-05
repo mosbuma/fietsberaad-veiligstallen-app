@@ -1,6 +1,7 @@
 import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 
 export const getTransactionCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'transacties_archief_day_cache'`
@@ -51,15 +52,16 @@ export const updateTransactionCache = async (params: CacheParams) => {
         return false;
     }
 
-    const dayBeginsAt = new Date(0, 0, 0);
-    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+    const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
 
-    // TODO: check if timeinterval offset works correctly, link to offset settings in database
-    // current db model links to contacts.DayBeginsAt field
+    if(adjustedStartDate === undefined) {
+        console.error(">>> updateTransactionCache ERROR Start date is undefined");
+        return false;
+    }
 
     const conditions = [];
     if (!params.allDates) {
-        conditions.push(`checkoutdate >= DATE_ADD('${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
+        conditions.push(`checkoutdate >= DATE_ADD('${adjustedStartDate.format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
     }
     if (!params.allBikeparks) {
         conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);

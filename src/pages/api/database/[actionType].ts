@@ -1,55 +1,98 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import DatabaseService from "~/backend/services/database-service";
+import DatabaseService, { CacheParams } from "~/backend/services/database-service";
 import ReportService from "~/backend/services/reports-service";
+import { type ReportType, reportTypeValues } from "~/components/beheer/reports/ReportsFilter";
+import { z } from "zod";
+const dateSchema = z.string().datetime();
+
+const CacheParamsSchema = z.object({
+  databaseParams: z.object({
+    action: z.enum(['clear', 'rebuild']),
+    startDT: dateSchema.optional(),
+    endDT: dateSchema.optional(),
+    bikeparkIDs: z.array(z.string()).optional(),
+  }),
+});
+
+const AvailableDataParamsSchema = z.object({
+  reportType: z.enum(reportTypeValues),
+  bikeparkIDs: z.array(z.string()),
+  startDT: dateSchema.optional(),
+  endDT: dateSchema.optional(),
+});
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    switch (req.query.actionType) {
-      case "transactionscache": {
-        let params = req.body.databaseParams;
-
-        if (undefined === params) {
-          res.status(400).end(); // 400: Bad Request
+  try {
+    if (req.method === 'POST') {
+      switch (req.query.actionType) {
+        case "transactionscache":
+        case "bezettingencache":
+        case "stallingsduurcache": {
+          const parseResult = CacheParamsSchema.safeParse(req.body);
+          if (!parseResult.success) {
+            return res.status(400).json({ 
+              error: "Invalid parameters",
+              details: parseResult.error.errors 
+            });
+          }
+          
+          const params = parseResult.data.databaseParams as CacheParams;
+          const result = req.query.actionType === "transactionscache"
+            ? await DatabaseService.manageTransactionCache(params)
+            : req.query.actionType === "bezettingencache"
+              ? await DatabaseService.manageBezettingCache(params)
+              : await DatabaseService.manageStallingsduurCache(params);
+              
+          return res.json(result);
         }
 
-        const result = await DatabaseService.manageTransactionCache(params);
-        res.json(result); // failure is handled in the service
-        break;
-      }
-      case "bezettingencache": {
-        let params = req.body.databaseParams;
-        if (undefined === params) {
-          res.status(400).end(); // 400: Bad Request
+        case "availableDataDetailed": {
+          const parseResult = AvailableDataParamsSchema.safeParse(req.body);
+          if (!parseResult.success) {
+            return res.status(400).json({ 
+              error: "Invalid parameters",
+              details: parseResult.error.errors 
+            });
+          }
+          
+          const { reportType, bikeparkIDs, startDT, endDT } = parseResult.data;
+          const data = await ReportService.getAvailableDataDetailed(
+            reportType as ReportType,
+            bikeparkIDs,
+            startDT ? new Date(startDT) : undefined,
+            endDT ? new Date(endDT) : undefined
+          );
+          return res.json(data);
         }
-        
-        const result = await DatabaseService.manageBezettingCache(params);
-        res.json(result); // failure is handled in the service
-        break;
-      }
-      case "stallingsduurcache": {
-        let params = req.body.databaseParams;
-        if (undefined === params) {
-          res.status(400).end(); // 400: Bad Request
+
+        case "availableDataPerBikepark": {
+          const parseResult = AvailableDataParamsSchema.safeParse(req.body);
+          if (!parseResult.success) {
+            return res.status(400).json({ 
+              error: "Invalid parameters",
+              details: parseResult.error.errors 
+            });
+          }
+          
+          const { reportType, bikeparkIDs, startDT, endDT } = parseResult.data;
+          const data = await ReportService.getAvailableDataPerBikepark(
+            reportType as ReportType,
+            bikeparkIDs,
+            startDT ? new Date(startDT) : undefined,
+            endDT ? new Date(endDT) : undefined
+          );
+          return res.json(data);
         }
-        const result = await DatabaseService.manageStallingsduurCache(params);
-        res.json(result); // failure is handled in the service
-        break;
-      }
-      case "availableData": {
-        let reportParams = req.body.reportParams;
-    
-        if (undefined === reportParams) {
-          res.status(405).end() // Method Not Allowed
+
+        default: {
+          return res.status(405).end(); // Method Not Allowed
         }
-        const data = await ReportService.getAvailableData(reportParams);
-        res.json(data);
-        break;
       }
-      default: {
-        res.status(405).end(); // Method Not Allowed
-      }
+    } else {
+      return res.status(405).end(); // Method Not Allowed
     }
-  } else {
-    res.status(405).end(); // Method Not Allowed
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

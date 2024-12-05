@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ReportsFilterComponent, { ReportParams, ReportBikepark } from "../reports/ReportsFilter";
-import { availableDataResult } from "~/backend/services/reports/availableData";
+import { ReportBikepark, ReportType, getAvailableReports } from "../reports/ReportsFilter";
+import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 
 type MonthData = {
   year: number;
@@ -26,7 +26,9 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
 }) => {
   const [errorState, setErrorState] = useState("");
 
-  const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
+  const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
+
+//   const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
   const [bikeparkData, setBikeparkData] = useState<BikeparkData[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -34,11 +36,11 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
       const fetchReportData = async () => {
-          if (undefined === reportParams) {
-            return;
-          }
+        //   if (undefined === reportParams) {
+        //     return;
+        //   }
 
-          const convertToBikeparkData = (data: availableDataResult[]): BikeparkData[] => {
+          const convertToBikeparkData = (data: AvailableDataDetailedResult[]): BikeparkData[] => {
               // change this to map/reduce
               const bikeparkData: BikeparkData[] = [];
               data.forEach(d => {
@@ -75,21 +77,25 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
           setLoading(true);
 
           try {
-            const apiEndpoint = "/api/database/availableData";
+            const apiEndpoint = "/api/database/availableDataDetailed";
+
             const response = await fetch(apiEndpoint, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                reportParams
+                reportType,
+                bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+                startDT: firstDate,
+                endDT: lastDate
               }),
             });
     
             if (!response.ok) {
               throw new Error(`Error: ${response.statusText}`);
             }
-            const data = await response.json() as availableDataResult[] | false;
+            const data = await response.json() as AvailableDataDetailedResult[] | false;
             if(data) {
               setBikeparkData(convertToBikeparkData(data));
               setErrorState("");
@@ -105,7 +111,7 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
         };
     
         fetchReportData();
-  }, [reportParams, bikeparks, counter]);
+  }, [reportType, bikeparks, counter]);
 
   const ExcelIcon = () => (
       <svg 
@@ -141,6 +147,28 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
   const getMonthName = (month: number): string => {
       return new Date(2000, month - 1, 1).toLocaleString('nl-NL', { month: 'short' });
   };
+
+  const renderReportTypeSelect = () => {
+    const availableReports = getAvailableReports(false);
+    return (
+      <div className="form-group row flex flex-row">
+        <label htmlFor="report" className="col-xs-3 col-sm-2 col-form-label font-bold mr-5">Rapportage</label>
+        <div className="col-sm-10 col-md-6 border-2 border-gray-300 rounded-md">
+          <select
+            className="form-control"
+            name="report"
+            id="report"
+            value={reportType}
+            onChange={(e) => setReportType(e.target.value as ReportType)}
+            required
+          > {availableReports.map((report) => (
+            <option key={report.id} value={report.id}>{report.title}</option>
+          ))}
+          </select>
+        </div>
+      </div>
+    )
+  }
 
   const renderMonthButtons = (year: number, availableMonths: number[]) => {
       return (
@@ -190,17 +218,18 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
       bp.monthsWithData.forEach(md => yearsSet.add(md.year));
       return Array.from(yearsSet).sort((a, b) => a - b);
   }
-  const onSubmit = (params: ReportParams) => {
-    setReportParams(params);
-    setCounter(counter + 1);
-  }
+//   const onSubmit = (params: ReportParams) => {
+//     setReportParams(params);
+//     setCounter(counter + 1);
+//   }
 
   const allYears = getYearsWithData();
 
 return (
     <div className="noPrint w-full" id="ExportComponent">
       <div className="flex flex-col space-y-4 p-4">
-        <ReportsFilterComponent
+        {renderReportTypeSelect()}
+        {/* <ReportsFilterComponent
           showAbonnementenRapporten={false}
           firstDate={firstDate}
           lastDate={lastDate}
@@ -208,7 +237,7 @@ return (
           onSubmit={onSubmit}
           showDetails={false}
           showGoButton={false}
-        />
+        /> */}
 
         <div className="flex flex-col space-y-2">
           {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}

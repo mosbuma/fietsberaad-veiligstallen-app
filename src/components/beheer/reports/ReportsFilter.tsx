@@ -3,11 +3,19 @@ import BikeparkSelect from './BikeparkSelect';
 import { getSingleYearRange, getSingleMonthRange, getSingleWeekRange, getSingleQuarterRange, getMaanden, getWeekNumber, getQuarter } from "./ReportsDateFunctions";
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
+export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", "inkomsten", "abonnementen", "abonnementen_lopend", "bezetting", "stallingsduur", "volmeldingen", "gelijktijdig_vol", "downloads"]
+
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
+export const reportDatatypeValues = ["bezettingsdata", "ruwedata"]
+
 export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant"
+export const reportCategoriesValues = ["none", "per_stalling", "per_weekday", "per_section", "per_type_klant"]
 
 export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year" | "per_bucket"
+export const reportGroupingValues = ["per_hour", "per_day", "per_weekday", "per_week", "per_month", "per_quarter", "per_year", "per_bucket"]
+
 export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "range_quarter" | "range_week"
+export const reportRangeUnitValues = ["range_all", "range_year", "range_month", "range_quarter", "range_week"]
 // export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
 
 export type ReportBikepark = { id: string; stallingsID: string; title: string; gemeenteID: string; hasData: boolean };
@@ -35,7 +43,7 @@ interface ReportsFilterComponentProps {
   showGoButton?: boolean;
 }
 
-const getAvailableReports = (showAbonnementenRapporten: boolean) => {
+export const getAvailableReports = (showAbonnementenRapporten: boolean) => {
   const availableReports = [];
   availableReports.push({ id: "transacties_voltooid", title: "Aantal afgeronde transacties" });
   // availableReports.push({ id: "inkomsten", title: "Inkomsten (€)" });
@@ -225,14 +233,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   }
 
   const renderWeekSelect = (showLastPeriod: boolean = true) => {
-    console.log("render week", week);
     return (
       <>
         <select
           value={week}
           onChange={(e) => {
             const value = e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value);
-            console.log("setWeek", value);
             setWeek(value)
           }
           }
@@ -519,7 +525,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   }
 
   const showBikeparkSelect = reportCategories !== "per_stalling";
-  console.log("showBikeparkSelect", selectedBikeparkIDs);  
   return (
     <div className="noPrint" id="ReportComponent">
       <div className="flex flex-col space-y-4">

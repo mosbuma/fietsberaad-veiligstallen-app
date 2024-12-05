@@ -61,9 +61,6 @@ export const convertToSeries = async (
     return acc;
   }, {});
 
-  // debugLog(`GROUPED BY STALLING - GROUPED`);
-  // Object.values(groupedByCategory).map(t=>debugLog(JSON.stringify(t)));
-
   // Convert to series format
   series = Object.values(groupedByCategory).map((stalling: any) => ({
     name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
@@ -151,12 +148,14 @@ interface ReportCategory {
 
 export const getCategoryNames = async (params: ReportParams): Promise<ReportCategory[] | false> => {
 
+  const idString = params.bikeparkIDs.length > 0 ? params.bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""';
+
   switch (params.reportCategories) {
     case "none":
       return [{ id: "0", name: "Totaal" }];
     case "per_stalling": {
-      const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE ` +
-        `stallingsID IN (${params.bikeparkIDs.map(bp => `'${bp}'`).join(',')})`;
+      const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE stallingsID IN (${idString})`;
+
       const results = await prisma.$queryRawUnsafe<{ StallingsID: string, Title: string }[]>(sql)
       return results.map(r => ({ id: r.StallingsID, name: r.Title }));
     }
@@ -172,7 +171,11 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
       ];
     }
     case "per_section": {
-      const sql = `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel FROM fietsenstallingen f LEFT OUTER JOIN fietsenstalling_sectie s ON (f.id=s.fietsenstallingsId) WHERE NOT ISNULL(s.externalid) AND f.StallingsID in (${params.bikeparkIDs.map(bp => `'${bp}'`).join(',')})`
+      const sql = 
+        `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel ` + 
+        `FROM fietsenstallingen f LEFT OUTER JOIN fietsenstalling_sectie s ON (f.id=s.fietsenstallingsId) ` +
+        `WHERE NOT ISNULL(s.externalid) AND f.StallingsID in (${idString})`
+
       const results = await prisma.$queryRawUnsafe<{ externalid: string, stallingtitel: string, sectietitel: string }[]>(sql)
       return results.map(r => {
         if (r.sectietitel.toLowerCase() === r.stallingtitel.toLowerCase()) {
@@ -181,6 +184,9 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
           return ({ id: r.externalid, name: r.stallingtitel + " - " + r.sectietitel })
         }
       });
+    }
+    case "per_type_klant": {
+      return [{ id: "1", name: "Dagstaller" }, { id: "2", name: "Abonnement" }];
     }
     default:
       return false;
@@ -220,3 +226,4 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
     return false;
   }
 };
+

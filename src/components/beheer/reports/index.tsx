@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ReportsFilterComponent, { ReportParams, ReportBikepark } from "./ReportsFilter";
 import { ReportData } from "~/backend/services/reports/ReportFunctions";
+import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
+
 import LineChart from './LineChart';
 
 interface ReportComponentProps {
@@ -26,6 +28,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
 
+  const [bikeparksWithData, setBikeparksWithData] = useState<ReportBikepark[]>([]);
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -67,6 +70,50 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     fetchReportData();
   }, [reportParams, counter]);
 
+  useEffect(() => {
+    const fetchBikeparksWithData = async () => {
+        if (undefined === reportParams) {
+          return;
+        }
+  
+        // setLoading(true);
+
+        try {
+          const apiEndpoint = "/api/database/availableDataPerBikepark";
+          const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reportType: reportParams.reportType,
+              bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+              startDT: firstDate,
+              endDT: lastDate
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+          const data = await response.json() as AvailableDataDetailedResult[] | false;
+          if(data) {
+            setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+          } else {
+            setErrorState("Unable to fetch list of bikeparks with data");
+          }
+        } catch (error) {
+          console.error(error);
+          setErrorState("Unable to fetch list of bikeparks with data");
+        } finally {
+          // setLoading(false);
+        }
+      };
+  
+      fetchBikeparksWithData();
+  }, [reportParams?.reportType, bikeparks, firstDate, lastDate]);
+
+
   const renderReportParams = (params: ReportParams) => {
     const formatValue = (value: any) => {
       if (Array.isArray(value)) {
@@ -97,7 +144,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   const renderChart = (reportData: ReportData) => {
     try {
-      console.log(reportData);
       return (
         <LineChart
           type="line"
@@ -141,6 +187,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               // size: reportData.series.some(s => s.data.length === 1) ? 5 : undefined,
             },
             xaxis: reportData.options?.xaxis || {
+              type: 'category',
               categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
               title: {
                 text: 'Weekdag',
@@ -236,7 +283,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           showAbonnementenRapporten={showAbonnementenRapporten}
           firstDate={firstDate}
           lastDate={lastDate}
-          bikeparks={bikeparks}
+          bikeparks={bikeparksWithData}
           onSubmit={onSubmit}
         />
 

@@ -1,6 +1,6 @@
 import moment from "moment";
 import { ReportGrouping } from "~/components/beheer/reports/ReportsFilter";
-import { debugLog } from "~/backend/services/reports/ReportFunctions";
+// import { debugLog } from "~/backend/services/reports/ReportFunctions";
 
 export type XAxisLabelMap = Record<string, string>;
 
@@ -116,22 +116,22 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
     }
   }
 
-export const testReportUnitLabels = () => {
-  debugLog("TEST REPORT UNIT LABELS", true);
-  const testCase = (grouping: ReportGrouping, rangeStart: Date, rangeEnd: Date) => {
-    debugLog(`TEST CASE ${grouping} ${rangeStart} ${rangeEnd}`);
-    debugLog(`${JSON.stringify(getLabelMapForXAxis(grouping, rangeStart, rangeEnd))}`);
-  }
-  const rangestart = moment('2024-01-01 00:00Z+1').toDate();
-  const rangeend = moment('2024-01-31 23:59Z+1').toDate();  
+// export const testReportUnitLabels = () => {
+//   debugLog("TEST REPORT UNIT LABELS", true);
+//   const testCase = (grouping: ReportGrouping, rangeStart: Date, rangeEnd: Date) => {
+//     debugLog(`TEST CASE ${grouping} ${rangeStart} ${rangeEnd}`);
+//     debugLog(`${JSON.stringify(getLabelMapForXAxis(grouping, rangeStart, rangeEnd))}`);
+//   }
+//   const rangestart = moment('2024-01-01 00:00Z+1').toDate();
+//   const rangeend = moment('2024-01-31 23:59Z+1').toDate();  
 
-  testCase('per_hour', rangestart, rangeend);
-  testCase('per_weekday', rangestart, rangeend);
-  testCase('per_day', rangestart, rangeend);
-  testCase('per_month', rangestart, rangeend);
-  testCase('per_quarter', rangestart, rangeend);
-  testCase('per_year', rangestart, rangeend);
-}
+//   testCase('per_hour', rangestart, rangeend);
+//   testCase('per_weekday', rangestart, rangeend);
+//   testCase('per_day', rangestart, rangeend);
+//   testCase('per_month', rangestart, rangeend);
+//   testCase('per_quarter', rangestart, rangeend);
+//   testCase('per_year', rangestart, rangeend);
+// }
 
 export const getCategoriesForXAxis = (labels: XAxisLabelMap): string[] => {
   return Object.keys(labels);

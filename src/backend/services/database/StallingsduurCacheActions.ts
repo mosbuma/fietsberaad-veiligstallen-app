@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
-import { debugLog } from "~/backend/services/reports/ReportFunctions";
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 
 export const getStallingsduurCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'stallingsduur_cache'`
@@ -52,15 +52,16 @@ export const updateStallingsduurCache = async (params: CacheParams) => {
         return false;
     }
 
-    const dayBeginsAt = new Date(0, 0, 0);
-    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+    const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
 
-    // TODO: check if timeinterval offset works correctly, link to offset settings in database
-    // current db model links to contacts.DayBeginsAt field
+    if(adjustedStartDate === undefined) {
+        console.error(">>> updateStallingsduurCache ERROR Start date is undefined");
+        return false;
+    }
 
     const conditions = [];
     if (!params.allDates) {
-        conditions.push(`checkoutdate >= DATE_ADD('${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
+        conditions.push(`checkoutdate >= DATE_ADD('${adjustedStartDate.format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
     }
     if (!params.allBikeparks) {
         conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);
@@ -101,9 +102,6 @@ export const updateStallingsduurCache = async (params: CacheParams) => {
     statementItems.push(`  ${whereClause}`);
     statementItems.push(`GROUP BY locationID, date, sectionID, clienttypeid, bucket;`);
     const sql = statementItems.join('\n');  
-
-    debugLog("************** updateStallingsduurCache sql:")
-    debugLog(sql);
     
     /* const result = */ await prisma.$executeRawUnsafe(sql);
     return getStallingsduurCacheStatus(params);
@@ -124,7 +122,8 @@ export const clearStallingsduurCache = async (params: CacheParams) => {
       conditions.push(`checkoutdate >= '${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}'`);
     }
     if (!params.allBikeparks) {
-      conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);
+        const bikeparkIDs = params.selectedBikeparkIDs.length > 0 ? params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',') : '""';
+        conditions.push(`locationID IN (${bikeparkIDs})`);
     }
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 

@@ -3,6 +3,7 @@ import {
   getFunctionForPeriod,
   interpolateSQL
 } from "~/backend/services/reports/ReportFunctions";
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 
 import moment from 'moment';
 
@@ -21,15 +22,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     return false;
   }
 
-  const dayBeginsAt = new Date(0, 0, 0);
-
-  // Calculate time interval in minutes
-  const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
-
-  let adjustedStartDate = moment(startDate);
-  let adjustedEndDate = moment(endDate);
-  adjustedStartDate = adjustedStartDate.add(timeIntervalInMinutes, 'minutes');
-  adjustedEndDate = adjustedEndDate.add(timeIntervalInMinutes, 'minutes');
+  const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
 
   const statementItems = [];
   statementItems.push(`SELECT`);
@@ -104,7 +97,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
 
   // Prepare parameters for the query
   const queryParams = [
-    bikeparkIDs.map(bp => `'${bp}'`).join(','),
+    bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""',
     false === useCache ? adjustedStartDate.format('YYYY-MM-DD HH:mm:ss') : moment(startDate).format('YYYY-MM-DD 00:00:00'),
     false === useCache ? adjustedEndDate.format('YYYY-MM-DD HH:mm:ss') : moment(endDate).format('YYYY-MM-DD 23:59:59')
   ];

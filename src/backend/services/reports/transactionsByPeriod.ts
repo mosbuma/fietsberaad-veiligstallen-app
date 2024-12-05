@@ -1,10 +1,9 @@
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
 import {
   getFunctionForPeriod,
-  debugLog,
   interpolateSQL
 } from "~/backend/services/reports/ReportFunctions";
-
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 import moment from 'moment';
 
 export const getSQL = (params: ReportParams, useCache: boolean = true): string | false => {
@@ -22,15 +21,12 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     return false;
   }
 
-  const dayBeginsAt = new Date(0, 0, 0);
+  const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
 
-  // Calculate time interval in minutes
-  const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
-
-  let adjustedStartDate = moment(startDate);
-  let adjustedEndDate = moment(endDate);
-  adjustedStartDate = adjustedStartDate.add(timeIntervalInMinutes, 'minutes');
-  adjustedEndDate = adjustedEndDate.add(timeIntervalInMinutes, 'minutes');
+  if(adjustedStartDate === undefined || adjustedEndDate === undefined) {
+    throw new Error("Start or end date is undefined");
+    return false;
+  }
 
   const statementItems = [];
   switch (reportCategories) {
@@ -94,13 +90,11 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
 
   // Prepare parameters for the query
   const queryParams = [
-    bikeparkIDs.map(bp => `'${bp}'`).join(','),
+    bikeparkIDs.length > 0 ? bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""' : '""',
     false === useCache ? adjustedStartDate.format('YYYY-MM-DD HH:mm:ss') : moment(startDate).format('YYYY-MM-DD 00:00:00'),
     false === useCache ? adjustedEndDate.format('YYYY-MM-DD HH:mm:ss') : moment(endDate).format('YYYY-MM-DD 23:59:59')
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  // debugLog("*********************** TRANSACTIONS");
-  // debugLog(sqlfilledin);
-  return sqlfilledin; // , queryParams TODO: make queryParams work: 
+  return sqlfilledin; 
 }

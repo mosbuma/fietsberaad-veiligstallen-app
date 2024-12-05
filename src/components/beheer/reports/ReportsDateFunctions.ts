@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const getWeekNumber = (date: Date): number => {
     const start = new Date(date.getFullYear(), 0, 1);
     const diff = date.getTime() - start.getTime();
@@ -32,13 +34,10 @@ export const getWeekNumber = (date: Date): number => {
   
   export const getSingleYearRange = (year: number | "lastPeriod") => {
     let filteryear: number, filtermonth: number;
-    console.log("getSingleYearRange", year);
     if (year === "lastPeriod") {
       const now = new Date();
       filteryear = now.getFullYear()
       filtermonth = now.getMonth() + 1
-  
-      console.log("lastPeriod", filteryear, filtermonth);
     } else {
       filteryear = year
       filtermonth = 12
@@ -61,7 +60,6 @@ export const getWeekNumber = (date: Date): number => {
       startDT = new Date(now.getFullYear(), now.getMonth(), 1);
       endDT = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     } else {
-      console.log("month", year, month);
       startDT = new Date(year, month, 1);
       endDT = new Date(year, month + 1, 0);
     }
@@ -77,7 +75,6 @@ export const getWeekNumber = (date: Date): number => {
     if (year === "lastPeriod" || quarter === "lastPeriod") {
       const now = new Date();
       currentQuarter = getQuarter(now);
-      console.log("currentQuarter", currentQuarter); // 1 .. 4
       currentYear = now.getFullYear();
     } else {
       currentQuarter = quarter;
@@ -122,3 +119,14 @@ export const getWeekNumber = (date: Date): number => {
 //     return weekNumber === 1 ? 52 : weekNumber; // If the last day is in week 1, the year has 52 weeks
 // };
 
+export const getAdjustedStartEndDates = (startDT: Date | undefined, endDT: Date | undefined, dayBeginsAt = new Date(0, 0, 0)): { timeIntervalInMinutes: number, adjustedStartDate: moment.Moment | undefined, adjustedEndDate: moment.Moment | undefined } => {
+  // TODO: check if timeinterval offset works correctly, link dayBeginsAt to offset settings in database
+  // current db model links to contacts.DayBeginsAt field
+
+  const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+
+  let adjustedStartDate = undefined!==startDT ? moment(startDT).add(timeIntervalInMinutes, 'minutes') : undefined;
+  let adjustedEndDate = undefined!==endDT ? moment(endDT).add(timeIntervalInMinutes, 'minutes') : undefined;
+
+  return { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate };
+}

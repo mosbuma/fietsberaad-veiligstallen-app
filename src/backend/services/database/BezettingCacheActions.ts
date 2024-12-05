@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
-
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 export const getBezettingCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'bezettingsdata_day_hour_cache'`;
 
@@ -53,15 +53,20 @@ export const updateBezettingCache = async (params: CacheParams) => {
         return false;
     }
 
-    const dayBeginsAt = new Date(0, 0, 0);
-    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+    const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
+
+    if(adjustedStartDate === undefined) {
+        console.error(">>> updateBezettingCache ERROR Start date is undefined");
+        return false;
+    }
 
     const conditions = [];
     if (!params.allDates) {
-        conditions.push(`timestamp >= DATE_ADD('${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
+        conditions.push(`timestamp >= DATE_ADD('${adjustedStartDate.format('YYYY-MM-DD 00:00:00')}', INTERVAL -${timeIntervalInMinutes} MINUTE)`);
     }
     if (!params.allBikeparks) {
-        conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);
+        const bikeparkIDs = params.selectedBikeparkIDs.length > 0 ? params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',') : '""';
+        conditions.push(`locationID IN (${bikeparkIDs})`);
     }
 
     conditions.push(`NOT ISNULL(timestamp)`);
@@ -126,7 +131,8 @@ export const clearBezettingCache = async (params: CacheParams) => {
       conditions.push(`timestamp >= '${moment(params.startDate).format('YYYY-MM-DD 00:00:00')}'`);
     }
     if (!params.allBikeparks) {
-      conditions.push(`locationID IN (${params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',')})`);
+        const bikeparkIDs = params.selectedBikeparkIDs.length > 0 ? params.selectedBikeparkIDs.map(bp=>`'${bp}'`).join(',') : '""';
+        conditions.push(`locationID IN (${bikeparkIDs})`);
     }
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 

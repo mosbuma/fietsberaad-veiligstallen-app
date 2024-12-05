@@ -1,50 +1,55 @@
-import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
+import { ReportType } from "~/components/beheer/reports/ReportsFilter";
 import { 
   getFunctionForPeriod, 
   interpolateSQL } from "~/backend/services/reports/ReportFunctions";
-
+import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 import moment from 'moment';
 
-export type availableDataResult = {
+export type AvailableDataDetailedResult = {
     locationID: string;
     yearmonth: string;
     total: number;
   }
 
-export const getSQL = (params: ReportParams, useCache: boolean = true): string | false => {
-  const {
-    reportType,
-    // reportGrouping,
-    // reportCategories,
-    bikeparkIDs,
-    startDT: startDate,
-    endDT: endDate
-  } = params;
+export type AvailableDataPerStallingResult = {
+  locationID: string;
+  total: number;
+}
 
-    const dayBeginsAt = new Date(0, 0, 0);
+export const getSQLDetailed = (reportType: ReportType, bikeparkIDs: string[], startDate: Date | undefined, endDate: Date | undefined, useCache: boolean = true): string | false => {
 
-    // Calculate time interval in minutes
-    const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+    const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
 
-    let adjustedStartDate = moment(startDate);
-    let adjustedEndDate = moment(endDate);
-    adjustedStartDate = adjustedStartDate.add(timeIntervalInMinutes, 'minutes');
-    adjustedEndDate = adjustedEndDate.add(timeIntervalInMinutes, 'minutes');
+    if(adjustedStartDate === undefined || adjustedEndDate === undefined) {
+        console.error(">>> getSQLDetailed ERROR Start or end date is undefined");
+        return false;
+    }
+
+    const idString = bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""';
 
     switch(reportType) {
-        // one of "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
         case "inkomsten":
+        case "stallingsduur":
         case "transacties_voltooid":{
-                const sql = 
-                `SELECT ` +
-                `locationID,` + 
+            const sql = 
+            `SELECT ` +
+            `locationID,` + 
                 `${getFunctionForPeriod("per_month", timeIntervalInMinutes, 'checkoutdate', useCache)} AS yearmonth,` +
                 `COUNT(*) AS total ` +
                 `FROM ${false===useCache ? 'transacties_archief' : 'transacties_archief_day_cache'} ` +
-                `WHERE locationID IN (${bikeparkIDs.map(id => `'${id}'`).join(',')}) ` +
+                `WHERE locationID IN ( ? ) ` +
+                `AND checkoutdate BETWEEN ? AND ? ` +
                 `GROUP BY locationID, yearmonth ` + 
                 `ORDER BY locationID, yearmonth `
-            return sql;
+
+            const queryParams = [
+              idString,
+              adjustedStartDate.format('YYYY-MM-DD 00:00:00'),
+              adjustedEndDate.format('YYYY-MM-DD 23:59:59')
+            ];
+              
+            const sqlfilledin = interpolateSQL(sql, queryParams);
+            return sqlfilledin;
         }
         case "bezetting": {
           const sql = 
@@ -53,14 +58,83 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
           `${getFunctionForPeriod("per_month", timeIntervalInMinutes, 'timestamp', useCache)} AS yearmonth,` +
           `COUNT(*) AS total ` +
           `FROM ${false===useCache ? 'bezettingsdata b' : 'bezettingsdata_day_hour_cache'} ` +
-          `WHERE bikeparkID IN (${bikeparkIDs.map(id => `'${id}'`).join(',')}) ` +
+          `WHERE bikeparkID IN ( ? ) ` +
+          `AND checkoutdate BETWEEN ? AND ? ` +
           `GROUP BY bikeparkID, yearmonth ` + 
           `ORDER BY bikeparkID, yearmonth `
-          return sql;
+
+          const queryParams = [
+            idString,
+            adjustedStartDate.format('YYYY-MM-DD 00:00:00'),
+            adjustedEndDate.format('YYYY-MM-DD 23:59:59')
+          ];
+            
+          const sqlfilledin = interpolateSQL(sql, queryParams);
+        return sqlfilledin;
         }
         case "abonnementen":
         case "abonnementen_lopend":
+        case "volmeldingen":
+        case "gelijktijdig_vol":
+        case "downloads":
+        default: {
+            return false;
+        }
+    }
+}
+
+export const getSQLPerBikepark = (reportType: ReportType, bikeparkIDs: string[], startDT: Date | undefined, endDT: Date | undefined, useCache: boolean = true): string | false => {
+    
+    const { adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDT, endDT);
+
+    const idString = bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""';
+
+    switch(reportType) {
+        // one of "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
+        case "inkomsten":
         case "stallingsduur":
+        case "transacties_voltooid":{
+          const sql = 
+            `SELECT ` +
+            `locationID,` + 
+            `COUNT(*) AS total ` +
+            `FROM ${false===useCache ? 'transacties_archief' : 'transacties_archief_day_cache'} ` +
+            `WHERE locationID IN ( ? ) ` +
+            `AND checkoutdate BETWEEN ? AND ? ` +
+            `GROUP BY locationID ` + 
+            `ORDER BY locationID `
+
+            const queryParams = [
+              idString,
+              moment(adjustedStartDate).format('YYYY-MM-DD 00:00:00'),
+              moment(adjustedEndDate).format('YYYY-MM-DD 23:59:59')
+            ];
+          
+            const sqlfilledin = interpolateSQL(sql, queryParams);
+            return sqlfilledin;
+        }
+        case "bezetting": {
+          const sql = 
+          `SELECT ` +
+          `bikeparkID as locationID,` + 
+          `COUNT(*) AS total ` +
+          `FROM ${false===useCache ? 'bezettingsdata b' : 'bezettingsdata_day_hour_cache'} ` +
+          `WHERE bikeparkID IN ( ? ) ` +
+          `AND timestamp BETWEEN ? AND ?` +
+          `GROUP BY bikeparkID ` + 
+          `ORDER BY bikeparkID `
+
+          const queryParams = [
+            idString,
+            moment(adjustedStartDate).format('YYYY-MM-DD 00:00:00'),
+            moment(adjustedEndDate).format('YYYY-MM-DD 23:59:59')
+          ];
+        
+          const sqlfilledin = interpolateSQL(sql, queryParams);
+        return sqlfilledin;
+      }
+        case "abonnementen":
+        case "abonnementen_lopend":
         case "volmeldingen":
         case "gelijktijdig_vol":
         case "downloads":
