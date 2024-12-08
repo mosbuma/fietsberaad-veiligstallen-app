@@ -193,7 +193,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               title: {
                 text: 'Weekdag',
                 align: 'left'
-              }
+              },
             },
             yaxis: reportData.options?.yaxis || {
               title: {

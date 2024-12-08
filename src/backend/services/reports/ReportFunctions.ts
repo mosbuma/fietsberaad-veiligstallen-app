@@ -21,6 +21,7 @@ export interface ReportData {
       labels?: {
         formatter: (value: string) => string;
       };
+      tickAmount?: number;
     };
     yaxis: {
       title: {
@@ -221,6 +222,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
             text: getXAxisTitle(params.reportGrouping),
             align: 'left'
           },
+          tickAmount: 25
         },
         yaxis: {
           title: {
