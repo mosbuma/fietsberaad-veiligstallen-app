@@ -40,7 +40,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
       setLoading(true);
       try {
-        let apiEndpoint: string = `/api/reports/${reportParams.reportType}`;          
+        let apiEndpoint: string = `/api/reports/${reportParams.reportType}`;
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
@@ -72,45 +72,45 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
     const fetchBikeparksWithData = async () => {
-        if (undefined === reportParams) {
-          return;
-        }
-  
-        // setLoading(true);
+      if (undefined === reportParams) {
+        return;
+      }
 
-        try {
-          const apiEndpoint = "/api/database/availableDataPerBikepark";
-          const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              reportType: reportParams.reportType,
-              bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
-              startDT: firstDate,
-              endDT: lastDate
-            }),
-          });
-  
-          if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-          }
-          const data = await response.json() as AvailableDataDetailedResult[] | false;
-          if(data) {
-            setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
-          } else {
-            setErrorState("Unable to fetch list of bikeparks with data");
-          }
-        } catch (error) {
-          console.error(error);
-          setErrorState("Unable to fetch list of bikeparks with data");
-        } finally {
-          // setLoading(false);
+      // setLoading(true);
+
+      try {
+        const apiEndpoint = "/api/database/availableDataPerBikepark";
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportType: reportParams.reportType,
+            bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+            startDT: firstDate,
+            endDT: lastDate
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
         }
-      };
-  
-      fetchBikeparksWithData();
+        const data = await response.json() as AvailableDataDetailedResult[] | false;
+        if (data) {
+          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+        } else {
+          setErrorState("Unable to fetch list of bikeparks with data");
+        }
+      } catch (error) {
+        console.error(error);
+        setErrorState("Unable to fetch list of bikeparks with data");
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchBikeparksWithData();
   }, [reportParams?.reportType, bikeparks, firstDate, lastDate]);
 
 
@@ -170,6 +170,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             },
             stroke: {
               curve: 'straight',
+              width: 3,
               // width: reportData.series.some(s => s.data.length === 1) ? 0 : 2, // Disable line for single data point
             },
             title: {
@@ -204,7 +205,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             legend: {
               position: 'right',
               horizontalAlign: 'center',
-              // floating: true,
+              floating: false,
               offsetY: 25,
               // offsetX: -5
             },
@@ -230,13 +231,13 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
       return (
         <div className="w-full">
-          <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2>
+          {/* <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2> */}
           <div className="overflow-x-auto flex flex-col justify-center">
             <table className="border-2 border-gray-300 rounded-md">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="sticky left-0 bg-white text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-                    Series Name
+
                   </th>
                   {reportData.options.xaxis.categories!.map((category) => (
                     <th key={category} className="text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">

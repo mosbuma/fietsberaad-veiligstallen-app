@@ -60,6 +60,16 @@ export const getAvailableReports = (showAbonnementenRapporten: boolean) => {
   return availableReports;
 }
 
+const FormLabel = ({ title, children }: { title: string, children: React.ReactNode }) => {
+  return <div>
+    <label className="col-xs-3 col-sm-2 col-form-label font-bold mr-5">
+      {title}
+    </label>
+    <div>
+      {children}
+    </div>
+  </div>
+}
 
 const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   showAbonnementenRapporten,
@@ -70,6 +80,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   showDetails = true,
   showGoButton = false,
 }) => {
+  const selectClasses = "min-w-56 p-2 border-2 border-gray-300 rounded-md";
+
   const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
   const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
   const [reportCategories, setReportCategories] = useState<ReportCategories>("per_stalling");
@@ -90,7 +102,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   const availableReports = getAvailableReports(showAbonnementenRapporten);
 
- //  const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
+  //  const [timerange, setTimerange] = useState<{ startDT: Date, endDT: Date } | undefined>(undefined);
 
   useEffect(() => {
     if (!showGoButton) {
@@ -126,7 +138,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   useEffect(() => {
     checkInput();
-  }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]); 
+  }, [reportRangeUnit, reportType, selectedBikeparkIDs, year, month, datatype]);
 
   useEffect(() => {
     // Filter out any selected bikeparks that are no longer in the bikeparks array
@@ -134,7 +146,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     //   prevSelected.filter((id) => bikeparks.some((park) => park.stallingsID === id))
     // );
     setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.stallingsID));
-  }, [bikeparks]);  
+  }, [bikeparks]);
 
   const checkInput = () => {
 
@@ -203,7 +215,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     }
 
     const bikeparkIDs = reportCategories !== "per_stalling" ? selectedBikeparkIDs : bikeparks.map((bikepark) => bikepark.stallingsID)
-    
+
     const { startDT, endDT } = getStartEndDT();
 
     // console.log("SUBMIT", { reportType, reportCategories, reportGrouping, reportRangeUnit, reportRangeValue, bikeparkIDs, startDT: startDT, endDT, fillups: fillups });
@@ -213,28 +225,25 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
   const renderReportTypeSelect = () => {
     return (
-      <div className="form-group row flex flex-row">
-        <label htmlFor="report" className="col-xs-3 col-sm-2 col-form-label font-bold mr-5">Rapportage</label>
-        <div className="col-sm-10 col-md-6 border-2 border-gray-300 rounded-md">
-          <select
-            className="form-control"
-            name="report"
-            id="report"
-            value={reportType}
-            onChange={(e) => setReportType(e.target.value as ReportType)}
-            required
-          > {availableReports.map((report) => (
-            <option key={report.id} value={report.id}>{report.title}</option>
-          ))}
-          </select>
-        </div>
-      </div>
+      <FormLabel title="Rapportage">
+        <select
+          className={selectClasses}
+          name="report"
+          id="report"
+          value={reportType}
+          onChange={(e) => setReportType(e.target.value as ReportType)}
+          required
+        > {availableReports.map((report) => (
+          <option key={report.id} value={report.id}>{report.title}</option>
+        ))}
+        </select>
+      </FormLabel>
     )
   }
 
   const renderWeekSelect = (showLastPeriod: boolean = true) => {
     return (
-      <>
+      <div className="mt-2 w-56 flex flex-col">
         <select
           value={week}
           onChange={(e) => {
@@ -244,7 +253,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           }
           name="week"
           id="week"
-          className="p-2 border-2 border-gray-300 rounded-md"
+          className={selectClasses}
           required>
           {showLastPeriod && <option value="lastPeriod">Afgelopen week</option>}
           {[...Array(53).keys()].map((_week) => {
@@ -262,14 +271,17 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           })}
         </select>
         {week !== "lastPeriod" && renderYearSelect(false)}
-      </>
+      </div>
     )
   }
 
   const renderMonthSelect = (showLastPeriod: boolean = true) => {
     return (
-      <>
-        <select value={month} onChange={(e) => setMonth(e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value))} className="p-2 border-2 border-gray-300 rounded-md" required>
+      <div className="mt-2 w-56 flex flex-col">
+        <select
+          value={month}
+          onChange={(e) => setMonth(e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value))}
+          className={selectClasses} required>
           {showLastPeriod && <option value="lastPeriod">Afgelopen maand</option>}
           {getMaanden().map((maand, index) => (
             <option key={index} value={index}>
@@ -278,19 +290,19 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           ))}
         </select>
         {month !== "lastPeriod" && renderYearSelect(false)}
-      </>
+      </div>
     )
   }
 
   const renderQuarterSelect = (showLastPeriod: boolean = true) => {
     return (
-      <>
+      <div className="mt-2 w-56 flex flex-col">
         <select
           value={quarter}
           onChange={(e) => setQuarter(e.target.value as number | "lastPeriod")}
           name="quarter"
           id="quarter"
-          className="p-2 border-2 border-gray-300 rounded-md"
+          className={selectClasses}
           required
         >
           {showLastPeriod && <option value="lastPeriod">Afgelopen kwartaal</option>}
@@ -308,12 +320,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           })}
         </select>
         {quarter !== "lastPeriod" && renderYearSelect(false)}
-      </>
+      </div>
     )
   }
 
   const renderYearSelect = (showLastPeriod: boolean = true) => {
-    return (
+    return <div className="mt-2 w-56 flex flex-col">
       <select
         value={year}
         onChange={(e) => {
@@ -323,7 +335,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         }
         name="year"
         id="year"
-        className="p-2 border-2 border-gray-300 rounded-md"
+        className={selectClasses}
         required
       >
         {showLastPeriod && <option value="lastPeriod">Afgelopen jaar</option>}
@@ -332,7 +344,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           return <option key={jaar} value={jaar}>{jaar}</option>;
         })}
       </select>
-    )
+    </div>
   }
 
   const renderUnitSelect = () => {
@@ -354,14 +366,51 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     const showLastPeriod = true; // TODO: range calculations are not yet implemented correctly for lastPeriod
 
     return (
-      <div className="flex flex-col columns-1">
+      <div className="flex flex-wrap gap-2">
+        <FormLabel title="Periode">
+          <select
+            value={reportRangeUnit}
+            onChange={(e) => setReportRangeUnit(e.target.value as ReportRangeUnit)}
+            name="reportRangeUnit"
+            id="reportRangeUnit"
+            className={selectClasses}
+            required
+          >
+            {showRangeWeek && (
+              <option value="range_week">1 Week</option>
+            )}
+            {showRangeMaand && (
+              <option value="range_month">1 Maand</option>
+            )}
+            {showRangeKwartaal && (
+              <option value="range_quarter">1 Kwartaal</option>
+            )}
+            {showRangeJaar && (
+              <option value="range_year">1 Jaar</option>
+            )}
+            {showRangeAll && (
+              <option value="range_all">Alles</option>
+            )}
+            {/* {showGelijktijdigVol && (
+              <>
+                <option value="reportUnit_onequarter">Kwartaal</option>
+                <option value="reportUnit_oneyear">Jaar</option>
+              </>
+            )} */}
+          </select>
+          {reportRangeUnit === "range_week" && renderWeekSelect(showLastPeriod)}
+          {reportRangeUnit === "range_month" && renderMonthSelect(showLastPeriod)}
+          {reportRangeUnit === "range_quarter" && renderQuarterSelect(showLastPeriod)}
+          {reportRangeUnit === "range_year" && renderYearSelect(showLastPeriod)}
+        </FormLabel>
+
         {reportType === "downloads" && (
           <div className="row">
             <div className="title">Soort data</div>
             <select
               name="datatype"
               value={datatype}
-              className="p-2 border-2 border-gray-300 rounded-md"
+              className="min-w-56p-2 border-2 border-gray-300 rounded-md"
               onChange={(e) => setDatatype(e.target.value as ReportDatatype)}
             >
               <option value="bezettingsdata">Bezettingsdata</option>
@@ -370,75 +419,47 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           </div>
         )}
 
-        <div className="font-bold">Categorieen</div>
-        <select
-          value={reportCategories}
-          onChange={(e) => setReportCategories(e.target.value as ReportCategories)}
-          name="reportCategories"
-          id="reportCategories"
-          className="p-2 border-2 border-gray-300 rounded-md"
-          required
-        >
-          <option value="none">Geen</option>
-          <option value="per_stalling">Per stalling</option>
-          <option value="per_weekday">Per dag van de week</option>
-          {showCategorySection && <option value="per_section">Per sectie</option>}
-          {showCategoryPerTypeKlant &&  <option value="per_type_klant">Per type klant</option> }
-        </select>
-        <div className="font-bold">Groepering</div>
-        <select
-          value={reportGrouping}
-          onChange={(e) => setReportGrouping(e.target.value as ReportGrouping)}
-          name="reportGrouping"
-          id="reportGrouping"
-          className="p-2 border-2 border-gray-300 rounded-md"
-          required
-        >
-          <option value="per_year">Jaar</option>
-          <option value="per_month">Maand</option>
-          <option value="per_quarter">Kwartaal</option>
-          <option value="per_week">Week</option>
-          <option value="per_day">Dag</option>
-          <option value="per_weekday">Dag van de week</option>
-          {showGroupByHour && <option value="per_hour">Uur van de dag</option>}
-          {showGroupByBucket && <option value="per_bucket">Stallingsduur</option>}
-        </select>
-        <div className="font-bold">Tijdsperiode</div>
-        <select
-          value={reportRangeUnit}
-          onChange={(e) => setReportRangeUnit(e.target.value as ReportRangeUnit)}
-          name="reportRangeUnit"
-          id="reportRangeUnit"
-          className="p-2 border-2 border-gray-300 rounded-md"
-          required
-        >
-          {showRangeWeek && (
-            <option value="range_week">Week</option>
-          )}
-          {showRangeMaand && (
-            <option value="range_month">Maand</option>
-          )}
-          {showRangeKwartaal && (
-            <option value="range_quarter">Kwartaal</option>
-          )}
-          {showRangeJaar && (
-            <option value="range_year">Jaar</option>
-          )}
-          {showRangeAll && (
-            <option value="range_all">Alles</option>
-          )}
-          {/* {showGelijktijdigVol && (
-                <>
-                  <option value="reportUnit_onequarter">Kwartaal</option>
-                  <option value="reportUnit_oneyear">Jaar</option>
-                </>
-              )} */}
-        </select>
+        <br />
 
-        {reportRangeUnit === "range_week" && renderWeekSelect(showLastPeriod)}
-        {reportRangeUnit === "range_month" && renderMonthSelect(showLastPeriod)}
-        {reportRangeUnit === "range_quarter" && renderQuarterSelect(showLastPeriod)}
-        {reportRangeUnit === "range_year" && renderYearSelect(showLastPeriod)}
+        <FormLabel title="Tijdsinterval">
+          <select
+            value={reportGrouping}
+            onChange={(e) => setReportGrouping(e.target.value as ReportGrouping)}
+            name="reportGrouping"
+            id="reportGrouping"
+            className={selectClasses}
+            required
+          >
+            <option value="per_year">Jaar</option>
+            <option value="per_month">Maand</option>
+            <option value="per_quarter">Kwartaal</option>
+            <option value="per_week">Week</option>
+            <option value="per_day">Dag</option>
+            <option value="per_weekday">Dag van de week</option>
+            {showGroupByHour && <option value="per_hour">Uur van de dag</option>}
+            {showGroupByBucket && <option value="per_bucket">Stallingsduur</option>}
+          </select>
+        </FormLabel>
+
+        <br />
+
+        <FormLabel title="Aggregatie">
+          <select
+            value={reportCategories}
+            onChange={(e) => setReportCategories(e.target.value as ReportCategories)}
+            name="reportCategories"
+            id="reportCategories"
+            className={selectClasses}
+            required
+          >
+            <option value="none">Geen</option>
+            <option value="per_stalling">Per stalling</option>
+            <option value="per_weekday">Per dag van de week</option>
+            {showCategorySection && <option value="per_section">Per sectie</option>}
+            {showCategoryPerTypeKlant && <option value="per_type_klant">Per type klant</option>}
+          </select>
+        </FormLabel>
+
       </div>
     );
   };
@@ -449,7 +470,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         <select
           value={grouped}
           onChange={(e) => setGrouped(e.target.value)}
-          className="p-2 border-2 border-gray-300 rounded-md"
+          className={selectClasses}
           id="grouped"
         >
           <option value="0">Alle abonnementen</option>
@@ -532,10 +553,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
           {renderReportTypeSelect()}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            {renderUnitSelect()}
-          </div>
+        <div>
+          {renderUnitSelect()}
 
           {showBikeparkSelect && bikeparks.length > 1 && (
             <div className="w-96">
@@ -545,7 +564,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
                 setSelectedBikeparkIDs={setSelectedBikeparkIDs}
               />
             </div>
-          )}          
+          )}
 
           {reportType === "abonnementen" && (
             <div>
