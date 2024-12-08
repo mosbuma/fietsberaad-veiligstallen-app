@@ -45,6 +45,9 @@ export const convertToSeries = async (
 
   const categoryNames = await getCategoryNames(params);
 
+  // Get all unique timegroups
+  const allTimegroups = [...new Set(results.map(tx => tx.TIMEGROUP.toString()))];
+
   const groupedByCategory = results.reduce((acc: any, tx: any) => {
     const category = tx.CATEGORY.toString();
     const timegroup = tx.TIMEGROUP.toString();
@@ -53,7 +56,15 @@ export const convertToSeries = async (
         name: category,
         data: {}
       };
+      // Initialize all timegroups with zero
+      allTimegroups.forEach(tg => {
+        acc[category].data[tg] = {
+          x: keyToLabelMap[tg] || tg,
+          y: 0
+        };
+      });
     }
+    // Update the value for this specific timegroup
     acc[category].data[timegroup] = {
       x: keyToLabelMap[timegroup] || timegroup,
       y: Number(tx.value)
@@ -66,8 +77,6 @@ export const convertToSeries = async (
     name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
     data: Object.values(stalling.data)
   }));
-
-  // console.log("SERIES", JSON.stringify(series,null,2));
 
   return series;
 }
@@ -171,8 +180,8 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
       ];
     }
     case "per_section": {
-      const sql = 
-        `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel ` + 
+      const sql =
+        `SELECT s.externalid, f.Title as stallingtitel, s.titel as sectietitel ` +
         `FROM fietsenstallingen f LEFT OUTER JOIN fietsenstalling_sectie s ON (f.id=s.fietsenstallingsId) ` +
         `WHERE NOT ISNULL(s.externalid) AND f.StallingsID in (${idString})`
 
