@@ -6,7 +6,7 @@ import fs from "fs";
 
 export interface ReportSeriesData {
   name: string;
-  data: { x: string, y: number }[];
+  data: number[];
 }
 
 export interface ReportData {
@@ -59,17 +59,11 @@ export const convertToSeries = async (
       };
       // Initialize all timegroups with zero
       allTimegroups.forEach(tg => {
-        acc[category].data[tg] = {
-          x: keyToLabelMap[tg] || tg,
-          y: 0
-        };
+        acc[category].data[tg] = 0;
       });
     }
     // Update the value for this specific timegroup
-    acc[category].data[timegroup] = {
-      x: keyToLabelMap[timegroup] || timegroup,
-      y: Number(tx.value)
-    };
+    acc[category].data[timegroup] = Number(tx.value);
     return acc;
   }, {});
 

@@ -23,6 +23,10 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   }
 
   const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
+  if (adjustedStartDate === undefined || adjustedEndDate === undefined) {
+    throw new Error("Start or end date is undefined");
+    return false;
+  }
 
   const statementItems = [];
   statementItems.push(`SELECT`);

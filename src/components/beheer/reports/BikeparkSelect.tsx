@@ -12,10 +12,6 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
   selectedBikeparkIDs,
   setSelectedBikeparkIDs,
 }) => {
-  // On component load: select all bikeparks
-  useEffect(() => {
-    toggleSelectAll();
-  }, []);
 
   const isScrollable = bikeparks.length > 10;
 

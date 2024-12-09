@@ -252,9 +252,9 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                     <td className="sticky left-0 bg-white border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap">
                       {serie.name}
                     </td>
-                    {reportData.options.xaxis.categories!.map((label) => (
-                      <td key={label} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
-                        {serie.data.find(d => d.x === label)?.y}
+                    {serie.data!.map((value, valueIndex) => (
+                      <td key={`v-${serieIndex}-${valueIndex}`} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
+                        {value}
                       </td>
                     ))}
                   </tr>
