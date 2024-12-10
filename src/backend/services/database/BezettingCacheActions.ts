@@ -30,13 +30,13 @@ export const getBezettingCacheStatus = async (params: CacheParams) => {
                 status.lastUpdate = resultStatistics[0].lastupdate;
             }
 
-            const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(timestamp) AS firstUpdate, MAX(timestamp) AS lastupdate FROM bezettingsdata WHERE NOT ISNULL(timestamp)`;
-            const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastupdate: Date }[]>(sqlGetOriginalStatistics);
-            if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
-                status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
-                status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
-                status.originalLastUpdate = resultOriginalStatistics[0].lastupdate;
-            }
+            // const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(timestamp) AS firstUpdate, MAX(timestamp) AS lastupdate FROM bezettingsdata WHERE NOT ISNULL(timestamp)`;
+            // const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastupdate: Date }[]>(sqlGetOriginalStatistics);
+            // if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
+            //     status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
+            //     status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
+            //     status.originalLastUpdate = resultOriginalStatistics[0].lastupdate;
+            // }
         }
         return status;
     } catch (error) {
@@ -56,7 +56,7 @@ export const updateBezettingCache = async (params: CacheParams) => {
     const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
 
     if(adjustedStartDate === undefined) {
-        console.error(">>> updateBezettingCache ERROR Start date is undefined");
+        console.error(">>> updateBezettingCache ERROR Start date is undefined", params);
         return false;
     }
 
@@ -117,6 +117,8 @@ export const updateBezettingCache = async (params: CacheParams) => {
 }
 
 export const clearBezettingCache = async (params: CacheParams) => {
+    console.log(params);
+
     if(!params.allDates && !params.startDate) {
         console.error(">>> clearTransactionCache ERROR No start date provided");
         return false;

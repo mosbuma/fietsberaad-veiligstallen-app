@@ -8,9 +8,11 @@ const dateSchema = z.string().datetime();
 const CacheParamsSchema = z.object({
   databaseParams: z.object({
     action: z.enum(['clear', 'rebuild', 'status', 'createtable', 'droptable', 'update']),
-    startDT: dateSchema.optional(),
-    endDT: dateSchema.optional(),
-    bikeparkIDs: z.array(z.string()).optional(),
+    startDate: dateSchema.datetime(),
+    endDate: dateSchema.datetime(),
+    selectedBikeparkIDs: z.array(z.string()),
+    allDates: z.boolean(),
+    allBikeparks: z.boolean(),
   }),
 });
 
@@ -19,6 +21,8 @@ const AvailableDataParamsSchema = z.object({
   bikeparkIDs: z.array(z.string()),
   startDT: dateSchema.optional(),
   endDT: dateSchema.optional(),
+  // allDates: z.boolean().optional(),
+  // allBikeparks: z.boolean().optional(),
 });
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
@@ -30,6 +34,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         case "stallingsduurcache": {
           const parseResult = CacheParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
+            console.log("BAD REQUEST", req.body, parseResult.error.errors);
             return res.status(400).json({
               error: "Invalid parameters",
               details: parseResult.error.errors

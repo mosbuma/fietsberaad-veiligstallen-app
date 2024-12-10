@@ -32,7 +32,7 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
         action: 'status',
         allDates,
         allBikeparks,
-        startDate,
+        startDate: firstDate,
         endDate: lastDate,
         selectedBikeparkIDs
       };
@@ -69,17 +69,19 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
 
   const handleProcessCache = (action: CacheActions) => {
     const processCache = async () => {
+      console.log(">>>>> processCache", action, allDates, allBikeparks, firstDate, lastDate, selectedBikeparkIDs);
       const databaseParams: CacheParams = {
         action,
         allDates,
         allBikeparks,
-        startDate,
+        startDate: firstDate,
         endDate: lastDate,
         selectedBikeparkIDs
       };
 
       setLoading(true);
       try {
+        console.log("processCache", databaseParams);
         const response = await fetch(`${cacheEndpoint}`, {
             method: 'POST',
             headers: {
@@ -215,10 +217,10 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
                       <td className="font-semibold">Aantal records:</td>
                       {cacheStatus.size && <td className="pl-2">{cacheStatus.size}</td>}
                       </tr>
-                    <tr>
+                    {/* <tr>
                       <td className="font-semibold">Compressie:</td>
                       {cacheStatus.size && cacheStatus.originalSize && <td className="pl-2">{Math.round((1 - cacheStatus.size / cacheStatus.originalSize )* 100 * 10)/10}%</td> }
-                    </tr>
+                    </tr> */}
                     <tr>
                       <td className="font-semibold">Eerste update:</td>
                       <td className="pl-2">{firstUpdate ? firstUpdate.toLocaleDateString() : 'nog geen data'}</td>

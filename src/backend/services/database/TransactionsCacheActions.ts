@@ -30,13 +30,13 @@ export const getTransactionCacheStatus = async (params: CacheParams) => {
                 status.lastUpdate = resultStatistics[0].lastupdate;
             };
 
-            const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(checkoutdate) AS firstUpdate, MAX(checkoutdate) AS lastUpdate FROM transacties_archief WHERE NOT ISNULL(checkoutdate)`;
-            const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastUpdate: Date }[]>(sqlGetOriginalStatistics);
-            if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
-                status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
-                status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
-                status.originalLastUpdate = resultOriginalStatistics[0].lastUpdate;
-            }
+            // const sqlGetOriginalStatistics = `SELECT COUNT(*) As count, MIN(checkoutdate) AS firstUpdate, MAX(checkoutdate) AS lastUpdate FROM transacties_archief WHERE NOT ISNULL(checkoutdate)`;
+            // const resultOriginalStatistics = await prisma.$queryRawUnsafe<{ count: number, firstUpdate: Date, lastUpdate: Date }[]>(sqlGetOriginalStatistics);
+            // if (resultOriginalStatistics && resultOriginalStatistics.length > 0 && resultOriginalStatistics[0] !== undefined) {
+            //     status.originalSize = parseInt(resultOriginalStatistics[0].count.toString());
+            //     status.originalFirstUpdate = resultOriginalStatistics[0].firstUpdate;
+            //     status.originalLastUpdate = resultOriginalStatistics[0].lastUpdate;
+            // }
 
         } 
         return status;
