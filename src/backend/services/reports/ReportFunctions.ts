@@ -216,7 +216,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
             text: getXAxisTitle(params.reportGrouping),
             align: 'left'
           },
-          tickAmount: 25
+          tickAmount: Object.keys(keyToLabelMap).length > 25 ? 25 : Object.keys(keyToLabelMap).length
         },
         yaxis: {
           title: {
