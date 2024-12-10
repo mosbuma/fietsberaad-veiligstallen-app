@@ -22,10 +22,10 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
   const buttonClasses = "w-16 h-8 text-sm border-2 border-gray-300 rounded-md";
 
   const toggleSelectAll = () => {
-    if(selectedBikeparkIDs.length>0 && selectedBikeparkIDs.length<bikeparks.length){
+    if (selectedBikeparkIDs.length > 0 && selectedBikeparkIDs.length < bikeparks.length) {
       setSelectedBikeparkIDs(bikeparks.map(park => park.stallingsID));
     } else {
-      const newSelection = bikeparks.filter((park => selectedBikeparkIDs.includes(park.stallingsID)===false)).map(park => park.stallingsID);
+      const newSelection = bikeparks.filter((park => selectedBikeparkIDs.includes(park.stallingsID) === false)).map(park => park.stallingsID);
       setSelectedBikeparkIDs(newSelection);
     }
   };
@@ -37,11 +37,11 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
 
   const getDisplayText = () => {
     if (selectedBikeparkIDs.length === 0) {
-      return "Geen Stallingen";
+      return "Geen stallingen";
     } else if (selectedBikeparkIDs.length < bikeparks.length) {
-      return "meerdere Stallingen";
+      return "Meerdere stallingen";
     } else {
-      return "Alle Stallingen";
+      return "Alle stallingen";
     }
   };
 
@@ -71,7 +71,7 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
         onClick={() => setIsDropdownOpen((prev) => !prev)}
       >
         {getDisplayText()}
-        <button 
+        <button
           className={buttonClasses}
           style={{
             width: '100px',
@@ -102,7 +102,7 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
             zIndex: 1000,
           }}
         >
-          <button 
+          <button
             className={buttonClasses}
             onClick={toggleSelectAll}
           >

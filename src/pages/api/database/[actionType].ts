@@ -7,7 +7,7 @@ const dateSchema = z.string().datetime();
 
 const CacheParamsSchema = z.object({
   databaseParams: z.object({
-    action: z.enum(['clear', 'rebuild']),
+    action: z.enum(['clear', 'rebuild', 'status', 'createtable', 'droptable', 'update']),
     startDT: dateSchema.optional(),
     endDT: dateSchema.optional(),
     bikeparkIDs: z.array(z.string()).optional(),
@@ -30,31 +30,31 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         case "stallingsduurcache": {
           const parseResult = CacheParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
-            return res.status(400).json({ 
+            return res.status(400).json({
               error: "Invalid parameters",
-              details: parseResult.error.errors 
+              details: parseResult.error.errors
             });
           }
-          
+
           const params = parseResult.data.databaseParams as CacheParams;
           const result = req.query.actionType === "transactionscache"
             ? await DatabaseService.manageTransactionCache(params)
             : req.query.actionType === "bezettingencache"
               ? await DatabaseService.manageBezettingCache(params)
               : await DatabaseService.manageStallingsduurCache(params);
-              
+
           return res.json(result);
         }
 
         case "availableDataDetailed": {
           const parseResult = AvailableDataParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
-            return res.status(400).json({ 
+            return res.status(400).json({
               error: "Invalid parameters",
-              details: parseResult.error.errors 
+              details: parseResult.error.errors
             });
           }
-          
+
           const { reportType, bikeparkIDs, startDT, endDT } = parseResult.data;
           const data = await ReportService.getAvailableDataDetailed(
             reportType as ReportType,
@@ -68,12 +68,12 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         case "availableDataPerBikepark": {
           const parseResult = AvailableDataParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
-            return res.status(400).json({ 
+            return res.status(400).json({
               error: "Invalid parameters",
-              details: parseResult.error.errors 
+              details: parseResult.error.errors
             });
           }
-          
+
           const { reportType, bikeparkIDs, startDT, endDT } = parseResult.data;
           const data = await ReportService.getAvailableDataPerBikepark(
             reportType as ReportType,

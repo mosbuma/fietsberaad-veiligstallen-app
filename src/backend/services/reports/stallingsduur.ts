@@ -1,7 +1,8 @@
 import { ReportParams } from "~/components/beheer/reports/ReportsFilter";
-import { 
-  getFunctionForPeriod, 
-  interpolateSQL } from "~/backend/services/reports/ReportFunctions"; 
+import {
+  getFunctionForPeriod,
+  interpolateSQL
+} from "~/backend/services/reports/ReportFunctions";
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 import moment from "moment";
 
@@ -14,59 +15,59 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     startDT: startDate,
     endDT: endDate,
   } = params;
-    if(["stallingsduur"].includes(reportType)===false) {
-        throw new Error("Invalid report type");
-        return false;
-    }
+  if (["stallingsduur"].includes(reportType) === false) {
+    throw new Error("Invalid report type");
+    return false;
+  }
 
-    if(false===useCache) {
-      throw new Error("Only cached data is supported for this report");
-      return false;
-    }
+  if (false === useCache) {
+    throw new Error("Only cached data is supported for this report");
+    return false;
+  }
 
-    const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
+  const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
 
-    const statementItems = [];
-    switch( reportCategories) {
-    }
-    statementItems.push(`SELECT`);
-    switch(reportCategories) {
-      case "per_stalling":
-        statementItems.push(`  locationID AS CATEGORY,`);
-        break;
-      case "per_weekday":
-        statementItems.push(`  ${getFunctionForPeriod("per_weekday", timeIntervalInMinutes, 'checkoutdate', useCache)} AS CATEGORY,`);
-        break;
-      // case "per_section":
-      //   statementItems.push(`  b.sectionID AS CATEGORY,`);
-      //   break;
-      case "per_type_klant":
-        statementItems.push(`  clienttypeid AS CATEGORY,`);
-        break;      
-      case "none":
-      default:
-        statementItems.push(`  "0" AS CATEGORY,`);
-    }
+  const statementItems = [];
+  switch (reportCategories) {
+  }
+  statementItems.push(`SELECT`);
+  switch (reportCategories) {
+    case "per_stalling":
+      statementItems.push(`  locationID AS CATEGORY,`);
+      break;
+    case "per_weekday":
+      statementItems.push(`  ${getFunctionForPeriod("per_weekday", timeIntervalInMinutes, 'checkoutdate', useCache)} AS CATEGORY,`);
+      break;
+    // case "per_section":
+    //   statementItems.push(`  b.sectionID AS CATEGORY,`);
+    //   break;
+    case "per_type_klant":
+      statementItems.push(`  clienttypeid AS CATEGORY,`);
+      break;
+    case "none":
+    default:
+      statementItems.push(`  "0" AS CATEGORY,`);
+  }
 
-    // statementItems.push(`  Title AS name,`);
-    statementItems.push(`  ${getFunctionForPeriod(reportGrouping, timeIntervalInMinutes, 'checkoutdate', useCache)} AS TIMEGROUP,`);
-    statementItems.push(`SUM(count_transacties) AS value`);
+  // statementItems.push(`  bucket as TIMEGROUP,`);
+  statementItems.push(`  ${getFunctionForPeriod(reportGrouping, timeIntervalInMinutes, 'checkoutdate', useCache)} AS TIMEGROUP,`);
+  statementItems.push(`SUM(count_transacties) AS value`);
 
-    statementItems.push(`FROM stallingsduur_cache`)
-    statementItems.push(`LEFT JOIN fietsenstallingen ON stallingsId = locationid`)
-    // statementItems.push(`  LEFT JOIN contacts ON contacts.ID = fietsenstallingen.SiteID`)
-    statementItems.push(`WHERE locationID IN ( ? )`)
-    // statementItems.push(`-- ${bikeParkId ? `AND locationid IN (?)` : `AND sectionid LIKE ?`}`)
-    // statementItems.push(`-- ${selectType === 'BIKETYPE' || selectType === 'CLIENTTYPE' ? `AND sectionid = ?` : ''}`)
-    statementItems.push(`AND checkoutdate BETWEEN ? AND ?`)
-    statementItems.push(`GROUP BY`);
-    statementItems.push(`  CATEGORY,`);
-    statementItems.push(`  TIMEGROUP;`); //  name,
+  statementItems.push(`FROM stallingsduur_cache`)
+  statementItems.push(`LEFT JOIN fietsenstallingen ON stallingsId = locationid`)
+  // statementItems.push(`  LEFT JOIN contacts ON contacts.ID = fietsenstallingen.SiteID`)
+  statementItems.push(`WHERE locationID IN ( ? )`)
+  // statementItems.push(`-- ${bikeParkId ? `AND locationid IN (?)` : `AND sectionid LIKE ?`}`)
+  // statementItems.push(`-- ${selectType === 'BIKETYPE' || selectType === 'CLIENTTYPE' ? `AND sectionid = ?` : ''}`)
+  statementItems.push(`AND checkoutdate BETWEEN ? AND ?`)
+  statementItems.push(`GROUP BY`);
+  statementItems.push(`  CATEGORY,`);
+  statementItems.push(`  TIMEGROUP;`); //  name,
 
-    // ORDER BY ${reportUnit === 'reportUnit_stalling' ? 'locationid' : ''}
-    // ${selectType === 'SECTIE' ? ', sectionid' : ''}
-    // ${selectType === 'BIKETYPE' ? ', biketypeid' : ''}
-    // ${selectType === 'CLIENTTYPE' ? ', clienttypeid' : ''}
+  // ORDER BY ${reportUnit === 'reportUnit_stalling' ? 'locationid' : ''}
+  // ${selectType === 'SECTIE' ? ', sectionid' : ''}
+  // ${selectType === 'BIKETYPE' ? ', biketypeid' : ''}
+  // ${selectType === 'CLIENTTYPE' ? ', clienttypeid' : ''}
 
   const sql = statementItems.join('\n')
 
@@ -78,5 +79,5 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  return sqlfilledin; 
+  return sqlfilledin;
 }

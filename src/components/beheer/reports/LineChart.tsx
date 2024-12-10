@@ -18,7 +18,7 @@ const LineChart = ({
 }: {
   options: object,
   series: Array<any>,
-  type: 'line',
+  type: 'line' | 'bar',
   style?: object
 }) => {
   const [chartData, setChartData] = useState<{
@@ -42,7 +42,7 @@ const LineChart = ({
         options={chartData.options}
         series={chartData.series}
         type={type}
-        height={360 + Math.floor(Math.random() * 2) + 1}
+        height={400 + Math.floor(Math.random() * 2) + 1}
       />}
     </div>
   )

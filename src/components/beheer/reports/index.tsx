@@ -33,7 +33,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   // const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [filterState, setFilterState] = useState<ReportState|undefined>(undefined);
+  const [filterState, setFilterState] = useState<ReportState | undefined>(undefined);
 
   const handleFilterChange = (newState: ReportState) => {
     setFilterState(newState);
@@ -41,7 +41,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
     const fetchReportData = async () => {
-      if(undefined === filterState) {
+      if (undefined === filterState) {
         return;
       }
       // if (undefined === reportParams) {
@@ -54,7 +54,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       try {
         const { startDT, endDT } = getStartEndDT(filterState, firstDate, lastDate);
 
-        let apiEndpoint: string = `/api/reports/${filterState.reportType}`;          
+        let apiEndpoint: string = `/api/reports/${filterState.reportType}`;
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
@@ -62,15 +62,15 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           },
           body: JSON.stringify({
             reportParams: {
-                reportType: filterState.reportType,
-                reportCategories: filterState.reportCategories,
-                reportGrouping: filterState.reportGrouping,
-                reportRangeUnit: filterState.reportRangeUnit,
-                bikeparkIDs: filterState.selectedBikeparkIDs,
-                startDT,
-                endDT,
-                fillups: filterState.fillups
-              }              
+              reportType: filterState.reportType,
+              reportCategories: filterState.reportCategories,
+              reportGrouping: filterState.reportGrouping,
+              reportRangeUnit: filterState.reportRangeUnit,
+              bikeparkIDs: filterState.selectedBikeparkIDs,
+              startDT,
+              endDT,
+              fillups: filterState.fillups
+            }
 
           }),
         });
@@ -96,45 +96,45 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   useEffect(() => {
     const fetchBikeparksWithData = async () => {
-        if (undefined === filterState) {
-          return;
-        }
-  
-        // setLoading(true);
+      if (undefined === filterState) {
+        return;
+      }
 
-        try {
-          const apiEndpoint = "/api/database/availableDataPerBikepark";
-          const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              reportType: filterState.reportType,
-              bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
-              startDT: firstDate,
-              endDT: lastDate
-            }),
-          });
-  
-          if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-          }
-          const data = await response.json() as AvailableDataDetailedResult[] | false;
-        if (data) {
-            setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
-          } else {
-            setErrorState("Unable to fetch list of bikeparks with data");
-          }
-        } catch (error) {
-          console.error(error);
-          setErrorState("Unable to fetch list of bikeparks with data");
-        } finally {
-          // setLoading(false);
+      // setLoading(true);
+
+      try {
+        const apiEndpoint = "/api/database/availableDataPerBikepark";
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportType: filterState.reportType,
+            bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+            startDT: firstDate,
+            endDT: lastDate
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
         }
-      };
-  
-      fetchBikeparksWithData();
+        const data = await response.json() as AvailableDataDetailedResult[] | false;
+        if (data) {
+          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+        } else {
+          setErrorState("Unable to fetch list of bikeparks with data");
+        }
+      } catch (error) {
+        console.error(error);
+        setErrorState("Unable to fetch list of bikeparks with data");
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchBikeparksWithData();
   }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
 
 
@@ -170,7 +170,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     try {
       return (
         <LineChart
-          type="line"
+          type={filterState?.reportType === 'stallingsduur' ? 'bar' : "line"}
           options={{
             chart: {
               id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
@@ -235,7 +235,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             },
             tooltip: {
               enabled: true,
-              shared: true,
+              shared: filterState?.reportType === 'stallingsduur' ? false : true,
             }
           }}
           series={reportData.series}

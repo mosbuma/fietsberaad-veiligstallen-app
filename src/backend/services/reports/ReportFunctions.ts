@@ -38,7 +38,7 @@ interface SingleResult {
   value: number;
 }
 
-export const convertToSeries = async (
+export const convertToTimegroupSeries = async (
   results: SingleResult[],
   params: ReportParams,
   keyToLabelMap: XAxisLabelMap): Promise<ReportSeriesData[]> => {
@@ -72,10 +72,10 @@ export const convertToSeries = async (
     name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
     data: Object.values(stalling.data)
   }));
+  console.log('series', series);
 
   return series;
 }
-
 
 export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeIntervalInMinutes: number, fieldname: string, useCache: boolean = true) => {
   if (false === useCache) {
@@ -205,7 +205,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
     if (!keyToLabelMap) {
       return false;
     }
-    let series = await convertToSeries(results, params, keyToLabelMap);
+    let series = await convertToTimegroupSeries(results, params, keyToLabelMap);
 
     return {
       title: getReportTitle(params.reportType),
