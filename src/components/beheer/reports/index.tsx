@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import ReportsFilterComponent, { ReportParams, ReportBikepark } from "./ReportsFilter";
+import ReportsFilterComponent, { ReportParams, ReportBikepark, ReportState } from "./ReportsFilter";
 import { ReportData } from "~/backend/services/reports/ReportFunctions";
 import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
+import { getStartEndDT } from "./ReportsDateFunctions";
 
 import LineChart from './LineChart';
 
@@ -25,29 +26,52 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const [errorState, setErrorState] = useState(error);
   const [warningState, setWarningState] = useState(warning);
 
-  const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
+  // const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
 
   const [bikeparksWithData, setBikeparksWithData] = useState<ReportBikepark[]>([]);
-  const [counter, setCounter] = useState(0);
+  // const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const [filterState, setFilterState] = useState<ReportState|undefined>(undefined);
+
+  const handleFilterChange = (newState: ReportState) => {
+    setFilterState(newState);
+  };
 
   useEffect(() => {
     const fetchReportData = async () => {
-      if (undefined === reportParams) {
+      if(undefined === filterState) {
         return;
       }
+      // if (undefined === reportParams) {
+      //   return;
+      // }
+
+      // console.log("Fetching report data with params:", reportParams);
 
       setLoading(true);
       try {
-        let apiEndpoint: string = `/api/reports/${reportParams.reportType}`;
+        const { startDT, endDT } = getStartEndDT(filterState, firstDate, lastDate);
+
+        let apiEndpoint: string = `/api/reports/${filterState.reportType}`;          
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            reportParams
+            reportParams: {
+                reportType: filterState.reportType,
+                reportCategories: filterState.reportCategories,
+                reportGrouping: filterState.reportGrouping,
+                reportRangeUnit: filterState.reportRangeUnit,
+                bikeparkIDs: filterState.selectedBikeparkIDs,
+                startDT,
+                endDT,
+                fillups: filterState.fillups
+              }              
+
           }),
         });
         // reportParams.reportUnit <- I.e. reportUnit_weekDay
@@ -68,50 +92,50 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     };
 
     fetchReportData();
-  }, [reportParams, counter]);
+  }, [filterState]);
 
   useEffect(() => {
     const fetchBikeparksWithData = async () => {
-      if (undefined === reportParams) {
-        return;
-      }
-
-      // setLoading(true);
-
-      try {
-        const apiEndpoint = "/api/database/availableDataPerBikepark";
-        const response = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            reportType: reportParams.reportType,
-            bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
-            startDT: firstDate,
-            endDT: lastDate
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
+        if (undefined === filterState) {
+          return;
         }
-        const data = await response.json() as AvailableDataDetailedResult[] | false;
+  
+        // setLoading(true);
+
+        try {
+          const apiEndpoint = "/api/database/availableDataPerBikepark";
+          const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reportType: filterState.reportType,
+              bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+              startDT: firstDate,
+              endDT: lastDate
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+          const data = await response.json() as AvailableDataDetailedResult[] | false;
         if (data) {
-          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
-        } else {
+            setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+          } else {
+            setErrorState("Unable to fetch list of bikeparks with data");
+          }
+        } catch (error) {
+          console.error(error);
           setErrorState("Unable to fetch list of bikeparks with data");
+        } finally {
+          // setLoading(false);
         }
-      } catch (error) {
-        console.error(error);
-        setErrorState("Unable to fetch list of bikeparks with data");
-      } finally {
-        // setLoading(false);
-      }
-    };
-
-    fetchBikeparksWithData();
-  }, [reportParams?.reportType, bikeparks, firstDate, lastDate]);
+      };
+  
+      fetchBikeparksWithData();
+  }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
 
 
   const renderReportParams = (params: ReportParams) => {
@@ -270,11 +294,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     }
   }
 
-  const onSubmit = (params: ReportParams) => {
-    setReportParams(params);
-    setCounter(counter + 1);
-  }
-
   const showReportParams = false; // used for debugging / testing
 
   return (
@@ -285,7 +304,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           firstDate={firstDate}
           lastDate={lastDate}
           bikeparks={bikeparksWithData}
-          onSubmit={onSubmit}
+          onStateChange={handleFilterChange}
         />
 
         <div className="flex flex-col space-y-2">
@@ -303,7 +322,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               <>
                 {renderChart(reportData)}
                 {renderTable(reportData)}
-                {showReportParams && reportParams && renderReportParams(reportParams)}
+                {/* {showReportParams && reportParams && renderReportParams(reportParams)} */}
               </>
             ) : (
               <div>No data available yet</div>

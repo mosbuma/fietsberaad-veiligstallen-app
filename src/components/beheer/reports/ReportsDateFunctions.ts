@@ -1,4 +1,5 @@
 import moment from "moment";
+import { ReportState } from "./ReportsFilter";
 
 export const getWeekNumber = (date: Date): number => {
     const start = new Date(date.getFullYear(), 0, 1);
@@ -129,4 +130,33 @@ export const getAdjustedStartEndDates = (startDT: Date | undefined, endDT: Date 
   let adjustedEndDate = undefined!==endDT ? moment(endDT).add(timeIntervalInMinutes, 'minutes') : undefined;
 
   return { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate };
+}
+
+export const getStartEndDT = (state: ReportState, firstDate: Date, lastDate: Date) => {
+  switch (state.reportRangeUnit) {
+    case "range_all": {
+      const startDT = firstDate;
+      startDT.setHours(0, 0, 0, 0);
+      const endDT = lastDate;
+      endDT.setHours(23, 59, 59, 999);
+
+      return { startDT, endDT };
+    }
+    case "range_year": {
+      return getSingleYearRange(state.reportRangeYear);
+    }
+    case "range_month": {
+      return getSingleMonthRange(state.reportRangeYear, state.reportRangeValue);
+    }
+    case "range_quarter": {
+      return getSingleQuarterRange(state.reportRangeYear, state.reportRangeValue);
+    }
+    case "range_week": {
+      return getSingleWeekRange(state.reportRangeYear, state.reportRangeValue);
+    }
+    default: {
+      console.warn("Unhandled reportUnit", state.reportRangeUnit);
+      return { startDT: new Date(), endDT: new Date() };
+    };
+  }
 }

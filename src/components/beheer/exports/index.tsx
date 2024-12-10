@@ -229,15 +229,6 @@ return (
     <div className="noPrint w-full" id="ExportComponent">
       <div className="flex flex-col space-y-4 p-4">
         {renderReportTypeSelect()}
-        {/* <ReportsFilterComponent
-          showAbonnementenRapporten={false}
-          firstDate={firstDate}
-          lastDate={lastDate}
-          bikeparks={bikeparks}
-          onSubmit={onSubmit}
-          showDetails={false}
-          showGoButton={false}
-        /> */}
 
         <div className="flex flex-col space-y-2">
           {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
