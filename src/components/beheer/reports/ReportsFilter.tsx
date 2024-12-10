@@ -226,24 +226,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     return true;
   }
 
-  const renderReportTypeSelect = () => {
-    return (
-      <FormLabel title="Rapportage">
-        <select
-            className={selectClasses}
-            name="report"
-            id="report"
-            value={reportType}
-            onChange={(e) => setReportType(e.target.value as ReportType)}
-            required
-          > {availableReports.map((report) => (
-            <option key={report.id} value={report.id}>{report.title}</option>
-          ))}
-          </select>
-      </FormLabel>
-    )
-  }
-
   const renderWeekSelect = (showLastPeriod: boolean = true) => {
     return (
       <div className="mt-2 w-56 flex flex-col">
@@ -371,8 +353,23 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
     const showLastPeriod = false; // TODO: range calculations are not yet implemented correctly for lastPeriod
 
+    const showBikeparkSelect = reportCategories !== "per_stalling";
+
     return (
       <div className="flex flex-wrap gap-2">
+      <FormLabel title="Rapportage">
+        <select
+            className={selectClasses}
+            name="report"
+            id="report"
+            value={reportType}
+            onChange={(e) => setReportType(e.target.value as ReportType)}
+            required
+          > {availableReports.map((report) => (
+            <option key={report.id} value={report.id}>{report.title}</option>
+          ))}
+          </select>
+      </FormLabel>
         <FormLabel title="Periode">
         <select
           value={reportRangeUnit}
@@ -465,6 +462,16 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             {showCategoryPerTypeKlant && <option value="per_type_klant">Per type klant</option>}
         </select>
         </FormLabel>
+        {showBikeparkSelect && bikeparks.length > 1 && 
+          <FormLabel title="Stallingen">
+            <div className="w-96">
+              <BikeparkSelect
+                bikeparks={bikeparks}
+                selectedBikeparkIDs={selectedBikeparkIDs}
+                setSelectedBikeparkIDs={setSelectedBikeparkIDs}
+              />
+            </div>
+          </FormLabel>}          
 
       </div>
     );
@@ -551,26 +558,12 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
-  const showBikeparkSelect = reportCategories !== "per_stalling";
-  return (
+return (
     <div className="noPrint" id="ReportComponent">
       <div className="flex flex-col space-y-4">
-        <div className="w-full mt-2">
-          {renderReportTypeSelect()}
-        </div>
-
           <div>
             {renderUnitSelect()}
 
-          {showBikeparkSelect && bikeparks.length > 1 && (
-            <div className="w-96">
-              <BikeparkSelect
-                bikeparks={bikeparks}
-                selectedBikeparkIDs={selectedBikeparkIDs}
-                setSelectedBikeparkIDs={setSelectedBikeparkIDs}
-              />
-            </div>
-          )}          
 
           {reportType === "abonnementen" && (
             <div>
