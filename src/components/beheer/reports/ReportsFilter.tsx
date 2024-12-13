@@ -9,7 +9,7 @@ export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", 
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
 export const reportDatatypeValues = ["bezettingsdata", "ruwedata"]
 
-export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant"
+export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant" 
 export const reportCategoriesValues = ["none", "per_stalling", "per_weekday", "per_section", "per_type_klant"]
 
 export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year" | "per_bucket"
@@ -336,10 +336,9 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 
     if (showDetails === false) return null;
 
+
     const showCategorySection = ["bezetting"].includes(reportType);
     const showCategoryPerTypeKlant = ["stallingsduur"].includes(reportType);
-    const showGroupByHour = ["bezetting"].includes(reportType) === true;
-    const showGroupByBucket = ["stallingsduur"].includes(reportType);
 
     const showRangeWeek = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen"].includes(reportType)
     const showRangeAll = true; //  ["transacties_voltooid", "inkomsten", "volmeldingen", "bezetting", "downloads", "abonnementen", "abonnementen_lopend"].includes(reportType)
@@ -350,6 +349,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     const showIntervalYear = reportRangeUnit === "range_all";
     const showIntervalMonthQuarter = showIntervalYear || reportRangeUnit === "range_year";
     const showIntervalWeek = showIntervalMonthQuarter || reportRangeUnit === "range_month" || reportRangeUnit === "range_quarter";
+    const showIntervalHour = ["bezetting"].includes(reportType) === true;
+    const showIntervalBucket = ["stallingsduur"].includes(reportType);
 
     const showLastPeriod = false; // TODO: range calculations are not yet implemented correctly for lastPeriod
 
@@ -437,8 +438,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             {showIntervalWeek && <option value="per_week">Week</option>}
             <option value="per_day">Dag</option>
             <option value="per_weekday">Dag van de week</option>
-            {showGroupByHour && <option value="per_hour">Uur van de dag</option>}
-            {showGroupByBucket && <option value="per_bucket">Stallingsduur</option>}
+            {showIntervalHour && <option value="per_hour">Uur van de dag</option>}
+            {showIntervalBucket && <option value="per_bucket">Stallingsduur</option>}
           </select>
         </FormLabel>
 
