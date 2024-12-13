@@ -105,7 +105,7 @@ const AppNavigationMobile = ({
   }, []);
 
   const clickItem = (url: string) => {
-    console.log("sure");
+    // console.log("sure");
     dispatch(setIsMobileNavigationVisible(false));
     dispatch(setIsParkingListVisible(false));
     push(url);

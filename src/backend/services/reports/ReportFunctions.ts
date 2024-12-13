@@ -72,7 +72,6 @@ export const convertToTimegroupSeries = async (
     name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
     data: Object.values(stalling.data)
   }));
-  console.log('series', series);
 
   return series;
 }

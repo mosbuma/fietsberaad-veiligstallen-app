@@ -181,6 +181,8 @@ function ParkingOnTheMap({ parking }) {
   };
 
   const highlighMarker = (map: any, id: string) => {
+    if (!map) return;
+
     map.setPaintProperty("fietsenstallingen-markers", "circle-radius", [
       "case",
       ["==", ["get", "id"], id],
