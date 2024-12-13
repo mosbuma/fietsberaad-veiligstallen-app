@@ -60,10 +60,10 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
       }
       case 'per_week': {
         const labelMap: XAxisLabelMap = {};
-        const startKey = moment(startDate).startOf('week');        
-        const endKey = moment(endDate).endOf('week');
+        const startKey = moment(startDate).isoWeek(moment(startDate).isoWeek()).startOf('isoWeek');        
+        const endKey = moment(endDate).isoWeek(moment(endDate).isoWeek()).endOf('isoWeek');
         for(let date = moment(startKey); date.isBefore(endKey); date.add(1, 'week')) {
-            labelMap[date.format('YYYY-W')] =date.format('YYYY-WW');
+            labelMap[date.format('YYYY-W')] = date.format('YYYY-WW');
         }
         return labelMap;
       }
