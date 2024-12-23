@@ -5,10 +5,10 @@ import BeheerPage, { getServerSideProps as externalServerSideProps, BeheerPagePr
 
 export const getServerSideProps = async (props: GetServerSidePropsContext) => {
   return externalServerSideProps(props);
-}
+};
 
-const BeheerPageDefault: React.FC<BeheerPageProps> = ({ gemeentes, bikeparks, users, roles}) => {
-  return <BeheerPage gemeentes={gemeentes} bikeparks={bikeparks} users={users} roles={roles} />;
+const BeheerPageDefault: React.FC<BeheerPageProps> = props => {
+  return <BeheerPage {...props} />;
 };
 
 export default BeheerPageDefault;

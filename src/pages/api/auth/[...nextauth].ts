@@ -1,9 +1,8 @@
 import { prisma } from "~/server/db";
 
 import type { Provider } from "next-auth/providers";
-import NextAuth from "next-auth";
 // import { PrismaAdapter } from "@auth/prisma-adapter"
-
+import NextAuth from "next-auth";
 import type { NextAuthOptions, RequestInternal, User } from "next-auth";
 // import EmailProvider from "next-auth/providers/email"
 
@@ -72,7 +71,7 @@ export const authOptions: NextAuthOptions = {
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
     // augment jwt token with information that will be used on the server side
-    async jwt({ user, token, account: accountParam }) {
+    async jwt({ user, token, _account: accountParam }: { user: User | null; token: any; _account?: any }) {
       if (token && 'OrgUserID' in token === false && user) {
         token.OrgUserID = user.OrgUserID;
       }
@@ -81,10 +80,11 @@ export const authOptions: NextAuthOptions = {
     },
 
     // augment session with information that will be used on the client side
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (session?.user && token?.OrgUserID) {
         const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
         if (account) {
+          // console.log("session - account", JSON.stringify(account, null, 2));
           // console.log("session - token", JSON.stringify(token, null, 2));
           session.user.OrgUserID = token.OrgUserID;
           session.user.RoleID = account.RoleID;
@@ -96,12 +96,18 @@ export const authOptions: NextAuthOptions = {
           session.user.GroupID = role?.GroupID;
           session.user.Role = role?.GroupID;
 
+          session.user.name = account.DisplayName;
+          // session.user.email = account.Email;
+          // session.user.image = account.Image;
+
           // console.log(
           //   "session",
           //   JSON.stringify(session, null, 2),
           //   // JSON.stringify(token, null, 2)
           // );
         }
+      } else {
+        console.log("session - no user or token");
       }
       return session;
     },

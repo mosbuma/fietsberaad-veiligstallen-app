@@ -2,7 +2,10 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { User, Council, newUserRole, newUserRight } from '../../utils/mock';
+import {  } from '../../utils/mock';
+import { type User } from "next-auth";
+import { newUserRole, newUserRight, userHasRole, userHasRight, userHasModule } from "~/utils/mock";
+import { contacts } from "@prisma/client";
 
 export type AvailableComponents =
   | "abonnementen"
@@ -18,7 +21,8 @@ export type AvailableComponents =
   | "barcodereeksen-uitgifte-barcodes"
   | "barcodereeksen-sleutelhangers"
   | "barcodereeksen-fietsstickers"
-  | "contacts"
+  | "contacts-gemeenten"
+  | "contacts-admin"
   | "database"
   | "documents"
   | "export"
@@ -33,6 +37,7 @@ export type AvailableComponents =
   | "products"
   | "report"
   | "settings"
+  | "stalling-info"
   | "trekkingen"
   | "trekkingenprijzen"
   | "users-gebruikersbeheer"
@@ -55,7 +60,8 @@ export const isAvailableComponent = (value: string): boolean => {
     "barcodereeksen-uitgifte-barcodes",
     "barcodereeksen-sleutelhangers",
     "barcodereeksen-fietsstickers",
-    "contacts",
+    "contacts-gemeenten",
+    "contacts-admin",
     "database",
     "documents",
     "export",
@@ -81,26 +87,20 @@ export const isAvailableComponent = (value: string): boolean => {
 }
 
 interface LeftMenuProps {
-  user: User;
-  council: Council;
-  exploitant?: { getCompanyName: () => string };
+  user?: User;
+  activecontact: contacts | undefined;
   activecomponent: AvailableComponents | undefined;
   onSelect: (component: AvailableComponents) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
   user,
-  council,
-  exploitant,
+  activecontact,
   activecomponent,
   onSelect,
 }) => {
   // const router = useRouter();
   // const { query } = router;
-
-  // Utility functions
-  const hasRole = (role: newUserRole) => user.getRole() === role;
-  const hasRight = (right: newUserRight) => user.hasRight(right) || true; /* TODO: remove - for testing, all users have all rights */
 
   const formatLi = (component: AvailableComponents | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
@@ -125,11 +125,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   }
 
   const renderInternalUserMenu = () => {
-    const showSiteBeheer = hasRole('intern_editor') || hasRole('intern_admin') || hasRole('root');
-    const showAdminOnly = user.getRole().includes('root') || user.getRole().includes('admin');
-    const showUitgifteBarcodes = hasRight('sleutelhangerreeksen');
-    const showExterneApis = hasRight('externalApis');
-    const showDataleveranciers = hasRight('permits');
+    const showSiteBeheer = userHasRole(user, 'intern_editor') || userHasRole(user, 'intern_admin') || userHasRole(user, 'root');
+    const showAdminOnly = userHasRole(user, 'root') || userHasRole(user, 'admin');
+    const showUitgifteBarcodes = userHasRight(user, 'sleutelhangerreeksen');
+    const showExterneApis = userHasRight(user, 'externalApis');
+    const showDataleveranciers = userHasRight(user, 'permits');
 
     return (
       <>
@@ -144,7 +144,13 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
             </ul>)
         }
 
-        {formatLi("contacts", 'Gemeenten',)}
+        {showAdminOnly && (
+          <>
+            {formatLi("contacts-gemeenten", 'Gemeenten',)}
+            {formatLi("contacts-admin", 'Beheerders',)}
+        </>)
+        }
+
         {formatLi("products", 'Opwaardeerproducten',)}
 
         {formatLi("report", 'Rapportages', true)}
@@ -179,34 +185,39 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {showAdminOnly && (
           formatLi("database", 'Database', false)
         )}
+
+        {showAdminOnly && (
+          formatLi("stalling-info", 'Stalling info', false)
+        )}
       </>)
   }
 
   const renderExternalUserMenu = () => {
-    const showGegevensGemeente = hasRight('gemeente');
-    const showWebsiteBeheer = hasRight('website');
-    const showLocatieStallingen = hasRight('locaties');
-    const showStatusChipkluizen = council.hasModule('fietskluizen') && hasRight('fietskluizen');
-    const showBuurtstallingen = council.hasModule('buurtstallingen') && hasRight('buurtstallingen');
-    const showAbonnementen = council.getID() === '1' || (council.hasModule('abonnementen') && hasRight('abonnementen'));
-    const showDocumenten = council.hasModule('documenten');
-    const showTrekkingenPrijzen = council.hasModule('fietsenwin') && hasRight('fietsenwin');
-    const showTrekkingenInTrekkingenPrijzen = (user.getRole().includes('root') || user.getRole().includes('admin'))
-    const showDiashow = user.getRole() !== 'exploitant' && hasRight('diashow');
-    const showRegistranten = council.hasModule('fms') && hasRight('registranten');
-    const showRapporages = council.hasModule('fms') && hasRight('rapportages');
-    const showUsers = hasRight('users');
-    const showToegangFmsservice = council.hasModule('fms') && hasRight('permits');
-    const showGebruikersBeheerUitgebreid = user.getRole() === 'exploitant'
-    const showGebruikersBeheerUitgebreidGemeente = user.getRole().includes('admin');
+    const showContactsGemeenten = userHasRight(user, 'gemeente');
+    const showWebsiteBeheer = userHasRight(user, 'website');
+    const showLocatieStallingen = userHasRight(user, 'locaties');
+    const showStatusChipkluizen = userHasModule(user, 'fietskluizen') && userHasRight(user, 'fietskluizen');
+    const showBuurtstallingen = userHasModule(user, 'buurtstallingen') && userHasRight(user, 'buurtstallingen');
+    const showAbonnementen = activecontact?.ID === '1' || (userHasModule(user, 'abonnementen') && userHasRight(user, 'abonnementen'));
+    const showDocumenten = userHasModule(user, 'documenten');
+    const showTrekkingenPrijzen = userHasModule(user, 'fietsenwin') && userHasRight(user, 'fietsenwin');
+    const showTrekkingenInTrekkingenPrijzen = (userHasRole(user, 'root') || userHasRole(user, 'admin'))
+    const showDiashow = userHasRole(user,'exploitant') && userHasRight(user, 'diashow');
+    const showRegistranten = userHasModule(user, 'fms') && userHasRight(user, 'registranten');
+    const showRapporages = userHasModule(user, 'fms') && userHasRight(user, 'rapportages');
+    const showUsers = userHasRight(user, 'users');
+    const showToegangFmsservice = userHasModule(user, 'fms') && userHasRight(user, 'permits');
+    const showGebruikersBeheerUitgebreid = userHasRole(user, 'exploitant');
+    const showGebruikersBeheerUitgebreidGemeente = userHasRole(user, 'admin');
+    const showGebruikersBeheerUitgebreidExploitant = userHasRole(user, 'exploitant');
     const showAbonnementenRapporten = true;
 
     return (
       <>
         {formatLi("home", 'Home')}
 
-        {showGegevensGemeente && (
-          formatLi("contacts", 'Gegevens gemeente', false)
+        {showContactsGemeenten && (
+          formatLi("contacts-gemeenten", 'Gegevens gemeente', false)
         )}
 
         {showWebsiteBeheer && (
@@ -279,9 +290,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               formatLi(false, 'Gebruikersbeheer', false,
                 <ul className="ml-4 mt-1">
                   {showGebruikersBeheerUitgebreidGemeente && (
-                    formatLi("users-gebruikersbeheer", `Gebruikers ${council.getCompanyName()}`, true)
+                    formatLi("users-gebruikersbeheer", `Gebruikers ${activecontact?.CompanyName}`, true)
                   )}
-                  {formatLi("users-exploitanten", `Gebruikers ${exploitant?.getCompanyName()}`, true)}
+                  {showGebruikersBeheerUitgebreidExploitant && (
+                    formatLi("users-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)  
+                  )}
                   {formatLi("users-beheerders", 'Beheerders', true)}
                 </ul>)
             )}
@@ -298,16 +311,22 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     )
   }
 
+  // for now, only show the temporary production menu in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  if(isProduction) {
+    return (
+      <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
+        {formatLi("report", 'Rapportages', true)}
+        </ul>
+    )
+  }
+
   return (
     <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
-      <li id="userinfo" className="mb-6">
-        <div className="font-semibold">{user.getDisplayName()}</div>
-      </li>
-
-      {(!hasRole('user') || !council) && (
+      {(!userHasRole(user, 'user') || !activecontact) && (
         renderInternalUserMenu()
       )}
-      {hasRole('user') && council && (
+      {userHasRole(user, 'user') && activecontact && (
         renderExternalUserMenu()
       )}
     </ul>

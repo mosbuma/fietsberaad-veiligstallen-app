@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { security_users, security_roles } from '@prisma/client';
-export type UserType = "gebruiker" | "exploitant" | "beheerder";
+export type UserType = "gebruiker" | "exploitant" | "beheerder" | "interne-gebruiker";
 export type UserStatus = "actief" | "inactief";
 export type User = {
   UserID: string,

@@ -19,7 +19,14 @@ export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "rang
 export const reportRangeUnitValues = ["range_all", "range_year", "range_month", "range_quarter", "range_week"]
 // export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
 
-export type ReportBikepark = { id: string; stallingsID: string; title: string; gemeenteID: string; hasData: boolean };
+export type ReportBikepark = { 
+  id: string; 
+  stallingsID: string; 
+  title: string; 
+  gemeenteID: string; 
+  hasData: boolean;
+  ZipID: string;
+};
 
 export interface ReportParams {
   reportType: ReportType;

@@ -1,14 +1,16 @@
 import React from "react";
 import Head from "next/head";
 import Content from '../content';
+import { type Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
+import { GetServerSideProps } from 'next';
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
 
-export async function getServerSideProps(context) {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
-    const session = await getServerSession(context.req, context.res, authOptions)
+    const session = await getServerSession(context.req, context.res, authOptions) as Session;
     const sites = session?.user?.sites || [];
     const fietsenstallingen = await getParkingsFromDatabase(sites);
 
@@ -25,6 +27,6 @@ export async function getServerSideProps(context) {
       },
     };
   }
-}
+};
 
 export default Content;

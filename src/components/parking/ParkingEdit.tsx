@@ -13,7 +13,10 @@ import {
   generateRandomId,
   getDefaultLocation,
 } from "~/utils/parkings";
-import { cbsCodeFromMunicipality, getMunicipalityBasedOnCbsCode } from "~/utils/municipality";
+import {
+  cbsCodeFromMunicipality,
+  getMunicipalityBasedOnCbsCode,
+} from "~/utils/municipality";
 import { Tabs, Tab, FormHelperText, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
@@ -21,22 +24,29 @@ import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
 import type { ServiceType } from "~/components/parking/ParkingViewServices";
 
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
-import ParkingEditCapaciteit, { type CapaciteitType } from "~/components/parking/ParkingEditCapaciteit";
+import ParkingEditCapaciteit, {
+  type CapaciteitType,
+} from "~/components/parking/ParkingEditCapaciteit";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
-import ParkingEditOpening, { type OpeningChangedType } from "~/components/parking/ParkingEditOpening";
-import { useSession } from "next-auth/react"
+import ParkingEditOpening, {
+  type OpeningChangedType,
+} from "~/components/parking/ParkingEditOpening";
+import { useSession } from "next-auth/react";
+import type { Session } from "next-auth";
 import ParkingViewBeheerder from "./ParkingViewBeheerder";
-import { type MunicipalityType, getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
+import {
+  type MunicipalityType,
+  getMunicipalityBasedOnLatLng,
+} from "~/utils/map/active_municipality";
 import { geocodeAddress, reverseGeocode } from "~/utils/nomatim";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 type connectFietsenstallingType = {
   connect: {
-    id: string
-  }
-}
-
+    id: string;
+  };
+};
 
 export type ParkingEditUpdateStructure = {
   ID?: string;
@@ -49,59 +59,83 @@ export type ParkingEditUpdateStructure = {
   DateCreated?: Date;
   DateModified?: Date;
   SiteID?: string;
-  Beheerder?: string,
-  BeheerderContact?: string,
+  Beheerder?: string;
+  BeheerderContact?: string;
 
   // [key: string]: string | undefined;
   Openingstijden?: any; // Replace with the actual type if different
-  fietsenstalling_type?: connectFietsenstallingType
-}
+  fietsenstalling_type?: connectFietsenstallingType;
+};
 
-type ChangedType = { ID: string, selected: boolean };
+type ChangedType = { ID: string; selected: boolean };
 
 const NoClickOverlay = () => {
   const [didClick, setDidClick] = useState(false);
 
   return (
-    <div data-name="no-click-overlay" className={`
-      absolute top-0 right-0 bottom-0 left-0 z-10
-      text-center
-      flex-col justify-center
+    <div
+      data-name="no-click-overlay"
+      className={`
+      absolute bottom-0 left-0 right-0 top-0 z-10
       cursor-pointer
-      ${didClick ? 'hidden' : 'flex'}
-    `} style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.4)'
+      flex-col justify-center
+      text-center
+      ${didClick ? "hidden" : "flex"}
+    `}
+      style={{
+        backgroundColor: "rgba(255, 255, 255, 0.4)",
       }}
       onClick={() => setDidClick(true)}
     >
-      <div className="mt-16">
-        Klik om de kaart te bewegen
-      </div>
+      <div className="mt-16">Klik om de kaart te bewegen</div>
     </div>
-  )
-}
+  );
+};
 
-const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingDetailsType, onClose: (closeModal: boolean) => void, onChange: Function }) => {
-
-  const [selectedTab, setSelectedTab] = React.useState<string>('tab-algemeen');
+const ParkingEdit = ({
+  parkingdata,
+  onClose,
+  onChange,
+}: {
+  parkingdata: ParkingDetailsType;
+  onClose: (closeModal: boolean) => void;
+  onChange: Function;
+}) => {
+  const [selectedTab, setSelectedTab] = React.useState<string>("tab-algemeen");
   // const [waarschuwing, setWaarschuwing] = React.useState<string>('');
   // const [allowSave, setAllowSave] = React.useState<boolean>(true);
   const allowSave = true;
 
-  const [newSiteID, setNewSiteID] = React.useState<string | undefined>(undefined);
+  const [newSiteID, setNewSiteID] = React.useState<string | undefined>(
+    undefined,
+  );
   const [newTitle, setNewTitle] = React.useState<string | undefined>(undefined);
-  // 
-  const [newLocation, setNewLocation] = React.useState<string | undefined>(undefined);
-  const [newPostcode, setNewPostcode] = React.useState<string | undefined>(undefined);
-  const [newPlaats, setNewPlaats] = React.useState<string | undefined>(undefined);
-  const [newCoordinaten, setNewCoordinaten] = React.useState<string | undefined>(undefined);
+  //
+  const [newLocation, setNewLocation] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [newPostcode, setNewPostcode] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [newPlaats, setNewPlaats] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [newCoordinaten, setNewCoordinaten] = React.useState<
+    string | undefined
+  >(undefined);
 
   // used for map recenter when coordinates are manually changed
-  const [centerCoords, setCenterCoords] = React.useState<string | undefined>(undefined);
+  const [centerCoords, setCenterCoords] = React.useState<string | undefined>(
+    undefined,
+  );
 
   // beheerder
-  const [newBeheerder, setNewBeheerder] = React.useState<string | undefined>(undefined);
-  const [newBeheerderContact, setNewBeheerderContact] = React.useState<string | undefined>(undefined);
+  const [newBeheerder, setNewBeheerder] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [newBeheerderContact, setNewBeheerderContact] = React.useState<
+    string | undefined
+  >(undefined);
 
   // type FietsenstallingSectiesType = { [key: string]: Array[] }
 
@@ -109,16 +143,24 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
   const [newServices, setNewServices] = React.useState<ChangedType[]>([]);
 
   const [newCapaciteit, setNewCapaciteit] = React.useState<ParkingSections>([]); // capaciteitschema
-  const [newOpening, setNewOpening] = React.useState<OpeningChangedType | undefined>(undefined); // openingstijdenschema
-  const [newOpeningstijden, setNewOpeningstijden] = React.useState<string | undefined>(undefined); // textveld afwijkende openingstijden
+  const [newOpening, setNewOpening] = React.useState<
+    OpeningChangedType | undefined
+  >(undefined); // openingstijdenschema
+  const [newOpeningstijden, setNewOpeningstijden] = React.useState<
+    string | undefined
+  >(undefined); // textveld afwijkende openingstijden
 
-  type StallingType = { id: string, name: string, sequence: number };
+  type StallingType = { id: string; name: string; sequence: number };
   const [allTypes, setAllTypes] = React.useState<StallingType[]>([]);
-  const [newStallingType, setNewStallingType] = React.useState<string | undefined>(undefined);
+  const [newStallingType, setNewStallingType] = React.useState<
+    string | undefined
+  >(undefined);
 
-  const [currentMunicipality, setCurrentMunicipality] = React.useState<MunicipalityType | undefined>(undefined);
+  const [currentMunicipality, setCurrentMunicipality] = React.useState<
+    MunicipalityType | undefined
+  >(undefined);
 
-  const { data: session } = useSession()
+  const { data: session } = useSession() as { data: Session | null };
 
   // Set 'allServices' variable in local state
   React.useEffect(() => {
@@ -126,14 +168,12 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       const result = await getAllServices();
       setAllServices(result);
     })();
-  }, [])
+  }, []);
 
   React.useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(
-          `/api/fietsenstallingtypen/`
-        );
+        const response = await fetch(`/api/fietsenstallingtypen/`);
         const json = await response.json();
         if (!json) return;
 
@@ -142,7 +182,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         console.error("get all types error", err);
       }
     })();
-  }, [])
+  }, []);
 
   React.useEffect(() => {
     updateSiteID();
@@ -150,62 +190,66 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setSelectedTab(newValue);
-  }
+  };
 
   type checkInfo = {
-    type: "string" | "coordinaten",
-    text: string,
-    value: any,
-    newvalue: any
-  }
+    type: "string" | "coordinaten";
+    text: string;
+    value: any;
+    newvalue: any;
+  };
 
   const updateSiteID = () => {
+    const currentll =
+      undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
+    getMunicipalityBasedOnLatLng(currentll.split(","))
+      .then(async result => {
+        if (result !== false) {
+          // Set municipality in state
+          setCurrentMunicipality(result);
 
-    const currentll = undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
-    getMunicipalityBasedOnLatLng(currentll.split(",")).then(async (result) => {
-      if (result !== false) {
+          // Find CBS code of this municipality
+          const cbsCode = cbsCodeFromMunicipality(result);
+          // Reset newSiteID if no cbsCode was found
+          if (!cbsCode) {
+            setNewSiteID(undefined);
+            return;
+          }
 
-        // Set municipality in state
-        setCurrentMunicipality(result);
+          // Find municipality row in database based on cbsCode
+          const municipality = await getMunicipalityBasedOnCbsCode(cbsCode);
+          // Reset newSiteID if no municipality row was found
+          if (!municipality) {
+            setNewSiteID(undefined);
+            return;
+          }
 
-        // Find CBS code of this municipality
-        const cbsCode = cbsCodeFromMunicipality(result);
-        // Reset newSiteID if no cbsCode was found
-        if (!cbsCode) {
-          setNewSiteID(undefined);
-          return;
-        }
-
-        // Find municipality row in database based on cbsCode
-        const municipality = await getMunicipalityBasedOnCbsCode(cbsCode)
-        // Reset newSiteID if no municipality row was found
-        if (!municipality) {
-          setNewSiteID(undefined);
-          return;
-        }
-
-        if (municipality.ID !== parkingdata.SiteID) {
-          setNewSiteID(municipality.ID);
+          if (municipality.ID !== parkingdata.SiteID) {
+            setNewSiteID(municipality.ID);
+          } else {
+            setNewSiteID(undefined);
+          }
         } else {
+          setCurrentMunicipality(undefined);
           setNewSiteID(undefined);
         }
-      } else {
-        setCurrentMunicipality(undefined);
-        setNewSiteID(undefined);
-      }
-    }).catch((err) => {
-      console.error('municipality based on latlng error', err);
-    })
-  }
+      })
+      .catch(err => {
+        console.error("municipality based on latlng error", err);
+      });
+  };
 
   const validateParkingData = (): boolean => {
     const checkStringType = (check: checkInfo): string => {
-      if ((check.value === "" || check.value === null) && check.newvalue === undefined) {
+      if (
+        (check.value === "" || check.value === null) &&
+        check.newvalue === undefined
+      ) {
         return `invoer van ${check.text} is verplicht`;
       } else {
         return "";
       }
-    }
+    };
 
     const checkCoordinatenType = (check: checkInfo): string => {
       if (check.value === getDefaultLocation && check.newvalue === undefined) {
@@ -213,21 +257,56 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       } else {
         return "";
       }
-    }
+    };
 
     let checks: checkInfo[] = [
-      { type: "string", text: "invoer van de titel", value: parkingdata.Title, newvalue: newTitle },
-      { type: "string", text: "invoer van de straat en huisnummer", value: parkingdata.Location, newvalue: newLocation },
-      { type: "string", text: "invoer van de plaats", value: parkingdata.Plaats, newvalue: newPlaats },
-      { type: "string", text: "selectie van de gemeente", value: parkingdata.SiteID, newvalue: newSiteID },
-      { type: "coordinaten", text: "instellen van de locatie op de kaart", value: parkingdata.Coordinaten, newvalue: newCoordinaten },
-    ]
+      {
+        type: "string",
+        text: "invoer van de titel",
+        value: parkingdata.Title,
+        newvalue: newTitle,
+      },
+      {
+        type: "string",
+        text: "invoer van de straat en huisnummer",
+        value: parkingdata.Location,
+        newvalue: newLocation,
+      },
+      {
+        type: "string",
+        text: "invoer van de plaats",
+        value: parkingdata.Plaats,
+        newvalue: newPlaats,
+      },
+      {
+        type: "string",
+        text: "selectie van de gemeente",
+        value: parkingdata.SiteID,
+        newvalue: newSiteID,
+      },
+      {
+        type: "coordinaten",
+        text: "instellen van de locatie op de kaart",
+        value: parkingdata.Coordinaten,
+        newvalue: newCoordinaten,
+      },
+    ];
     // parkingdata.Postcode is optional
 
     // FMS & ExploitantID cannot be changed for now, so no need to check those for changes
     if (parkingdata.FMS !== true && parkingdata.ExploitantID === null) {
-      checks.push({ type: "string", text: "invoer van de contactgegevens van de beheerder", value: parkingdata.Beheerder, newvalue: newBeheerder });
-      checks.push({ type: "string", text: "invoer van de contactgegevens van de beheerder", value: parkingdata.BeheerderContact, newvalue: newBeheerderContact });
+      checks.push({
+        type: "string",
+        text: "invoer van de contactgegevens van de beheerder",
+        value: parkingdata.Beheerder,
+        newvalue: newBeheerder,
+      });
+      checks.push({
+        type: "string",
+        text: "invoer van de contactgegevens van de beheerder",
+        value: parkingdata.BeheerderContact,
+        newvalue: newBeheerderContact,
+      });
     }
 
     // Not checked / check not required
@@ -250,33 +329,51 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         alert(message);
         return false;
       }
-    };
+    }
 
     return true;
-  }
+  };
 
   const getUpdate = () => {
     let update: ParkingEditUpdateStructure = {};
 
     update.ID = parkingdata.ID;
 
-    if (newTitle !== undefined) { update.Title = newTitle; }
-    if (newLocation !== undefined) { update.Location = newLocation; }
-    if (newPostcode !== undefined) { update.Postcode = newPostcode; }
-    if (newPlaats !== undefined) { update.Plaats = newPlaats; }
-    if (newCoordinaten !== undefined) { update.Coordinaten = newCoordinaten; }
-    if (newSiteID !== undefined) { update.SiteID = newSiteID; }
+    if (newTitle !== undefined) {
+      update.Title = newTitle;
+    }
+    if (newLocation !== undefined) {
+      update.Location = newLocation;
+    }
+    if (newPostcode !== undefined) {
+      update.Postcode = newPostcode;
+    }
+    if (newPlaats !== undefined) {
+      update.Plaats = newPlaats;
+    }
+    if (newCoordinaten !== undefined) {
+      update.Coordinaten = newCoordinaten;
+    }
+    if (newSiteID !== undefined) {
+      update.SiteID = newSiteID;
+    }
 
-    if (newBeheerder !== undefined) { update.Beheerder = newBeheerder; }
-    if (newBeheerderContact !== undefined) { update.BeheerderContact = newBeheerderContact; }
+    if (newBeheerder !== undefined) {
+      update.Beheerder = newBeheerder;
+    }
+    if (newBeheerderContact !== undefined) {
+      update.BeheerderContact = newBeheerderContact;
+    }
 
-    if (newStallingType !== undefined) { update.fietsenstalling_type = { connect: { id: newStallingType } }; }
+    if (newStallingType !== undefined) {
+      update.fietsenstalling_type = { connect: { id: newStallingType } };
+    }
 
     if (undefined !== newOpening) {
       for (const keystr in newOpening) {
         const key = keystr as keyof ParkingEditUpdateStructure;
         if (newOpening[key] === null) {
-          update[key] = null
+          update[key] = null;
         } else if (newOpening[key] !== undefined) {
           update[key] = newOpening[key].format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
         } else {
@@ -307,28 +404,35 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     // update.fietsenstalling_secties = [];
 
     return update;
-  }
+  };
 
-  const updateServices = async (parkingdata: ParkingDetailsType, newServices: ChangedType[]) => {
+  const updateServices = async (
+    parkingdata: ParkingDetailsType,
+    newServices: ChangedType[],
+  ) => {
     try {
       // Delete existing services for this parking
       await fetch(
-        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
-        { method: "DELETE" }
+        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" +
+          parkingdata.ID,
+        { method: "DELETE" },
       );
       // Create servicesToSave object
       const servicesToSave: {}[] = [];
       // - First, add existing services
-      parkingdata.fietsenstallingen_services && parkingdata.fietsenstallingen_services.forEach(x => {
-        // To be removed?
-        const doRemove = newServices.filter(s => s.ID === x.services.ID && !s.selected).pop();
-        if (!doRemove) {
-          servicesToSave.push({
-            ServiceID: x.services.ID,
-            FietsenstallingID: parkingdata.ID,
-          });
-        }
-      })
+      parkingdata.fietsenstallingen_services &&
+        parkingdata.fietsenstallingen_services.forEach(x => {
+          // To be removed?
+          const doRemove = newServices
+            .filter(s => s.ID === x.services.ID && !s.selected)
+            .pop();
+          if (!doRemove) {
+            servicesToSave.push({
+              ServiceID: x.services.ID,
+              FietsenstallingID: parkingdata.ID,
+            });
+          }
+        });
       // - Second, add new services
       newServices.forEach(s => {
         // Don't add if service is not selected
@@ -340,94 +444,104 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         });
       });
       // Create parking services in database
-      await fetch(
-        "/api/fietsenstallingen_services/create",
-        {
-          method: "POST",
-          body: JSON.stringify(servicesToSave),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await fetch("/api/fietsenstallingen_services/create", {
+        method: "POST",
+        body: JSON.stringify(servicesToSave),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
-  const updateCapaciteit = async (parkingdata: ParkingDetailsType, newCapaciteit: ParkingSections): Promise<void> => {
+  const updateCapaciteit = async (
+    parkingdata: ParkingDetailsType,
+    newCapaciteit: ParkingSections,
+  ): Promise<void> => {
     if (!newCapaciteit || newCapaciteit.length <= 0) return;
 
     try {
       // Get section to save
-      const sectionToSaveResponse = await fetch('/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID=' + parkingdata.ID);
+      const sectionToSaveResponse = await fetch(
+        "/api/fietsenstalling_sectie/findFirstByFietsenstallingsId?ID=" +
+          parkingdata.ID,
+      );
       let sectionId = undefined;
       const sectionToSave = await sectionToSaveResponse.json();
       if (null !== sectionToSave) {
         sectionId = sectionToSave.sectieId;
       } else {
-        let result = await fetch('/api/fietsenstalling_sectie/getNewSectieId');
+        let result = await fetch("/api/fietsenstalling_sectie/getNewSectieId");
         sectionId = (await result.json()).sectieId;
       }
 
       // Save capaciteit
-      await fetch('/api/fietsenstalling_sectie/saveManyFromFullObject', {
-        method: 'POST',
+      await fetch("/api/fietsenstalling_sectie/saveManyFromFullObject", {
+        method: "POST",
         body: JSON.stringify({
           parkingId: parkingdata.ID,
           sectionId: sectionId,
-          parkingSections: newCapaciteit
+          parkingSections: newCapaciteit,
         }),
         headers: {
           "Content-Type": "application/json",
-        }
-      })
+        },
+      });
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
   const parkingChanged = (update: ParkingEditUpdateStructure) => {
     try {
       const isChanged =
         Object.keys(update).length !== 0 ||
         newServices.length > 0 ||
-        newCapaciteit && newCapaciteit.length > 0 ||
+        (newCapaciteit && newCapaciteit.length > 0) ||
         newOpening !== undefined ||
-        newOpeningstijden !== undefined
+        newOpeningstijden !== undefined;
 
       return isChanged;
     } catch (ex) {
-      console.error("ParkingEdit - unable to determine if parking data has changed");
+      console.error(
+        "ParkingEdit - unable to determine if parking data has changed",
+      );
       return false;
     }
-  }
+  };
 
-  const handleRemoveParking = async (message: string = ''): Promise<boolean> => {
+  const handleRemoveParking = async (
+    message: string = "",
+  ): Promise<boolean> => {
     try {
-      if (parkingdata.Status !== 'aanm' && parkingdata.Status !== 'new') {
+      if (parkingdata.Status !== "aanm" && parkingdata.Status !== "new") {
         // Update logic for derived tables is not fully implemented!
-        throw Error('Het is niet toegestaan om een goedgekeurde stalling te verwijderen. Gebruik de knop verbergen om deze onzichtbaar te maken.')
+        throw Error(
+          "Het is niet toegestaan om een goedgekeurde stalling te verwijderen. Gebruik de knop verbergen om deze onzichtbaar te maken.",
+        );
       }
 
-      if (message !== '') {
+      if (message !== "") {
         if (!confirm(message)) return false;
       }
 
       const result1 = await fetch(
-        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" + parkingdata.ID,
-        { method: "DELETE" }
+        "/api/fietsenstallingen_services/deleteForParking?fietsenstallingId=" +
+          parkingdata.ID,
+        { method: "DELETE" },
       );
 
       const result2 = await fetch(
         "/api/fietsenstallingen?id=" + parkingdata.ID,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       if (false === result1.ok || false === result2.ok) {
-        toast("De stalling kon niet worden verwijderd.")
+        toast("De stalling kon niet worden verwijderd.");
       } else {
-        toast("De stalling is verwijderd.")
+        toast("De stalling is verwijderd.");
       }
 
       onChange();
@@ -438,7 +552,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       console.error("ParkingEdit - unable to remove parking record");
       return false;
     }
-  }
+  };
 
   const handleUpdateParking = async () => {
     try {
@@ -453,9 +567,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       const update = getUpdate();
 
       if (parkingdata.Status === "aanm") {
-        update.Status = "new"
+        update.Status = "new";
       } else if (parkingdata.Status === "new") {
-        update.Status = "1"
+        update.Status = "1";
       }
 
       if (false === parkingChanged(update)) {
@@ -472,10 +586,12 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       if (!result.ok) {
-        throw Error('Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?')
+        throw Error(
+          "Er ging iets fout bij het opslaan. Controleer of de gegevens kloppen. Is de postcode bijvoorbeeld juist, en niet te lang?",
+        );
       }
 
       // If services are updated: Update services
@@ -489,7 +605,10 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       if (session === null) {
-        toast(`Uw voorstel wordt aangemeld bij gemeente ${currentMunicipality?.name}.`, { duration: 15000, style: { minWidth: '40vw' } })
+        toast(
+          `Uw voorstel wordt aangemeld bij gemeente ${currentMunicipality?.name}.`,
+          { duration: 15000, style: { minWidth: "40vw" } },
+        );
       } else {
         toast(`De stallingsgegevens zijn opgeslagen`);
       }
@@ -502,9 +621,9 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
     }
   };
 
-  const update: ParkingEditUpdateStructure = getUpdate()
-  const isVoorstel = parkingdata?.Status === 'new'
-  const showUpdateButtons = isVoorstel || parkingChanged(update)
+  const update: ParkingEditUpdateStructure = getUpdate();
+  const isVoorstel = parkingdata?.Status === "new";
+  const showUpdateButtons = isVoorstel || parkingChanged(update);
 
   const updateCoordinatesFromMap = (lat: number, lng: number) => {
     const latlngstring = `${lat},${lng}`;
@@ -514,46 +633,51 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       setNewCoordinaten(undefined);
     }
     setCenterCoords(undefined);
-  }
+  };
 
-  const updateCoordinatesFromForm = (isLat: boolean) => (e: { target: { value: string; }; }) => {
-    try {
-      const latlng = parkingdata.Coordinaten.split(",");
-      if (isLat) {
-        latlng[0] = e.target.value;
-      } else {
-        latlng[1] = e.target.value;
+  const updateCoordinatesFromForm =
+    (isLat: boolean) => (e: { target: { value: string } }) => {
+      try {
+        const latlng = parkingdata.Coordinaten.split(",");
+        if (isLat) {
+          latlng[0] = e.target.value;
+        } else {
+          latlng[1] = e.target.value;
+        }
+        setNewCoordinaten(latlng.join(","));
+        setCenterCoords(latlng.join(","));
+      } catch (ex: any) {
+        if (ex.message) {
+          console.warn(
+            "ParkingEditLocation - unable to set coordinates from form: ",
+            ex.message(),
+          );
+        } else {
+          console.warn(
+            "ParkingEditLocation - unable to set coordinates from form",
+          );
+        }
       }
-      setNewCoordinaten(latlng.join(","));
-      setCenterCoords(latlng.join(","));
-    } catch (ex: any) {
-      if (ex.message) {
-        console.warn('ParkingEditLocation - unable to set coordinates from form: ', ex.message());
-      } else {
-        console.warn('ParkingEditLocation - unable to set coordinates from form');
-      }
-    }
-  }
+    };
 
   const getCoordinate = (isLat: boolean): string => {
     let coords = parkingdata.Coordinaten;
     if (newCoordinaten !== undefined) {
       coords = newCoordinaten;
-
     }
     if (coords === "") return "";
 
     const latlng = coords.split(",");
     if (isLat) {
-      return latlng[0]?.toString() || '';
+      return latlng[0]?.toString() || "";
     } else {
-      return latlng[1]?.toString() || '';
+      return latlng[1]?.toString() || "";
     }
-  }
+  };
 
   const renderTabAlgemeen = (visible: boolean = false) => {
     const serviceIsActive = (ID: string): boolean => {
-      const change = newServices.find(s => (s.ID === ID));
+      const change = newServices.find(s => s.ID === ID);
       if (change !== undefined) {
         return change.selected;
       }
@@ -569,7 +693,7 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       return false;
-    }
+    };
 
     const handleSelectService = (ID: string, checked: boolean) => {
       const index = newServices.findIndex(s => s.ID === ID);
@@ -580,79 +704,138 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
       }
 
       setNewServices([...newServices]);
-    }
+    };
 
     const addressValid = () => {
-      return ((parkingdata.Location !== "" || newLocation !== undefined) && (parkingdata.Plaats !== "" || newPlaats !== undefined)) ||
-        (parkingdata.Postcode !== "" || newPostcode !== undefined)
-    }
+      return (
+        ((parkingdata.Location !== "" || newLocation !== undefined) &&
+          (parkingdata.Plaats !== "" || newPlaats !== undefined)) ||
+        parkingdata.Postcode !== "" ||
+        newPostcode !== undefined
+      );
+    };
 
     const handleAddressLookup = async () => {
       let latlng = await geocodeAddress(
         newLocation !== undefined ? newLocation : parkingdata.Location,
         newPostcode !== undefined ? newPostcode : parkingdata.Postcode,
-        newPlaats !== undefined ? newPlaats : parkingdata.Plaats
+        newPlaats !== undefined ? newPlaats : parkingdata.Plaats,
       );
       if (false !== latlng) {
         setNewCoordinaten(latlng.lat + "," + latlng.lon);
         setCenterCoords(latlng.lat + "," + latlng.lon);
       } else {
-        alert("Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.");
+        alert(
+          "Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.",
+        );
       }
-    }
+    };
 
     const handleCoordinatesLookup = async () => {
-      let address = await reverseGeocode(newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten);
+      let address = await reverseGeocode(
+        newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten,
+      );
       if (address && address.address) {
-        let location = ((address.address.road || "---") + " " + (address.address.house_number || "")).trim();
+        let location = (
+          (address.address.road || "---") +
+          " " +
+          (address.address.house_number || "")
+        ).trim();
         setNewLocation(location);
         setNewPostcode(address.address.postcode);
-        const plaats = address.address.city || address.address.town || address.address.village || address.address.quarter;
+        const plaats =
+          address.address.city ||
+          address.address.town ||
+          address.address.village ||
+          address.address.quarter;
         setNewPlaats(plaats);
 
-        if ((parkingdata.Title === "" && (newTitle === "" || newTitle === undefined)) ||
+        if (
+          (parkingdata.Title === "" &&
+            (newTitle === "" || newTitle === undefined)) ||
           (newTitle && newTitle.startsWith("Nieuwe stalling")) ||
-          (!newTitle && parkingdata.Title.startsWith("Nieuwe stalling"))) {
+          (!newTitle && parkingdata.Title.startsWith("Nieuwe stalling"))
+        ) {
           setNewTitle("Nieuwe stalling " + (location + " " + plaats).trim());
         }
       } else {
-        alert("Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.");
+        alert(
+          "Er is geen locatie beschikbaar voor dit adres. U kunt de locatie handmatig aanpassen.",
+        );
       }
-    }
+    };
 
     const statusTypes = [
       { id: "0", name: "Verborgen" },
       { id: "1", name: "Actief" },
       { id: "new", name: "Voorstel" },
       { id: "aanm", name: "Voorstel" },
-    ]
+    ];
 
     return (
-      <div className="flex justify-between" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="flex justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <div data-name="content-left" className="sm:mr-12">
           <SectionBlockEdit>
-            <div className="w-full mt-4">
+            <div className="mt-4 w-full">
               <FormInput
-                key='i-title'
+                key="i-title"
                 label="Titel"
-                className="border-2 border-black mb-1 w-full"
+                className="mb-1 w-full border-2 border-black"
                 placeholder="titel"
-                onChange={e => { setNewTitle(e.target.value) }} value={newTitle !== undefined ? newTitle : parkingdata.Title}
+                onChange={e => {
+                  setNewTitle(e.target.value);
+                }}
+                value={newTitle !== undefined ? newTitle : parkingdata.Title}
               />
               <br />
               <FormInput
-                key='i-location'
+                key="i-location"
                 label="Straat en huisnummer"
-                className="border-2 border-black mb-1 w-full"
+                className="mb-1 w-full border-2 border-black"
                 placeholder="adres"
-                onChange={e => { setNewLocation(e.target.value) }} value={newLocation !== undefined ? newLocation : parkingdata.Location}
+                onChange={e => {
+                  setNewLocation(e.target.value);
+                }}
+                value={
+                  newLocation !== undefined ? newLocation : parkingdata.Location
+                }
               />
               <br />
               <>
-                <FormInput key='i-postcode' label="Postcode" className="border-2 border-black mb-1 w-full" placeholder="postcode" onChange={e => { setNewPostcode(e.target.value) }} value={newPostcode !== undefined ? newPostcode : parkingdata.Postcode} />
-                <FormInput key='i-plaats' label="Plaats" className="border-2 border-black mb-1 w-full" placeholder="plaats" onChange={e => { setNewPlaats(e.target.value) }} value={newPlaats !== undefined ? newPlaats : parkingdata.Plaats} />
-                {addressValid() &&
-                  <Button className="mr-4 mt-4" onClick={handleAddressLookup}>Toon op kaart</Button>}
+                <FormInput
+                  key="i-postcode"
+                  label="Postcode"
+                  className="mb-1 w-full border-2 border-black"
+                  placeholder="postcode"
+                  onChange={e => {
+                    setNewPostcode(e.target.value);
+                  }}
+                  value={
+                    newPostcode !== undefined
+                      ? newPostcode
+                      : parkingdata.Postcode
+                  }
+                />
+                <FormInput
+                  key="i-plaats"
+                  label="Plaats"
+                  className="mb-1 w-full border-2 border-black"
+                  placeholder="plaats"
+                  onChange={e => {
+                    setNewPlaats(e.target.value);
+                  }}
+                  value={
+                    newPlaats !== undefined ? newPlaats : parkingdata.Plaats
+                  }
+                />
+                {addressValid() && (
+                  <Button className="mr-4 mt-4" onClick={handleAddressLookup}>
+                    Toon op kaart
+                  </Button>
+                )}
               </>
               <br />
             </div>
@@ -663,19 +846,22 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           <SectionBlock heading="Services">
             <div className="flex-1">
               <div>
-                {allServices && allServices.map(service => (
-                  <div key={service.ID}>
-                    <label className="cursor-pointer hover:bg-gray-100 py-1 block">
-                      <input
-                        type="checkbox"
-                        className="inline-block mr-2"
-                        checked={serviceIsActive(service.ID)}
-                        onChange={e => handleSelectService(service.ID, e.target.checked)}
-                      />
-                      {service.Name}
-                    </label>
-                  </div>
-                ))}
+                {allServices &&
+                  allServices.map(service => (
+                    <div key={service.ID}>
+                      <label className="block cursor-pointer py-1 hover:bg-gray-100">
+                        <input
+                          type="checkbox"
+                          className="mr-2 inline-block"
+                          checked={serviceIsActive(service.ID)}
+                          onChange={e =>
+                            handleSelectService(service.ID, e.target.checked)
+                          }
+                        />
+                        {service.Name}
+                      </label>
+                    </div>
+                  ))}
               </div>
             </div>
           </SectionBlock>
@@ -683,7 +869,16 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
           <HorizontalDivider className="my-4" />
 
           <SectionBlock heading="Soort stalling">
-            <select value={newStallingType !== undefined ? newStallingType : parkingdata.fietsenstalling_type[0]?.id} onChange={(event) => { setNewStallingType(event.target.value) }}>
+            <select
+              value={
+                newStallingType !== undefined
+                  ? newStallingType
+                  : parkingdata.fietsenstalling_type[0]?.id
+              }
+              onChange={event => {
+                setNewStallingType(event.target.value);
+              }}
+            >
               {allTypes.map(type => (
                 <option key={type.id} value={type.id}>
                   {type.name}
@@ -702,89 +897,126 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
                 </option>
               ))}
             </select> */}
-            <label>{statusTypes.find(t => t.id === parkingdata.Status)?.name}</label>
+            <label>
+              {statusTypes.find(t => t.id === parkingdata.Status)?.name}
+            </label>
           </SectionBlock>
-
 
           <p className="mb-10">{/*Some spacing*/}</p>
 
           {/*<button>Breng mij hier naartoe</button>*/}
         </div>
 
-        <div data-name="content-right" className="ml-12 hidden sm:block relative">
+        <div
+          data-name="content-right"
+          className="relative ml-12 hidden sm:block"
+        >
           <div className="relative">
             <NoClickOverlay />
-            <ParkingEditLocation parkingCoords={newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} />
+            <ParkingEditLocation
+              parkingCoords={
+                newCoordinaten !== undefined
+                  ? newCoordinaten
+                  : parkingdata.Coordinaten
+              }
+              centerCoords={centerCoords}
+              onPan={updateCoordinatesFromMap}
+            />
           </div>
           <FormHelperText className="w-full pb-2">
-            <Typography className="py-2 text-center" variant="h6">Verschuif de kaart om de coordinaten aan te passen</Typography>
+            <Typography className="py-2 text-center" variant="h6">
+              Verschuif de kaart om de coordinaten aan te passen
+            </Typography>
           </FormHelperText>
           <FormInput
-            key='i-lat'
+            key="i-lat"
             label="Latitude"
             type="number"
-            className="border-2 border-black pt-2 w-full"
+            className="w-full border-2 border-black pt-2"
             placeholder="latitude"
             onChange={updateCoordinatesFromForm(true)}
             value={getCoordinate(true)}
           />
           <FormInput
-            key='i-lng'
+            key="i-lng"
             label="Longitude"
             type="number"
-            className="border-2 border-black pt-2 w-full"
+            className="w-full border-2 border-black pt-2"
             placeholder="longitude"
             onChange={updateCoordinatesFromForm(false)}
             value={getCoordinate(false)}
           />
-          {(newCoordinaten || !addressValid()) &&
-            <Button className="mt-4" onClick={handleCoordinatesLookup}>Adres opzoeken</Button>}
+          {(newCoordinaten || !addressValid()) && (
+            <Button className="mt-4" onClick={handleCoordinatesLookup}>
+              Adres opzoeken
+            </Button>
+          )}
 
-          {<FormInput
-            key='i-gemeente'
-            label="Gemeente"
-            type="text"
-            className="border-2 border-black pt-2 w-full"
-            placeholder=""
-            value={currentMunicipality ? currentMunicipality.name : ""}
-            disabled={true}
-          />}
+          {
+            <FormInput
+              key="i-gemeente"
+              label="Gemeente"
+              type="text"
+              className="w-full border-2 border-black pt-2"
+              placeholder=""
+              value={currentMunicipality ? currentMunicipality.name : ""}
+              disabled={true}
+            />
+          }
         </div>
       </div>
     );
-  }
+  };
 
   const renderTabAfbeelding = (visible: boolean = false) => {
     return (
-      <div className="flex justify-between w-full mt-10 - h-full" style={{ display: visible ? "flex" : "none" }}>
-        <ParkingEditAfbeelding parkingdata={parkingdata} onUpdateAfbeelding={onChange} />
-      </div>);
-  }
+      <div
+        className="- mt-10 flex h-full w-full justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
+        <ParkingEditAfbeelding
+          parkingdata={parkingdata}
+          onUpdateAfbeelding={onChange}
+        />
+      </div>
+    );
+  };
 
   const renderTabOpeningstijden = (visible: boolean = false) => {
-    const handlerSetNewOpening = (tijden: OpeningChangedType, Openingstijden: string): void => {
+    const handlerSetNewOpening = (
+      tijden: OpeningChangedType,
+      Openingstijden: string,
+    ): void => {
       // console.log("set new opening", tijden, Openingstijden);
       setNewOpening(tijden);
       setNewOpeningstijden(Openingstijden);
       return;
-    }
+    };
     return (
-      <div className="flex justify-between w-full mt-10" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="mt-10 flex w-full justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <ParkingEditOpening
           parkingdata={parkingdata}
           openingChanged={handlerSetNewOpening}
         />
-      </div>);
-  }
+      </div>
+    );
+  };
 
   const renderTabTarieven = (visible: boolean = false) => {
     return (
-      <div className="flex justify-between w-full mt-10" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="mt-10 flex w-full justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <ParkingViewTarief parkingdata={parkingdata} />
-      </div>);
+      </div>
+    );
 
     return (
-      <div className="flex justify-between w-full mt-10">
+      <div className="mt-10 flex w-full justify-between">
         <SectionBlockEdit>
           <div className="font-bold">Fietsen</div>
           <div className="ml-2 grid w-full grid-cols-2">
@@ -801,16 +1033,19 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         </SectionBlockEdit>
       </div>
     );
-  }
+  };
 
   const renderTabCapaciteit = (visible: boolean = false) => {
     const handlerSetNewCapaciteit = (capaciteit: ParkingSections): void => {
       setNewCapaciteit([...capaciteit]);
       return;
-    }
+    };
 
     return (
-      <div className="flex justify-between w-full mt-10" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="mt-10 flex w-full justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <SectionBlockEdit>
           <ParkingEditCapaciteit
             parkingdata={parkingdata}
@@ -820,15 +1055,19 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         </SectionBlockEdit>
       </div>
     );
-  }
+  };
 
   const renderTabAbonnementen = (visible: boolean = false) => {
     return (
-      <div className="flex justify-between w-full mt-10" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="mt-10 flex w-full justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <ParkingViewAbonnementen parkingdata={parkingdata} />
-      </div>);
+      </div>
+    );
     return (
-      <div className="flex justify-between w-full mt-10">
+      <div className="mt-10 flex w-full justify-between">
         <SectionBlockEdit>
           <div className="ml-2 grid grid-cols-3">
             <div className="col-span-2">Jaarbonnement fiets</div>
@@ -841,126 +1080,197 @@ const ParkingEdit = ({ parkingdata, onClose, onChange }: { parkingdata: ParkingD
         {/*<button>Koop abonnement</button>*/}
       </div>
     );
-  }
+  };
 
   const renderTabBeheerder = (visible: boolean = false) => {
     // TODO: uitzoeken & implementeren FMS / ExploitantID logica
-    if (parkingdata.FMS === true || !(parkingdata.ExploitantID === undefined || parkingdata.ExploitantID == null)) {
+    if (
+      parkingdata.FMS === true ||
+      !(
+        parkingdata.ExploitantID === undefined ||
+        parkingdata.ExploitantID == null
+      )
+    ) {
       return (
-        <div className="flex justify-between" style={{ display: visible ? "flex" : "none" }}>
+        <div
+          className="flex justify-between"
+          style={{ display: visible ? "flex" : "none" }}
+        >
           <div data-name="content-left" className="sm:mr-12">
             <br />
             <ParkingViewBeheerder parkingdata={parkingdata} />
             <br />
-            <h1>Wijzigen van de beheerder is op dit moment alleen mogelijk via het <a href="https://fms.veiligstallen.nl/" target="_blank" className="underline">FMS</a></h1>
+            <h1>
+              Wijzigen van de beheerder is op dit moment alleen mogelijk via het{" "}
+              <a
+                href="https://fms.veiligstallen.nl/"
+                target="_blank"
+                className="underline"
+              >
+                FMS
+              </a>
+            </h1>
           </div>
         </div>
-      )
+      );
     }
 
     return (
-      <div className="flex justify-between" style={{ display: visible ? "flex" : "none" }}>
+      <div
+        className="flex justify-between"
+        style={{ display: visible ? "flex" : "none" }}
+      >
         <div data-name="content-left" className="sm:mr-12">
           <SectionBlockEdit>
-            <div className="w-full mt-4">
-              <FormInput key='i-beheerder' label="Beheerder" className="border-2 border-black mb-1 w-full" placeholder="beheerder" onChange={e => { setNewBeheerder(e.target.value) }} value={newBeheerder !== undefined ? newBeheerder : parkingdata.Beheerder} />
-              <FormInput key='i-beheerdercontact' label="Contactgegevens Beheerder" className="border-2 border-black mb-1 w-full" placeholder="contactgegevens" onChange={e => { setNewBeheerderContact(e.target.value) }} value={newBeheerderContact !== undefined ? newBeheerderContact : parkingdata.BeheerderContact} />
+            <div className="mt-4 w-full">
+              <FormInput
+                key="i-beheerder"
+                label="Beheerder"
+                className="mb-1 w-full border-2 border-black"
+                placeholder="beheerder"
+                onChange={e => {
+                  setNewBeheerder(e.target.value);
+                }}
+                value={
+                  newBeheerder !== undefined
+                    ? newBeheerder
+                    : parkingdata.Beheerder
+                }
+              />
+              <FormInput
+                key="i-beheerdercontact"
+                label="Contactgegevens Beheerder"
+                className="mb-1 w-full border-2 border-black"
+                placeholder="contactgegevens"
+                onChange={e => {
+                  setNewBeheerderContact(e.target.value);
+                }}
+                value={
+                  newBeheerderContact !== undefined
+                    ? newBeheerderContact
+                    : parkingdata.BeheerderContact
+                }
+              />
             </div>
           </SectionBlockEdit>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   let parkingTitle = parkingdata.Title;
-  if (parkingdata.ID.substring(0, 8) === 'VOORSTEL') {
+  if (parkingdata.ID.substring(0, 8) === "VOORSTEL") {
     parkingTitle += " (voorstel)";
   }
 
-  const isLoggedIn = (session !== null);
-  const hasID = (parkingdata.ID !== "");
+  const isLoggedIn = session !== null;
+  const hasID = parkingdata.ID !== "";
 
   return (
-    <div
-      className="" style={{ minHeight: '65vh' }}
-    >
+    <div className="" style={{ minHeight: "65vh" }}>
       <div
         className="
-          sm:mr-8 flex
-          justify-between
+          flex justify-between
+          sm:mr-8
         "
       >
         <PageTitle className="flex w-full justify-center sm:justify-start">
-          <div className="mr-4 hidden sm:block">{parkingTitle || newTitle || "Nieuwe Stalling"}</div>
-          {showUpdateButtons === true && allowSave && <Button
-            key="b-1"
-            className="mt-3 sm:mt-0"
-            onClick={(e: any) => {
-              if (e) e.preventDefault();
-              handleUpdateParking();
-            }}
-          >
-            {isVoorstel ? "Accepteer voorstel" : "Opslaan"}
-          </Button>}
-          {isVoorstel && <Button
-            key="b-2"
-            className="ml-6 mt-3 sm:mt-0"
-            onClick={(e: any) => {
-              if (e) e.preventDefault();
-              handleRemoveParking("Weet u zeker dat u deze stalling wilt verwijderen? Dit kan niet ongedaan worden gemaakt!");
-            }}
-          >
-            Verwijder
-          </Button>}
-          {showUpdateButtons === true && <Button
-            key="b-3"
-            className="mt-3 ml-2 sm:mt-0"
-            variant="secundary"
-            onClick={(e: MouseEvent) => {
-              if (e) e.preventDefault();
+          <div className="mr-4 hidden sm:block">
+            {parkingTitle || newTitle || "Nieuwe Stalling"}
+          </div>
+          {showUpdateButtons === true && allowSave && (
+            <Button
+              key="b-1"
+              className="mt-3 sm:mt-0"
+              onClick={(e: any) => {
+                if (e) e.preventDefault();
+                handleUpdateParking();
+              }}
+            >
+              {isVoorstel ? "Accepteer voorstel" : "Opslaan"}
+            </Button>
+          )}
+          {isVoorstel && (
+            <Button
+              key="b-2"
+              className="ml-6 mt-3 sm:mt-0"
+              onClick={(e: any) => {
+                if (e) e.preventDefault();
+                handleRemoveParking(
+                  "Weet u zeker dat u deze stalling wilt verwijderen? Dit kan niet ongedaan worden gemaakt!",
+                );
+              }}
+            >
+              Verwijder
+            </Button>
+          )}
+          {showUpdateButtons === true && (
+            <Button
+              key="b-3"
+              className="ml-2 mt-3 sm:mt-0"
+              variant="secundary"
+              onClick={(e: MouseEvent) => {
+                if (e) e.preventDefault();
 
-              if (parkingdata?.Status === "aanm") {
-                handleRemoveParking("Weet u zeker dat u de invoer wilt afbreken? De ingevoerde gegevens worden niet opgeslagen.");
-              } else {
-                if (confirm('Wil je het bewerkformulier verlaten?')) {
-                  onClose(false);
+                if (parkingdata?.Status === "aanm") {
+                  handleRemoveParking(
+                    "Weet u zeker dat u de invoer wilt afbreken? De ingevoerde gegevens worden niet opgeslagen.",
+                  );
+                } else {
+                  if (confirm("Wil je het bewerkformulier verlaten?")) {
+                    onClose(false);
+                  }
                 }
-              }
-            }}
-          >
-            Annuleer
-          </Button>}
-          {showUpdateButtons === false && <Button
-            key="b-4"
-            className="ml-2 mt-3 sm:mt-0"
-            onClick={(e: any) => {
-              if (e) e.preventDefault();
-              onClose(false);
-            }}
-          >
-            Terug
-          </Button>}
+              }}
+            >
+              Annuleer
+            </Button>
+          )}
+          {showUpdateButtons === false && (
+            <Button
+              key="b-4"
+              className="ml-2 mt-3 sm:mt-0"
+              onClick={(e: any) => {
+                if (e) e.preventDefault();
+                onClose(false);
+              }}
+            >
+              Terug
+            </Button>
+          )}
         </PageTitle>
       </div>
 
-      <Tabs value={selectedTab} onChange={handleChange} aria-label="simple tabs example">
-        <Tab label="Algemeen" value='tab-algemeen' />
-        {hasID && <Tab label="Afbeelding" value='tab-afbeelding' />}
-        <Tab label="Openingstijden" value='tab-openingstijden' />
+      <Tabs
+        value={selectedTab}
+        onChange={handleChange}
+        aria-label="simple tabs example"
+      >
+        <Tab label="Algemeen" value="tab-algemeen" />
+        {hasID && <Tab label="Afbeelding" value="tab-afbeelding" />}
+        <Tab label="Openingstijden" value="tab-openingstijden" />
 
         {/* <Tab label="Tarieven" value='tab-tarieven'/> */}
-        {hasID && isLoggedIn && <Tab label="Capaciteit" value='tab-capaciteit' />}
-        {hasID && isLoggedIn && <Tab label="Abonnementen" value='tab-abonnementen' />}
-        {isLoggedIn && <Tab label="Beheerder" value='tab-beheerder' />}
+        {hasID && isLoggedIn && (
+          <Tab label="Capaciteit" value="tab-capaciteit" />
+        )}
+        {hasID && isLoggedIn && (
+          <Tab label="Abonnementen" value="tab-abonnementen" />
+        )}
+        {isLoggedIn && <Tab label="Beheerder" value="tab-beheerder" />}
       </Tabs>
 
-      {renderTabAlgemeen(selectedTab === 'tab-algemeen')}
-      {renderTabAfbeelding(selectedTab === 'tab-afbeelding' && hasID)}
-      {renderTabOpeningstijden(selectedTab === 'tab-openingstijden')}
-      {renderTabTarieven(selectedTab === 'tab-tarieven')}
-      {renderTabCapaciteit(selectedTab === 'tab-capaciteit' && hasID && isLoggedIn)}
-      {renderTabAbonnementen(selectedTab === 'tab-abonnementen' && hasID && isLoggedIn)}
-      {renderTabBeheerder(selectedTab === 'tab-beheerder' && isLoggedIn)}
+      {renderTabAlgemeen(selectedTab === "tab-algemeen")}
+      {renderTabAfbeelding(selectedTab === "tab-afbeelding" && hasID)}
+      {renderTabOpeningstijden(selectedTab === "tab-openingstijden")}
+      {renderTabTarieven(selectedTab === "tab-tarieven")}
+      {renderTabCapaciteit(
+        selectedTab === "tab-capaciteit" && hasID && isLoggedIn,
+      )}
+      {renderTabAbonnementen(
+        selectedTab === "tab-abonnementen" && hasID && isLoggedIn,
+      )}
+      {renderTabBeheerder(selectedTab === "tab-beheerder" && isLoggedIn)}
     </div>
   );
 };

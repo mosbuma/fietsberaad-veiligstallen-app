@@ -4,14 +4,15 @@
 // import type { User } from "next-auth";
 import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
-import { DefaultUser } from "next-auth";
+import type { User } from "next-auth";
+// import { DefaultUser } from "next-auth";
 
-export interface User extends DefaultUser {
-  OrgUserID: string | null,
-  OtherUserID: string | null,
-  org_account_type: number | null,
-  sites: string[],
-}
+// export interface User extends DefaultUser {
+//   OrgUserID: string | undefined,
+//   OtherUserID: string | null,
+//   org_account_type: number | null,
+//   sites: string[],
+// }
 
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
@@ -27,9 +28,9 @@ export const getUserFromCredentials = async (
   let account: User = {
     id: "",
     email: email.toLocaleLowerCase(),
-    OrgUserID: null,
-    OtherUserID: null,
-    org_account_type: null,
+    OrgUserID: undefined,
+    // OtherUserID: null,
+    // org_account_type: null,
     sites: [],
   };
 
@@ -41,7 +42,7 @@ export const getUserFromCredentials = async (
       validaccount = true;
       account.id = orgaccount.UserID;
       account.OrgUserID = orgaccount.UserID;
-      account.org_account_type = orgaccount.RoleID;
+      // account.org_account_type = orgaccount.RoleID;
 
       const sites = await prisma.security_users_sites.findMany({ where: { UserID: orgaccount.UserID } });
       console.log("got sites", sites);

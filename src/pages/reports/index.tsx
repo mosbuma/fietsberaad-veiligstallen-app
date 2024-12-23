@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { NextPage } from "next/types";
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from "next-auth/next"
+import { type Session } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import type { fietsenstallingen, contacts } from "@prisma/client";
 import moment from "moment";
@@ -17,7 +18,7 @@ import { createStallingtegoedReport } from "~/utils/reports/stallingtegoed";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     try {
-        const session = await getServerSession(context.req, context.res, authOptions)
+        const session = await getServerSession(context.req, context.res, authOptions) as Session
         const fietsenstallingen = await getParkingsFromDatabase([], session);
 
         return {

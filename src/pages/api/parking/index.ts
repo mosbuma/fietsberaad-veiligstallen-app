@@ -18,8 +18,8 @@ const fixFieldsForParking = (parking: fietsenstallingen) => {
       delete (parking as any)[key];
     }
   }
-  delete parking.reservationCostPerDay;
-  delete parking.wachtlijst_Id;
+  delete (parking as any).reservationCostPerDay;
+  delete (parking as any).wachtlijst_Id;
 };
 
 export default async function handle(
@@ -130,8 +130,8 @@ export default async function handle(
 
       // console.log("#### parking fixed", JSON.stringify(parking,0,2));
       res.status(200).json(parking);
-    } else {
-      // let allcapacity = [];
+      } else {
+        // let allcapacity = [];
 
 
       // const parkings = await prisma.fietsenstallingen.findMany({
