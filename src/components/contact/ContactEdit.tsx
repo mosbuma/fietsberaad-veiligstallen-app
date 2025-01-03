@@ -2,15 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { contacts, } from '@prisma/client';
 import TimeInput from './TimeInput';
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
-import SectionBlockEdit from '~/components/SectionBlockEdit';
 import { Tabs, Tab } from '@mui/material';
 import { ReportBikepark } from '../beheer/reports/ReportsFilter';
 import ContactFietsenstallingen from './ContactFietsenstallingen';
+import type { fietsenstallingtypen } from '@prisma/client';
+import FormInput from "~/components/Form/FormInput";
+import SectionBlockEdit from "~/components/SectionBlockEdit";
+import PageTitle from "~/components/PageTitle";
+import Button from '@mui/material/Button';
 
 type ContactEditProps = {
     id: string;
     contacts: contacts[];
+    fietsenstallingtypen: fietsenstallingtypen[]; 
     onClose: () => void;
+    onEditStalling: (stallingID: string | undefined) => void;
+    hidden: boolean;
 }
 
 // add a serverside call that gets all stallingen for the contact
@@ -129,7 +136,7 @@ const ContactEdit = (props: ContactEditProps) => {
         );
       };
     
-      const handleSave = async () => {
+      const handleUpdateParking = async () => {
         if (!organisatie || !postcodeID || !dagstart || !coordinaten || !initialzoom) {
           alert("Organisatie, Postcode ID, Dagstart, Coordinaten and Initialzoom cannot be empty.");
           return;
@@ -251,108 +258,170 @@ const ContactEdit = (props: ContactEditProps) => {
         setSelectedTab(newValue);
       };
 
+      const handleClose = (close: boolean) => {
+        console.log("handleClose", close);
+      };
+
+      const handleRemoveParking = (message: string) => {
+        console.log("handleRemoveParking", message);
+      };
+
+      const renderTopBar = (currentContact: contacts | undefined) => {
+        const parkingTitle: string = currentContact ? "Gemeente " + currentContact?.CompanyName : "Nieuwe gemeente";
+        const showUpdateButtons: boolean = true;
+        const allowSave: boolean = true;
+        return (
+            <PageTitle className="flex w-full justify-center sm:justify-start">
+              <div className="mr-4 hidden sm:block">
+                {parkingTitle}
+              </div>
+              {showUpdateButtons === true && allowSave && (
+                <Button
+                  key="b-1"
+                  className="mt-3 sm:mt-0"
+                  onClick={(e: any) => {
+                    if (e) e.preventDefault();
+                    handleUpdateParking();
+                  }}
+                >
+                  Opslaan
+                </Button>
+              )}
+              <Button
+                key="b-2"
+                className="ml-6 mt-3 sm:mt-0"
+                onClick={(e: any) => {
+                  if (e) e.preventDefault();
+                  handleRemoveParking(
+                    "Weet u zeker dat u deze gemeente wilt verbergen?",
+                  );
+                }}
+              >
+                Verberg
+              </Button>
+              {showUpdateButtons === true && (
+                <Button
+                  key="b-3"
+                  className="ml-2 mt-3 sm:mt-0"
+                  onClick={(e: any) => {
+                    if (e) e.preventDefault();
+    
+                    if (confirm("Wil je het bewerkformulier verlaten?")) {
+                      props.onClose();
+                    }
+                  }}
+                >
+                  Annuleer
+                </Button>
+              )}
+              {showUpdateButtons === false && (
+                <Button
+                  key="b-4"
+                  className="ml-2 mt-3 sm:mt-0"
+                  onClick={(e: any) => {
+                    if (e) e.preventDefault();
+                    props.onClose();
+                  }}
+                >
+                  Terug
+                </Button>
+              )}
+            </PageTitle>
+        );
+      };
+
       const thecontact: contacts | undefined = props.contacts.find(c => c.ID === props.id);
       console.log("#### thecontact", thecontact);
 
+      /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
     return (
-        <div data-name="content-left" className="sm:mr-12" style={{ minHeight: '87vh' }}>
-          <SectionBlockEdit>
-            <div className="w-full mt-4">
-              <h1 className="text-2xl font-bold mb-4">{props.id==="nieuw" ? "Nieuwe gemeente" : "Bewerk gemeente"}</h1>
-              <Tabs value={selectedTab} onChange={handleChange} aria-label="simple tabs example">
-                <Tab label="Algemeen" value="tab-algemeen" />
-                <Tab label="Coordinaten" value="tab-coordinaten" />
-                <Tab label="Fietsenstallingen" value="tab-fietsenstallingen" />
-              </Tabs>
-              {selectedTab === "tab-algemeen" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border px-4 py-2">Naam:</div>
-                  <div className="border px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={organisatie} 
-                      onChange={(e) => setOrganisatie(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="border px-4 py-2">Alternatieve naam:</div>
-                  <div className="border px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={alternatieveNaam} 
-                      onChange={(e) => setAlternatieveNaam(e.target.value)} 
-                    />
-                  </div>
-                  <div className="border px-4 py-2">URL vriendelijke naam:</div>
-                  <div className="border px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={urlVriendelijkeNaam} 
-                      onChange={(e) => setUrlVriendelijkeNaam(e.target.value)} 
-                    />
-                  </div>
-                  <div className="border px-4 py-2">Postcode ID:</div>
-                  <div className="border px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={postcodeID} 
-                      onChange={(e) => setPostcodeID(e.target.value)} 
-                    />
-                  </div>
-                  <div className="border px-4 py-2">Email helpdesk:</div>
-                  <div className="border px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={emailHelpdesk} 
-                      onChange={(e) => setEmailHelpdesk(e.target.value)} 
-                    />
-                  </div>
-                  <div className="border px-4 py-2">Dagstart:</div>
-                  <div className="border px-4 py-2">
-                    <TimeInput 
-                      value={dagstart} 
-                      onChange={(newDate: Date) => setDagstart(newDate)} 
-                    />
-                  </div>
-                </div>
-              )}
-              {selectedTab === "tab-coordinaten" && (
-                <div className="border px-4 py-2">
-                  <ParkingEditLocation parkingCoords={coordinaten !== undefined ? coordinaten : initialData.coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} initialZoom={8} />
-                </div>
-              )}
-              {selectedTab === "tab-fietsenstallingen" && (
-                <div className="border px-4 py-2">
-                  <ContactFietsenstallingen contact={thecontact} />
-                </div>
-              )}
-            </div>
-          </SectionBlockEdit>
-          
-          <div className="mt-4">
-            <button 
-              className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleSave}
-              disabled={!isDataChanged()}
-            >
-              Opslaan
-            </button>
-            <button 
-              className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleReset}
-              disabled={!isDataChanged()}
-            >
-              Herstel
-            </button>
-            <button 
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => props.onClose()}
-            >
-              Back to Overview
-            </button>
-          </div>
+      <div className={`${props.hidden ? "hidden" : ""}`} style={{ minHeight: "65vh" }}>
+      <div
+        className="
+          flex justify-between
+          sm:mr-8
+        "
+      >        
+        { renderTopBar(thecontact) }
         </div>
-    );
+            <Tabs value={selectedTab} onChange={handleChange} aria-label="Edit contact">
+              <Tab label="Algemeen" value="tab-algemeen" />
+              <Tab label="Coordinaten" value="tab-coordinaten" />
+              <Tab label="Fietsenstallingen" value="tab-fietsenstallingen" />
+            </Tabs>
+            {selectedTab === "tab-algemeen" && (
+              <div className="mt-4 w-full">
+                  <FormInput 
+                    label="Naam"
+                    value={organisatie} 
+                    onChange={(e) => setOrganisatie(e.target.value)} 
+                    required 
+                  />
+                  <br />
+                  <FormInput 
+                    label="Alternatieve naam"
+                    value={alternatieveNaam} 
+                    onChange={(e) => setAlternatieveNaam(e.target.value)} 
+                  />
+                  <br />
+                  <FormInput 
+                    label="URL vriendelijke naam"
+                    value={urlVriendelijkeNaam} 
+                    onChange={(e) => setUrlVriendelijkeNaam(e.target.value)} 
+                  />
+                  <br />
+                  <FormInput 
+                    label="Postcode ID"
+                    value={postcodeID} 
+                    onChange={(e) => setPostcodeID(e.target.value)} 
+                  />
+                  <br />
+                  <FormInput 
+                    label="Email helpdesk"
+                    value={emailHelpdesk} 
+                    onChange={(e) => setEmailHelpdesk(e.target.value)} 
+                  />
+                  <br />
+                  <TimeInput 
+                    value={dagstart} 
+                    onChange={(newDate: Date) => setDagstart(newDate)} 
+                  />
+              </div>
+            )}
+            {selectedTab === "tab-coordinaten" && (
+              <div className="border px-4 py-2">
+                <ParkingEditLocation parkingCoords={coordinaten !== undefined ? coordinaten : initialData.coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} initialZoom={8} />
+              </div>
+            )}
+            {selectedTab === "tab-fietsenstallingen" && (
+              <div className="border px-4 py-2">
+                <ContactFietsenstallingen contact={thecontact} fietsenstallingtypen={props.fietsenstallingtypen} onEditStalling={props.onEditStalling} />
+              </div>
+            )}        
+        {/* <div className="mt-4">
+          <button 
+            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handleUpdateParking}
+            disabled={!isDataChanged()}
+          >
+            Opslaan
+          </button>
+          <button 
+            className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handleReset}
+            disabled={!isDataChanged()}
+          >
+            Herstel
+          </button>
+          <button 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => props.onClose()}
+          >
+            Back to Overview
+          </button>
+        </div> */}
+      </div>
+  );
 };
 
 export default ContactEdit;

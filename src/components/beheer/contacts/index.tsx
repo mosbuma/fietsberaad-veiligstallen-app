@@ -1,24 +1,55 @@
 import React, { useEffect, useState } from 'react';
 
-import { useRouter } from 'next/router';
+import router, { useRouter } from 'next/router';
 import { contacts, fietsenstallingen } from '@prisma/client';
 import Overlay from '~/components/Overlay';
 import Modal from '~/components/Modal';
 import ContactEdit from "~/components/contact/ContactEdit";
-import { ReportBikepark } from '../reports/ReportsFilter';
+import type { fietsenstallingtypen } from '@prisma/client';
+import ParkingEdit from '~/components/parking/ParkingEdit';
+
+import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
+import { type ParkingDetailsType } from "~/types/";
+
 
 type ContactsComponentProps = { 
   contacts: contacts[]
-  fietsenstallingen: ReportBikepark[]
+  fietsenstallingtypen: fietsenstallingtypen[]  
   type: "organizations" | "exploitants" | "dataproviders" | "admins"
 };
 
 const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
   const router = useRouter();
 
-  const { contacts, fietsenstallingen, type} = props;
+  const { contacts, fietsenstallingtypen, type} = props;
 
   const [currentContact, setCurrentContact] = useState<contacts | undefined>(undefined);
+
+  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
+  const [currentRevision, setCurrentRevision] = useState<number>(0);
+  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
+
+  useEffect(() => {
+    if (currentStallingId !== undefined) {
+      if(currentStalling === undefined || currentStalling?.ID !== currentStallingId) {
+        getParkingDetails(currentStallingId).then((stalling) => {
+          if (null !== stalling) {
+            setCurrentStalling(stalling);
+          } else {
+            console.error("Failed to load stalling with ID: " + currentStallingId);
+            setCurrentStalling(undefined);
+          }
+        });
+      }
+    } else {
+      if(currentStalling !== undefined) {
+        setCurrentStalling(undefined);
+      } 
+    }
+  }, [
+    currentStallingId,
+    currentRevision
+  ]);
 
   useEffect(() => {
     // get the id from the url
@@ -91,45 +122,75 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
     );
   };
 
-  const isSm = false;
+  const renderEdit = (isSm: boolean = false) => {
+    const showStallingEdit = currentStalling !== undefined;
+    const showContactEdit = showStallingEdit || currentContact?.ID !== undefined;
 
-  console.log("currentContact", currentContact);
-  return (
-    <>
-      {currentContact?.ID !== undefined && isSm && (
-        <>
+    if(!showStallingEdit && !showContactEdit) {
+      return null;
+    }
+
+    const handleOnClose = (verbose: boolean = false) => {
+      if (verbose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
+        return;
+      }
+        
+      if(showStallingEdit) {
+        setCurrentStallingId(undefined);
+      } else if(showContactEdit) {
+        setCurrentContact(undefined);
+      } 
+    }
+
+    let content: React.ReactNode = (
+      <>
+        { currentStalling && showStallingEdit && (
+          <ParkingEdit 
+            parkingdata={currentStalling} 
+            onClose={() => setCurrentStallingId(undefined)} 
+            onChange={() => { setCurrentRevision(currentRevision + 1); }} 
+          />
+        )}
+        { currentContact && showContactEdit && (
+          <ContactEdit 
+            contacts={contacts} 
+            fietsenstallingtypen={fietsenstallingtypen}
+            id={currentContact.ID} 
+            onClose={() => setCurrentContact(undefined)} 
+            onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
+            hidden={showStallingEdit}
+          />
+        )}
+      </>
+    );
+
+    if(isSm) {
+      return (
         <Overlay
-          title={currentContact.CompanyName || ""}
-          onClose={() => setCurrentContact(undefined)}
+          title={currentStalling?.Title || currentContact?.CompanyName || ""}
+          onClose={() => handleOnClose()}
         >
-          <ContactEdit 
-            contacts={contacts} 
-            id={currentContact.ID} 
-            onClose={() => setCurrentContact(undefined)} 
-          />
+          { content }
         </Overlay>
-      </>)}
-
-      {currentContact?.ID && !isSm && (<>
+      )
+    } else {
+      return (
         <Modal
-          onClose={() => setCurrentContact(undefined)}
+          onClose={() => handleOnClose()}
           clickOutsideClosesDialog={false}
-        >
-          <ContactEdit 
-            contacts={contacts} 
-            id={currentContact.ID} 
-            onClose={() => setCurrentContact(undefined)} 
-          />
-          </Modal>
-      </>)}
-
-      { renderOverview() }
-    </>
-    
-  );
-
-  return null;
-
+          >
+          { content }
+        </Modal>
+      )
+    }
+  }
+  
+  const isSm = false;
+  if(currentStalling !== undefined || currentContact !== undefined) {
+    return renderEdit(isSm);
+  } else {
+    return renderOverview();
+  }
 };
 
 export default ContactsComponent;

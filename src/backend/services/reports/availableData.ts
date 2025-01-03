@@ -59,7 +59,7 @@ export const getSQLDetailed = (reportType: ReportType, bikeparkIDs: string[], st
           `COUNT(*) AS total ` +
           `FROM ${false===useCache ? 'bezettingsdata b' : 'bezettingsdata_day_hour_cache'} ` +
           `WHERE bikeparkID IN ( ? ) ` +
-          `AND checkoutdate BETWEEN ? AND ? ` +
+          `AND timestamp BETWEEN ? AND ? ` +
           `GROUP BY bikeparkID, yearmonth ` + 
           `ORDER BY bikeparkID, yearmonth `
 
@@ -70,7 +70,7 @@ export const getSQLDetailed = (reportType: ReportType, bikeparkIDs: string[], st
           ];
             
           const sqlfilledin = interpolateSQL(sql, queryParams);
-        return sqlfilledin;
+          return sqlfilledin;
         }
         case "abonnementen":
         case "abonnementen_lopend":

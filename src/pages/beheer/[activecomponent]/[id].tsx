@@ -35,14 +35,10 @@ import UsersComponent from '../../../components/beheer/users';
 import DatabaseComponent from '../../../components/beheer/database';
 
 import { prisma } from '~/server/db';
-import { Prisma, contacts, security_users, security_roles } from '@prisma/client';
+import { Prisma  } from '@prisma/client';
+import type {contacts, security_users, security_roles, fietsenstallingtypen} from '@prisma/client';
 
-// export type Contact = {
-//   ID: string;
-//   Title: string;
-//   contactpersoon: string;
-//   modules: string[];
-// };
+import Styles from "~/pages/content.module.css";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
@@ -50,6 +46,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   //   return {};
   // }
   const currentUser = session?.user || false;
+
+  const fietsenstallingtypen = await prisma.fietsenstallingtypen.findMany({
+    select: {
+      id: true,
+      name: true,
+      sequence: true
+    }
+  });
 
   const activeGemeenten = await prisma.contacts.findMany({
     where: { ItemType: 'organizations', ID: { in: currentUser?.sites || [] } },
@@ -76,11 +80,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ItemType: true,
       Gemeentecode: true,
       ZipID: true,
-      // fietsenstallingen_fietsenstallingen_SiteIDTocontacts:
-      //   { select: {
-      //       ID: true,
-      //       StallingsID: true,
-      //       Title: true } }
+      fietsenstallingen_fietsenstallingen_SiteIDTocontacts:
+        { select: {
+            ID: true,
+            StallingsID: true,
+            Title: true,
+            Type: true}
+        }
     },
   };
   // if(filter.where!==undefined) {
@@ -129,10 +135,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
 
   const roles = await prisma.security_roles.findMany({});
+  if(currentUser) {
   if(currentUser.image === undefined) {
+    console.log("current user", currentUser);
     currentUser.image = "/images/user.png";
+    }
+  }else {
+    console.log("no current user");
   }
-  return { props: { currentUser, gemeenten, activeContacts, bikeparks, users, roles } };
+  return { props: { currentUser, gemeenten, activeContacts, bikeparks, users, roles, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
@@ -143,9 +154,10 @@ export type BeheerPageProps = {
   selectedGemeenteID?: string;
   users?: security_users[];
   roles?: security_roles[];
+  fietsenstallingtypen?: fietsenstallingtypen[];
 };
 
-const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, gemeenten, bikeparks, users, roles }) => {
+const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, gemeenten, bikeparks, users, roles, fietsenstallingtypen }) => {
 
   const router = useRouter();
 
@@ -227,6 +239,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
           break;
         case "export":
           selectedComponent = <ExportComponent
+              gemeenteID={selectedGemeenteID}
+              gemeenteName={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.CompanyName || ""}
               firstDate={firstDate}
               lastDate={lastDate}
               bikeparks={filteredBikeparks || []}
@@ -239,7 +253,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
           selectedComponent = (
             <ContactsComponent
               contacts={activeContacts || []}
-              fietsenstallingen={bikeparks || []}
+              fietsenstallingtypen={fietsenstallingtypen || []}
               type="organizations"
             />
           );
@@ -353,7 +367,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
         />
 
         {/* Main Content */}
-        <div className="flex-1 p-4 overflow-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+        <div className={`flex-1 p-4 overflow-auto ${Styles.ContentPage_Body}`} style={{ maxHeight: 'calc(100vh - 64px)' }}>
           {renderComponent()}
         </div>
       </div>

@@ -1244,7 +1244,7 @@ const ParkingEdit = ({
       <Tabs
         value={selectedTab}
         onChange={handleChange}
-        aria-label="simple tabs example"
+        aria-label="Edit parking"
       >
         <Tab label="Algemeen" value="tab-algemeen" />
         {hasID && <Tab label="Afbeelding" value="tab-afbeelding" />}
