@@ -85,17 +85,17 @@ const ParkingViewCapaciteit = ({ parkingdata }: { parkingdata: ParkingDetailsTyp
         return null;
       } else if (detail.Toegestaan === false) {
         return (
-          <>
-            <div key={key + "-1"} className="">{key}</div>
+          <React.Fragment key={key + "-1"}>
+            <div className="">{key}</div>
             <div className="text-right">Niet toegestaan</div>
-          </>
+          </React.Fragment >
         );
       } else if ((detail.Capaciteit || 0) > 0) {
         return (
-          <>
-            <div key={key + "-2"} className="">{key}</div>
+          <React.Fragment key={key + "-2"}>
+            <div className="">{key}</div>
             <div className="text-right">{detail.Capaciteit}</div>
-          </>
+          </React.Fragment>
         );
       } else {
         return null;

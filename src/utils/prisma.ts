@@ -3,7 +3,6 @@ import { prisma } from "~/server/db";
 import { Session } from "next-auth";
 
 const getParkingsFromDatabase = async (sites: any, session: Session | null = null) => {
-
   let fietsenstallingen;
 
   let wherefilter = {};
@@ -16,53 +15,58 @@ const getParkingsFromDatabase = async (sites: any, session: Session | null = nul
   if (sites.length === 0) {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: wherefilter,
+      include: {
+        uitzonderingenopeningstijden: true
+      }
     });
   } else {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: {
-        OR: [{
-          // Status: "1",
-          // Plaats: {
-          //   not: "",
-          // },
-          SiteID: { in: sites },
-        },
-        {
-          Status: "new"
-        },
+        OR: [
+          {
+            SiteID: { in: sites },
+          },
+          {
+            Status: "new"
+          },
         ]
+      },
+      include: {
+        uitzonderingenopeningstijden: true
       }
     });
   }
 
-  fietsenstallingen.forEach((stalling: any) => {
-    Object.entries(stalling).forEach(([key, prop]) => {
+  // Helper function to process Date and other special types
+  const processSpecialTypes = (obj: any) => {
+    Object.entries(obj).forEach(([key, prop]) => {
       if (prop instanceof Date) {
-        stalling[key] = new Date(stalling[key]).toISOString();
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling[key]})}`
-        // );
+        obj[key] = new Date(obj[key]).toISOString();
       }
       if (prop instanceof BigInt) {
-        stalling[key] = stalling.toString();
-        // console.log(
-        //   `@@@@ convert ${key} [${typeof prop}] to ${stalling.toString()})}`
-        // );
+        obj[key] = obj[key].toString();
       }
       if (prop instanceof Prisma.Decimal) {
-        // stalling[key] = stalling.toString();
-        // console.log(
-        //   `@@@@ delete ${key} [${typeof prop}]`
-        // );
-        delete stalling[key];
+        delete obj[key];
       }
     });
+    return obj;
+  };
+
+  fietsenstallingen.forEach((stalling: any) => {
+    // Process main stalling object
+    processSpecialTypes(stalling);
+
+    // Process each uitzonderingenopeningstijden item
+    if (stalling.uitzonderingenopeningstijden) {
+      stalling.uitzonderingenopeningstijden = stalling.uitzonderingenopeningstijden.map(
+        (uitzondering: any) => processSpecialTypes(uitzondering)
+      );
+    }
 
     delete stalling.reservationCostPerDay;
     delete stalling.wachtlijst_Id;
   });
-
-  // fietsenstallingen.filter((x: any) => x.Plaats !== "");
 
   return fietsenstallingen;
 };

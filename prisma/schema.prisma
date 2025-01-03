@@ -1,11 +1,11 @@
 generator client {
-    provider      = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 // model abonnementen {
@@ -53,44 +53,44 @@ datasource db {
 // }
 
 model abonnementsvorm_fietsenstalling {
-    SubscriptiontypeID Int
-    BikeparkID         String @db.VarChar(35)
+  SubscriptiontypeID Int
+  BikeparkID         String @db.VarChar(35)
 
-    abonnementsvormen abonnementsvormen? @relation(fields: [SubscriptiontypeID], references: [ID])
-    fietsenstallingen fietsenstallingen? @relation(fields: [BikeparkID], references: [ID])
+  abonnementsvormen abonnementsvormen? @relation(fields: [SubscriptiontypeID], references: [ID])
+  fietsenstallingen fietsenstallingen? @relation(fields: [BikeparkID], references: [ID])
 
-    @@unique([SubscriptiontypeID, BikeparkID], map: "SubscriptiontypeID")
+  @@unique([SubscriptiontypeID, BikeparkID], map: "SubscriptiontypeID")
 }
 
 model abonnementsvormen {
-    ID                     Int      @id @default(autoincrement())
-    naam                   String?  @db.VarChar(255)
-    omschrijving           String?  @db.LongText
-    prijs                  Decimal? @db.Decimal(8, 2)
-    tijdsduur              Int?
-    conditions             String?  @db.Text
-    siteID                 String?  @db.VarChar(36)
-    bikeparkTypeID         String?  @db.VarChar(15)
-    isActief               Boolean  @default(dbgenerated("b'1'")) @db.Bit(1)
-    exploitantSiteID       String?  @db.VarChar(36)
-    idmiddelen             String   @default("sleutelhanger") @db.VarChar(40)
-    contractID             String?  @db.VarChar(35)
-    paymentAuthorizationID String?  @db.VarChar(35)
-    conditionsID           String?  @db.VarChar(255)
+  ID                     Int      @id @default(autoincrement())
+  naam                   String?  @db.VarChar(255)
+  omschrijving           String?  @db.LongText
+  prijs                  Decimal? @db.Decimal(8, 2)
+  tijdsduur              Int?
+  conditions             String?  @db.Text
+  siteID                 String?  @db.VarChar(36)
+  bikeparkTypeID         String?  @db.VarChar(15)
+  isActief               Boolean  @default(dbgenerated("b'1'")) @db.Bit(1)
+  exploitantSiteID       String?  @db.VarChar(36)
+  idmiddelen             String   @default("sleutelhanger") @db.VarChar(40)
+  contractID             String?  @db.VarChar(35)
+  paymentAuthorizationID String?  @db.VarChar(35)
+  conditionsID           String?  @db.VarChar(255)
 
-    // abonnementen                    abonnementen[]
-    abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
-    abonnementsvorm_fietstype       abonnementsvorm_fietstype[]
+  // abonnementen                    abonnementen[]
+  abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+  abonnementsvorm_fietstype       abonnementsvorm_fietstype[]
 }
 
 model abonnementsvorm_fietstype {
-    SubscriptiontypeID Int
-    BikeTypeID         Int
+  SubscriptiontypeID Int
+  BikeTypeID         Int
 
-    abonnementsvorm abonnementsvormen @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_av")
-    fietstype       fietstypen        @relation(fields: [SubscriptiontypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_ft")
+  abonnementsvorm abonnementsvormen @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_av")
+  fietstype       fietstypen        @relation(fields: [SubscriptiontypeID], references: [ID], onDelete: NoAction, onUpdate: Restrict, map: "FK_avft_ft")
 
-    @@unique([SubscriptiontypeID, BikeTypeID], map: "prismaID")
+  @@unique([SubscriptiontypeID, BikeTypeID], map: "prismaID")
 }
 
 // model account_transacties {
@@ -113,38 +113,38 @@ model abonnementsvorm_fietstype {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model accounts {
-    ID                  String                 @id @default("") @db.VarChar(35)
-    Email               String?                @unique(map: "Email_2") @db.VarChar(100)
-    EncryptedPassword   String?                @db.VarChar(60)
-    Sex                 String?                @db.VarChar(10)
-    FirstName           String?                @db.VarChar(100)
-    MiddleName          String?                @db.VarChar(50)
-    LastName            String?                @db.VarChar(100)
-    Address             String?                @db.VarChar(255)
-    Address_Nr          String?                @db.VarChar(10)
-    Zip                 String?                @db.VarChar(10)
-    City                String?                @db.VarChar(100)
-    Phone               String?                @db.VarChar(50)
-    Mobile              String?                @db.VarChar(50)
-    Nieuwsbrief         String?                @db.VarChar(4)
-    Status              String?                @default("1") @db.VarChar(4)
-    DateRegistration    DateTime?              @db.DateTime(0)
-    LastLogin           DateTime?              @db.DateTime(0)
-    DateDeleted         DateTime?              @db.DateTime(0)
-    // WinkansInzetMehode  accounts_WinkansInzetMehode? @default(AUTO)
-    saldo               Decimal?               @default(0.00) @db.Decimal(10, 2)
-    account_type        accounts_account_type? @default(USER)
-    dateLastSaldoUpdate DateTime?              @db.Timestamp(0)
-    dateLastPrize       DateTime?              @db.DateTime(0)
-    nameLastPrize       String?                @db.VarChar(255)
-    // abonnementen        abonnementen[]
+  ID                  String                 @id @default("") @db.VarChar(35)
+  Email               String?                @unique(map: "Email_2") @db.VarChar(100)
+  EncryptedPassword   String?                @db.VarChar(60)
+  Sex                 String?                @db.VarChar(10)
+  FirstName           String?                @db.VarChar(100)
+  MiddleName          String?                @db.VarChar(50)
+  LastName            String?                @db.VarChar(100)
+  Address             String?                @db.VarChar(255)
+  Address_Nr          String?                @db.VarChar(10)
+  Zip                 String?                @db.VarChar(10)
+  City                String?                @db.VarChar(100)
+  Phone               String?                @db.VarChar(50)
+  Mobile              String?                @db.VarChar(50)
+  Nieuwsbrief         String?                @db.VarChar(4)
+  Status              String?                @default("1") @db.VarChar(4)
+  DateRegistration    DateTime?              @db.DateTime(0)
+  LastLogin           DateTime?              @db.DateTime(0)
+  DateDeleted         DateTime?              @db.DateTime(0)
+  // WinkansInzetMehode  accounts_WinkansInzetMehode? @default(AUTO)
+  saldo               Decimal?               @default(0.00) @db.Decimal(10, 2)
+  account_type        accounts_account_type? @default(USER)
+  dateLastSaldoUpdate DateTime?              @db.Timestamp(0)
+  dateLastPrize       DateTime?              @db.DateTime(0)
+  nameLastPrize       String?                @db.VarChar(255)
+  // abonnementen        abonnementen[]
 
-    @@index([dateLastSaldoUpdate], map: "dateLastSaldoUpdate")
-    @@index([saldo], map: "saldo")
-    @@index([Email], map: "Email")
-    @@index([EncryptedPassword], map: "EncryptedPassword")
-    @@index([LastName], map: "LastName")
-    @@index([account_type], map: "account_type")
+  @@index([dateLastSaldoUpdate], map: "dateLastSaldoUpdate")
+  @@index([saldo], map: "saldo")
+  @@index([Email], map: "Email")
+  @@index([EncryptedPassword], map: "EncryptedPassword")
+  @@index([LastName], map: "LastName")
+  @@index([account_type], map: "account_type")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -188,30 +188,30 @@ model accounts {
 // }
 
 model articles {
-    ID                 String    @id @default("") @db.VarChar(35)
-    SiteID             String?   @db.VarChar(35)
-    Language           String?   @db.VarChar(25)
-    ParentID           String?   @db.VarChar(35)
-    Title              String?   @db.VarChar(100)
-    DisplayTitle       String?   @db.VarChar(100)
-    Abstract           String?   @db.Text
-    Article            String?   @db.Text
-    CustomField1_Title String?   @db.VarChar(255)
-    CustomField1       String?   @db.Text
-    Banner             String?   @db.VarChar(255)
-    Keywords           String?   @db.Text
-    SortOrder          Int?
-    PublishStartDate   DateTime? @db.DateTime(0)
-    PublishEndDate     DateTime? @db.DateTime(0)
-    Status             String?   @default("1") @db.VarChar(4)
-    Navigation         String?   @db.VarChar(50)
-    ShowInNav          String?   @db.VarChar(4)
-    System             String?   @default("0") @db.VarChar(4)
-    EditorCreated      String?   @db.VarChar(255)
-    DateCreated        DateTime? @db.DateTime(0)
-    EditorModified     String?   @db.VarChar(255)
-    DateModified       DateTime? @db.DateTime(0)
-    ModuleID           String    @default("veiligstallen") @db.VarChar(50)
+  ID                 String    @id @default("") @db.VarChar(35)
+  SiteID             String?   @db.VarChar(35)
+  Language           String?   @db.VarChar(25)
+  ParentID           String?   @db.VarChar(35)
+  Title              String?   @db.VarChar(100)
+  DisplayTitle       String?   @db.VarChar(100)
+  Abstract           String?   @db.Text
+  Article            String?   @db.Text
+  CustomField1_Title String?   @db.VarChar(255)
+  CustomField1       String?   @db.Text
+  Banner             String?   @db.VarChar(255)
+  Keywords           String?   @db.Text
+  SortOrder          Int?
+  PublishStartDate   DateTime? @db.DateTime(0)
+  PublishEndDate     DateTime? @db.DateTime(0)
+  Status             String?   @default("1") @db.VarChar(4)
+  Navigation         String?   @db.VarChar(50)
+  ShowInNav          String?   @db.VarChar(4)
+  System             String?   @default("0") @db.VarChar(4)
+  EditorCreated      String?   @db.VarChar(255)
+  DateCreated        DateTime? @db.DateTime(0)
+  EditorModified     String?   @db.VarChar(255)
+  DateModified       DateTime? @db.DateTime(0)
+  ModuleID           String    @default("veiligstallen") @db.VarChar(50)
 }
 
 // model articles_templates {
@@ -384,94 +384,94 @@ model articles {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model contacts {
-    ID                         String              @id @default("") @db.VarChar(35)
-    ItemType                   String?             @db.VarChar(20)
-    GroupID                    String?             @db.VarChar(20)
-    ParentID                   String?             @db.VarChar(35)
-    ZipID                      String?             @unique(map: "ZipID") @db.VarChar(4)
-    Gemeentecode               Int?
-    Paslezer                   String?             @db.VarChar(20)
-    PassRange_validate         String?             @db.VarChar(4)
-    PassRange_start            BigInt?
-    PassRange_end              BigInt?
-    LockNGo                    String?             @db.VarChar(4)
-    Helpdesk                   String?             @default("") @db.VarChar(255)
-    CompanyName                String?             @db.VarChar(100)
-    AlternativeCompanyName     String?             @db.VarChar(100)
-    UrlName                    String?             @unique(map: "UrlName") @db.VarChar(100)
-    CompanyLogo                String?             @db.VarChar(255)
-    CompanyLogo2               String?             @db.VarChar(255)
-    Department                 String?             @db.VarChar(255)
-    JobTitle                   String?             @db.VarChar(255)
-    Sex                        String?             @db.VarChar(10)
-    Title                      String?             @db.VarChar(100)
-    Initials                   String?             @db.VarChar(100)
-    FirstName                  String?             @db.VarChar(255)
-    MiddleName                 String?             @db.VarChar(50)
-    LastName                   String?             @db.VarChar(255)
-    Address1                   String?             @db.VarChar(255)
-    Address2                   String?             @db.VarChar(255)
-    Zip1                       String?             @db.VarChar(10)
-    Zip2                       String?             @db.VarChar(10)
-    City1                      String?             @db.VarChar(255)
-    City2                      String?             @db.VarChar(255)
-    Country1                   String?             @db.VarChar(50)
-    Country2                   String?             @db.VarChar(50)
-    Phone1                     String?             @db.VarChar(50)
-    Phone2                     String?             @db.VarChar(50)
-    Mobile1                    String?             @db.VarChar(50)
-    Mobile2                    String?             @db.VarChar(50)
-    Fax1                       String?             @db.VarChar(50)
-    Fax2                       String?             @db.VarChar(50)
-    Email1                     String?             @db.VarChar(255)
-    Email2                     String?             @db.VarChar(255)
-    URL                        String?             @db.VarChar(255)
-    Notes                      String?             @db.Text
-    Status                     String?             @default("1") @db.VarChar(4)
-    Status_website             String?             @db.VarChar(4)
-    DateRegistration           DateTime?           @db.DateTime(0)
-    DateConfirmed              DateTime?           @db.DateTime(0)
-    DateRejected               DateTime?           @db.DateTime(0)
-    Winkansen_inzetten         String?             @db.VarChar(4)
-    SendEmailOnSaldo           Decimal?            @db.Decimal(8, 2)
-    MinSaldoToUseLockers       Decimal?            @db.Decimal(8, 2)
-    MinSaldoToOpenLocker       Decimal?            @db.Decimal(8, 2)
-    Bankrekeningnr             String?             @db.VarChar(50)
-    PlaatsBank                 String?             @db.VarChar(100)
-    Tnv                        String?             @db.VarChar(100)
-    Coordinaten                String?             @db.VarChar(100)
-    Zoom                       Int                 @default(12)
-    TextLeftColumn             String?             @db.Text
-    TextRightColumn            String?             @db.Text
-    DayBeginsAt                DateTime            @default(dbgenerated("'00:00:00'")) @db.Time(0)
-    ThemeColor1                String              @default("1f99d2") @db.VarChar(6)
-    ThemeColor2                String              @default("96c11f") @db.VarChar(6)
-    btwNummer                  String?             @db.VarChar(50)
-    kvkNummer                  String?             @db.VarChar(50)
-    durationOfLockerTempStatus Int                 @default(20)
-    Password                   String?             @db.VarChar(52)
-    // abonnementen_abonnementen_exploitantIDTocontacts         abonnementen[]         @relation("abonnementen_exploitantIDTocontacts")
-    // abonnementen_abonnementen_siteIDTocontacts               abonnementen[]         @relation("abonnementen_siteIDTocontacts")
-    // fmsservice_permit_fmsservice_permit_OperatorIDTocontacts fmsservice_permit[]    @relation("fmsservice_permit_OperatorIDTocontacts")
-    // fmsservice_permit_fmsservice_permit_SiteIDTocontacts     fmsservice_permit[]    @relation("fmsservice_permit_SiteIDTocontacts")
-    // presentations                                            presentations[]
-    // presentations_ticker                                     presentations_ticker[]
-    fietsenstallingen          fietsenstallingen[]
+  ID                         String              @id @default("") @db.VarChar(35)
+  ItemType                   String?             @db.VarChar(20)
+  GroupID                    String?             @db.VarChar(20)
+  ParentID                   String?             @db.VarChar(35)
+  ZipID                      String?             @unique(map: "ZipID") @db.VarChar(4)
+  Gemeentecode               Int?
+  Paslezer                   String?             @db.VarChar(20)
+  PassRange_validate         String?             @db.VarChar(4)
+  PassRange_start            BigInt?
+  PassRange_end              BigInt?
+  LockNGo                    String?             @db.VarChar(4)
+  Helpdesk                   String?             @default("") @db.VarChar(255)
+  CompanyName                String?             @db.VarChar(100)
+  AlternativeCompanyName     String?             @db.VarChar(100)
+  UrlName                    String?             @unique(map: "UrlName") @db.VarChar(100)
+  CompanyLogo                String?             @db.VarChar(255)
+  CompanyLogo2               String?             @db.VarChar(255)
+  Department                 String?             @db.VarChar(255)
+  JobTitle                   String?             @db.VarChar(255)
+  Sex                        String?             @db.VarChar(10)
+  Title                      String?             @db.VarChar(100)
+  Initials                   String?             @db.VarChar(100)
+  FirstName                  String?             @db.VarChar(255)
+  MiddleName                 String?             @db.VarChar(50)
+  LastName                   String?             @db.VarChar(255)
+  Address1                   String?             @db.VarChar(255)
+  Address2                   String?             @db.VarChar(255)
+  Zip1                       String?             @db.VarChar(10)
+  Zip2                       String?             @db.VarChar(10)
+  City1                      String?             @db.VarChar(255)
+  City2                      String?             @db.VarChar(255)
+  Country1                   String?             @db.VarChar(50)
+  Country2                   String?             @db.VarChar(50)
+  Phone1                     String?             @db.VarChar(50)
+  Phone2                     String?             @db.VarChar(50)
+  Mobile1                    String?             @db.VarChar(50)
+  Mobile2                    String?             @db.VarChar(50)
+  Fax1                       String?             @db.VarChar(50)
+  Fax2                       String?             @db.VarChar(50)
+  Email1                     String?             @db.VarChar(255)
+  Email2                     String?             @db.VarChar(255)
+  URL                        String?             @db.VarChar(255)
+  Notes                      String?             @db.Text
+  Status                     String?             @default("1") @db.VarChar(4)
+  Status_website             String?             @db.VarChar(4)
+  DateRegistration           DateTime?           @db.DateTime(0)
+  DateConfirmed              DateTime?           @db.DateTime(0)
+  DateRejected               DateTime?           @db.DateTime(0)
+  Winkansen_inzetten         String?             @db.VarChar(4)
+  SendEmailOnSaldo           Decimal?            @db.Decimal(8, 2)
+  MinSaldoToUseLockers       Decimal?            @db.Decimal(8, 2)
+  MinSaldoToOpenLocker       Decimal?            @db.Decimal(8, 2)
+  Bankrekeningnr             String?             @db.VarChar(50)
+  PlaatsBank                 String?             @db.VarChar(100)
+  Tnv                        String?             @db.VarChar(100)
+  Coordinaten                String?             @db.VarChar(100)
+  Zoom                       Int                 @default(12)
+  TextLeftColumn             String?             @db.Text
+  TextRightColumn            String?             @db.Text
+  DayBeginsAt                DateTime            @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  ThemeColor1                String              @default("1f99d2") @db.VarChar(6)
+  ThemeColor2                String              @default("96c11f") @db.VarChar(6)
+  btwNummer                  String?             @db.VarChar(50)
+  kvkNummer                  String?             @db.VarChar(50)
+  durationOfLockerTempStatus Int                 @default(20)
+  Password                   String?             @db.VarChar(52)
+  // abonnementen_abonnementen_exploitantIDTocontacts         abonnementen[]         @relation("abonnementen_exploitantIDTocontacts")
+  // abonnementen_abonnementen_siteIDTocontacts               abonnementen[]         @relation("abonnementen_siteIDTocontacts")
+  // fmsservice_permit_fmsservice_permit_OperatorIDTocontacts fmsservice_permit[]    @relation("fmsservice_permit_OperatorIDTocontacts")
+  // fmsservice_permit_fmsservice_permit_SiteIDTocontacts     fmsservice_permit[]    @relation("fmsservice_permit_SiteIDTocontacts")
+  // presentations                                            presentations[]
+  // presentations_ticker                                     presentations_ticker[]
+  fietsenstallingen          fietsenstallingen[]
 
-    @@unique([ItemType, CompanyName], map: "ItemType")
-    @@index([CompanyName], map: "CompanyName")
-    @@index([ItemType], map: "ItemType_idx")
+  @@unique([ItemType, CompanyName], map: "ItemType")
+  @@index([CompanyName], map: "CompanyName")
+  @@index([ItemType], map: "ItemType_idx")
 }
 
 model contacts_faq {
-    ID     Int     @id @default(autoincrement())
-    SiteID String  @db.VarChar(36)
-    FaqID  String  @db.VarChar(36)
-    Status Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
+  ID     Int     @id @default(autoincrement())
+  SiteID String  @db.VarChar(36)
+  FaqID  String  @db.VarChar(36)
+  Status Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
 
-    @@unique([SiteID, FaqID], map: "SiteID")
-    @@index([FaqID], map: "FK4D3BB92A5CC39A7")
-    @@index([SiteID], map: "FK4D3BB92A668AE523")
+  @@unique([SiteID, FaqID], map: "SiteID")
+  @@index([FaqID], map: "FK4D3BB92A5CC39A7")
+  @@index([SiteID], map: "FK4D3BB92A668AE523")
 }
 
 // model contacts_fietsberaad {
@@ -625,24 +625,24 @@ model contacts_faq {
 // }
 
 model faq {
-    ID             String    @id @default("") @db.VarChar(35)
-    ArticleID      String?   @db.VarChar(35)
-    ParentID       String?   @db.VarChar(35)
-    Title          String?   @db.VarChar(255)
-    Description    String?   @db.VarChar(255)
-    Question       String?   @db.Text
-    Answer         String?   @db.Text
-    SortOrder      Int?
-    Status         String?   @default("1") @db.VarChar(4)
-    EditorCreated  String?   @db.VarChar(255)
-    DateCreated    DateTime? @db.DateTime(0)
-    EditorModified String?   @db.VarChar(255)
-    DateModified   DateTime? @db.DateTime(0)
-    ModuleID       String?   @db.VarChar(50)
+  ID             String    @id @default("") @db.VarChar(35)
+  ArticleID      String?   @db.VarChar(35)
+  ParentID       String?   @db.VarChar(35)
+  Title          String?   @db.VarChar(255)
+  Description    String?   @db.VarChar(255)
+  Question       String?   @db.Text
+  Answer         String?   @db.Text
+  SortOrder      Int?
+  Status         String?   @default("1") @db.VarChar(4)
+  EditorCreated  String?   @db.VarChar(255)
+  DateCreated    DateTime? @db.DateTime(0)
+  EditorModified String?   @db.VarChar(255)
+  DateModified   DateTime? @db.DateTime(0)
+  ModuleID       String?   @db.VarChar(50)
 
-    @@index([ModuleID], map: "FK18B1665AC5B13")
-    @@index([ParentID], map: "FK18B16F3BE6D59")
-    @@index([ArticleID], map: "ArticleID")
+  @@index([ModuleID], map: "FK18B1665AC5B13")
+  @@index([ParentID], map: "FK18B16F3BE6D59")
+  @@index([ArticleID], map: "ArticleID")
 }
 
 // model fietsenstalling_plek {
@@ -682,29 +682,29 @@ model faq {
 // }
 
 model fietsenstalling_sectie {
-    sectieId                 Int     @id @default(autoincrement())
-    externalId               String? @unique(map: "externalId") @db.VarChar(13)
-    titel                    String  @db.VarChar(255)
-    omschrijving             String? @db.Text
-    capaciteit               Int?
-    CapaciteitBromfiets      Int?
-    kleur                    String  @default("23B0D9") @db.VarChar(6)
-    fietsenstallingsId       String? @db.VarChar(35)
-    isKluis                  Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
-    reserveringskostenPerDag Float?
-    urlwebservice            String? @db.VarChar(255)
-    Reservable               Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
-    NotaVerwijssysteem       String? @db.Text
-    Bezetting                Int     @default(0) @db.UnsignedInt
-    isactief                 Boolean @default(dbgenerated("b'1'")) @db.Bit(1)
-    qualificatie             String? @default("NONE") @db.VarChar(255)
+  sectieId                 Int     @id @default(autoincrement())
+  externalId               String? @unique(map: "externalId") @db.VarChar(13)
+  titel                    String  @db.VarChar(255)
+  omschrijving             String? @db.Text
+  capaciteit               Int?
+  CapaciteitBromfiets      Int?
+  kleur                    String  @default("23B0D9") @db.VarChar(6)
+  fietsenstallingsId       String? @db.VarChar(35)
+  isKluis                  Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
+  reserveringskostenPerDag Float?
+  urlwebservice            String? @db.VarChar(255)
+  Reservable               Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
+  NotaVerwijssysteem       String? @db.Text
+  Bezetting                Int     @default(0) @db.UnsignedInt
+  isactief                 Boolean @default(dbgenerated("b'1'")) @db.Bit(1)
+  qualificatie             String? @default("NONE") @db.VarChar(255)
 
-    fietsenstalling   fietsenstallingen? @relation(fields: [fietsenstallingsId], references: [ID])
-    secties_fietstype sectie_fietstype[]
+  fietsenstalling   fietsenstallingen? @relation(fields: [fietsenstallingsId], references: [ID])
+  secties_fietstype sectie_fietstype[]
 
-    @@index([fietsenstallingsId], map: "FKA8FBA192D2C0280D")
-    @@index([fietsenstallingsId], map: "fietsenstallingsId")
-    @@index([isactief], map: "isactief")
+  @@index([fietsenstallingsId], map: "FKA8FBA192D2C0280D")
+  @@index([fietsenstallingsId], map: "fietsenstallingsId")
+  @@index([isactief], map: "isactief")
 }
 
 // model fietsenstalling_sectie_kostenperioden {
@@ -719,96 +719,97 @@ model fietsenstalling_sectie {
 // }
 
 model fietsenstallingen {
-    ID                         String                       @id @default("") @db.VarChar(35)
-    StallingsID                String?                      @unique(map: "idxstallingsid") @db.VarChar(8)
-    SiteID                     String?                      @db.VarChar(35)
-    Title                      String?                      @db.VarChar(255)
-    StallingsIDExtern          String?                      @db.VarChar(100)
-    Description                String?                      @db.Text
-    Image                      String?                      @db.VarChar(255)
-    Location                   String?                      @db.VarChar(255)
-    Postcode                   String?                      @db.VarChar(7)
-    Plaats                     String?                      @db.VarChar(100)
-    Capacity                   Int?
-    Openingstijden             String?                      @db.Text
-    Status                     String?                      @default("1") @db.VarChar(4)
-    EditorCreated              String?                      @db.VarChar(255)
-    DateCreated                DateTime?                    @db.DateTime(0)
-    EditorModified             String?                      @db.VarChar(255)
-    DateModified               DateTime?                    @db.DateTime(0)
-    Ip                         String?                      @db.VarChar(24)
-    Coordinaten                String?                      @db.VarChar(255)
-    geoLocation                Unsupported("point")?
-    Type                       String?                      @db.VarChar(15)
-    Verwijssysteem             Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    VerwijssysteemOverzichten  Boolean?                     @db.Bit(1)
-    FMS                        Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    Open_ma                    DateTime?                    @db.Time(0)
-    Dicht_ma                   DateTime?                    @db.Time(0)
-    Open_di                    DateTime?                    @db.Time(0)
-    Dicht_di                   DateTime?                    @db.Time(0)
-    Open_wo                    DateTime?                    @db.Time(0)
-    Dicht_wo                   DateTime?                    @db.Time(0)
-    Open_do                    DateTime?                    @db.Time(0)
-    Dicht_do                   DateTime?                    @db.Time(0)
-    Open_vr                    DateTime?                    @db.Time(0)
-    Dicht_vr                   DateTime?                    @db.Time(0)
-    Open_za                    DateTime?                    @db.Time(0)
-    Dicht_za                   DateTime?                    @db.Time(0)
-    Open_zo                    DateTime?                    @db.Time(0)
-    Dicht_zo                   DateTime?                    @db.Time(0)
-    OmschrijvingTarieven       String?                      @db.Text
-    IsStationsstalling         Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    IsPopup                    Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    NotaVerwijssysteem         String?                      @db.Text
-    Tariefcode                 Int?
-    Toegangscontrole           Int?
-    Beheerder                  String?                      @db.VarChar(100)
-    BeheerderContact           String?                      @db.VarChar(255)
-    Url                        String?                      @db.Text
-    ExtraServices              String?                      @db.Text
-    dia                        String?                      @db.Text
-    BerekentStallingskosten    Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    AantalReserveerbareKluizen Int                          @default(0)
-    MaxStallingsduur           Int                          @default(0)
-    HeeftExterneBezettingsdata Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    ExploitantID               String?                      @db.VarChar(35)
-    hasUniSectionPrices        Boolean                      @default(dbgenerated("b'1'")) @db.Bit(1)
-    hasUniBikeTypePrices       Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
-    shadowBikeparkID           String?                      @db.VarChar(35)
-    BronBezettingsdata         String?                      @default("FMS") @db.VarChar(20)
-    reservationCostPerDay      Decimal?                     @db.Decimal(8, 2)
-    wachtlijst_Id              BigInt?
-    freeHoursReservation       Decimal?                     @db.Decimal(8, 2)
-    thirdPartyReservationsUrl  String?                      @db.VarChar(255)
-    fietsenstallingen_services fietsenstallingen_services[]
-    // fmsservice_permit          fmsservice_permit[]
+  ID                         String                       @id @default("") @db.VarChar(35)
+  StallingsID                String?                      @unique(map: "idxstallingsid") @db.VarChar(8)
+  SiteID                     String?                      @db.VarChar(35)
+  Title                      String?                      @db.VarChar(255)
+  StallingsIDExtern          String?                      @db.VarChar(100)
+  Description                String?                      @db.Text
+  Image                      String?                      @db.VarChar(255)
+  Location                   String?                      @db.VarChar(255)
+  Postcode                   String?                      @db.VarChar(7)
+  Plaats                     String?                      @db.VarChar(100)
+  Capacity                   Int?
+  Openingstijden             String?                      @db.Text
+  Status                     String?                      @default("1") @db.VarChar(4)
+  EditorCreated              String?                      @db.VarChar(255)
+  DateCreated                DateTime?                    @db.DateTime(0)
+  EditorModified             String?                      @db.VarChar(255)
+  DateModified               DateTime?                    @db.DateTime(0)
+  Ip                         String?                      @db.VarChar(24)
+  Coordinaten                String?                      @db.VarChar(255)
+  geoLocation                Unsupported("point")?
+  Type                       String?                      @db.VarChar(15)
+  Verwijssysteem             Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  VerwijssysteemOverzichten  Boolean?                     @db.Bit(1)
+  FMS                        Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  Open_ma                    DateTime?                    @db.Time(0)
+  Dicht_ma                   DateTime?                    @db.Time(0)
+  Open_di                    DateTime?                    @db.Time(0)
+  Dicht_di                   DateTime?                    @db.Time(0)
+  Open_wo                    DateTime?                    @db.Time(0)
+  Dicht_wo                   DateTime?                    @db.Time(0)
+  Open_do                    DateTime?                    @db.Time(0)
+  Dicht_do                   DateTime?                    @db.Time(0)
+  Open_vr                    DateTime?                    @db.Time(0)
+  Dicht_vr                   DateTime?                    @db.Time(0)
+  Open_za                    DateTime?                    @db.Time(0)
+  Dicht_za                   DateTime?                    @db.Time(0)
+  Open_zo                    DateTime?                    @db.Time(0)
+  Dicht_zo                   DateTime?                    @db.Time(0)
+  OmschrijvingTarieven       String?                      @db.Text
+  IsStationsstalling         Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  IsPopup                    Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  NotaVerwijssysteem         String?                      @db.Text
+  Tariefcode                 Int?
+  Toegangscontrole           Int?
+  Beheerder                  String?                      @db.VarChar(100)
+  BeheerderContact           String?                      @db.VarChar(255)
+  Url                        String?                      @db.Text
+  ExtraServices              String?                      @db.Text
+  dia                        String?                      @db.Text
+  BerekentStallingskosten    Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  AantalReserveerbareKluizen Int                          @default(0)
+  MaxStallingsduur           Int                          @default(0)
+  HeeftExterneBezettingsdata Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  ExploitantID               String?                      @db.VarChar(35)
+  hasUniSectionPrices        Boolean                      @default(dbgenerated("b'1'")) @db.Bit(1)
+  hasUniBikeTypePrices       Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  shadowBikeparkID           String?                      @db.VarChar(35)
+  BronBezettingsdata         String?                      @default("FMS") @db.VarChar(20)
+  reservationCostPerDay      Decimal?                     @db.Decimal(8, 2)
+  wachtlijst_Id              BigInt?
+  freeHoursReservation       Decimal?                     @db.Decimal(8, 2)
+  thirdPartyReservationsUrl  String?                      @db.VarChar(255)
+  fietsenstallingen_services fietsenstallingen_services[]
+  // fmsservice_permit          fmsservice_permit[]
 
-    fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
+  fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
 
-    fietsenstalling_secties fietsenstalling_sectie[]
+  fietsenstalling_secties fietsenstalling_sectie[]
 
-    abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
+  abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
 
-    exploitant contacts? @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
+  uitzonderingenopeningstijden uitzonderingenopeningstijden[]
+  exploitant                   contacts?                      @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
 
-    @@index([StallingsID, SiteID], map: "idxSiteidstid")
-    @@index([SiteID], map: "sidxsiteid")
-    @@index([ExploitantID], map: "ExploitantID")
-    @@index([SiteID], map: "FKF4836A55668AE523")
-    @@index([shadowBikeparkID], map: "shadowBikeparkID")
-    @@index([wachtlijst_Id], map: "wachtlijst_Id")
+  @@index([StallingsID, SiteID], map: "idxSiteidstid")
+  @@index([SiteID], map: "sidxsiteid")
+  @@index([ExploitantID], map: "ExploitantID")
+  @@index([SiteID], map: "FKF4836A55668AE523")
+  @@index([shadowBikeparkID], map: "shadowBikeparkID")
+  @@index([wachtlijst_Id], map: "wachtlijst_Id")
 }
 
 model fietsenstallingen_services {
-    ServiceID         String            @db.VarChar(50)
-    FietsenstallingID String            @db.VarChar(35)
-    fietsenstallingen fietsenstallingen @relation(fields: [FietsenstallingID], references: [ID], onDelete: Cascade, map: "FK_fietsenstallingen_service_fietsenstalling")
-    services          services          @relation(fields: [ServiceID], references: [ID], onDelete: Cascade, map: "FK_fietsenstallingen_service_service")
+  ServiceID         String            @db.VarChar(50)
+  FietsenstallingID String            @db.VarChar(35)
+  fietsenstallingen fietsenstallingen @relation(fields: [FietsenstallingID], references: [ID], onDelete: Cascade, map: "FK_fietsenstallingen_service_fietsenstalling")
+  services          services          @relation(fields: [ServiceID], references: [ID], onDelete: Cascade, map: "FK_fietsenstallingen_service_service")
 
-    @@id([ServiceID, FietsenstallingID])
-    @@index([FietsenstallingID], map: "FK4BB0A7082B597E32")
-    @@index([ServiceID], map: "FK4BB0A708CDE95925")
+  @@id([ServiceID, FietsenstallingID])
+  @@index([FietsenstallingID], map: "FK4BB0A7082B597E32")
+  @@index([ServiceID], map: "FK4BB0A708CDE95925")
 }
 
 // model fietsenstallingen_winkansen {
@@ -822,19 +823,19 @@ model fietsenstallingen_services {
 // }
 
 model fietsenstallingtypen {
-    id                String              @id @db.VarChar(15)
-    name              String?             @db.VarChar(255)
-    sequence          Int                 @db.SmallInt
-    fietsenstallingen fietsenstallingen[]
+  id                String              @id @db.VarChar(15)
+  name              String?             @db.VarChar(255)
+  sequence          Int                 @db.SmallInt
+  fietsenstallingen fietsenstallingen[]
 }
 
 model fietstypen {
-    ID            Int     @id @default(autoincrement())
-    Name          String? @db.VarChar(255)
-    naamenkelvoud String  @db.VarChar(255)
+  ID            Int     @id @default(autoincrement())
+  Name          String? @db.VarChar(255)
+  naamenkelvoud String  @db.VarChar(255)
 
-    sectie_fietstype          sectie_fietstype[]
-    abonnementsvorm_fietstype abonnementsvorm_fietstype[]
+  sectie_fietstype          sectie_fietstype[]
+  abonnementsvorm_fietstype abonnementsvorm_fietstype[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -1194,69 +1195,69 @@ model fietstypen {
 // }
 
 model sectie_fietstype {
-    SectionBiketypeID Int      @id @default(autoincrement())
-    Capaciteit        Int?
-    Toegestaan        Boolean? @db.Bit(1)
-    sectieID          Int?
-    StallingsID       String?  @db.VarChar(35)
-    BikeTypeID        Int?
+  SectionBiketypeID Int      @id @default(autoincrement())
+  Capaciteit        Int?
+  Toegestaan        Boolean? @db.Bit(1)
+  sectieID          Int?
+  StallingsID       String?  @db.VarChar(35)
+  BikeTypeID        Int?
 
-    fietsenstalling_sectie fietsenstalling_sectie? @relation(fields: [sectieID], references: [sectieId], onDelete: NoAction, map: "FK_sectie_fietstype_sectie")
-    fietstype              fietstypen?             @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, map: "FK_sectie_fietstype_fietstype")
+  fietsenstalling_sectie fietsenstalling_sectie? @relation(fields: [sectieID], references: [sectieId], onDelete: NoAction, map: "FK_sectie_fietstype_sectie")
+  fietstype              fietstypen?             @relation(fields: [BikeTypeID], references: [ID], onDelete: NoAction, map: "FK_sectie_fietstype_fietstype")
 
-    @@unique([sectieID, StallingsID, BikeTypeID], map: "sectieID_2")
-    @@index([sectieID], map: "sectieID")
-    @@index([BikeTypeID], map: "BikeTypeID")
-    @@index([StallingsID], map: "StallingsID")
+  @@unique([sectieID, StallingsID, BikeTypeID], map: "sectieID_2")
+  @@index([sectieID], map: "sectieID")
+  @@index([BikeTypeID], map: "BikeTypeID")
+  @@index([StallingsID], map: "StallingsID")
 }
 
 model security_roles {
-    RoleID         Int                     @id @default(autoincrement())
-    GroupID        security_roles_GroupID? @default(extern)
-    Role           String?                 @db.VarChar(50)
-    Description    String?                 @db.VarChar(150)
-    Active         Boolean                 @default(true)
-    security_users security_users[]
+  RoleID         Int                     @id @default(autoincrement())
+  GroupID        security_roles_GroupID? @default(extern)
+  Role           String?                 @db.VarChar(50)
+  Description    String?                 @db.VarChar(150)
+  Active         Boolean                 @default(true)
+  security_users security_users[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model security_users {
-    UserID                String                 @id @default("") @db.VarChar(35)
-    Locale                String?                @default("Dutch (Standard)") @db.VarChar(55)
-    RoleID                Int?
-    GroupID               String?                @db.VarChar(20)
-    SiteID                String?                @db.VarChar(35)
-    ParentID              String?                @db.VarChar(35)
-    UserName              String?                @db.VarChar(100)
-    EncryptedPassword     String?                @db.VarChar(60)
-    EncryptedPassword2    String?                @db.VarChar(255)
-    DisplayName           String?                @db.VarChar(255)
-    LastLogin             DateTime?              @db.DateTime(0)
-    SendMailToMailAddress String?                @db.VarChar(4)
-    Theme                 String?                @db.VarChar(50)
-    Status                String?                @db.VarChar(4)
-    security_roles        security_roles?        @relation(fields: [RoleID], references: [RoleID], onDelete: Restrict, onUpdate: Restrict, map: "security_users_ibfk_1")
-    security_users_sites  security_users_sites[]
+  UserID                String                 @id @default("") @db.VarChar(35)
+  Locale                String?                @default("Dutch (Standard)") @db.VarChar(55)
+  RoleID                Int?
+  GroupID               String?                @db.VarChar(20)
+  SiteID                String?                @db.VarChar(35)
+  ParentID              String?                @db.VarChar(35)
+  UserName              String?                @db.VarChar(100)
+  EncryptedPassword     String?                @db.VarChar(60)
+  EncryptedPassword2    String?                @db.VarChar(255)
+  DisplayName           String?                @db.VarChar(255)
+  LastLogin             DateTime?              @db.DateTime(0)
+  SendMailToMailAddress String?                @db.VarChar(4)
+  Theme                 String?                @db.VarChar(50)
+  Status                String?                @db.VarChar(4)
+  security_roles        security_roles?        @relation(fields: [RoleID], references: [RoleID], onDelete: Restrict, onUpdate: Restrict, map: "security_users_ibfk_1")
+  security_users_sites  security_users_sites[]
 
-    @@unique([UserID, SiteID], map: "unique_userID_siteID")
-    @@index([RoleID], map: "RoleID")
-    @@index([UserName], map: "UserName")
+  @@unique([UserID, SiteID], map: "unique_userID_siteID")
+  @@index([RoleID], map: "RoleID")
+  @@index([UserName], map: "UserName")
 }
 
 model security_users_sites {
-    ID             Int            @id @default(autoincrement()) @db.UnsignedInt
-    UserID         String         @default("") @db.VarChar(35)
-    SiteID         String         @db.VarChar(35)
-    IsContact      Boolean        @default(dbgenerated("b'0'")) @db.Bit(1)
-    security_users security_users @relation(fields: [UserID], references: [UserID], onUpdate: Restrict, map: "security_users_sites_ibfk_1")
+  ID             Int            @id @default(autoincrement()) @db.UnsignedInt
+  UserID         String         @default("") @db.VarChar(35)
+  SiteID         String         @db.VarChar(35)
+  IsContact      Boolean        @default(dbgenerated("b'0'")) @db.Bit(1)
+  security_users security_users @relation(fields: [UserID], references: [UserID], onUpdate: Restrict, map: "security_users_sites_ibfk_1")
 
-    @@unique([UserID, SiteID], map: "UserID")
+  @@unique([UserID, SiteID], map: "UserID")
 }
 
 model services {
-    ID                         String                       @id @db.VarChar(50)
-    Name                       String                       @db.VarChar(255)
-    fietsenstallingen_services fietsenstallingen_services[]
+  ID                         String                       @id @db.VarChar(50)
+  Name                       String                       @db.VarChar(255)
+  fietsenstallingen_services fietsenstallingen_services[]
 }
 
 // model sleutelhangerreeksen {
@@ -1426,12 +1427,15 @@ model services {
 //     DateModified           DateTime?         @db.DateTime(0)
 // }
 
-// model uitzonderingenopeningstijden {
-//     ID                 Int       @id @default(autoincrement())
-//     openingDateTime    DateTime? @db.DateTime(0)
-//     closingDateTime    DateTime? @db.DateTime(0)
-//     fietsenstallingsID String?   @db.VarChar(255)
-// }
+model uitzonderingenopeningstijden {
+  ID                 Int                @id @default(autoincrement())
+  openingDateTime    DateTime?          @db.DateTime(0)
+  closingDateTime    DateTime?          @db.DateTime(0)
+  fietsenstallingsID String?            @db.VarChar(255)
+  fietsenstallingen  fietsenstallingen? @relation(fields: [fietsenstallingsID], references: [ID])
+
+  @@index([fietsenstallingsID], map: "fietsenstallingsID")
+}
 
 // model unieke_bezoekers {
 //     periode         unieke_bezoekers_periode
@@ -1928,10 +1932,10 @@ model services {
 // }
 
 enum security_roles_GroupID {
-    intern
-    extern
-    exploitant
-    beheerder
+  intern
+  extern
+  exploitant
+  beheerder
 }
 
 // enum sleutelhangerreeksen_type {
@@ -1994,9 +1998,9 @@ enum security_roles_GroupID {
 // }
 
 enum accounts_account_type {
-    SYSTEM
-    USER
-    DELETED
+  SYSTEM
+  USER
+  DELETED
 }
 
 // enum ds_observations_observedProperty {
@@ -2027,46 +2031,46 @@ enum accounts_account_type {
 // }
 
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
