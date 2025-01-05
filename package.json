@@ -38,6 +38,7 @@
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.5.30",
     "apexcharts": "^4.0.0",
+    "babel-plugin-superjson-next": "^0.4.5",
     "bcrypt": "^5.1.1",
     "formidable": "^3.5.1",
     "keen-slider": "^6.8.5",

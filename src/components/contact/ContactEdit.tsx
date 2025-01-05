@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { contacts, } from '@prisma/client';
-import TimeInput from './TimeInput';
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import { Tabs, Tab } from '@mui/material';
 import { ReportBikepark } from '../beheer/reports/ReportsFilter';
 import ContactFietsenstallingen from './ContactFietsenstallingen';
 import type { fietsenstallingtypen } from '@prisma/client';
 import FormInput from "~/components/Form/FormInput";
+import FormTimeInput from "~/components/Form/FormTimeInput";
+
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
@@ -331,7 +332,8 @@ const ContactEdit = (props: ContactEditProps) => {
       };
 
       const thecontact: contacts | undefined = props.contacts.find(c => c.ID === props.id);
-      console.log("#### thecontact", thecontact);
+      // console.log("#### thecontact", thecontact);
+      console.log("#### thecontact", thecontact?.DayBeginsAt, dagstart);
 
       /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
     return (
@@ -382,7 +384,8 @@ const ContactEdit = (props: ContactEditProps) => {
                     onChange={(e) => setEmailHelpdesk(e.target.value)} 
                   />
                   <br />
-                  <TimeInput 
+                  <FormTimeInput 
+                    label="Dagstart (tbv. rapportages)"
                     value={dagstart} 
                     onChange={(newDate: Date) => setDagstart(newDate)} 
                   />

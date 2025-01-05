@@ -60,7 +60,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       ID: true, 
       CompanyName: true, 
+      AlternativeCompanyName: true,
+      UrlName: true,
       ZipID: true,
+      Helpdesk: true,
+      DayBeginsAt: true,
+      Coordinaten: true,
+      Zoom: true,
+      Bankrekeningnr: true,
+      PlaatsBank: true,
+      Tnv: true,
+      Notes: true,
+      DateRegistration: true,
       fietsenstallingen_fietsenstallingen_SiteIDTocontacts: {
         select: {
           ID: true,
@@ -70,7 +81,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
     },
   });
-  const gemeenten = activeGemeenten; // .map((gemeente) => ({id: gemeente.ID,title: gemeente.CompanyName,}));
+
+  const gemeenten = activeGemeenten;
 
   const filter: Prisma.contactsFindManyArgs = {
     where: { CompanyName: { not: null }, ID: { in: currentUser?.sites || [] } },
@@ -79,7 +91,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       CompanyName: true,
       ItemType: true,
       Gemeentecode: true,
+      AlternativeCompanyName: true,
+      UrlName: true,
       ZipID: true,
+      Helpdesk: true,
+      DayBeginsAt: true,
+      Coordinaten: true,
+      Zoom: true,
+      Bankrekeningnr: true,
+      PlaatsBank: true,
+      Tnv: true,
+      Notes: true,
+      DateRegistration: true,
       fietsenstallingen_fietsenstallingen_SiteIDTocontacts:
         { select: {
             ID: true,
@@ -158,6 +181,8 @@ export type BeheerPageProps = {
 };
 
 const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, gemeenten, bikeparks, users, roles, fietsenstallingtypen }) => {
+
+  console.log("BeheerPage", activeContacts);
 
   const router = useRouter();
 
