@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { contacts, } from '@prisma/client';
+import { contacts } from '@prisma/client';
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import { Tabs, Tab } from '@mui/material';
 import { ReportBikepark } from '../beheer/reports/ReportsFilter';
@@ -7,11 +7,12 @@ import ContactFietsenstallingen from './ContactFietsenstallingen';
 import type { fietsenstallingtypen } from '@prisma/client';
 import FormInput from "~/components/Form/FormInput";
 import FormTimeInput from "~/components/Form/FormTimeInput";
-
-import SectionBlockEdit from "~/components/SectionBlockEdit";
+import ContactEditLogo from "~/components/contact/ContactEditLogo";
+import SectionBlockEdit from "~/components/SectionBlock";
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 
+import SectionBlock from '../SectionBlock';
 type ContactEditProps = {
     id: string;
     contacts: contacts[];
@@ -333,7 +334,7 @@ const ContactEdit = (props: ContactEditProps) => {
 
       const thecontact: contacts | undefined = props.contacts.find(c => c.ID === props.id);
       // console.log("#### thecontact", thecontact);
-      console.log("#### thecontact", thecontact?.DayBeginsAt, dagstart);
+      // console.log("#### thecontact", thecontact?.DayBeginsAt, dagstart);
 
       /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
     return (
@@ -348,6 +349,7 @@ const ContactEdit = (props: ContactEditProps) => {
         </div>
             <Tabs value={selectedTab} onChange={handleChange} aria-label="Edit contact">
               <Tab label="Algemeen" value="tab-algemeen" />
+              <Tab label="Logos" value="tab-logos" />
               <Tab label="Coordinaten" value="tab-coordinaten" />
               <Tab label="Fietsenstallingen" value="tab-fietsenstallingen" />
             </Tabs>
@@ -401,6 +403,29 @@ const ContactEdit = (props: ContactEditProps) => {
                 <ContactFietsenstallingen contact={thecontact} fietsenstallingtypen={props.fietsenstallingtypen} onEditStalling={props.onEditStalling} />
               </div>
             )}        
+        { selectedTab === "tab-logos" && (
+          <div className="border px-4 py-2 space-y-4">
+            <SectionBlockEdit heading="Logo">
+            { thecontact ? (
+              <ContactEditLogo contactdata={thecontact} isLogo2={false} />
+            ) : (
+              <div>
+                <p>Geen contact geselecteerd</p>
+              </div>
+            )}
+            </SectionBlockEdit>
+
+            <SectionBlockEdit heading="Logo 2 (optioneel)">
+            { thecontact ? (
+              <ContactEditLogo contactdata={thecontact} isLogo2={true} />
+            ) : (
+              <div>
+                <p>Geen contact geselecteerd</p>
+              </div>
+            )}
+            </SectionBlockEdit>
+          </div>
+        )}
         {/* <div className="mt-4">
           <button 
             className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}

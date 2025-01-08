@@ -2,8 +2,10 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { contacts } from "@prisma/client";
 import router , { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
+import { AppState } from "~/store/store";
 
 interface TopBarProps {
   title: string;
@@ -25,6 +27,19 @@ const TopBar: React.FC<TopBarProps> = ({
   const { push } = useRouter();
   const { data: session } = useSession()
 
+  const activeMunicipalityInfo = useSelector(
+    (state: AppState) => state.map.activeMunicipalityInfo
+  );
+
+
+  const themeColor1 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+  ? `#${activeMunicipalityInfo.ThemeColor1}`
+  : '#15aeef';
+
+const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
+  ? `#${activeMunicipalityInfo.ThemeColor2}`
+  : '#15aeef';
+
   const handleGemeenteChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
@@ -34,7 +49,7 @@ const TopBar: React.FC<TopBarProps> = ({
 
   const handleLoginClick = () => {
     if (!session) {
-      push('/login');
+      push('/login?redirect=/beheer');
     } else {
       // sign out
       signOut();
@@ -137,25 +152,23 @@ const TopBar: React.FC<TopBarProps> = ({
           FMS
         </a>
 
-        {user !== undefined ? (
-          <button
-            className="mx-2 h-10 rounded-md px-4 font-bold text-white shadow-lg"
+        <button
+            className="
+              mx-2
+              h-10
+              rounded-md
+              px-4
+              font-bold
+              text-white
+              shadow-lg
+            "
             style={{
-              backgroundColor: "#15aeef",
+              backgroundColor: themeColor2 || themeColor1,
             }}
+            onClick={handleLoginClick}
           >
-            Log uit
+            {session ? "Log uit" : "Log in"}
           </button>
-        ) : (
-          <button
-            className="mx-2 h-10 rounded-md px-4 font-bold text-white shadow-lg"
-            style={{
-              backgroundColor: "#15aeef",
-            }}
-          >
-            Login
-          </button>
-        )}
       </div>
     </div>
   );

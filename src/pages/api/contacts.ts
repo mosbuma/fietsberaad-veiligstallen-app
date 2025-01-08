@@ -1,36 +1,20 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { CrudRouteHandler } from "~/backend/handlers/crud-route-handler";
+import ContactsService from "~/backend/services/contacts-service";
+// import { authOptions } from './auth/[...nextauth]'
+// import { getServerSession } from "next-auth/next"
 
-export default async function handle(req: NextApiRequest, res: NextApiResponse) {
-  if (req.query.cbsCode && Array.isArray(req.query.cbsCode) ||
-    req.query.urlName && Array.isArray(req.query.urlName) ||
-    req.query.itemType && Array.isArray(req.query.itemType)) {
-    res.status(400).json({});
-    return;
-  }
 
-  let where: Prisma.contactsWhereInput = {
-    Status: '1'
-  }
-  if (req.query.cbsCode) where.Gemeentecode = Number(req.query.cbsCode);
-  if (req.query.urlName) where.UrlName = req.query.urlName;
-  if (req.query.itemType) where.ItemType = req.query.itemType;
+export default async (request: NextApiRequest, response: NextApiResponse) => {
+  // const session = await getServerSession(request, response, authOptions)
 
-  const queryRequest = {
-    where: where,
-    select: {
-      ID: true,
-      CompanyName: true,
-      ThemeColor1: true,
-      ThemeColor2: true,
-      UrlName: true,
-      CompanyLogo: true,
-      CompanyLogo2: true,
-      Coordinaten: true
-    }
-  }
+  // // console.log("#### create stalling - get session");
+  // if (session && session.user) {
+  //   // console.log("#### create stalling while logged in");
+  //   // console.log(`#### req ${JSON.stringify(Object.keys(request), null, 2)}`);
+  // } else {
+  //   console.log("#### create stalling while not logged in");
+  // }
 
-  const result = await prisma.contacts.findMany(queryRequest);
-  res.json(result);
-}
+  await CrudRouteHandler(request, response, ContactsService);
+};

@@ -1,10 +1,10 @@
-// @ts-nocheck
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
 import { usePathname } from 'next/navigation';
 import Link from 'next/link'
+import { AppState } from "~/store/store";
 
 import Logo from './Logo';
 import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
@@ -19,6 +19,12 @@ import {
   getPrimary,
   getSecundary,
 } from "~/utils/navigation";
+
+// Define the type for the menu item
+interface MenuItem {
+  DisplayTitle?: string;
+  Title?: string;
+}
 
 const PrimaryMenuItem = (props: any) => {
   const { push } = useRouter();
@@ -115,31 +121,31 @@ function AppHeaderDesktop({
     articles
   ]);
 
-  const overflowNavItems = () => {
+  function overflowNavItems(): void {
     // In AppHeaderDesktop, check if nav items overflow
-    const headerEl = document.getElementsByClassName('AppHeaderDesktop')[0];
-    const wrapperEl = document.getElementsByClassName('primaryMenuItems-wrapper')[0];
+    const headerEl = document.getElementsByClassName('AppHeaderDesktop')[0] as HTMLElement;
+    const wrapperEl = document.getElementsByClassName('primaryMenuItems-wrapper')[0] as HTMLElement;
     // Show nav items again after resize
     for (const el of wrapperEl.children) {
-      el.style.display = 'block';
+      (el as HTMLElement).style.display = 'block';
     }
     // Check if nav items overflow the nav bar
     let navOverflow = false;
     for (const el of wrapperEl.children) {
-      if (!el.classList.contains('PrimaryMenuItem')) {
+      if (!(el as HTMLElement).classList.contains('PrimaryMenuItem')) {
         continue;
       }
-      const elementTop = el.offsetTop;
+      const elementTop = (el as HTMLElement).offsetTop;
       const headerHeight = headerEl.offsetHeight;
       if ((elementTop + 12) >= headerHeight) {// 12 = padding-top of header
-        el.style.display = 'none';
+        (el as HTMLElement).style.display = 'none';
         navOverflow = true;
       } else {
-        el.style.display = 'block';
+        (el as HTMLElement).style.display = 'block';
       }
     }
     setDidNavOverflow(navOverflow);
-  };
+  }
 
 
   const handleNieuweStallingClick = () => {
@@ -214,7 +220,7 @@ function AppHeaderDesktop({
             icon={'/images/icon-map.png'}
             url={'/'}
           />}
-          {primaryMenuItems ? primaryMenuItems.map((x, idx) => <PrimaryMenuItem
+          {primaryMenuItems ? primaryMenuItems.map((x: MenuItem, idx: number) => <PrimaryMenuItem
             key={'pmi-h1-' + idx}
             title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
             url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
@@ -237,7 +243,7 @@ function AppHeaderDesktop({
           </div>
         </div>
         <div className="flex flex-end">
-          {secundaryMenuItems.map((x, idx) => {
+          {secundaryMenuItems.map((x: MenuItem, idx: number) => {
             return <SecundaryMenuItem
               key={'pmi-h2-' + idx}
               title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}

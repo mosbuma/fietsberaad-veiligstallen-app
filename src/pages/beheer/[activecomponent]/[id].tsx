@@ -91,6 +91,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       CompanyName: true,
       ItemType: true,
       Gemeentecode: true,
+      CompanyLogo: true,
+      CompanyLogo2: true,
       AlternativeCompanyName: true,
       UrlName: true,
       ZipID: true,

@@ -2,11 +2,7 @@ import { prisma } from "~/server/db";
 import type { fietsenstallingen, fietsenstalling_sectie, sectie_fietstype } from "@prisma/client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
-BigInt.prototype.toJSON = function () {
-  const int = Number.parseInt(this.toString());
-  return int ?? this.toString();
-};
-
+// 
 const include = {
   fietsenstalling_type: true,
   fietsenstalling_secties: {

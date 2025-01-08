@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import Head from "next/head";
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation';
 import useQueryParam from '../hooks/useQueryParam';
 
 // Import components
@@ -19,7 +19,9 @@ const Login: NextPage = () => {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
 
-  const router = useRouter()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const error = useQueryParam("error")[0];
 
   const onSignIn = async (e: any) => {
@@ -29,19 +31,19 @@ const Login: NextPage = () => {
       emailRef.current && emailRef.current.value !== '' &&
       passwordRef.current && passwordRef.current.value !== ''
     ) {
-      // console.log('signing in with magic link')
-      // signIn("email", {
-      // 	email: emailRef.current.value.trim(),
-      // 	// password: passwordRef.current.value,
-      // 	// callbackUrl: "/",
-      // });
-      signIn("credentials", {
+      const result = await signIn("credentials", {
         email: emailRef.current.value.trim(),
         password: passwordRef.current.value,
-        callbackUrl: "/",
+        redirect: false,
       });
+
+      if (result?.ok) {
+        router.push(redirect || "/");
+      } else {
+        alert('Login failed');
+      }
     } else {
-      alert('no email of password given');
+      alert('no email or password given');
     }
   };
 
