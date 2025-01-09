@@ -8,9 +8,9 @@ export type newUserRole = 'intern_admin' | 'extern_admin' | 'extern_redacteur' |
 
 export type newUserRight = 'gemeente' | 'website' | 'locaties' | 'fietskluizen' | 'buurtstallingen' | 'abonnementen' | 'documenten' | 'fietsenwin' | 'diashow' | 'accounts' | 'rapportages' | 'externalApis' | 'permits' | 'sleutelhangerreeksen' | 'registranten' | 'users';
 
-export const userHasRole = (user?: User, role: newUserRole) => true;
-export const userHasRight = (user?: User, right: newUserRight) => true; /* TODO: remove - for testing, all users have all rights */
-export const userHasModule = (user?: User, module: string) => true;
+export const userHasRole = (user: User, role: newUserRole) => true;
+export const userHasRight = (user: User, right: newUserRight) => true; /* TODO: remove - for testing, all users have all rights */
+export const userHasModule = (user: User, module: string) => true;
 
 // export class MockUser implements User {
 //     data: security_users | undefined;

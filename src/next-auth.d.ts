@@ -1,6 +1,7 @@
 import NextAuth, { DefaultSession, NextAuthOptions as OriginalNextAuthOptions, RequestInternal as OriginalRequestInternal } from "next-auth";
 
 declare module "next-auth" {
+  export type ISODateString = string
 
   interface User extends DefaultSession["user"] {
     id: string;
@@ -14,7 +15,8 @@ declare module "next-auth" {
   } 
 
   interface Session {
-    user: User;
+    expires: ISODateString
+    user: User; // overwrite the user type
   }
 
   // Re-export the original NextAuthOptions

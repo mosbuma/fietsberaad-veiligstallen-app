@@ -4,22 +4,6 @@ import { useRouter } from 'next/router';
 import { security_users, security_roles } from '@prisma/client';
 export type UserType = "gebruiker" | "exploitant" | "beheerder" | "interne-gebruiker";
 export type UserStatus = "actief" | "inactief";
-export type User = {
-  UserID: string,
-  UserName: string, // stores email
-  DisplayName: string,
-  Status: string,
-  security_roles: {
-    RoleID: string,
-    Role: string,
-    Description: string,
-  }
-};
-
-export type Role = {
-  RoleID: true,
-  RoleName: true,
-};
 
 type UserComponentProps = { 
   type: UserType, 

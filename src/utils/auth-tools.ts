@@ -5,14 +5,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
 import type { User } from "next-auth";
-// import { DefaultUser } from "next-auth";
-
-// export interface User extends DefaultUser {
-//   OrgUserID: string | undefined,
-//   OtherUserID: string | null,
-//   org_account_type: number | null,
-//   sites: string[],
-// }
 
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined

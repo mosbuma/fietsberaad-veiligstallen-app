@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
-import { User, type Session } from "next-auth";
+import type { User, Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
