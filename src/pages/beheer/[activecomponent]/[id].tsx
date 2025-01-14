@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { GetServerSidePropsContext } from 'next';
+import React, { useState } from 'react';
+import { GetServerSidePropsContext,GetServerSidePropsResult } from 'next';
 import type { User, Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
@@ -10,7 +10,6 @@ import LeftMenu, {
   isAvailableComponent,
 } from "../../../components/beheer/LeftMenu";
 import TopBar from "../../../components/beheer/TopBar";
-// import { mockUser, mockCouncil, mockExploitant } from "../../../utils/mock";
 import { ReportBikepark } from "../../../components/beheer/reports/ReportsFilter";
 
 import AbonnementenComponent from '../../../components/beheer/abonnementen';
@@ -35,16 +34,18 @@ import UsersComponent from '../../../components/beheer/users';
 import DatabaseComponent from '../../../components/beheer/database';
 
 import { prisma } from '~/server/db';
-import { Prisma  } from '@prisma/client';
-import type {contacts, security_users, security_roles, fietsenstallingtypen} from '@prisma/client';
+import type { security_roles, fietsenstallingtypen } from '@prisma/client';
+import type { VSContact, VSUserWithRoles } from "~/types/";
+import { gemeenteSelect, securityUserSelect } from "~/types/";
 
 import Styles from "~/pages/content.module.css";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
-  // if(null === session) {
-  //   return {};
+  // if(!session) {
+  //   return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
   // }
+
   const currentUser = session?.user || false;
 
   const fietsenstallingtypen = await prisma.fietsenstallingtypen.findMany({
@@ -55,136 +56,70 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   });
 
-  const activeGemeenten = await prisma.contacts.findMany({
+  const activeGemeenten: VSContact[] | undefined = await prisma.contacts.findMany({
     where: { ItemType: 'organizations', ID: { in: currentUser?.sites || [] } },
-    select: {
-      ID: true, 
-      CompanyName: true, 
-      AlternativeCompanyName: true,
-      UrlName: true,
-      ZipID: true,
-      Helpdesk: true,
-      DayBeginsAt: true,
-      Coordinaten: true,
-      Zoom: true,
-      Bankrekeningnr: true,
-      PlaatsBank: true,
-      Tnv: true,
-      Notes: true,
-      DateRegistration: true,
-      fietsenstallingen_fietsenstallingen_SiteIDTocontacts: {
-        select: {
-          ID: true,
-          StallingsID: true,
-          Title: true,
-        }
-      }
-    },
+    select: gemeenteSelect,
   });
 
-  const gemeenten = activeGemeenten;
+  const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
+    where: { security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } } },
+    select: securityUserSelect,
+  });
 
-  const filter: Prisma.contactsFindManyArgs = {
-    where: { CompanyName: { not: null }, ID: { in: currentUser?.sites || [] } },
-    select: {
-      ID: true,
-      CompanyName: true,
-      ItemType: true,
-      Gemeentecode: true,
-      CompanyLogo: true,
-      CompanyLogo2: true,
-      AlternativeCompanyName: true,
-      UrlName: true,
-      ZipID: true,
-      Helpdesk: true,
-      DayBeginsAt: true,
-      Coordinaten: true,
-      Zoom: true,
-      Bankrekeningnr: true,
-      PlaatsBank: true,
-      Tnv: true,
-      Notes: true,
-      DateRegistration: true,
-      fietsenstallingen_fietsenstallingen_SiteIDTocontacts:
-        { select: {
-            ID: true,
-            StallingsID: true,
-            Title: true,
-            Type: true}
-        }
-    },
-  };
-  // if(filter.where!==undefined) {
-  //   if(false) {
-  //     filter.where.ID = { in: currentUser.getGemeenteIDs() };
-  //   }
-  // }
-
-  const activeContacts = await prisma.contacts.findMany(filter);
+  if(users !== undefined && users[0] !== undefined) {
+    users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
+  }
 
   const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeenten using map reduce
-  activeGemeenten.forEach(gemeente => {
-    gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
-      .filter(stalling => stalling.StallingsID !== null)
-      .forEach(stalling => {
-        bikeparks.push({
-          id: stalling.ID,
-          stallingsID: stalling.StallingsID || "---",
-          title: stalling.Title || `Stalling ${stalling.ID}`,
-          gemeenteID: gemeente.ID,
-          ZipID: gemeente.ZipID || "---",
-          hasData: true,
+  if(activeGemeenten !== undefined && activeGemeenten[0]!== undefined) {
+    activeGemeenten.forEach(gemeente => {
+      if(gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts !== undefined) { 
+        gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
+          .filter(stalling => stalling.StallingsID !== null)
+          .forEach(stalling => {
+            bikeparks.push({
+              id: stalling.ID,
+              stallingsID: stalling.StallingsID || "---",
+              title: stalling.Title || `Stalling ${stalling.ID}`,
+              gemeenteID: gemeente.ID,
+              ZipID: gemeente.ZipID || "---",
+              hasData: true,
+          });
         });
-      });
-  });
+      }
+    });
+  }
 
   bikeparks.sort((a, b) => a.title.localeCompare(b.title));
-
-  const users = await prisma.security_users.findMany({
-    select: {
-      UserID: true,
-      UserName: true,
-      DisplayName: true,
-      RoleID: true,
-      Status: true,
-      GroupID: true,
-      security_roles: {
-        select: {
-          RoleID: true,
-          Role: true,
-          Description: true,
-        }
-      }
-    }
-  });
-  users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
 
   const roles = await prisma.security_roles.findMany({});
   if(currentUser) {
   if(currentUser.image === undefined) {
-    console.log("current user", currentUser);
     currentUser.image = "/images/user.png";
     }
   }else {
     console.log("no current user");
   }
-  return { props: { currentUser, gemeenten, activeContacts, bikeparks, users, roles, fietsenstallingtypen } };
+  return { props: { currentUser, gemeenten: activeGemeenten, bikeparks, users, roles, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
   currentUser?: User;
-  gemeenten?: contacts[];
+  gemeenten?: VSContact[];
   bikeparks?: ReportBikepark[];
-  activeContacts: contacts[];
   selectedGemeenteID?: string;
-  users?: security_users[];
+  users?: VSUserWithRoles[];
   roles?: security_roles[];
   fietsenstallingtypen?: fietsenstallingtypen[];
 };
 
-const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, gemeenten, bikeparks, users, roles, fietsenstallingtypen }) => {
-
-  console.log("BeheerPage", activeContacts);
+const BeheerPage: React.FC<BeheerPageProps> = ({ 
+  currentUser, 
+  gemeenten, 
+  bikeparks, 
+  users, 
+  roles, 
+  fietsenstallingtypen }) => {
 
   const router = useRouter();
 
@@ -236,6 +171,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
 
   const filteredBikeparks = bikeparks?.filter((bikepark) => (selectedGemeenteID !== "") && (bikepark.gemeenteID === selectedGemeenteID));
 
+  const filteredUsers = users?.filter((user) => (selectedGemeenteID !== "") && (user.security_users_sites.some(site => site.SiteID === selectedGemeenteID)));
+
   const renderComponent = () => {
     try {
       let selectedComponent = undefined;
@@ -279,7 +216,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
         case "contacts-gemeenten":
           selectedComponent = (
             <ContactsComponent
-              contacts={activeContacts || []}
+              contacts={gemeenten || []}
+              users={users || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
               type="organizations"
             />
@@ -385,7 +323,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({ currentUser, activeContacts, ge
         selectedGemeenteID={selectedGemeenteID}
         onGemeenteSelect={handleSelectGemeente}
       />
-      <div className="flex">
+        <div className="flex">
         <LeftMenu
           user={currentUser}
           activecontact={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID) || undefined}

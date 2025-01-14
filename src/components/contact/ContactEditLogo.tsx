@@ -5,7 +5,7 @@ import { Button } from "~/components/Button";
 import ImageSlider from "~/components/ImageSlider";
 
 type ContactEditLogoProps = {
-  contactdata: contacts,
+  contactdata: Pick<contacts, "ID" | "CompanyLogo" | "CompanyLogo2">,
   isLogo2?: boolean,
   onUpdateAfbeelding?: Function
 }

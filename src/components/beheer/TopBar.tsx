@@ -1,17 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import { contacts } from "@prisma/client";
-import router , { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
+import { VSContact } from "~/types";
 
 interface TopBarProps {
   title: string;
   currentComponent: string;
   user: User | undefined;
-  gemeenten: contacts[] | undefined;
+  gemeenten: VSContact[] | undefined;
   selectedGemeenteID: string | undefined;
   onGemeenteSelect: (gemeente: string) => void;
 }

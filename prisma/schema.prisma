@@ -460,7 +460,7 @@ model contacts {
     presentations                                              presentations[]
     presentations_ticker                                       presentations_ticker[]
 
-    fietsenstallingen          fietsenstallingen[]
+    fietsenstallingen fietsenstallingen[]
 
     @@unique([ItemType, CompanyName], map: "ItemType")
     @@index([CompanyName], map: "CompanyName")
@@ -705,12 +705,12 @@ model fietsenstallingen {
     contacts_fietsenstallingen_ExploitantIDTocontacts contacts?                    @relation("fietsenstallingen_ExploitantIDTocontacts", fields: [ExploitantID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FKF4836A5566279D18")
     fietsenstallingen_services                        fietsenstallingen_services[]
 
-    transacties_archief transacties_archief[]
-    fmsservice_permit   fmsservice_permit[]
-    fietsenstalling_type fietsenstallingtypen? @relation(fields: [Type], references: [id])
-    fietsenstalling_secties fietsenstalling_sectie[]
+    transacties_archief             transacties_archief[]
+    fmsservice_permit               fmsservice_permit[]
+    fietsenstalling_type            fietsenstallingtypen?             @relation(fields: [Type], references: [id])
+    fietsenstalling_secties         fietsenstalling_sectie[]
     abonnementsvorm_fietsenstalling abonnementsvorm_fietsenstalling[]
-    exploitant contacts? @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
+    exploitant                      contacts?                         @relation(fields: [ExploitantID], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "FKCC75C0BE66279D19")
 
     @@index([ExploitantID], map: "ExploitantID")
     @@index([SiteID], map: "FKF4836A55668AE523")
@@ -742,9 +742,9 @@ model fietsenstallingen_winkansen {
 }
 
 model fietsenstallingtypen {
-    id       String  @id @db.VarChar(15)
-    name     String? @db.VarChar(255)
-    sequence Int     @db.SmallInt
+    id                String              @id @db.VarChar(15)
+    name              String?             @db.VarChar(255)
+    sequence          Int                 @db.SmallInt
     fietsenstallingen fietsenstallingen[]
 }
 

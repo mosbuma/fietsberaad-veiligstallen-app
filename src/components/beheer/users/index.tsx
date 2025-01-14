@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { security_users, security_roles } from '@prisma/client';
+import { security_roles } from '@prisma/client';
+import { VSUserWithRoles } from '~/types';
 export type UserType = "gebruiker" | "exploitant" | "beheerder" | "interne-gebruiker";
 export type UserStatus = "actief" | "inactief";
 
 type UserComponentProps = { 
   type: UserType, 
   filterGemeente?: string | false,
-  users: security_users[],
+  users: VSUserWithRoles[],
   roles: security_roles[],
   id?: string
 };

@@ -4,8 +4,8 @@ import Link from 'next/link';
 
 import {  } from '../../utils/mock';
 import { type User } from "next-auth";
-import { newUserRole, newUserRight, userHasRole, userHasRight, userHasModule } from "~/utils/mock";
-import { contacts } from "@prisma/client";
+import { userHasRole, userHasRight, userHasModule } from "~/utils/mock";
+import { VSContact } from '~/types';
 
 export type AvailableComponents =
   | "abonnementen"
@@ -88,7 +88,7 @@ export const isAvailableComponent = (value: string): boolean => {
 
 interface LeftMenuProps {
   user?: User;
-  activecontact: contacts | undefined;
+  activecontact: VSContact | undefined;
   activecomponent: AvailableComponents | undefined;
   onSelect: (component: AvailableComponents) => void;
 }

@@ -1,4 +1,4 @@
-import { abonnementsvorm_fietsenstalling, abonnementsvormen, fietsenstallingtypen } from '@prisma/client';
+import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites } from '@prisma/client';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -103,3 +103,90 @@ export type ParkingDetailsType = {
         }
     }[]
 }
+
+export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID"> & 
+    {
+        security_roles: Pick<security_roles, "RoleID" | "Role" | "Description">  | null;
+        security_users_sites: Pick<security_users_sites, "SiteID" | "IsContact">[]
+    }
+
+export const securityUserSelect = {
+    UserID: true,
+    UserName: true,
+    DisplayName: true,
+    RoleID: true,
+    Status: true,
+    GroupID: true,
+    security_roles: {
+        select: {
+            RoleID: true,
+            Role: true,
+            Description: true
+        }
+    },
+    security_users_sites: {
+        select: {
+            SiteID: true,
+            IsContact: true
+        }
+    }
+}
+  
+export type VSParking = Pick<fietsenstallingen,
+"ID" | 
+"StallingsID" | 
+"Title" |
+"Type"
+>
+
+export type VSContact = Pick<contacts, 
+    "ID" | 
+    "CompanyName" | 
+    "AlternativeCompanyName" | 
+    "UrlName" | 
+    "ZipID" | 
+    "Helpdesk" | 
+    "DayBeginsAt" | 
+    "Coordinaten" | 
+    "Zoom" | 
+    "Bankrekeningnr" | 
+    "PlaatsBank" | 
+    "Tnv" | 
+    "Notes" | 
+    "DateRegistration" | 
+    "CompanyLogo" | 
+    "CompanyLogo2" |
+    "ThemeColor1" |
+    "ThemeColor2"
+> & {
+    fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
+};
+
+export const gemeenteSelect = {
+    ID: true, 
+    CompanyName: true, 
+    AlternativeCompanyName: true,
+    UrlName: true,
+    ZipID: true,
+    Helpdesk: true,
+    CompanyLogo: true,
+    CompanyLogo2: true,
+    ThemeColor1: true,
+    ThemeColor2: true,
+    DayBeginsAt: true,
+    Coordinaten: true,
+    Zoom: true,
+    Bankrekeningnr: true,
+    PlaatsBank: true,
+    Tnv: true,
+    Notes: true,
+    DateRegistration: true,
+    fietsenstallingen_fietsenstallingen_SiteIDTocontacts: {
+      select: {
+        ID: true,
+        Title: true,
+        StallingsID: true,
+        Type: true,
+      }
+    }
+  }

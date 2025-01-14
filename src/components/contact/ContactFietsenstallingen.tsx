@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import type { fietsenstallingen, fietsenstallingtypen } from "@prisma/client";
-import { contacts } from '@prisma/client';
+import type { fietsenstallingtypen } from "@prisma/client";
+import type { VSContact, VSParking } from "~/types/";
 
 interface ContactFietsenstallingenProps {
-  contact: contacts | undefined;
+  contact: VSContact | undefined;
   fietsenstallingtypen: fietsenstallingtypen[] | undefined;
   onEditStalling: (stallingID: string | undefined) => void;
 }
@@ -13,7 +13,7 @@ const ContactFietsenstallingen: React.FC<ContactFietsenstallingenProps> = ({ con
 
   // Create filter options based on available types
   const availableTypes = fietsenstallingtypen?.filter(type => 
-    contact?.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.some(fietsenstalling => fietsenstalling.Type === type.id)
+    contact?.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.some(fietsenstalling => fietsenstalling.Type === type.id)
   );
 
   // Set default selected type to the one with the lowest sequence value
@@ -26,7 +26,7 @@ const ContactFietsenstallingen: React.FC<ContactFietsenstallingenProps> = ({ con
     }
   }, [availableTypes]);
 
-  const filteredFietsenstallingen = contact?.fietsenstallingen_fietsenstallingen_SiteIDTocontacts.filter(fietsenstalling => 
+  const filteredFietsenstallingen = contact?.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.filter(fietsenstalling => 
     selectedType === false || fietsenstalling.Type === selectedType
   );
 
@@ -76,7 +76,7 @@ const ContactFietsenstallingen: React.FC<ContactFietsenstallingenProps> = ({ con
             </tr>
           </thead>
           <tbody>
-            {filteredFietsenstallingen?.map((fietsenstalling: fietsenstallingen) => (
+            {filteredFietsenstallingen?.map((fietsenstalling: VSParking) => (
               <tr key={'fietsenstalling-' + fietsenstalling.ID}>
                 <td className="border px-4 py-2">{fietsenstalling.Title}</td>
                 { selectedType === false && <td className="border px-4 py-2">{fietsenstallingtypen?.find(type => type.id === fietsenstalling.Type)?.name}</td>}

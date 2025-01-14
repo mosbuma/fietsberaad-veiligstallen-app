@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 
-import router, { useRouter } from 'next/router';
-import { contacts, fietsenstallingen } from '@prisma/client';
+import { useRouter } from 'next/router';
 import Overlay from '~/components/Overlay';
 import Modal from '~/components/Modal';
 import ContactEdit from "~/components/contact/ContactEdit";
 import type { fietsenstallingtypen } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
-import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
-import { type ParkingDetailsType } from "~/types/";
-
+import { getParkingDetails } from "~/utils/parkings";
+import type { ParkingDetailsType, VSContact, VSUserWithRoles } from "~/types/";
 
 type ContactsComponentProps = { 
-  contacts: contacts[]
+  contacts: VSContact[]
+  users: VSUserWithRoles[]
   fietsenstallingtypen: fietsenstallingtypen[]  
   type: "organizations" | "exploitants" | "dataproviders" | "admins"
 };
@@ -21,11 +20,12 @@ type ContactsComponentProps = {
 const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
   const router = useRouter();
 
-  const { contacts, fietsenstallingtypen, type} = props;
+  const { contacts, fietsenstallingtypen, type, users} = props;
 
-  const [currentContact, setCurrentContact] = useState<contacts | undefined>(undefined);
+  const [currentContact, setCurrentContact] = useState<VSContact | undefined>(undefined);
 
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
 
@@ -126,6 +126,9 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
     const showStallingEdit = currentStalling !== undefined;
     const showContactEdit = showStallingEdit || currentContact?.ID !== undefined;
 
+    // filter users based on the security_users_sites.SiteID
+    const filteredUsers = users.filter(user => user.security_users_sites?.some(site => site.SiteID === currentContact?.ID && (["extern"].includes(user.GroupID || "") === true)));
+
     if(!showStallingEdit && !showContactEdit) {
       return null;
     }
@@ -154,10 +157,13 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
         { currentContact && showContactEdit && (
           <ContactEdit 
             contacts={contacts} 
+            users={filteredUsers}
             fietsenstallingtypen={fietsenstallingtypen}
             id={currentContact.ID} 
             onClose={() => setCurrentContact(undefined)} 
             onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
+            onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
+            onSendPassword={(userID: string | undefined) => alert("send password to user " + userID) }
             hidden={showStallingEdit}
           />
         )}
