@@ -73,7 +73,10 @@ export const authOptions: NextAuthOptions = {
     // augment jwt token with information that will be used on the server side
     async jwt({ user, token, _account: accountParam }: { user: User | null; token: any; _account?: any }) {
       if (token && 'OrgUserID' in token === false && user) {
+        console.log("**** JWT USER", user);
+        token.id = user.id;
         token.OrgUserID = user.OrgUserID;
+        console.log("**** JWT TOKEN", token);
       }
 
       return token;
@@ -81,11 +84,14 @@ export const authOptions: NextAuthOptions = {
 
     // augment session with information that will be used on the client side
     async session({ session, token }: { session: any; token: any }) {
-      if (session?.user && token?.OrgUserID) {
-        const account = await prisma.security_users.findFirst({ where: { UserID: token.OrgUserID } });
+      console.log(">>>> SESSION USER", session?.user);
+      console.log(">>>> SESSION TOKEN", token);
+      if (session?.user && token?.id) {
+        const account = await prisma.security_users.findFirst({ where: { UserID: token.id } });
         if (account) {
           // console.log("session - account", JSON.stringify(account, null, 2));
           // console.log("session - token", JSON.stringify(token, null, 2));
+          session.user.id = token.id;
           session.user.OrgUserID = token.OrgUserID;
           session.user.RoleID = account.RoleID;
 

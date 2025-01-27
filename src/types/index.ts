@@ -1,4 +1,4 @@
-import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites } from '@prisma/client';
+import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites, modules } from '@prisma/client';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -131,6 +131,8 @@ export const securityUserSelect = {
         }
     }
 }
+
+export type VSModule = Pick<modules, "ID" | "Name">;
   
 export type VSParking = Pick<fietsenstallingen,
 "ID" | 
@@ -159,8 +161,10 @@ export type VSContact = Pick<contacts,
     "ThemeColor1" |
     "ThemeColor2"
 > & {
-    fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
-};
+        fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
+    } & {
+        modules_contacts?: { module: VSModule }[];
+    };
 
 export const gemeenteSelect = {
     ID: true, 
@@ -187,6 +191,16 @@ export const gemeenteSelect = {
         Title: true,
         StallingsID: true,
         Type: true,
+      }
+    },
+    modules_contacts: {
+      select: {
+        module: {
+            select : {
+                ID: true,
+                Name: true
+            }
+        }
       }
     }
   }

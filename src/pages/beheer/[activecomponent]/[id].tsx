@@ -35,18 +35,20 @@ import DatabaseComponent from '../../../components/beheer/database';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import type { VSContact, VSUserWithRoles } from "~/types/";
+import type { VSContact, VSModule, VSUserWithRoles } from "~/types/";
 import { gemeenteSelect, securityUserSelect } from "~/types/";
 
 import Styles from "~/pages/content.module.css";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
-  // if(!session) {
-  //   return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
-  // }
+  // Check if there is no session (user not logged in)
+  if (!session) {
+    return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
+  }  
 
   const currentUser = session?.user || false;
+  const roles = await prisma.security_roles.findMany({});
 
   const fietsenstallingtypen = await prisma.fietsenstallingtypen.findMany({
     select: {
@@ -56,14 +58,39 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     }
   });
 
+  const adminIDs = roles.filter(
+    r => r.GroupID === "intern" && r.Role === "intern_admin" || 
+         r.Role === "root"
+  ).map(r => r.RoleID);
+  // console.log("**** ADMIN IDS", adminIDs);
+  // console.log("**** SESSION USER", session?.user);
+  const userIsAdmin =  adminIDs.includes(parseInt(session?.user?.RoleID || "-1"));
+  // console.log("**** USER IS ADMIN", userIsAdmin);
+  const whereCondition = userIsAdmin ? undefined : { ID: { in: currentUser?.sites || [] } };
+
+  // console.log("**** WHERE CONDITION", userIsAdmin, whereCondition);
+
   const activeGemeenten: VSContact[] | undefined = await prisma.contacts.findMany({
-    where: { ItemType: 'organizations', ID: { in: currentUser?.sites || [] } },
+    where: { ItemType: 'organizations', ...whereCondition },
     select: gemeenteSelect,
   });
 
-  const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
-    where: { security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } } },
-    select: securityUserSelect,
+    let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
+      security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } }
+    };
+    if(adminIDs.includes(parseInt(session?.user?.RoleID || "-1"))) {
+      condition = undefined;
+    }
+    const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
+      where: condition,
+      select: securityUserSelect,
+    });
+
+  const modules: VSModule[] | undefined = await prisma.modules.findMany({
+    select: {
+      ID: true,
+      Name: true
+    }
   });
 
   if(users !== undefined && users[0] !== undefined) {
@@ -92,7 +119,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
 
   bikeparks.sort((a, b) => a.title.localeCompare(b.title));
 
-  const roles = await prisma.security_roles.findMany({});
   if(currentUser) {
   if(currentUser.image === undefined) {
     currentUser.image = "/images/user.png";
@@ -100,7 +126,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   }else {
     console.log("no current user");
   }
-  return { props: { currentUser, gemeenten: activeGemeenten, bikeparks, users, roles, fietsenstallingtypen } };
+  return { props: { currentUser, gemeenten: activeGemeenten, bikeparks, users, roles, modules, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
@@ -110,6 +136,7 @@ export type BeheerPageProps = {
   selectedGemeenteID?: string;
   users?: VSUserWithRoles[];
   roles?: security_roles[];
+  modules?: VSModule[];
   fietsenstallingtypen?: fietsenstallingtypen[];
 };
 
@@ -119,7 +146,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   bikeparks, 
   users, 
   roles, 
+  modules,
   fietsenstallingtypen }) => {
+
+  console.log("**** MODULES", modules);
 
   const router = useRouter();
 
@@ -218,6 +248,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
             <ContactsComponent
               contacts={gemeenten || []}
               users={users || []}
+              modules={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.modules_contacts?.map(m => m.module) || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
               type="organizations"
             />
@@ -230,7 +261,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case "users-gebruikersbeheer":
-          selectedComponent = <UsersComponent type="gebruiker" users={users || []} roles={roles || []} id={activeId} />;
+          selectedComponent = <UsersComponent type="interne-gebruiker" users={users || []} roles={roles || []} id={activeId} />;
           break;
         case "users-exploitanten":
           selectedComponent = <UsersComponent type="exploitant" users={users || []} roles={roles || []} id={activeId} />;

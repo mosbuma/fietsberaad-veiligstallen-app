@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { security_roles } from '@prisma/client';
+import { security_roles, security_roles_GroupID } from '@prisma/client';
 import { VSUserWithRoles } from '~/types';
-export type UserType = "gebruiker" | "exploitant" | "beheerder" | "interne-gebruiker";
+const bcrypt = require('bcryptjs');
+
+export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker";
 export type UserStatus = "actief" | "inactief";
 
 type UserComponentProps = { 
@@ -17,6 +19,13 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const router = useRouter();
 
   const { type, filterGemeente, users, roles, id } = props;
+
+  const rolesWithGeenRol = [
+    { RoleID: -1, Description: "Selecteer een rol" },
+    ...roles
+  ];
+
+  console.log("#### users", users);
 
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
@@ -35,16 +44,18 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const filteredusers = users && users.filter((user) => {
     console.log("USER GROUP", user.DisplayName, user.GroupID);
     switch(type) {
-      case "gebruiker":
-        return user.GroupID === "intern" || user.GroupID === "extern";
+      case "gemeente":
+        return user.GroupID === "extern";
       case "exploitant":
         return user.GroupID === "exploitant";
       case "beheerder":
         return user.GroupID === "beheerder";
+      case "interne-gebruiker":
+        return user.GroupID === "intern";
       default:
         return false;
     }
-  }) || [];
+  }).sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
 
   const renderOverview = () => {
     return (
@@ -73,8 +84,8 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
               const role = roles && roles.find((r) => r.RoleID === user.RoleID);
               return (
                 <tr key={user.UserID}>
-                  <td className="border px-4 py-2">{user.UserName}</td>
                   <td className="border px-4 py-2">{user.DisplayName}</td>
+                  <td className="border px-4 py-2">{user.UserName}</td>
                   <td className="border px-4 py-2">{role?.Description || "--"}</td>
                   <td className="border px-4 py-2">
                     {user.Status === "1" ? (
@@ -100,7 +111,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const getTarget = (id?: string) => {
     let target = "/beheer/users-beheerders";
     switch(type) {
-      case "gebruiker":
+      case "interne-gebruiker":
         target = "/beheer/users-gebruikersbeheer";
         break;
       case "exploitant":
@@ -117,15 +128,15 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
 
   const renderEditMode = () => {
     const isNewUser = id === "nieuw";
-    const [displayName, setDisplayName] = useState('');
-    const [roleID, setRoleID] = useState('');
-    const [userName, setUserName] = useState('');
-    const [password, setPassword] = useState('');
-    const [status, setStatus] = useState(false);
+    const [displayName, setDisplayName] = useState<string>('');
+    const [roleID, setRoleID] = useState<number>(-1);
+    const [userName, setUserName] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [status, setStatus] = useState<boolean>(false);
 
     const [initialData, setInitialData] = useState({
       displayName: '',
-      roleID: '',
+      roleID: 1,
       userName: '',
       status: false,
     });
@@ -136,7 +147,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
         if (user) {
           const initial = {
             displayName: user.DisplayName || '',
-            roleID: user.RoleID?.toString() || "1" ,
+            roleID: user.RoleID || -1 ,
             userName: user.UserName || '',
             status: user.Status === "1",
           };
@@ -163,10 +174,8 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     };
 
     const hashPassword = (password: string) => {
-      // TODO: implement BCRYPT hashing
-      
-      return "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; 
-       
+      const salt = bcrypt.genSaltSync(13); // 13 salt rounds used in the coldfusion code
+      return bcrypt.hashSync(password, salt); 
     }
 
     const handleSave = async () => {
@@ -177,18 +186,31 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
 
       try {
         const method = isNewUser ? 'POST' : 'PUT';
-        const url = isNewUser ? '/api/users' : `/api/users/${id}`;
+        const url = isNewUser ? '/api/security_users' : `/api/security_users/${id}`;
+        const selectedRole = roles.find(r => r.RoleID === roleID);
+        if(!selectedRole) {
+          alert("Selecteer een rol" + roleID);
+          return;
+        }
         const response = await fetch(url, {
           method,
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            displayName,
-            roleID,
-            userName,
-            password: password ? hashPassword(password) : undefined,
-            status: status ? "1" : "0",
+            DisplayName: displayName,
+            RoleID: selectedRole.RoleID,
+            UserName: userName,
+            EncryptedPassword: password ? hashPassword(password) : undefined,
+            EncryptedPassword2: password ? hashPassword(password) : undefined,
+            Status: status ? "1" : "0",
+            security_roles: {
+              create: {
+                RoleID: selectedRole?.RoleID || -1,
+                Role: selectedRole?.Role || "",
+                Description: selectedRole?.Description || "",
+              }
+            },
           }),
         });
 
@@ -205,7 +227,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     const handleReset = () => {
       if (isNewUser) {
         setDisplayName('');
-        setRoleID('');
+        setRoleID(-1);
         setUserName('');
         setPassword('');
         setStatus(false);
@@ -221,21 +243,17 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     return (
       <div>
         <h1 className="text-2xl font-bold mb-4">{id==="nieuw" ? "Nieuwe gebruiker" : "Bewerk gebruiker"}</h1>
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2" colSpan={2}>Gebruikersgegevens bewerken</th>
-            </tr>
-          </thead>
+        <table className="min-w-full bg-white border-2">
           <tbody>
             <tr>
-              <td className="border px-4 py-2">Naam:</td>
-              <td className="border px-4 py-2">
+              <td className="border px-4 py-2 w-1/4">Naam:</td>
+              <td className="border px-4 py-2 w-3/4">
                 <input 
                   type="text" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)} 
                   required 
+                  className="w-full"
                 />
               </td>
             </tr>
@@ -244,9 +262,9 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
               <td className="border px-4 py-2">
                 <select 
                   value={roleID} 
-                  onChange={(e) => setRoleID(e.target.value)}
+                  onChange={(e) => setRoleID(parseInt(e.target.value))}
                 >
-                  {roles.map(role => (
+                  {rolesWithGeenRol.map(role => (
                     <option key={role.RoleID} value={role.RoleID}>
                       {role.Description}
                     </option>
@@ -262,6 +280,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
                   value={userName} 
                   onChange={(e) => setUserName(e.target.value)} 
                   required 
+                  className="w-full"
                 />
               </td>
             </tr>

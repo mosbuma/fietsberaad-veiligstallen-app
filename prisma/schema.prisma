@@ -461,6 +461,7 @@ model contacts {
     presentations_ticker                                       presentations_ticker[]
 
     fietsenstallingen fietsenstallingen[]
+    modules_contacts  modules_contacts[]
 
     @@unique([ItemType, CompanyName], map: "ItemType")
     @@index([CompanyName], map: "CompanyName")
@@ -966,9 +967,10 @@ model mailings_standaardteksten {
 }
 
 model modules {
-    ID     String  @id @db.VarChar(50)
-    Name   String? @db.VarChar(255)
-    parent String? @db.VarChar(50)
+    ID               String             @id @db.VarChar(50)
+    Name             String?            @db.VarChar(255)
+    parent           String?            @db.VarChar(50)
+    modules_contacts modules_contacts[]
 
     @@index([parent], map: "FK492927874E5B9B36")
 }
@@ -977,6 +979,10 @@ model modules_contacts {
     ModuleID String @db.VarChar(50)
     SiteID   String @db.VarChar(35)
 
+    contact contacts @relation(fields: [SiteID], references: [ID])
+    module  modules  @relation(fields: [ModuleID], references: [ID])
+
+    @@id([ModuleID, SiteID])
     @@unique([ModuleID, SiteID], map: "UNIQUE_MODULES_CONTRACTS")
     @@index([ModuleID], map: "FKDB7FF20B65AC5B13")
     @@index([SiteID], map: "FKDB7FF20B668AE523")

@@ -5,7 +5,7 @@
 import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
 import type { User } from "next-auth";
-
+import { securityUserSelect } from "~/types";
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
 ): Promise<User | null> => {
@@ -27,14 +27,15 @@ export const getUserFromCredentials = async (
   };
 
   // check if this is an organizational account via security_accounts table
-  const orgaccount = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() } });
+  const orgaccount = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() }, select: { UserID: true, EncryptedPassword: true } });
+  // console.log("**** ORGACCOUNT", orgaccount);
   if (orgaccount !== undefined && orgaccount !== null && orgaccount.EncryptedPassword !== null) {
     console.log("got orgaccount", orgaccount);
     if (bcrypt.compareSync(password, orgaccount.EncryptedPassword)) {
+      const userdata = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() }, select: securityUserSelect })
       validaccount = true;
-      account.id = orgaccount.UserID;
-      account.OrgUserID = orgaccount.UserID;
-      // account.org_account_type = orgaccount.RoleID;
+      account.id = userdata?.UserID || "";
+      account.OrgUserID = userdata?.UserID || "";
 
       const sites = await prisma.security_users_sites.findMany({ where: { UserID: orgaccount.UserID } });
       console.log("got sites", sites);

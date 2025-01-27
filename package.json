@@ -40,6 +40,7 @@
     "apexcharts": "^4.0.0",
     "babel-plugin-superjson-next": "^0.4.5",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "formidable": "^3.5.1",
     "keen-slider": "^6.8.5",
     "mapbox-gl-draw-waypoint": "^1.0.3",

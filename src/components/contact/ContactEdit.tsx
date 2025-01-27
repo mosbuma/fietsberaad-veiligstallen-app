@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 
 import { VSContact, VSUserWithRoles } from '~/types';
 import ContactUsers from './ContactUsers';
+import FormSelect from '../Form/FormSelect';
 
 type ContactEditProps = {
     id: string;
@@ -62,6 +63,7 @@ const ContactEdit = (props: ContactEditProps) => {
     const [bankTnv, setBankTnv] = useState<string|undefined>(undefined);
     const [notitie, setNotitie] = useState<string|undefined>(undefined);
     const [registratiedatum, setRegistratiedatum] = useState<Date|undefined>(undefined);
+    const [contactID, setContactID] = useState<string | undefined>(undefined);
   
     const cDefaultCoordinaten = [52.1326, 5.2913].join(","); // center of NL by default 
   
@@ -339,6 +341,13 @@ const ContactEdit = (props: ContactEditProps) => {
       // console.log("#### thecontact", thecontact);
       // console.log("#### thecontact", thecontact?.DayBeginsAt, dagstart);
 
+      // Find the current user
+      const currentUser = props.users.find(user => user.security_users_sites.some(site => site.SiteID === props.id));
+      const userlist: { label: string, value: string | undefined }[] = [
+        { label: "Geen", value: undefined },
+        ...props.users.map(user => ({ label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", value: user.UserID || "" }))
+      ];
+      console.log("#### userlist", userlist);
       /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
     return (
       <div className={`${props.hidden ? "hidden" : ""}`} style={{ minHeight: "65vh" }}>
@@ -364,6 +373,14 @@ const ContactEdit = (props: ContactEditProps) => {
                     value={organisatie} 
                     onChange={(e) => setOrganisatie(e.target.value)} 
                     required 
+                  />
+                  <br />
+                  <FormSelect 
+                    label="Contactpersoon"
+                    value={currentUser?.UserID} 
+                    onChange={(e) => setContactID(e.target.value)} 
+                    required
+                    options={userlist}
                   />
                   <br />
                   <FormInput 

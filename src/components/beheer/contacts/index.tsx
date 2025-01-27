@@ -8,10 +8,11 @@ import type { fietsenstallingtypen } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
-import type { ParkingDetailsType, VSContact, VSUserWithRoles } from "~/types/";
+import type { ParkingDetailsType, VSContact, VSModule, VSUserWithRoles } from "~/types/";
 
 type ContactsComponentProps = { 
   contacts: VSContact[]
+  modules: VSModule[]
   users: VSUserWithRoles[]
   fietsenstallingtypen: fietsenstallingtypen[]  
   type: "organizations" | "exploitants" | "dataproviders" | "admins"
@@ -20,7 +21,7 @@ type ContactsComponentProps = {
 const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
   const router = useRouter();
 
-  const { contacts, fietsenstallingtypen, type, users} = props;
+  const { contacts, fietsenstallingtypen, modules ,type, users} = props;
 
   const [currentContact, setCurrentContact] = useState<VSContact | undefined>(undefined);
 
@@ -28,7 +29,7 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
-
+  
   useEffect(() => {
     if (currentStallingId !== undefined) {
       if(currentStalling === undefined || currentStalling?.ID !== currentStallingId) {
@@ -81,6 +82,23 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
 
   console.log("contacts component - contacts:", contacts);
 
+  const getContactPerson = (contact: VSContact): string => {
+    const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
+    return contactpersons.length > 0 && contactpersons[0]!==undefined ? 
+      contactpersons[0].DisplayName + " (" + contactpersons[0].UserName + ")" : "";
+  }
+
+  const getModules = (contact: VSContact): string => {
+    console.log("**** CONTACT MODULES", contact)
+
+    const modules = contact.modules_contacts?.map(module => module.module.Name).join(", ") || "";
+
+    return modules;
+
+
+    // return contact.module_contacts?.map(module => module.module.Name).join(", ") || "";
+  } 
+
   const renderOverview = () => {
     return (
       <div>
@@ -107,8 +125,8 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
               return (
                 <tr key={contact.ID}>
                   <td className="border px-4 py-2">{contact.CompanyName}</td>
-                  <td className="border px-4 py-2">...contactpersoon...</td>
-                  <td className="border px-4 py-2">...modules...</td>
+                  <td className="border px-4 py-2">{getContactPerson(contact)}</td>
+                  <td className="border px-4 py-2">{getModules(contact)}</td>
                   <td className="border px-4 py-2">
                     <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
                     <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>

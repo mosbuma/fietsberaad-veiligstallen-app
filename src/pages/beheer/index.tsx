@@ -12,7 +12,7 @@ export const getServerSideProps = async (_props: GetServerSidePropsContext) => {
 const DefaultBeheerPage: React.FC<{gemeenten?: contacts[], bikeparks?: ReportBikepark[]}>= ({gemeenten, bikeparks}) => {
   const { data: session } = useSession()
 
-  return <BeheerPage gemeenten={gemeenten} bikeparks={bikeparks} activeContacts={[]} currentUser={session?.user} />;
+  return <BeheerPage gemeenten={gemeenten} bikeparks={bikeparks} currentUser={session?.user} />;
 };
 
 export default DefaultBeheerPage;
