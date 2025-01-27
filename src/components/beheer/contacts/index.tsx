@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
-import Overlay from '~/components/Overlay';
-import Modal from '~/components/Modal';
+import { displayInOverlay } from '~/components/Overlay';
 import ContactEdit from "~/components/contact/ContactEdit";
-import type { fietsenstallingtypen } from '@prisma/client';
+import type { fietsenstallingtypen, security_roles } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
 import type { ParkingDetailsType, VSContact, VSModule, VSUserWithRoles } from "~/types/";
+import { UserEditComponent } from '../users/UserEditComponent';
 
 type ContactsComponentProps = { 
   contacts: VSContact[]
   modules: VSModule[]
   users: VSUserWithRoles[]
+  roles: security_roles[],
   fietsenstallingtypen: fietsenstallingtypen[]  
   type: "organizations" | "exploitants" | "dataproviders" | "admins"
 };
@@ -21,7 +22,7 @@ type ContactsComponentProps = {
 const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
   const router = useRouter();
 
-  const { contacts, fietsenstallingtypen, modules ,type, users} = props;
+  const { contacts, fietsenstallingtypen, modules ,type, users, roles} = props;
 
   const [currentContact, setCurrentContact] = useState<VSContact | undefined>(undefined);
 
@@ -69,7 +70,6 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
     }
     return target;
   }
-
 
   const handleEditContact = (id: string) => {
     router.push(getTarget(id));
@@ -142,12 +142,13 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
 
   const renderEdit = (isSm: boolean = false) => {
     const showStallingEdit = currentStalling !== undefined;
-    const showContactEdit = showStallingEdit || currentContact?.ID !== undefined;
+    const showUserEdit = currentUserId !== undefined;
+    const showContactEdit = showStallingEdit || showUserEdit || currentContact?.ID !== undefined;
 
     // filter users based on the security_users_sites.SiteID
     const filteredUsers = users.filter(user => user.security_users_sites?.some(site => site.SiteID === currentContact?.ID && (["extern"].includes(user.GroupID || "") === true)));
 
-    if(!showStallingEdit && !showContactEdit) {
+    if(!showStallingEdit && !showContactEdit && !showUserEdit) {
       return null;
     }
 
@@ -156,7 +157,9 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
         return;
       }
         
-      if(showStallingEdit) {
+      if(showUserEdit) {
+        setCurrentUserId(undefined);
+      } else if(showStallingEdit) {
         setCurrentStallingId(undefined);
       } else if(showContactEdit) {
         setCurrentContact(undefined);
@@ -172,7 +175,9 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
             onChange={() => { setCurrentRevision(currentRevision + 1); }} 
           />
         )}
-        { currentContact && showContactEdit && (
+        { currentUserId && showUserEdit && (
+            <UserEditComponent id={currentUserId} type="gemeente" users={users} roles={roles} onClose={()=>setCurrentUserId(undefined)}/>) }
+        { currentContact && (
           <ContactEdit 
             contacts={contacts} 
             users={filteredUsers}
@@ -182,35 +187,17 @@ const ContactsComponent: React.FC<ContactsComponentProps> = (props) => {
             onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
             onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
             onSendPassword={(userID: string | undefined) => alert("send password to user " + userID) }
-            hidden={showStallingEdit}
+            hidden={showStallingEdit || showUserEdit}
           />
         )}
       </>
     );
 
-    if(isSm) {
-      return (
-        <Overlay
-          title={currentStalling?.Title || currentContact?.CompanyName || ""}
-          onClose={() => handleOnClose()}
-        >
-          { content }
-        </Overlay>
-      )
-    } else {
-      return (
-        <Modal
-          onClose={() => handleOnClose()}
-          clickOutsideClosesDialog={false}
-          >
-          { content }
-        </Modal>
-      )
-    }
+    return displayInOverlay(content, isSm, currentStalling?.Title || currentContact?.CompanyName || "", () => handleOnClose());
   }
   
   const isSm = false;
-  if(currentStalling !== undefined || currentContact !== undefined) {
+  if(currentStalling !== undefined || currentContact !== undefined || currentUserId !== undefined) {
     return renderEdit(isSm);
   } else {
     return renderOverview();

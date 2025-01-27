@@ -248,6 +248,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
             <ContactsComponent
               contacts={gemeenten || []}
               users={users || []}
+              roles={roles || []}
               modules={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.modules_contacts?.map(m => m.module) || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
               type="organizations"

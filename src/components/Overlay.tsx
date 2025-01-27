@@ -5,6 +5,18 @@ import ReactDOM from "react-dom";
 
 // Import components
 import AppHeaderMobile from "~/components/AppHeaderMobile";
+import Modal from "~/components/Modal";
+export const displayInOverlay = (content: React.ReactNode, isSm: boolean = false, title: string = "", onClose: () => void) => {
+  if(isSm) {
+    return (
+      <Overlay title={title} onClose={onClose}>{ content }</Overlay>
+    )
+  } else {
+    return (
+      <Modal onClose={onClose} clickOutsideClosesDialog={false}>{ content }</Modal>
+    )
+  }
+}
 
 interface OverlayProps {
   onClose?: () => void;
