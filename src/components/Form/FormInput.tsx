@@ -50,6 +50,7 @@ function FormInput({
             border
             rounded-full
             my-2
+            w-full
             ${className}
           `}
           disabled={disabled === true}

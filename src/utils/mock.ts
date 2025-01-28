@@ -2,11 +2,51 @@
 import { security_users } from '@prisma/client';
 import { User } from "next-auth";
 
-export type newModule = 'articles' | 'faq' | 'contacts' | 'producten' | 'reports' | 'logboek' | 'users' | 'permits' | 'barcodereeksen' | 'apis' | 'abonnementen';
+export type newModule = 
+    'articles' | 
+    'faq' | 
+    'contacts' | 
+    'producten' | 
+    'reports' | 
+    'logboek' | 
+    'users' | 
+    'barcodereeksen' | 
+    'apis' | 
+    'abonnementen';
 
-export type newUserRole = 'intern_admin' | 'extern_admin' | 'extern_redacteur' | 'exploitantbeheerder' | 'dataanalist' | 'beheerder' | 'user' | 'exploitant' | 'admin' | 'intern_editor' | 'root';
+export type newUserRole = 
+    'intern_admin' | 
+    'extern_admin' | 
+    'extern_redacteur' | 
+    'exploitantbeheerder' | 
+    'dataanalist' | 
+    'beheerder' | 
+    'user' | 
+    'exploitant' | 
+    'admin' | 
+    'intern_editor' | 
+    'root';
 
-export type newUserRight = 'gemeente' | 'website' | 'locaties' | 'fietskluizen' | 'buurtstallingen' | 'abonnementen' | 'documenten' | 'fietsenwin' | 'diashow' | 'accounts' | 'rapportages' | 'externalApis' | 'permits' | 'sleutelhangerreeksen' | 'registranten' | 'users';
+export type newUserRight = 
+    'gemeente' | 
+    'website' | 
+    'locaties' | 
+    'fietskluizen' | 
+    'buurtstallingen' | 
+    'abonnementen' | 
+    'documenten' | 
+    'fietsenwin' | 
+    'diashow' | 
+    'accounts' | 
+    'rapportages' | 
+    'externalApis' | 
+    'sleutelhangerreeksen' | 
+    'registranten' | 
+    'users' | 
+    'contacts-dataproviders' | 
+    'contacts-exploitanten' | 
+    'contacts-gemeenten' | 
+    'contacts-admin';
 
 export const userHasRole = (user: User|undefined, role: newUserRole) => true;
 export const userHasRight = (user: User | undefined, right: newUserRight) => true; /* TODO: remove - for testing, all users have all rights */

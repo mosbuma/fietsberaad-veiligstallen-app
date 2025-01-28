@@ -8,37 +8,39 @@ import { useRouter } from "next/router";
 import LeftMenu, {
   AvailableComponents,
   isAvailableComponent,
-} from "../../../components/beheer/LeftMenu";
-import TopBar from "../../../components/beheer/TopBar";
-import { ReportBikepark } from "../../../components/beheer/reports/ReportsFilter";
+} from "~/components/beheer/LeftMenu";
+import TopBar from "~/components/beheer/TopBar";
+import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
 
-import AbonnementenComponent from '../../../components/beheer/abonnementen';
-import AccountsComponent from '../../../components/beheer/accounts';
-import ApisComponent from '../../../components/beheer/apis';
-import ArticlesComponent from '../../../components/beheer/articles';
-import BarcodereeksenComponent from '../../../components/beheer/barcodereeksen';
-import ContactsComponent from '../../../components/beheer/contacts';
-import DocumentsComponent from '../../../components/beheer/documenten';
-import ExportComponent from '../../../components/beheer/exports';
-import FaqComponent from '../../../components/beheer/faq';
-import HomeComponent from '../../../components/beheer/home';
-import LogboekComponent from '../../../components/beheer/logboek';
-import FietsenstallingenComponent from '../../../components/beheer/fietsenstallingen';
-import PermitsComponent from '../../../components/beheer/permits';
-import PresentationsComponent from '../../../components/beheer/presentations';
-import ProductsComponent from '../../../components/beheer/producten';
-import ReportComponent from '../../../components/beheer/reports';
-import SettingsComponent from '../../../components/beheer/settings';
-import TrekkingenComponent from '../../../components/beheer/trekkingen';
-import UsersComponent from '../../../components/beheer/users';
-import DatabaseComponent from '../../../components/beheer/database';
+import AbonnementenComponent from '~/components/beheer/abonnementen';
+import AccountsComponent from '~/components/beheer/accounts';
+import ApisComponent from '~/components/beheer/apis';
+import ArticlesComponent from '~/components/beheer/articles';
+import BarcodereeksenComponent from '~/components/beheer/barcodereeksen';
+import GemeenteComponent from '~/components/beheer/contacts/gemeente';
+import ExploitantComponent from '~/components/beheer/contacts/expoitant';
+import DataproviderComponent from '~/components/beheer/contacts/dataprovider';
+import DocumentsComponent from '~/components/beheer/documenten';
+import ExportComponent from '~/components/beheer/exports';
+import FaqComponent from '~/components/beheer/faq';
+import HomeComponent from '~/components/beheer/home';
+import LogboekComponent from '~/components/beheer/logboek';
+import FietsenstallingenComponent from '~/components/beheer/fietsenstallingen';
+import PresentationsComponent from '~/components/beheer/presentations';
+import ProductsComponent from '~/components/beheer/producten';
+import ReportComponent from '~/components/beheer/reports';
+import SettingsComponent from '~/components/beheer/settings';
+import TrekkingenComponent from '~/components/beheer/trekkingen';
+import UsersComponent from '~/components/beheer/users';
+import DatabaseComponent from '~/components/beheer/database';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import type { VSContact, VSModule, VSUserWithRoles } from "~/types/";
-import { gemeenteSelect, securityUserSelect } from "~/types/";
+import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModule, VSUserWithRoles } from "~/types/";
+import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect } from "~/types/";
 
 import Styles from "~/pages/content.module.css";
+
 
 export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
@@ -70,21 +72,31 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
 
   // console.log("**** WHERE CONDITION", userIsAdmin, whereCondition);
 
-  const activeGemeenten: VSContact[] | undefined = await prisma.contacts.findMany({
+  const activeGemeenten: VSContactGemeente[] | undefined = await prisma.contacts.findMany({
     where: { ItemType: 'organizations', ...whereCondition },
     select: gemeenteSelect,
   });
 
-    let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
-      security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } }
-    };
-    if(adminIDs.includes(parseInt(session?.user?.RoleID || "-1"))) {
-      condition = undefined;
-    }
-    const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
-      where: condition,
-      select: securityUserSelect,
-    });
+  const exploitanten: VSContactExploitant[] | undefined = await prisma.contacts.findMany({
+    where: { ItemType: 'exploitant', ...whereCondition },
+    select: exploitantSelect,
+  });
+
+  const dataproviders: VSContactDataprovider [] | undefined = await prisma.contacts.findMany({
+    where: { ItemType: 'dataprovider', ...whereCondition },
+    select: dataproviderSelect,
+  });
+
+  let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
+    security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } }
+  };
+  if(adminIDs.includes(parseInt(session?.user?.RoleID || "-1"))) {
+    condition = undefined;
+  }
+  const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
+    where: condition,
+    select: securityUserSelect,
+  });
 
   const modules: VSModule[] | undefined = await prisma.modules.findMany({
     select: {
@@ -126,12 +138,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   }else {
     console.log("no current user");
   }
-  return { props: { currentUser, gemeenten: activeGemeenten, bikeparks, users, roles, modules, fietsenstallingtypen } };
+  return { props: { currentUser, gemeenten: activeGemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
   currentUser?: User;
-  gemeenten?: VSContact[];
+  gemeenten?: VSContactGemeente[];
+  exploitanten?: VSContactExploitant[];
+  dataproviders?: VSContactDataprovider[];
   bikeparks?: ReportBikepark[];
   selectedGemeenteID?: string;
   users?: VSUserWithRoles[];
@@ -143,6 +157,8 @@ export type BeheerPageProps = {
 const BeheerPage: React.FC<BeheerPageProps> = ({ 
   currentUser, 
   gemeenten, 
+  exploitanten,
+  dataproviders,
   bikeparks, 
   users, 
   roles, 
@@ -245,15 +261,25 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case "contacts-gemeenten":
           selectedComponent = (
-            <ContactsComponent
-              contacts={gemeenten || []}
+            <GemeenteComponent
+              gemeenten={gemeenten || []}
               users={users || []}
               roles={roles || []}
-              modules={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.modules_contacts?.map(m => m.module) || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
-              type="organizations"
             />
           );
+          break;
+        case "contacts-exploitanten":
+          selectedComponent = <ExploitantComponent
+            users={users || []} 
+            roles={roles || []} 
+            exploitanten={exploitanten || []} 
+            gemeenten={gemeenten || []}
+            fietsenstallingtypen={fietsenstallingtypen || []} 
+          />;
+          break;
+        case "contacts-dataproviders":
+          selectedComponent = <DataproviderComponent dataproviders={dataproviders || []} />;
           break;
         case "products":
           selectedComponent = <ProductsComponent />;
@@ -262,14 +288,11 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case "users-gebruikersbeheer":
-          selectedComponent = <UsersComponent type="interne-gebruiker" users={users || []} roles={roles || []} id={activeId} />;
+          selectedComponent = <UsersComponent type="interne-gebruiker" users={users || []} roles={roles || []} />;
           break;
-        case "users-exploitanten":
-          selectedComponent = <UsersComponent type="exploitant" users={users || []} roles={roles || []} id={activeId} />;
-          break;
-        case "users-beheerders":
-          selectedComponent = <UsersComponent type="beheerder" users={users || []} roles={roles || []} id={activeId} />;
-          break;
+        // case "users-beheerders":
+        //   selectedComponent = <GemeenteComponent type="admins" users={users || []} roles={roles || []} contacts={dataproviders || []} modules={modules || []} fietsenstallingtypen={fietsenstallingtypen || []} />;
+        //   break;
         case "fietsenstallingen":
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
           break;
@@ -287,9 +310,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case "barcodereeksen-fietsstickers":
           selectedComponent = <BarcodereeksenComponent type="fietsstickers" />;
-          break;
-        case "permits":
-          selectedComponent = <PermitsComponent />;
           break;
         case "presentations":
           selectedComponent = <PresentationsComponent />;
@@ -346,6 +366,14 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     }
   }
 
+  const getActiveContact = () => {
+    return (
+      gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID) || 
+      exploitanten?.find(exploitant => exploitant.ID === selectedGemeenteID) || 
+      dataproviders?.find(dataprovider => dataprovider.ID === selectedGemeenteID)
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <TopBar
@@ -358,7 +386,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         <div className="flex">
         <LeftMenu
           user={currentUser}
-          activecontact={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID) || undefined}
+          activecontact={getActiveContact()}
           activecomponent={activecomponent}
           onSelect={(componentKey: AvailableComponents) => handleSelectComponent(componentKey)} // Pass the component key
         />

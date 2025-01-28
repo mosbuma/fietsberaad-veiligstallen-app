@@ -5,13 +5,13 @@ import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
-import { VSContact } from "~/types";
+import { VSContactGemeente } from "~/types";
 
 interface TopBarProps {
   title: string;
   currentComponent: string;
   user: User | undefined;
-  gemeenten: VSContact[] | undefined;
+  gemeenten: VSContactGemeente[] | undefined;
   selectedGemeenteID: string | undefined;
   onGemeenteSelect: (gemeente: string) => void;
 }

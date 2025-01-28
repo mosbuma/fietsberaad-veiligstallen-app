@@ -358,6 +358,9 @@ model contact_contact {
     childSiteID  String  @db.VarChar(36)
     admin        Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
 
+    isManagingContacts  contacts? @relation(fields: [parentSiteID], references: [ID], name: "isManagingContacts")
+    isManagedByContacts contacts? @relation(fields: [childSiteID], references: [ID], name: "isManagedByContacts")
+
     @@unique([parentSiteID, childSiteID], map: "parentSiteID")
     @@index([childSiteID], map: "childSiteID")
     @@index([parentSiteID], map: "parentSiteID_2")
@@ -462,6 +465,9 @@ model contacts {
 
     fietsenstallingen fietsenstallingen[]
     modules_contacts  modules_contacts[]
+
+    isManaging  contact_contact[] @relation("isManagingContacts")
+    isManagedBy contact_contact[] @relation("isManagedByContacts")
 
     @@unique([ItemType, CompanyName], map: "ItemType")
     @@index([CompanyName], map: "CompanyName")

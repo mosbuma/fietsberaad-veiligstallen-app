@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {  } from '../../utils/mock';
 import { type User } from "next-auth";
 import { userHasRole, userHasRight, userHasModule } from "~/utils/mock";
-import { VSContact } from '~/types';
+import { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from '~/types';
 
 export type AvailableComponents =
   | "abonnementen"
@@ -22,6 +22,8 @@ export type AvailableComponents =
   | "barcodereeksen-sleutelhangers"
   | "barcodereeksen-fietsstickers"
   | "contacts-gemeenten"
+  | "contacts-exploitanten"
+  | "contacts-dataproviders"
   | "contacts-admin"
   | "database"
   | "documents"
@@ -32,7 +34,6 @@ export type AvailableComponents =
   | "fietsenstallingen"
   | "fietskluizen"
   | "buurtstallingen"
-  | "permits"
   | "presentations"
   | "products"
   | "report"
@@ -41,7 +42,6 @@ export type AvailableComponents =
   | "trekkingen"
   | "trekkingenprijzen"
   | "users-gebruikersbeheer"
-  | "users-exploitanten"
   | "users-beheerders";
 
 
@@ -61,6 +61,8 @@ export const isAvailableComponent = (value: string): boolean => {
     "barcodereeksen-sleutelhangers",
     "barcodereeksen-fietsstickers",
     "contacts-gemeenten",
+    "contacts-exploitanten",
+    "contacts-dataproviders",
     "contacts-admin",
     "database",
     "documents",
@@ -71,7 +73,6 @@ export const isAvailableComponent = (value: string): boolean => {
     "fietsenstallingen",
     "fietskluizen",
     "buurtstallingen",
-    "permits",
     "presentations",
     "products",
     "report",
@@ -79,7 +80,6 @@ export const isAvailableComponent = (value: string): boolean => {
     "trekkingen",
     "trekkingenprijzen",
     "users-gebruikersbeheer",
-    "users-exploitanten",
     "users-beheerders",
   ];
 
@@ -88,7 +88,7 @@ export const isAvailableComponent = (value: string): boolean => {
 
 interface LeftMenuProps {
   user?: User;
-  activecontact: VSContact | undefined;
+  activecontact: VSContactGemeente | VSContactExploitant | VSContactDataprovider | undefined;
   activecomponent: AvailableComponents | undefined;
   onSelect: (component: AvailableComponents) => void;
 }
@@ -129,7 +129,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const showAdminOnly = userHasRole(user, 'root') || userHasRole(user, 'admin');
     const showUitgifteBarcodes = userHasRight(user, 'sleutelhangerreeksen');
     const showExterneApis = userHasRight(user, 'externalApis');
-    const showDataleveranciers = userHasRight(user, 'permits');
+    const showDataleveranciers = userHasRight(user, 'contacts-dataproviders');
 
     return (
       <>
@@ -160,8 +160,8 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {showAdminOnly && (
           <>
             {formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)}
-            {formatLi("users-exploitanten", 'Exploitanten', false)}
-            {showDataleveranciers && formatLi("permits", 'Dataleveranciers', false)}
+            {formatLi("contacts-exploitanten", 'Exploitanten', false)}
+            {showDataleveranciers && formatLi("contacts-dataproviders", 'Dataleveranciers', false)}
           </>
         )}
 
@@ -206,7 +206,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const showRegistranten = userHasModule(user, 'fms') && userHasRight(user, 'registranten');
     const showRapporages = userHasModule(user, 'fms') && userHasRight(user, 'rapportages');
     const showUsers = userHasRight(user, 'users');
-    const showToegangFmsservice = userHasModule(user, 'fms') && userHasRight(user, 'permits');
+    const showToegangFmsservice = userHasModule(user, 'fms') && userHasRight(user, 'contacts-dataproviders');
     const showGebruikersBeheerUitgebreid = userHasRole(user, 'exploitant');
     const showGebruikersBeheerUitgebreidGemeente = userHasRole(user, 'admin');
     const showGebruikersBeheerUitgebreidExploitant = userHasRole(user, 'exploitant');
@@ -294,7 +294,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
                     formatLi("users-gebruikersbeheer", `Gebruikers ${activecontact?.CompanyName}`, true)
                   )}
                   {showGebruikersBeheerUitgebreidExploitant && (
-                    formatLi("users-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)  
+                    formatLi("contacts-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)  
                   )}
                   {formatLi("users-beheerders", 'Beheerders', true)}
                 </ul>)
@@ -306,7 +306,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         )}
 
         {showToegangFmsservice && (
-          formatLi("permits", 'Toegang fmsservice', false)
+          formatLi("contacts-dataproviders", 'Toegang fmsservice', false)
         )}
       </>
     )

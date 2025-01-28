@@ -1,4 +1,4 @@
-import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites, modules } from '@prisma/client';
+import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites, modules, contact_contact } from '@prisma/client';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -141,7 +141,47 @@ export type VSParking = Pick<fietsenstallingen,
 "Type"
 >
 
-export type VSContact = Pick<contacts, 
+export interface VSContactExploitant {
+  ID: string;
+  Helpdesk: string | null;
+  CompanyName: string | null;
+  UrlName: string | null;
+  Status: string | null;
+  isManaging: {
+    ID: number;
+    childSiteID: string;
+    admin: boolean;
+  }[];
+  isManagedBy: {
+    ID: number;
+    parentSiteID: string;
+    admin: boolean;
+  }[];
+}
+
+export const exploitantSelect = {
+    ID: true,
+    CompanyName: true,
+    UrlName: true,
+    Status: true,
+    Helpdesk: true,
+    isManagedBy: {
+        select: {
+            ID: true,
+            parentSiteID: true,
+            admin: true
+        }
+    },
+    isManaging: {
+        select: {
+            ID: true,
+            childSiteID: true,
+            admin: true
+        }
+    }
+}
+
+export type VSContactGemeente = Pick<contacts, 
     "ID" | 
     "CompanyName" | 
     "AlternativeCompanyName" | 
@@ -203,4 +243,18 @@ export const gemeenteSelect = {
         }
       }
     }
+  }
+
+  export type VSContactDataprovider = Pick<contacts,
+    "ID" |
+    "CompanyName" |
+    "UrlName" | 
+    "Password"
+  >
+
+  export const dataproviderSelect = {
+    ID: true,
+    CompanyName: true,
+    UrlName: true,
+    Password: true
   }
