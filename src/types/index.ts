@@ -113,7 +113,7 @@ export enum VSGroup {
 
 export type VSRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
 
-export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID"> & 
+export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID"> & 
     {
         security_roles: VSRole | null;
         security_users_sites: Pick<security_users_sites, "SiteID" | "IsContact">[]
@@ -126,6 +126,7 @@ export const securityUserSelect = {
     RoleID: true,
     Status: true,
     GroupID: true,
+    SiteID: true,
     security_roles: {
         select: {
             RoleID: true,

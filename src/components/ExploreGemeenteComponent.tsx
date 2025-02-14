@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSParking, VSUserWithRoles } from "~/types";
 import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter'; // Adjust the import path if necessary
-import { get } from "http";
 
 // import moment from "moment";
 interface ExploreGemeenteComponentProps {
-    gemeenten: VSContactGemeente[];
-    stallingen: ReportBikepark[];
     users: VSUserWithRoles[];
+    gemeenten: VSContactGemeente[];
     exploitanten: VSContactExploitant[];
     dataproviders: VSContactDataprovider[];
+    stallingen: ReportBikepark[];
 }
 
 const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {   
@@ -127,14 +126,14 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     }
 
-    const getUserInfo = (user: VSUserWithRoles) => {
-        const siteID = user.security_users_sites.find((site) => site.SiteID)?.SiteID;
+    const getUserInfo = (siteID: string, user: VSUserWithRoles) => {
         const gemeente = props.gemeenten.find((gemeente) => gemeente.ID === siteID)?.CompanyName || false;
         const exploitant = props.exploitanten.find((exploitant) => exploitant.ID === siteID)?.CompanyName || false;
         const dataprovider = props.dataproviders.find((dataprovider) => dataprovider.ID === siteID)?.CompanyName || false;
 
         return {
             username: user.UserName,
+            siteID: siteID,
             gemeente: gemeente,
             exploitant: exploitant,
             dataprovider: dataprovider,
@@ -143,23 +142,14 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         }
     }
 
-    const relatedUsers = props.users
-        .filter((user) => user.security_users_sites.some((site) => site.SiteID === selectedGemeente?.ID))
+        const relatedUsers = props.users.filter((user) => { 
+            return (
+                user.security_users_sites.some((site) => (site.SiteID === selectedGemeente?.ID))
+            )
+        })
 
-    const renderGemeenteDetailsSection = () => {
+        const renderGemeenteDetailsSection = () => {
         if (!selectedGemeente) return null;
-
-        // Group users by their associated entity
-        const groupedUsers = relatedUsers.reduce((acc, user) => {
-            const userinfo = getUserInfo(user);
-            const groupKey = `${userinfo.gemeente || ''}${userinfo.exploitant || ''}${userinfo.dataprovider || ''}` || "Other";
-            
-            if (!acc[groupKey]) {
-                acc[groupKey] = [];
-            }
-            acc[groupKey].push(userinfo);
-            return acc;
-        }, {} as Record<string, Array<ReturnType<typeof getUserInfo>>>);
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
@@ -215,30 +205,24 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
 
                     {/* Add more fields as needed */}
                     
-                    <div className="text-xl font-bold mb-4">Related Users</div>
-                    
-                    {Object.entries(groupedUsers).map(([groupKey, users]) => (
-                        <div key={groupKey} className="pl-4">
-                            <div className="text-lg font-semibold">{groupKey}</div>
-                            <ul className="list-disc list-inside pl-4">
-                                {users.map((userinfo) => (
-                                    <li key={userinfo.username}>
-                                        <span className="text-gray-900">
-                                            {userinfo.username} [{userinfo.group} / {userinfo.role}]
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                    
-                    <div className="text-xl font-bold mb-4">Exploitanten</div>
-                    {/*
-                    <ul className="list-disc list-inside">
-                        {selectedGemeente.exploitanten?.map((contact) => (
-                            <li key={contact.ID}>{contact.ContactName}</li>
-                        ))}
+                    <ul className="list-disc list-inside pl-4">
+                        {relatedUsers.map((userinfo) => { 
+                            const info = getUserInfo(selectedGemeente?.ID || "", userinfo);
+                            return (
+                            <li key={info.username}>
+                                <span className="text-gray-900">{info.username} / {info.role}]</span>
+                            </li>)
+                        })}
                     </ul>
+
+                    
+                    {/*
+                        <div className="text-xl font-bold mb-4">Exploitanten</div>
+                        <ul className="list-disc list-inside">
+                            {selectedGemeente.exploitanten?.map((contact) => (
+                                <li key={contact.ID}>{contact.ContactName}</li>
+                            ))}
+                        </ul>
                     */}
 
                     <div className="text-xl font-bold mb-4">Fietsenstallingen</div>

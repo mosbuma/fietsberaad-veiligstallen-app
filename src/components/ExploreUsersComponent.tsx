@@ -165,14 +165,16 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         if (!selectedUser) return null;
 
         const visibleGemeenten = gemeenten.filter((gemeente) => selectedUser.security_users_sites.some((site) => site.SiteID === gemeente.ID));
-        // const visibleExploitanten = exploitanten.filter(
-        //     (exploitant) => selectedUser.security_users_sites.some((site) => {
-        //         return (
-        //             exploitant.isManagedBy.find((managed) => managed.parentSiteID === site.SiteID) ||
-        //             exploitant.isManaging.find((managed) => managed.childSiteID === site.SiteID)) 
-        //         }
-        //     ))
-        // const visibleDataproviders = dataproviders.filter((dataprovider) => selectedUser.security_users_sites.some((site) => site.SiteID === dataprovider.ID));
+        const visibleExploitanten = exploitanten.filter(
+            (exploitant) => selectedUser.security_users_sites.some((site) => {
+                return (
+                    exploitant.isManaging.find((managed) => managed.childSiteID === site.SiteID)) 
+                }
+                // exploitant.isManagedBy.find((managed) => managed.parentSiteID === site.SiteID) ||
+            ))
+        const visibleDataproviders = dataproviders.filter((dataprovider) => selectedUser.security_users_sites.some((site) => site.SiteID === dataprovider.ID));
+
+        const contactinfo = gemeenten.filter((gemeente) => selectedUser.SiteID === gemeente.ID);
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
@@ -210,7 +212,11 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 })}
                         </div>
                     </div>
-                    {/* <div className="flex items-center">
+                    <div className="flex items-center"> 
+                        <label className="w-32 text-sm font-medium text-gray-700">SiteID</label>
+                        <span className="text-gray-900">{selectedUser.SiteID}</span>
+                    </div>
+                    <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Exploitanten:</label>
                         <ul className="list-disc list-inside text-gray-900">
                             { visibleExploitanten.map((exploitant) => { 
@@ -219,6 +225,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             )})}
                         </ul>
                     </div>
+                    {/*
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Dataproviders:</label>
                         <ul className="list-disc list-inside text-gray-900">
