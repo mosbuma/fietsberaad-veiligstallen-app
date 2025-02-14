@@ -84,8 +84,6 @@ export const authOptions: NextAuthOptions = {
 
     // augment session with information that will be used on the client side
     async session({ session, token }: { session: any; token: any }) {
-      console.log(">>>> SESSION USER", session?.user);
-      console.log(">>>> SESSION TOKEN", token);
       if (session?.user && token?.id) {
         const account = await prisma.security_users.findFirst({ where: { UserID: token.id } });
         if (account) {
@@ -97,6 +95,12 @@ export const authOptions: NextAuthOptions = {
 
           const sites = await prisma.security_users_sites.findMany({ where: { UserID: token.OrgUserID } });
           const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID || -1 } });
+
+          // console.log("#### SESSION GOT ROLE", role);
+          // console.log("#### SESSION USER ROLEID", session.user.RoleID);
+
+          const linkedroles = await prisma.security_roles.findMany({ where: { GroupID: role?.GroupID } });
+          // console.log("#### SESSION LINKED ROLES", linkedroles);
 
           session.user.sites = sites.map((s) => s.SiteID);
           session.user.GroupID = role?.GroupID;
@@ -115,6 +119,9 @@ export const authOptions: NextAuthOptions = {
       } else {
         console.log("session - no user or token");
       }
+      // console.log(">>>> SESSION", session);
+      // console.log(">>>> SESSION USER", session?.user);
+      // console.log(">>>> SESSION TOKEN", token);
       return session;
     },
   },

@@ -33,6 +33,7 @@ import SettingsComponent from '~/components/beheer/settings';
 import TrekkingenComponent from '~/components/beheer/trekkingen';
 import UsersComponent from '~/components/beheer/users';
 import DatabaseComponent from '~/components/beheer/database';
+import ExploreUsersComponent from '~/components/ExploreUsersComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
@@ -164,9 +165,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   roles, 
   modules,
   fietsenstallingtypen }) => {
-
-  console.log("**** MODULES", modules);
-
   const router = useRouter();
 
   const [selectedGemeenteID, setSelectedGemeenteID] = useState<string>("");
@@ -280,6 +278,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case "contacts-dataproviders":
           selectedComponent = <DataproviderComponent dataproviders={dataproviders || []} />;
+          break;
+        case "explore-users":
+          selectedComponent = <ExploreUsersComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []} 
+          gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
           break;
         case "products":
           selectedComponent = <ProductsComponent />;

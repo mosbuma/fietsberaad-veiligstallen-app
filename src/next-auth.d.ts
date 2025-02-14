@@ -7,6 +7,7 @@ declare module "next-auth" {
     id: string;
     OrgUserID?: string;
     RoleID?: string;
+    Role?: string;
     GroupID?: string;
     name?: string | null;
     email?: string | null;

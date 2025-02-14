@@ -5,8 +5,8 @@ type FormTimeInputProps = {
   label?: string;
   required?: boolean;
   className?: string;
-  onChange: (date: Date) => void;
-  value?: Date;
+  onChange: (date: Date|null) => void;
+  value?: Date|null;
   size?: number
   style?: object
   disabled?: boolean
@@ -21,10 +21,10 @@ const FormTimeInput: React.FC<FormTimeInputProps> = ({
   size,
   style,
   disabled }) => {
-  const [newValue, setNewValue] = useState<moment.Moment|undefined>(undefined);
+  const [newValue, setNewValue] = useState<moment.Moment|null>(null);
 
   const getHours = () => {
-    if(newValue === undefined) {
+    if(newValue === null) {
       return moment(value).utcOffset(0).format('H');
     }
 
@@ -32,7 +32,7 @@ const FormTimeInput: React.FC<FormTimeInputProps> = ({
   }
 
   const getMinutes = () => {
-    if(newValue === undefined) {
+    if(newValue === null) {
       return moment(value).utcOffset(0).format('m');
     }
 

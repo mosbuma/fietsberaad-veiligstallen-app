@@ -104,9 +104,18 @@ export type ParkingDetailsType = {
     }[]
 }
 
+export enum VSGroup {
+    Intern = "intern",
+    Extern = "extern",
+    Exploitant = "exploitant",
+    Beheerder = "beheerder",
+}
+
+export type VSRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
+
 export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID"> & 
     {
-        security_roles: Pick<security_roles, "RoleID" | "Role" | "Description">  | null;
+        security_roles: VSRole | null;
         security_users_sites: Pick<security_users_sites, "SiteID" | "IsContact">[]
     }
 
@@ -121,7 +130,8 @@ export const securityUserSelect = {
         select: {
             RoleID: true,
             Role: true,
-            Description: true
+            Description: true,
+            GroupID: true
         }
     },
     security_users_sites: {
@@ -138,7 +148,7 @@ export type VSParking = Pick<fietsenstallingen,
 "ID" | 
 "StallingsID" | 
 "Title" |
-"Type"
+"Type" 
 >
 
 export interface VSContactExploitant {
@@ -258,3 +268,5 @@ export const gemeenteSelect = {
     UrlName: true,
     Password: true
   }
+
+  export type VSContact = VSContactGemeente & VSContactDataprovider & VSContactExploitant;

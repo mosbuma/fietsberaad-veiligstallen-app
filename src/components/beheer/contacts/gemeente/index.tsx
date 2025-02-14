@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 import { displayInOverlay } from '~/components/Overlay';
-import GemeenteEdit from "~/components/contact/GemeenteEdit";
+import GemeenteEdit, { DEFAULTGEMEENTE } from "~/components/contact/GemeenteEdit";
 import type { fietsenstallingtypen, security_roles } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
 import type { ParkingDetailsType, VSContactGemeente, VSModule, VSUserWithRoles } from "~/types/";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
+
+import moment from "moment";
 
 type GemeenteComponentProps = { 
   gemeenten: VSContactGemeente[]
@@ -68,7 +70,12 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   }, [router.query.id, gemeenten]);
 
   const handleEditContact = (id: string) => {
-    setCurrentContact(gemeenten.find((contact) => contact.ID === id))
+    if(id === "nieuw") {
+      const newContact = DEFAULTGEMEENTE;
+      setCurrentContact(newContact);
+    } else {
+      setCurrentContact(gemeenten.find((contact) => contact.ID === id))
+    }
     // router.replace(`/beheer/gemeenten-gemeenten/${id}`); -> sets the url but does not reload the page
   };
 
@@ -77,8 +84,6 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     console.log(`Delete thecontact: ${id}`);
   };
 
-  console.log("gemeenten component - gemeenten:", gemeenten);
-
   const getContactPerson = (contact: VSContactGemeente): string => {
     const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
     return contactpersons.length > 0 && contactpersons[0]!==undefined ? 
@@ -86,14 +91,8 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   }
 
   const getModules = (contact: VSContactGemeente): string => {
-    console.log("**** CONTACT MODULES", contact)
-
     const modules = contact.modules_contacts?.map(module => module.module.Name).join(", ") || "";
-
     return modules;
-
-
-    // return contact.module_contacts?.map(module => module.module.Name).join(", ") || "";
   } 
 
   const renderOverview = () => {
