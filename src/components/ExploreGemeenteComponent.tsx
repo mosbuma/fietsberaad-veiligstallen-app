@@ -13,9 +13,12 @@ interface ExploreGemeenteComponentProps {
 
 const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {   
 
-    const { gemeenten } = props;
+    console.log("#### GOT USERS", props.users.length);
+    console.log("#### GOT GEMEENTEN", props.gemeenten.length);
+
+    const { gemeenten, exploitanten, dataproviders, users } = props;
     const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>(gemeenten);
-    const [selectedGemeente, setSelectedGemeente] = useState<VSContactGemeente | null>(null);
+    const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | null>("E1991A95-08EF-F11D-FF946CE1AA0578FB");
 
     const [nameFilter, setNameFilter] = useState<string>("");
     const [showGemeentenWithoutStallingen, setShowGemeentenWithoutStallingen] = useState<"yes"|"no"|"only">("no");
@@ -29,7 +32,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
             )
             .filter((gemeente) => {
                 const numStallingen = gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.length || 0;
-                const hasUsers = props.users.some((user) => 
+                const hasUsers = users.some((user) => 
                     user.security_users_sites.some((site) => site.SiteID === gemeente.ID)
                 );
                 return (
@@ -46,8 +49,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         setNameFilter(event.target.value);
     }
 
-    const selectGemeenteHandler = (gemeente: VSContactGemeente) => {
-        setSelectedGemeente(gemeente);
+    const selectGemeenteHandler = (gemeenteID: string) => {
+        setSelectedGemeenteID(gemeenteID);
     }
 
     const resetFilters = () => {
@@ -113,8 +116,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             {filteredGemeenten.map((gemeente) => (
                                 <li 
                                     key={gemeente.ID} 
-                                    className={`cursor-pointer p-2 ${selectedGemeente?.ID === gemeente.ID ? 'bg-blue-100' : ''}`} 
-                                    onClick={() => selectGemeenteHandler(gemeente)}
+                                    className={`cursor-pointer p-2 ${selectedGemeenteID === gemeente.ID ? 'bg-blue-100' : ''}`} 
+                                    onClick={() => selectGemeenteHandler(gemeente.ID)}
                                 >
                                     {gemeente.CompanyName}
                                 </li>
@@ -127,11 +130,12 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
     }
 
     const getUserInfo = (siteID: string, user: VSUserWithRoles) => {
-        const gemeente = props.gemeenten.find((gemeente) => gemeente.ID === siteID)?.CompanyName || false;
-        const exploitant = props.exploitanten.find((exploitant) => exploitant.ID === siteID)?.CompanyName || false;
-        const dataprovider = props.dataproviders.find((dataprovider) => dataprovider.ID === siteID)?.CompanyName || false;
+        const gemeente = gemeenten.find((gemeente) => gemeente.ID === siteID)?.CompanyName || false;
+        const exploitant = exploitanten.find((exploitant) => exploitant.ID === siteID)?.CompanyName || false;
+        const dataprovider = dataproviders.find((dataprovider) => dataprovider.ID === siteID)?.CompanyName || false;
 
         return {
+            id: user.UserID,
             username: user.UserName,
             siteID: siteID,
             gemeente: gemeente,
@@ -142,19 +146,33 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         }
     }
 
-        const relatedUsers = props.users.filter((user) => { 
-            return (
-                user.security_users_sites.some((site) => (site.SiteID === selectedGemeente?.ID))
-            )
+    const relatedUsers = props.users.filter((user) => { 
+        return (
+            user.security_users_sites.some((site) => (site.SiteID === selectedGemeenteID))
+        )
+    })
+
+    const renderGemeenteDetailsSection = () => {
+        const selectedGemeente = gemeenten.find(gemeente => gemeente.ID === selectedGemeenteID);
+        if (!selectedGemeente) return null;
+
+
+        const isManagingContacts = selectedGemeente.isManagingContacts?.map((contactinfo) => {
+            return gemeenten.find((gemeente) => gemeente.ID === contactinfo.childSiteID);
         })
 
-        const renderGemeenteDetailsSection = () => {
-        if (!selectedGemeente) return null;
+        const isManagedByContacts = selectedGemeente.isManagedByContacts?.map((contactinfo) => {
+            return exploitanten.find((exploitant) => exploitant.ID === contactinfo.parentSiteID);
+        })
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="text-2xl font-bold mb-4">Gemeente Details</div>
                 <div className="space-y-2">
+                    <div className="flex items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">ID:</label>
+                        <span className="text-gray-900">{selectedGemeente.ID}</span>
+                    </div>
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Name:</label>
                         <span className="text-gray-900">{selectedGemeente.CompanyName}</span>
@@ -204,26 +222,49 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                     */}
 
                     {/* Add more fields as needed */}
-                    
-                    <ul className="list-disc list-inside pl-4">
-                        {relatedUsers.map((userinfo) => { 
-                            const info = getUserInfo(selectedGemeente?.ID || "", userinfo);
-                            return (
-                            <li key={info.username}>
-                                <span className="text-gray-900">{info.username} / {info.role}]</span>
-                            </li>)
-                        })}
-                    </ul>
 
+                    <div className="flex flex-row items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">Managed By Contacts:</label>
+                        <ul className="list-disc list-inside pl-4">
+                            {isManagedByContacts?.map((contact) => (
+                                <li key={contact.ID}>{contact.CompanyName}</li>
+                            ))}
+                        </ul>   
+                    </div>
                     
-                    {/*
-                        <div className="text-xl font-bold mb-4">Exploitanten</div>
-                        <ul className="list-disc list-inside">
-                            {selectedGemeente.exploitanten?.map((contact) => (
-                                <li key={contact.ID}>{contact.ContactName}</li>
+                    { isManagingContacts && isManagingContacts?.length > 0 && (
+                        <div className="flex flex-row items-center">
+                            <label className="w-32 text-sm font-medium text-gray-700">Managing Contacts:</label>
+                            <ul className="list-disc list-inside pl-4">
+                                {isManagingContacts?.map((contact) => (
+                                    <li key={contact.ID}>{contact.CompanyName}</li>
+                                ))}
+                            </ul>   
+                        </div>
+                    )}
+
+                    <div className="flex items-center"> 
+                        <label className="w-32 text-sm font-medium text-gray-700">Modules:</label>
+                        <ul className="list-disc list-inside pl-4">
+                            {selectedGemeente.modules_contacts?.map((module) => (
+                                <li key={module.module.ID}>{module.module.Name}</li>
                             ))}
                         </ul>
-                    */}
+                    </div>
+
+                    <div className="flex flex-row items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">Users:</label>
+                        <ul className="list-disc list-inside pl-4">
+                            {relatedUsers.map((userinfo, idx) => { 
+                                const info = getUserInfo(selectedGemeente.ID, userinfo);
+                                return (
+                                    <li key={info.id}>
+                                        <span className="text-gray-900">{info.username} / {info.role}]</span>
+                                    </li>
+                                )
+                            })}
+                        </ul>
+                    </div>
 
                     <div className="text-xl font-bold mb-4">Fietsenstallingen</div>
                     <ul className="list-disc list-inside">

@@ -158,12 +158,12 @@ export interface VSContactExploitant {
   CompanyName: string | null;
   UrlName: string | null;
   Status: string | null;
-  isManaging: {
+  isManagingContacts: {
     ID: number;
     childSiteID: string;
     admin: boolean;
   }[];
-  isManagedBy: {
+  isManagedByContacts: {
     ID: number;
     parentSiteID: string;
     admin: boolean;
@@ -176,14 +176,14 @@ export const exploitantSelect = {
     UrlName: true,
     Status: true,
     Helpdesk: true,
-    isManagedBy: {
+    isManagedByContacts: {
         select: {
             ID: true,
             parentSiteID: true,
             admin: true
         }
     },
-    isManaging: {
+    isManagingContacts: {
         select: {
             ID: true,
             childSiteID: true,
@@ -215,6 +215,18 @@ export type VSContactGemeente = Pick<contacts,
         fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
     } & {
         modules_contacts?: { module: VSModule }[];
+    } & {
+        isManagingContacts?: {
+            ID: number;
+            childSiteID: string;
+            admin: boolean;
+        }[];
+    } & {   
+        isManagedByContacts?: {
+            ID: number;
+            parentSiteID: string;
+            admin: boolean;
+        }[];
     };
 
 export const gemeenteSelect = {
@@ -243,6 +255,20 @@ export const gemeenteSelect = {
         StallingsID: true,
         Type: true,
       }
+    },
+    isManagingContacts: {
+        select: {
+            ID: true,
+            childSiteID: true,
+            admin: true
+        }
+    },
+    isManagedByContacts: {
+        select: {
+            ID: true,
+            parentSiteID: true,
+            admin: true
+        }
     },
     modules_contacts: {
       select: {
