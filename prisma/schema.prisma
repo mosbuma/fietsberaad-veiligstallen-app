@@ -358,6 +358,8 @@ model contact_contact {
     childSiteID  String  @db.VarChar(36)
     admin        Boolean @default(dbgenerated("b'0'")) @db.Bit(1)
 
+    // exploitants are in the parentSiteID column
+    // organizations are in the childSiteID column
     isManagingContacts  contacts? @relation(fields: [parentSiteID], references: [ID], name: "isManagingContacts")
     isManagedByContacts contacts? @relation(fields: [childSiteID], references: [ID], name: "isManagedByContacts")
 

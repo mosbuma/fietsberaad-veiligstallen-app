@@ -109,14 +109,15 @@ export enum VSGroup {
     Extern = "extern",
     Exploitant = "exploitant",
     Beheerder = "beheerder",
+    Dataprovider = "dataprovider",
 }
 
 export type VSRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
 
-export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID"> & 
+export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID" | "ParentID" | "LastLogin"> & 
     {
         security_roles: VSRole | null;
-        security_users_sites: Pick<security_users_sites, "SiteID" | "IsContact">[]
+        security_users_sites: Pick<security_users_sites, "UserID" | "SiteID" | "IsContact">[]
     }
 
 export const securityUserSelect = {
@@ -127,6 +128,8 @@ export const securityUserSelect = {
     Status: true,
     GroupID: true,
     SiteID: true,
+    ParentID: true,
+    LastLogin: true,
     security_roles: {
         select: {
             RoleID: true,
@@ -137,6 +140,7 @@ export const securityUserSelect = {
     },
     security_users_sites: {
         select: {
+            UserID: true,
             SiteID: true,
             IsContact: true
         }
@@ -156,8 +160,10 @@ export interface VSContactExploitant {
   ID: string;
   Helpdesk: string | null;
   CompanyName: string | null;
+  ItemType: string | null;
   UrlName: string | null;
   Status: string | null;
+  ParentID: string | null;
   isManagingContacts: {
     ID: number;
     childSiteID: string;
@@ -173,9 +179,11 @@ export interface VSContactExploitant {
 export const exploitantSelect = {
     ID: true,
     CompanyName: true,
+    ItemType: true,
     UrlName: true,
     Status: true,
     Helpdesk: true,
+    ParentID: true,
     isManagedByContacts: {
         select: {
             ID: true,
@@ -194,7 +202,8 @@ export const exploitantSelect = {
 
 export type VSContactGemeente = Pick<contacts, 
     "ID" | 
-    "CompanyName" | 
+    "CompanyName" |
+    "ItemType" | 
     "AlternativeCompanyName" | 
     "UrlName" | 
     "ZipID" | 
@@ -210,7 +219,7 @@ export type VSContactGemeente = Pick<contacts,
     "CompanyLogo" | 
     "CompanyLogo2" |
     "ThemeColor1" |
-    "ThemeColor2"
+    "ThemeColor2" 
 > & {
         fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
     } & {
@@ -232,6 +241,7 @@ export type VSContactGemeente = Pick<contacts,
 export const gemeenteSelect = {
     ID: true, 
     CompanyName: true, 
+    ItemType: true,
     AlternativeCompanyName: true,
     UrlName: true,
     ZipID: true,
@@ -285,6 +295,7 @@ export const gemeenteSelect = {
   export type VSContactDataprovider = Pick<contacts,
     "ID" |
     "CompanyName" |
+    "ItemType" |
     "UrlName" | 
     "Password"
   >
@@ -292,6 +303,7 @@ export const gemeenteSelect = {
   export const dataproviderSelect = {
     ID: true,
     CompanyName: true,
+    ItemType: true,
     UrlName: true,
     Password: true
   }

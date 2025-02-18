@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { VSUserWithRoles, VSRole, VSGroup, VSContact, VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types";
-
+import { useRouter } from "next/router";
+import Link from "next/link";
 interface ExploreUsersComponentProps {
     users: VSUserWithRoles[]
     roles: VSRole[]
@@ -9,19 +10,96 @@ interface ExploreUsersComponentProps {
     dataproviders: VSContactDataprovider[]
 }
 
-const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {   
+// returns an array of user IDs for users that have a mismatch between GroupID in security_users and GroupID in security_roles together with the reason
+export const getDubiousUserIDs = (users: VSUserWithRoles[]) => {  
+    const dubiousUserIDs: {UserID: string, Reasons: string[]}[] = [];
 
-    const { roles, users, gemeenten, exploitanten, dataproviders } = props;
+    const addReason = (userID: string, reason: string) => {
+        const dubiousUser = dubiousUserIDs.find((dubiousUser) => dubiousUser.UserID === userID);
+        if(dubiousUser) {
+            // check if the reason is already in the array to prevent duplicates
+            if(!dubiousUser.Reasons.includes(reason)) {
+                dubiousUser.Reasons.push(reason);
+            }
+        } else {
+            dubiousUserIDs.push({UserID: userID, Reasons: [reason]});
+        }
+    }
+    // add all users that have a mismatch between GroupID in security_users and GroupID in security_roles
+    const groupMismatch = users.filter((user) => {
+        return (user.GroupID !== user.security_roles?.GroupID)
+    });
+
+    groupMismatch.forEach((user) => {
+        addReason(user.UserID, `User GroupID ${user.GroupID} does not match security_roles GroupID ${user.security_roles?.GroupID}`);
+    });
+
+    const roleMismatch = users.filter((user) => user.RoleID !== user.security_roles?.RoleID);
+    roleMismatch.forEach((user) => {
+        addReason(user.UserID, `User RoleID ${user.RoleID} does not match security_roles RoleID ${user.security_roles?.RoleID}`);
+    });
+
+    const noLinkedSites = users.filter((user) => user.security_users_sites.length === 0 && user.SiteID === null);
+    noLinkedSites.forEach((user) => {
+        addReason(user.UserID, `User has no linked sites`);
+    });
+
+    const noAdminRole = users.filter((user) => user.RoleID === 7 || user.security_roles?.RoleID === 7);
+    noAdminRole.forEach((user) => {
+        addReason(user.UserID, `User has RoleID 7 (beheerder) - looks like these are not allowed to login`);
+    });
+
+    return dubiousUserIDs;
+}
+
+const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {   
+    const router = useRouter();
+
+    const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
+
+    const { roles, users, gemeenten, exploitanten } = props;
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
-    const [selectedUser, setSelectedUser] = useState<VSUserWithRoles | null>(null);
+    const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
 
     const [emailFilter, setEmailFilter] = useState<string>("");
     const [groupFilter, setGroupFilter] = useState<string>("");
     const [roleFilter, setRoleFilter] = useState<number | undefined>(undefined);
     const [contactFilter, setContactFilter] = useState<"Yes" | "No">("No");
     const [gemeenteFilter, setGemeenteFilter] = useState<string>("");
+    const [exploitantFilter, setExploitantFilter] = useState<string>("");
+    const [invalidDataFilter, setInvalidDataFilter] = useState<"Yes" | "No" | "Only">("No");
+    const [inactiveUserFilter, setInactiveUserFilter] = useState<"Yes" | "No" | "Only">("Yes");
 
     const groups = Object.values(VSGroup);
+
+    const dubiousUserIDs = getDubiousUserIDs(users);
+    const selectedUser = users.find(user => user.UserID === selectedUserID);
+
+    useEffect(() => {
+        const currentUserID = router.query.userID;
+        if (currentUserID && currentUserID !== selectedUserID) {
+                setSelectedUserID(currentUserID as string);
+            }
+    }, [router.query.userID]);
+
+    useEffect(() => {
+        if(router.query.userID !== selectedUserID) {
+            if(selectedUserID) {
+            router.push({
+                pathname: router.pathname,
+                    query: { ...router.query, userID: selectedUserID }
+                });
+            }
+        } else {
+            // delete userID from router query
+            const { userID, ...rest } = router.query;
+            router.push({
+                pathname: router.pathname,
+                query: rest
+            });
+        }
+    }, [selectedUserID]);
+
 
     useEffect(() => {
         const filteredUsers = users
@@ -36,16 +114,49 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             .filter((user) => (
                 gemeenteFilter === "" || 
                 user.security_users_sites.some((site) => site.SiteID === gemeenteFilter)
-            ));
+            ))
+            .filter((user) => {
+                if (user.GroupID !== 'exploitant') return true;
+
+                if (exploitantFilter === "") return true;
+
+                // Check if the user is a main user with the exploitantID
+                if (user.SiteID === exploitantFilter) return true;
+
+                // Check if the user is a subuser and the main user links to the exploitantID
+                const mainUser = users.find(main => main.UserID === user.ParentID);
+                return mainUser?.SiteID === exploitantFilter;
+            })
+            .filter((user) => {
+                const isDubious = dubiousUserIDs.some(dubious => dubious.UserID === user.UserID);
+                if (invalidDataFilter === "Yes") {
+                    return true;
+                } else if (invalidDataFilter === "Only") {
+                    return isDubious;
+                } else {
+                    return !isDubious;
+                }
+            })
+            .filter((user) => {
+                const userIsActive = user.LastLogin && new Date(user.LastLogin) > new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000);
+                if (inactiveUserFilter === "Yes") {
+                    return true;
+                } else if (inactiveUserFilter === "Only") {
+                    return !userIsActive;
+                } else {
+                    return userIsActive;
+                }
+            });
+
         setFilteredUsers(filteredUsers);
-    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter]);
+    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
 
     const filterEmailHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEmailFilter(event.target.value);
     }
 
-    const selectUserHandler = (user: VSUserWithRoles) => {
-        setSelectedUser(user);
+    const selectUserHandler = (userID: string) => {
+        setSelectedUserID(userID);
     }
 
     const resetFilters = () => {
@@ -54,11 +165,76 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         setRoleFilter(undefined);
         setContactFilter("No");
         setGemeenteFilter("");
+        setExploitantFilter("");
+        setInvalidDataFilter("Yes");
+        setInactiveUserFilter("No");
     };
+
+    const checkAssumptions = () => {
+        let assumptionsfailed = false;
+        const userlabel = (user: VSUserWithRoles) => {
+            return `${user.DisplayName} [${user.UserName}/${user.UserID}]`;
+        }
+        switch(selectedUser?.GroupID) {
+            case 'intern':
+                break;
+            case 'extern':
+                // check that there are no users in this group that have more than one linked contact via security_users_sites
+                const externUsers = users.filter((user) => user.GroupID === 'extern');
+                const externUsersWithMultipleContacts = externUsers.filter((user) => user.security_users_sites.length > 1);
+                if(externUsersWithMultipleContacts.length > 0) {
+                    console.error(`There are users in the extern group that have more than one linked contact via security_users_sites: ${externUsersWithMultipleContacts.map(userlabel).join(", ")}`);
+                    assumptionsfailed = true;
+                }
+
+                // check that for users in this group that if the siteid is set, the same siteid is also in the security_users_sites array
+                const externUsersWithSiteID = externUsers.filter((user) => user.SiteID !== null);
+                const externUsersWithSiteIDNotInSecurityUsersSites = externUsersWithSiteID.filter((user) => !user.security_users_sites.some((site) => site.SiteID === user.SiteID));
+                if(externUsersWithSiteIDNotInSecurityUsersSites.length > 0) {
+                    console.error(`There are users in the extern group that have a siteid set, but the same siteid is not in the security_users_sites array: ${externUsersWithSiteIDNotInSecurityUsersSites.map(userlabel).join(", ")}`);
+                    assumptionsfailed = true;
+                }
+
+                break;
+            case 'exploitant':
+                const exploitantUsers = users
+                    .filter((user) => user.GroupID === 'exploitant')
+                    .filter((user) => user.UserID !== "F2390AFC-72D7-40A3-8C910F8C4B055938"); // known bad: no siteid and no parentid
+                // assume that users in this group either have: 
+                // a site id and no sites linked via a parentid related user
+                exploitantUsers.forEach((user) => {
+                    if(user.SiteID !== null) {
+                        if(user.ParentID !== null) {
+                            console.error(`User ${userlabel(user)} has a siteid and a parentid`);
+                            assumptionsfailed = true;
+                        }
+                    }
+                });
+                // no site id and one site linked via a parentid related user
+                exploitantUsers.forEach((user) => {
+                    if(user.SiteID === null) {
+                        if(user.ParentID === null) {
+                            console.error(`User ${userlabel(user)} has no siteid and no parentid`);
+                            assumptionsfailed = true;
+                        }
+                    }
+                });
+
+                break;
+            case 'dataprovider':
+                break;
+            default:
+                break;
+        }
+
+        if(assumptionsfailed) {
+            console.error("One or more assumptions failed");
+        }
+    }
 
     const renderFilterSection = () => {
         // only show gemeenten that are associated with one or more users
-        const filterlijstgemeenten = gemeenten.filter((gemeente) => users.some((user) => user.security_users_sites.some((site) => site.SiteID === gemeente.ID)));
+        // const filterlijstgemeenten = gemeenten.filter((gemeente) => users.some((user) => user.security_users_sites.some((site) => site.SiteID === gemeente.ID)));
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
@@ -115,7 +291,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                         </select>
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="contact" className="text-sm font-medium text-gray-700">Show only contacts:</label>
+                        <label htmlFor="contact" className="text-sm font-medium text-gray-700">Show only contact persons:</label>
                         <select 
                             id="contact" 
                             name="contact" 
@@ -141,15 +317,60 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 <option value={gemeente.ID} key={gemeente.ID}>{gemeente.CompanyName}</option>
                             ))}
                         </select>
-                    </div>                    
+                    </div>
+                    <div className="flex flex-col">
+                        <label htmlFor="invalidData" className="text-sm font-medium text-gray-700">Users with invalid data:</label>
+                        <select 
+                            id="invalidData" 
+                            name="invalidData" 
+                            className="mt-1 p-2 border border-gray-300 rounded-md" 
+                            value={invalidDataFilter}
+                            onChange={(e) => setInvalidDataFilter(e.target.value as "Yes" | "No" | "Only")}
+                        >
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Only">Only</option>
+                        </select>                        
+                    </div>
+                    <div className="flex flex-col">
+                        <label htmlFor="inactiveUsers" className="text-sm font-medium text-gray-700">Show Inactive Users:</label>
+                        <select 
+                            id="inactiveUsers" 
+                            name="inactiveUsers" 
+                            className="mt-1 p-2 border border-gray-300 rounded-md" 
+                            value={inactiveUserFilter}
+                            onChange={(e) => setInactiveUserFilter(e.target.value as "Yes" | "No" | "Only")}
+                        >
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Only">Only</option>
+                        </select>                        
+                    </div>
+                    {groupFilter === 'exploitant' && (
+                        <div className="flex flex-col">
+                            <label htmlFor="exploitant" className="text-sm font-medium text-gray-700">Select Exploitant:</label>
+                            <select 
+                                id="exploitant" 
+                                name="exploitant" 
+                                className="mt-1 p-2 border border-gray-300 rounded-md" 
+                                value={exploitantFilter}
+                                onChange={(e) => setExploitantFilter(e.target.value)}
+                            >
+                                <option value="">All exploitants</option>
+                                {exploitanten.map((exploitant) => (
+                                    <option value={exploitant.ID} key={exploitant.ID}>{exploitant.CompanyName}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <h2 className="text-xl font-semibold mt-6">List of Users</h2>
                         <ul className="list-disc list-inside max-h-fit overflow-y-auto">
                             {filteredUsers.map((user) => (
                                 <li 
                                     key={user.UserID} 
-                                    className={`cursor-pointer p-2 ${selectedUser?.UserID === user.UserID ? 'bg-blue-100' : ''}`} 
-                                    onClick={() => selectUserHandler(user)}
+                                    className={`cursor-pointer p-2 ${selectedUserID === user.UserID ? 'bg-blue-100' : ''}`} 
+                                    onClick={() => selectUserHandler(user.UserID)}
                                 >
                                     {`${user.DisplayName} [${user.UserName}]`}
                                 </li>
@@ -161,20 +382,112 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         );
     }
 
+    const getMainContact = () => {
+        if (!selectedUser) return null;
+
+        let contact: VSContactGemeente | VSContactExploitant | undefined = undefined;
+        switch(selectedUser.GroupID) {
+            case 'intern': {
+                return null; // No associated contact for intern users
+            }
+            case 'extern': {
+                // SiteID is not used for extern users
+
+                const relatedSites = selectedUser.security_users_sites;
+                contact = gemeenten.find((gemeente) => {
+                    return (
+                        gemeente.ID === relatedSites[0]?.SiteID
+                    )
+                });
+                break;
+            }
+            case 'exploitant': {
+                // first check direct link
+                contact = exploitanten.find((contact) => {
+                    return (
+                        contact.ID === selectedUser.SiteID
+                    )
+                });
+                // check link via parentID
+                if(!contact) {
+                    if(selectedUser?.ParentID) {
+                        const parentuser = users.find((user) => {
+                            return (
+                                user.UserID === selectedUser.ParentID
+                            )
+                        });
+                        if(parentuser) {
+                            contact = exploitanten.find((exploitant) => {
+                                return (
+                                    exploitant.ID === parentuser.SiteID
+                                )
+                            });
+                        } else {
+                            console.error(`No parent user found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
+                        }
+                    } else {
+                        console.error(`No parentID found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
+                    }
+                }
+
+                if(!contact) {
+                    console.error(`No contact found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
+                }
+                
+                break;
+            }
+            case 'dataprovider':
+                break;
+            default:
+                break;
+        }
+
+        return contact;
+    }
+
     const renderUserDetailsSection = () => {
         if (!selectedUser) return null;
 
-        const visibleGemeenten = gemeenten.filter((gemeente) => selectedUser.security_users_sites.some((site) => site.SiteID === gemeente.ID));
-        const visibleExploitanten = exploitanten.filter(
-            (exploitant) => selectedUser.security_users_sites.some((site) => {
-                return (
-                    exploitant.isManaging.find((managed) => managed.childSiteID === site.SiteID)) 
-                }
-                // exploitant.isManagedBy.find((managed) => managed.parentSiteID === site.SiteID) ||
-            ))
-        const visibleDataproviders = dataproviders.filter((dataprovider) => selectedUser.security_users_sites.some((site) => site.SiteID === dataprovider.ID));
+        const mainContact: VSContactGemeente | VSContactExploitant | undefined | null = getMainContact();
+        let linkElement: React.ReactElement | null = null;
+        if(mainContact) {
+            switch(mainContact.ItemType) {
+                case 'admin':
+                    linkElement = <span className="text-gray-900">{mainContact?.CompanyName} [Admin]</span>;
+                    break;
+                case 'organizations':
+                    linkElement = <Link href={`/beheer/explore-gemeenten/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    break;
+                case 'exploitant':
+                    linkElement = <Link href={`/beheer/explore-exploitanten/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    break;
+                case 'dataprovider':
+                    linkElement = <span className="text-gray-900">{mainContact?.CompanyName}</span>;
+                    break;
+                default:
+                    linkElement = <span className="text-gray-900">{mainContact?.CompanyName} [{mainContact.ItemType}]</span>;
+                    break;
+            }
+        } else {
+            linkElement = <span className="text-gray-900">No main contact found</span>;
+        }
 
-        const contactinfo = gemeenten.filter((gemeente) => selectedUser.SiteID === gemeente.ID);
+        const visibleGemeenten = gemeenten.filter((gemeente) => selectedUser.security_users_sites.some((site) => site.UserID === selectedUser.UserID && site.SiteID === gemeente.ID));
+
+        const baddataReasons = dubiousUserIDs.find((user) => user.UserID === selectedUser.UserID)?.Reasons || [];
+
+        const formatLastLogin = (lastLogin: Date | null) => {
+            if (!lastLogin) return "Never";
+            const loginDate = new Date(lastLogin);
+            const dayssince = Math.floor((new Date().getTime() - loginDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (dayssince === 0) {
+                return loginDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else if (dayssince === 1) {
+                return loginDate.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' }) + ` (yesterday)`;
+            } else {
+                return loginDate.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' }) + ` (${dayssince} days ago)`;
+            }
+        };
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
@@ -189,8 +502,20 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                         <span className="text-gray-900">{selectedUser.UserName}</span>
                     </div>
                     <div className="flex items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">User ID:</label>
+                        <span className="text-gray-900">{selectedUser.UserID}</span>
+                    </div>
+                    <div className="flex items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">Organization:</label>
+                        { linkElement }
+                    </div>
+                    <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Group:</label>
-                        <span className="text-gray-900">{selectedUser.GroupID}</span>
+                        { selectedUser?.GroupID === 'exploitant' ? (
+                            <span className="text-gray-900">{selectedUser.GroupID} ({selectedUser.ParentID===null ? "Main user" : "Sub user"})</span>
+                        ) : (
+                            <span className="text-gray-900">{selectedUser.GroupID}</span>
+                        )}
                     </div>
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Role ID:</label>
@@ -199,6 +524,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Roles:</label>
                         <span className="text-gray-900">{roles.find(role => role.RoleID === selectedUser.RoleID)?.Role}</span>
+                    </div>
+                    <div className="flex items-center">
+                        <label className="w-32 text-sm font-medium text-gray-700">Last Login:</label>
+                        <span className="text-gray-900">{formatLastLogin(selectedUser.LastLogin)}</span>
                     </div>
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Gemeenten:</label>
@@ -212,33 +541,24 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 })}
                         </div>
                     </div>
-                    <div className="flex items-center"> 
-                        <label className="w-32 text-sm font-medium text-gray-700">SiteID</label>
-                        <span className="text-gray-900">{selectedUser.SiteID}</span>
-                    </div>
-                    <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Exploitanten:</label>
-                        <ul className="list-disc list-inside text-gray-900">
-                            { visibleExploitanten.map((exploitant) => { 
+                    { baddataReasons.length > 0 && (
+                        <div className="flex items-center">
+                            <label className="w-32 text-sm font-medium text-gray-700">Invalid data:</label>
+                            <ul className="list-disc list-inside max-h-fit overflow-y-auto">
+                            {baddataReasons.map((reason) => {
                                 return (
-                                <li key={exploitant.ID}>{exploitant.CompanyName}</li>
-                            )})}
-                        </ul>
-                    </div>
-                    {/*
-                    <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Dataproviders:</label>
-                        <ul className="list-disc list-inside text-gray-900">
-                            { visibleDataproviders.map((dataprovider) => { 
-                                return (
-                                <li key={dataprovider.ID}>{dataprovider.CompanyName}</li>
-                            )})}
-                        </ul>
-                    </div> */}
+                                    <li key={reason}>{reason}</li>
+                                )
+                            })}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
         );
     }
+
+    checkAssumptions();
 
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">

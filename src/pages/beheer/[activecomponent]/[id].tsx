@@ -35,6 +35,7 @@ import UsersComponent from '~/components/beheer/users';
 import DatabaseComponent from '~/components/beheer/database';
 import ExploreUsersComponent from '~/components/ExploreUsersComponent';
 import ExploreGemeenteComponent from '~/components/ExploreGemeenteComponent';
+import ExploreExploitant from '~/components/ExploreExploitantComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
@@ -286,6 +287,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case "explore-gemeenten":
           selectedComponent = <ExploreGemeenteComponent gemeenten={gemeenten || []} exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
+          break;
+        case "explore-exploitanten":
+          selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
         case "products":
           selectedComponent = <ProductsComponent />;

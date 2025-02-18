@@ -27,6 +27,7 @@ export type AvailableComponents =
   | "contacts-admin"
   | "explore-users"
   | "explore-gemeenten"
+  | "explore-exploitanten"
   | "database"
   | "documents"
   | "export"
@@ -67,6 +68,7 @@ export const isAvailableComponent = (value: string): boolean => {
     "contacts-dataproviders",
     "explore-users",
     "explore-gemeenten",
+    "explore-exploitanten",
     "contacts-admin",
     "database",
     "documents",
