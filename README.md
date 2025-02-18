@@ -87,3 +87,11 @@ NOTE: Na elke `npm run setup-db` moet schema.prisma worden gerevert.
 Als na pull er prisma errors zijn, dan doe:
 - npx prisma generate
 - npm i
+
+
+# data exploration paginas
+
+Deze paginas kunnen worden gebruikt voor het bekijken van gebruiksdata/organisatie data
+- http://localhost:3000/beheer/explore-exploitanten
+- http://localhost:3000/beheer/explore-gemeenten
+- http://localhost:3000/beheer/explore-users
