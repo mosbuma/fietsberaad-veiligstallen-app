@@ -130,190 +130,161 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     );
   }
 
+  // const renderFullMenu = (isInternal: boolean, isExternal: boolean) => {
+  //   return (
+  //     <>
+  //       {isInternal && renderInternalUserMenu()}
+  //       {isExternal && renderExternalUserMenu()}
+  //     </>
+  //   )
+  // }
+
   const renderInternalUserMenu = () => {
+    // Base conditions
     const showSiteBeheer = userHasRole(user, 'intern_editor') || userHasRole(user, 'intern_admin') || userHasRole(user, 'root');
     const showAdminOnly = userHasRole(user, 'root') || userHasRole(user, 'admin');
     const showUitgifteBarcodes = userHasRight(user, 'sleutelhangerreeksen');
     const showExterneApis = userHasRight(user, 'externalApis');
     const showDataleveranciers = userHasRight(user, 'contacts-dataproviders');
-
+  
+    // Menu item visibility
+    const showHome = true;
+    const showInstellingen = true;
+    const showProducts = true;
+    const showReports = true;
+    const showExport = true;
+    const showLogboek = true;
+    const showGebruikersbeheer = showAdminOnly;
+    const showExploitanten = showAdminOnly;
+    const showDataleveranciersMenu = showAdminOnly && showDataleveranciers;
+    const showDatabase = showAdminOnly;
+    const showStallingInfo = showAdminOnly;
+    const showGemeenten = showAdminOnly;
+    const showBeheerders = showAdminOnly;
+  
     return (
       <>
-        {formatLi("home", 'Home')}
-        {formatLi("settings", 'Instellingen')}
-
+        {showHome && formatLi("home", 'Home')}
+        {showInstellingen && formatLi("settings", 'Instellingen')}
+  
         {showSiteBeheer &&
           formatLi(false, 'Site beheer', false,
             <ul className="ml-4 mt-1">
-              {formatLi("articles-pages", 'Paginabeheer', true)}
-              {formatLi("faq", 'FAQ', true)}
+              {showSiteBeheer && formatLi("articles-pages", 'Paginabeheer', true)}
+              {showSiteBeheer && formatLi("faq", 'FAQ', true)}
             </ul>)
         }
-
-        {showAdminOnly && (
-          <>
-            {formatLi("contacts-gemeenten", 'Gemeenten',)}
-            {formatLi("contacts-admin", 'Beheerders',)}
-        </>)
-        }
-
-        {formatLi("products", 'Opwaardeerproducten',)}
-
-        {formatLi("report", 'Rapportages', true)}
-        {formatLi("export", 'Export', true)}
-        {formatLi("logboek", 'Logboek', true)}
-
-        {showAdminOnly && (
-          <>
-            {formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)}
-            {formatLi("contacts-exploitanten", 'Exploitanten', false)}
-            {showDataleveranciers && formatLi("contacts-dataproviders", 'Dataleveranciers', false)}
-          </>
-        )}
-
+  
+        {showGemeenten && formatLi("contacts-gemeenten", 'Gemeenten')}
+        {showBeheerders && formatLi("contacts-admin", 'Beheerders')}
+  
+        {showProducts && formatLi("products", 'Opwaardeerproducten')}
+        {showReports && formatLi("report", 'Rapportages', true)}
+        {showExport && formatLi("export", 'Export', true)}
+        {showLogboek && formatLi("logboek", 'Logboek', true)}
+        {showGebruikersbeheer && formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)}
+        {showExploitanten && formatLi("contacts-exploitanten", 'Exploitanten', false)}
+        {showDataleveranciersMenu && formatLi("contacts-dataproviders", 'Dataleveranciers', false)}
+  
         {showUitgifteBarcodes && (
           formatLi(false, 'Barcodes', false,
             <ul className="ml-4 mt-1">
-              {formatLi("barcodereeksen-uitgifte-barcodes", 'Uitgifte Barcodes', true)}
-              {formatLi("barcodereeksen-sleutelhangers", 'Sleutelhangers', true)}
-              {formatLi("barcodereeksen-fietsstickers", 'Fietsstickers', true)}
+              {showUitgifteBarcodes && formatLi("barcodereeksen-uitgifte-barcodes", 'Uitgifte Barcodes', true)}
+              {showUitgifteBarcodes && formatLi("barcodereeksen-sleutelhangers", 'Sleutelhangers', true)}
+              {showUitgifteBarcodes && formatLi("barcodereeksen-fietsstickers", 'Fietsstickers', true)}
             </ul>)
         )}
-
+  
         {showExterneApis && (
           formatLi(false, 'Externe API\'s', false,
             <ul className="ml-4 mt-1">
-              {formatLi("apis-overzicht", 'Overzicht API\'s', true)}
-              {formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true)}
+              {showExterneApis && formatLi("apis-overzicht", 'Overzicht API\'s', true)}
+              {showExterneApis && formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true)}
             </ul>
           ))}
-
-        {showAdminOnly && (
-          formatLi("database", 'Database', false)
-        )}
-
-        {showAdminOnly && (
-          formatLi("stalling-info", 'Stalling info', false)
-        )}
-      </>)
+  
+        {showDatabase && formatLi("database", 'Database', false)}
+        {showStallingInfo && formatLi("stalling-info", 'Stalling info', false)}
+      </>
+    )
   }
 
   const renderExternalUserMenu = () => {
-    const showContactsGemeenten = userHasRight(user, 'gemeente');
+    // Base conditions
+    const showContactsGemeente = userHasRight(user, 'gemeente');
     const showWebsiteBeheer = userHasRight(user, 'website');
     const showLocatieStallingen = userHasRight(user, 'locaties');
     const showStatusChipkluizen = userHasModule(user, 'fietskluizen') && userHasRight(user, 'fietskluizen');
     const showBuurtstallingen = userHasModule(user, 'buurtstallingen') && userHasRight(user, 'buurtstallingen');
     const showAbonnementen = activecontact?.ID === '1' || (userHasModule(user, 'abonnementen') && userHasRight(user, 'abonnementen'));
     const showDocumenten = userHasModule(user, 'documenten');
-    const showTrekkingenPrijzen = userHasModule(user, 'fietsenwin') && userHasRight(user, 'fietsenwin');
-    const showTrekkingenInTrekkingenPrijzen = (userHasRole(user, 'root') || userHasRole(user, 'admin'))
     const showDiashow = userHasRole(user,'exploitant') && userHasRight(user, 'diashow');
     const showRegistranten = userHasModule(user, 'fms') && userHasRight(user, 'registranten');
-    const showRapporages = userHasModule(user, 'fms') && userHasRight(user, 'rapportages');
-    const showUsers = userHasRight(user, 'users');
+    const showRapportages = userHasModule(user, 'fms') && userHasRight(user, 'rapportages');
+    const showGebruikersBeheer = userHasRight(user, 'users');
     const showToegangFmsservice = userHasModule(user, 'fms') && userHasRight(user, 'contacts-dataproviders');
     const showGebruikersBeheerUitgebreid = userHasRole(user, 'exploitant');
-    const showGebruikersBeheerUitgebreidGemeente = userHasRole(user, 'admin');
-    const showGebruikersBeheerUitgebreidExploitant = userHasRole(user, 'exploitant');
-    const showAbonnementenRapporten = true;
+    
+    // Menu item visibility
+    const showHome = true;
+    const showAbonnementenVormen = showAbonnementen;
+    const showAbonnementenBeheer = showAbonnementen;
+    const showGebruikersBeheerGemeente = showGebruikersBeheerUitgebreid && userHasRole(user, 'admin');
+    const showGebruikersBeheerExploitant = showGebruikersBeheerUitgebreid && userHasRole(user, 'exploitant');
+    const showGebruikersBeheerBeheerders = showGebruikersBeheerUitgebreid;
 
     return (
       <>
-        {formatLi("home", 'Home')}
+        {showHome && formatLi("home", 'Home')}
 
-        {showContactsGemeenten && (
-          formatLi("contacts-gemeenten", 'Gegevens gemeente', false)
+        {showContactsGemeente && formatLi("contacts-gemeenten", 'Gegevens gemeente', false)}
+
+        {showWebsiteBeheer && formatLi(false, 'Website beheer', false,
+          <ul className="ml-4 mt-1">
+            {formatLi("articles-pages", 'Paginabeheer', true)}
+            {formatLi("faq", 'FAQ', true)}
+          </ul>
         )}
 
-        {showWebsiteBeheer && (
-          formatLi("articles-pages", 'Website beheer', false,
-            <ul className="ml-4 mt-1">
-              {formatLi("articles-pages", 'Paginabeheer', true)}
-              {formatLi("faq", 'FAQ', true)}
-            </ul>
+        {showLocatieStallingen && formatLi("fietsenstallingen", 'Locatie stallingen', false)}
+        {showStatusChipkluizen && formatLi("fietskluizen", 'Status chipkluizen', false)}
+        {showBuurtstallingen && formatLi("buurtstallingen", 'Buurtstallingen / fietstrommels', false)}
+
+        {(showAbonnementenVormen||showAbonnementenBeheer) && formatLi(false, 'Abonnementen', false,
+          <ul className="ml-4 mt-1">
+            {showAbonnementenVormen && formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
+            {showAbonnementenBeheer && formatLi("abonnementen", 'Abonnementen', true)}
+          </ul>
+        )}
+
+        {showDocumenten && formatLi("documents", 'Documenten', false)}
+
+        {showDiashow && formatLi("presentations", 'Diashow', false)}
+        {showRegistranten && formatLi("accounts", 'Registranten', false)}
+
+        {showRapportages && formatLi(false, 'Rapportages', false,
+          <ul className="ml-4 mt-1">
+            { formatLi("report", 'Rapportage', true)}
+            { formatLi("export", 'Export', true)}
+            { formatLi("logboek", 'Logboek', true)}
+          </ul>
+        )}
+
+        {showGebruikersBeheer && (
+          showGebruikersBeheerUitgebreid ? (
+            formatLi(false, 'Gebruikersbeheer', false,
+              <ul className="ml-4 mt-1">
+                {showGebruikersBeheerGemeente && formatLi("users-gebruikersbeheer", `Gebruikers ${activecontact?.CompanyName}`, true)}
+                {showGebruikersBeheerExploitant && formatLi("contacts-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)}
+                {showGebruikersBeheerBeheerders && formatLi("users-beheerders", 'Beheerders', true)}
+              </ul>
+            )
+          ) : (
+            formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)
           )
         )}
 
-        {showLocatieStallingen && (
-          formatLi("fietsenstallingen", 'Locatie stallingen', false)
-        )}
-
-        {showStatusChipkluizen && (
-          formatLi("fietskluizen", 'Status chipkluizen', false)
-        )}
-
-        {showBuurtstallingen && (
-          formatLi("buurtstallingen", 'Buurtstallingen / fietstrommels', false)
-        )}
-
-        {showAbonnementen && (
-          formatLi(false, 'Abonnementen', false,
-            <ul className="ml-4 mt-1">
-              {formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
-              {formatLi("abonnementen", 'Abonnementen', true)}
-            </ul>
-          ))}
-
-        {showDocumenten && (
-          formatLi("documents", 'Documenten', false)
-        )}
-
-        {showTrekkingenPrijzen && (
-          <>
-            {showTrekkingenInTrekkingenPrijzen ? (
-              formatLi(false, 'Trekkingen &amp; Prijzen', false,
-                <ul className="ml-4 mt-1">
-                  {formatLi("trekkingen", 'Trekkingen', true)}
-                  {formatLi("trekkingenprijzen", 'Prijzen', true)}
-                </ul>
-              )
-            ) : (
-              formatLi("trekkingenprijzen", 'Prijzen', false)
-            )}
-          </>
-        )}
-
-        {showDiashow && (
-          formatLi("presentations", 'Diashow', false)
-        )}
-
-        {showRegistranten && (
-          formatLi("accounts", 'Registranten', false)
-        )}
-
-        {showRapporages && (
-          formatLi(false, 'Rapportages', false,
-            <ul className="ml-4 mt-1">
-              {formatLi("report", 'Rapportage', true)}
-              {formatLi("export", 'Export', true)}
-              {formatLi("logboek", 'Logboek', true)}
-            </ul>
-          ))}
-
-        {showUsers && (
-          <>
-            {showGebruikersBeheerUitgebreid && (
-              formatLi(false, 'Gebruikersbeheer', false,
-                <ul className="ml-4 mt-1">
-                  {showGebruikersBeheerUitgebreidGemeente && (
-                    formatLi("users-gebruikersbeheer", `Gebruikers ${activecontact?.CompanyName}`, true)
-                  )}
-                  {showGebruikersBeheerUitgebreidExploitant && (
-                    formatLi("contacts-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)  
-                  )}
-                  {formatLi("users-beheerders", 'Beheerders', true)}
-                </ul>)
-            )}
-            {!showGebruikersBeheerUitgebreid && (
-              formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)
-            )}
-          </>
-        )}
-
-        {showToegangFmsservice && (
-          formatLi("contacts-dataproviders", 'Toegang fmsservice', false)
-        )}
+        {showToegangFmsservice && formatLi("contacts-dataproviders", 'Toegang fmsservice', false)}
       </>
     )
   }
@@ -324,7 +295,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     return (
       <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
         {formatLi("report", 'Rapportages', true)}
-        </ul>
+      </ul>
     )
   }
 

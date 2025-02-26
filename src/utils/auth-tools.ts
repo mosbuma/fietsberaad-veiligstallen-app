@@ -5,7 +5,9 @@
 import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
 import type { User } from "next-auth";
-import { securityUserSelect } from "~/types";
+import { securityUserSelect, VSUserRoleValuesNew, VSUserWithRoles } from "~/types";
+import { createSecurityProfile } from "~/utils/securitycontext";
+import { initAllTopics } from "~/types/utils";
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
 ): Promise<User | null> => {
@@ -20,10 +22,14 @@ export const getUserFromCredentials = async (
   let account: User = {
     id: "",
     email: email.toLocaleLowerCase(),
-    OrgUserID: undefined,
-    // OtherUserID: null,
-    // org_account_type: null,
-    sites: [],
+    activeContactId: "",
+    securityProfile: {
+      managingContactIDs: [],
+      mainContactId: "",
+      roleId: VSUserRoleValuesNew.None,
+      rights: initAllTopics({ create: false, read: false, update: false, delete: false }),
+      modules: [],
+    }
   };
 
   // check if this is an organizational account via security_accounts table
@@ -32,15 +38,10 @@ export const getUserFromCredentials = async (
   if (orgaccount !== undefined && orgaccount !== null && orgaccount.EncryptedPassword !== null) {
     console.log("got orgaccount", orgaccount);
     if (bcrypt.compareSync(password, orgaccount.EncryptedPassword)) {
-      const userdata = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() }, select: securityUserSelect })
+      const userdata = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() }, select: securityUserSelect }) as VSUserWithRoles;
       validaccount = true;
       account.id = userdata?.UserID || "";
-      account.OrgUserID = userdata?.UserID || "";
-
-      const sites = await prisma.security_users_sites.findMany({ where: { UserID: orgaccount.UserID } });
-      console.log("got sites", sites);
-
-      // console.log("### getUserFromCredentials - found account in security_users table -", account);
+      account.securityProfile = await createSecurityProfile(userdata);
     } else {
       console.log("### getUserFromCredentials - invalid password for security_users table");
     }

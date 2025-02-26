@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { VSUserWithRoles, VSRole, VSGroup, VSContact, VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types";
 import { useRouter } from "next/router";
 import Link from "next/link";
+
+import { VSUserWithRoles, VSUserRole, VSUserGroupValues, VSContactDataprovider, VSContactGemeente, VSContactExploitant, VSUserSecurityProfile } from "~/types";
+import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
+
 interface ExploreUsersComponentProps {
     users: VSUserWithRoles[]
-    roles: VSRole[]
+    roles: VSUserRole[]
     gemeenten: VSContactGemeente[]
     exploitanten: VSContactExploitant[]
     dataproviders: VSContactDataprovider[]
@@ -57,7 +60,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
-    const { roles, users, gemeenten, exploitanten } = props;
+    const { roles, users, gemeenten, exploitanten, dataproviders } = props;
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
 
@@ -70,10 +73,35 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     const [invalidDataFilter, setInvalidDataFilter] = useState<"Yes" | "No" | "Only">("No");
     const [inactiveUserFilter, setInactiveUserFilter] = useState<"Yes" | "No" | "Only">("Yes");
 
-    const groups = Object.values(VSGroup);
+    const [activeOrganization, setActiveOrganization] = useState<VSContactGemeente | VSContactExploitant | null>(null);
+    const [showAllContacts, setShowAllContacts] = useState(false);
+    const [showAllAccessRights, setShowAllAccessRights] = useState(false);
+
+    const [securityProfile, setSecurityProfile] = useState<VSUserSecurityProfile | undefined>(undefined);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [profileError, setProfileError] = useState<string | null>(null);
+
+    const groups = Object.values(VSUserGroupValues);
 
     const dubiousUserIDs = getDubiousUserIDs(users);
+
     const selectedUser = users.find(user => user.UserID === selectedUserID);
+
+    // reset the active user if any of the filters change and the active user is not in the filtered users
+    useEffect(() => {
+        if(selectedUserID && !filteredUsers.some((user) => user.UserID === selectedUserID)) {
+            setSelectedUserID(null);
+        }
+    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, filteredUsers]);
+
+    useEffect(() => {
+        if(securityProfile) {
+            const mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
+            setActiveOrganization(mainContact || null);
+        } else {
+            setActiveOrganization(null);
+        }
+    }, [securityProfile?.mainContactId]);
 
     useEffect(() => {
         const currentUserID = router.query.userID;
@@ -150,6 +178,34 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
         setFilteredUsers(filteredUsers);
     }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
+
+    useEffect(() => {
+        async function loadSecurityProfile() {
+            if (!selectedUser) {
+                return;
+            }
+
+            setIsLoadingProfile(true);
+            setProfileError(null);
+
+            try {
+                const profile = await fetchSecurityProfile(
+                    selectedUser.UserID, 
+                    activeOrganization?.ID || ""
+                );
+
+                setSecurityProfile(profile);
+            } catch (error) {
+                console.error('Error fetching security profile:', error);
+                setProfileError(error instanceof Error ? error.message : 'Failed to fetch security profile');
+                setSecurityProfile(undefined);
+            } finally {
+                setIsLoadingProfile(false);
+            }
+        }
+
+        loadSecurityProfile();
+    }, [selectedUser?.UserID, activeOrganization?.ID]);
 
     const filterEmailHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEmailFilter(event.target.value);
@@ -233,9 +289,6 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     }
 
     const renderFilterSection = () => {
-        // only show gemeenten that are associated with one or more users
-        // const filterlijstgemeenten = gemeenten.filter((gemeente) => users.some((user) => user.security_users_sites.some((site) => site.SiteID === gemeente.ID)));
-
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="flex justify-between items-center mb-4">
@@ -286,7 +339,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                         >
                             <option value="">All roles</option>
                             {roles.map((role) => (
-                                <option value={role.RoleID} key={role.RoleID}>{role.Role}</option>
+                                <option value={role.RoleID} key={role.RoleID}>{getOldRoleLabel(role.RoleID)}</option>
                             ))}
                         </select>
                     </div>
@@ -382,73 +435,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         );
     }
 
-    const getMainContact = () => {
-        if (!selectedUser) return null;
+    const renderUserDetailsSection = (mainContact: VSContactGemeente | VSContactExploitant | undefined | null, managedContacts: (VSContactGemeente | VSContactExploitant)[]) => {
 
-        let contact: VSContactGemeente | VSContactExploitant | undefined = undefined;
-        switch(selectedUser.GroupID) {
-            case 'intern': {
-                return null; // No associated contact for intern users
-            }
-            case 'extern': {
-                // SiteID is not used for extern users
+        if(!selectedUser) return null;
 
-                const relatedSites = selectedUser.security_users_sites;
-                contact = gemeenten.find((gemeente) => {
-                    return (
-                        gemeente.ID === relatedSites[0]?.SiteID
-                    )
-                });
-                break;
-            }
-            case 'exploitant': {
-                // first check direct link
-                contact = exploitanten.find((contact) => {
-                    return (
-                        contact.ID === selectedUser.SiteID
-                    )
-                });
-                // check link via parentID
-                if(!contact) {
-                    if(selectedUser?.ParentID) {
-                        const parentuser = users.find((user) => {
-                            return (
-                                user.UserID === selectedUser.ParentID
-                            )
-                        });
-                        if(parentuser) {
-                            contact = exploitanten.find((exploitant) => {
-                                return (
-                                    exploitant.ID === parentuser.SiteID
-                                )
-                            });
-                        } else {
-                            console.error(`No parent user found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
-                        }
-                    } else {
-                        console.error(`No parentID found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
-                    }
-                }
-
-                if(!contact) {
-                    console.error(`No contact found for user ${selectedUser.DisplayName} [${selectedUser.UserName}]`);
-                }
-                
-                break;
-            }
-            case 'dataprovider':
-                break;
-            default:
-                break;
-        }
-
-        return contact;
-    }
-
-    const renderUserDetailsSection = () => {
-        if (!selectedUser) return null;
-
-        const mainContact: VSContactGemeente | VSContactExploitant | undefined | null = getMainContact();
         let linkElement: React.ReactElement | null = null;
         if(mainContact) {
             switch(mainContact.ItemType) {
@@ -471,8 +461,6 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         } else {
             linkElement = <span className="text-gray-900">No main contact found</span>;
         }
-
-        const visibleGemeenten = gemeenten.filter((gemeente) => selectedUser.security_users_sites.some((site) => site.UserID === selectedUser.UserID && site.SiteID === gemeente.ID));
 
         const baddataReasons = dubiousUserIDs.find((user) => user.UserID === selectedUser.UserID)?.Reasons || [];
 
@@ -532,13 +520,19 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Gemeenten:</label>
                         <div className="flex flex-wrap gap-2 text-gray-900">
-                            {visibleGemeenten.map((gemeente) => { 
-                                const isContact = selectedUser.security_users_sites.some((site) => site.SiteID === gemeente.ID && site.IsContact);
-                                return(
-                                    <div key={gemeente.ID} className={`${isContact ? 'bg-red-200 text-black': 'bg-blue-100 text-blue-800'}  px-2 py-1 rounded-md`}>
-                                        {gemeente.CompanyName}
-                                    </div>)
-                                })}
+                            {displayedContacts.map((gemeente) => { 
+                                const isContact = managedContacts.some((contact) => contact?.ID === gemeente.ID);
+                                return (
+                                    <div key={gemeente.ID} className={`${isContact ? 'bg-red-200 text-black': 'bg-blue-100 text-blue-800'} px-2 py-1 rounded-md`}>
+                                        <Link href={`/beheer/explore-gemeenten/${gemeente.ID}`} target="_blank">{gemeente.CompanyName}</Link>
+                                    </div>
+                                );
+                            })}
+                            {managedContacts.length > 20 && (
+                                <button onClick={() => setShowAllContacts(!showAllContacts)} className="mt-2 text-blue-500">
+                                    {showAllContacts ? 'Show Less' : 'Show More'}
+                                </button>
+                            )}
                         </div>
                     </div>
                     { baddataReasons.length > 0 && (
@@ -558,7 +552,162 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         );
     }
 
+    const renderSelectActiveOrganization = (
+        mainContact: VSContactGemeente | VSContactExploitant | undefined | null, 
+        managedContacts: (VSContactGemeente | VSContactExploitant | undefined | null)[]) => {
+        if (!selectedUser) return null;
+
+        if(managedContacts.length === 0) {
+            return null;
+        }
+
+        return (
+            <div className="mb-6 flex flex-col">
+                <label htmlFor="group" className="text-lg font-semibold mb-2 mt-4">Select Active Organization</label>
+                <select 
+                    id="group" 
+                    name="group" 
+                    className="mt-1 p-2 border border-gray-300 rounded-md" 
+                    value={activeOrganization?.ID||'none'}
+                    onChange={(e) => {
+                        let organization = null;
+                        if(e.target.value !== "none") {
+                            if(e.target.value === mainContact?.ID) {
+                                organization = mainContact;
+                            } else {
+                                organization = managedContacts.find((contact) => contact?.ID === e.target.value) || null;
+                            }
+                        }
+
+                        setActiveOrganization(organization || null);
+                    }}
+                    disabled={managedContacts.length < 2}
+                >
+                    { managedContacts.map((contact) => {
+                        const showMainContact = contact?.ID === mainContact?.ID && managedContacts.length > 1;
+                        return (<option key={contact?.ID} value={contact?.ID}>{contact?.CompanyName} {showMainContact ? "(own organization)" : ""}</option>);
+                    })}
+                    { activeOrganization === null && (
+                        <option value="none">No active organization</option>
+                    )}
+                </select>
+            </div>
+        );
+    }    
+
+    const renderSecurityProfileSection = (securityProfile: VSUserSecurityProfile | undefined) => {
+        if (!selectedUser || !activeOrganization) {
+            return null;
+        }
+
+        if(!securityProfile) {
+            return null;
+        }
+
+        const displayRights = Object.entries(securityProfile.rights).filter(([topic, rights]) => rights.create || rights.read || rights.update || rights.delete || showAllAccessRights);
+
+        const toggleShowAll = () => {
+            setShowAllAccessRights(!showAllAccessRights);
+        };
+
+        return (
+            <div className="p-6 bg-white shadow-md rounded-md mt-2 flex flex-col mb-6">
+                {renderSelectActiveOrganization(mainContact, managedContacts)}
+                
+                <div className="text-2xl font-bold mb-4">Security Profile</div>
+
+                {isLoadingProfile && (
+                    <div className="text-gray-600">Loading security profile...</div>
+                )}
+
+                {profileError && (
+                    <div className="text-red-600">Error: {profileError}</div>
+                )}
+
+                {!isLoadingProfile && !profileError && securityProfile && (
+                    <>
+                        <div className="space-y-2">
+                            <div className="flex items-center">
+                                <label className="w-32 text-sm font-medium text-gray-700">RoleID:</label>
+                                <span className="text-gray-900">{getNewRoleLabel(securityProfile.roleId)}</span>
+                            </div>
+                        </div>
+
+                        <div className="text-lg font-semibold mb-2 mt-4">Module Access</div>
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            {securityProfile.modules.map(module => (
+                                <span key={module} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {module}
+                                </span>
+                            ))}
+                        </div>
+                        <div className="text-lg font-semibold mb-6 flex flex-row items-center">
+                            Access Rights
+                            <button 
+                                onClick={toggleShowAll}
+                                className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                            >
+                                {showAllAccessRights ? "Show Less" : "Show All"}
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-5 gap-2">
+                            <div className="col-span-5 grid grid-cols-5 gap-1 text-sm font-medium">
+                                <div></div> {/* Empty cell for alignment with topic labels */}
+                                <div>Create</div>
+                                <div>Read</div>
+                                <div>Update</div>
+                                <div>Delete</div>
+                            </div>
+                            {displayRights.map(([topic, rights]) => {
+                                const hasRights = rights.create || rights.read || rights.update || rights.delete;
+                                if (!showAllAccessRights && !hasRights) return null;
+
+                                return (
+                                    <div key={topic} className="col-span-5 border-b pb-2 grid grid-cols-5 gap-1 text-sm">
+                                        <h4 className="font-medium">{topic}</h4>
+                                        <div className={`${rights.create ? 'text-green-600' : 'text-red-600'}`}>
+                                            {rights.create ? '✓' : '✗'}
+                                        </div>
+                                        <div className={`${rights.read ? 'text-green-600' : 'text-red-600'}`}>
+                                            {rights.read ? '✓' : '✗'}
+                                        </div>
+                                        <div className={`${rights.update ? 'text-green-600' : 'text-red-600'}`}>
+                                            {rights.update ? '✓' : '✗'}
+                                        </div>
+                                        <div className={`${rights.delete ? 'text-green-600' : 'text-red-600'}`}>
+                                            {rights.delete ? '✓' : '✗'}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {displayRights.length === 0 && (
+                                <div className="col-span-5 text-gray-600">No access rights</div>
+                            )}
+                        </div>
+                    </>  
+                )}
+            </div>
+        );
+    };
+
     checkAssumptions();
+
+    let mainContact: VSContactGemeente | VSContactExploitant | undefined | null = undefined;
+    let managedContacts: (VSContactGemeente | VSContactExploitant)[] = [];
+    if(securityProfile) {
+        mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
+
+        const managedGemeenten = securityProfile.managingContactIDs.map((contactID) => gemeenten.find((gemeente) => gemeente.ID === contactID)).filter((gemeente) => gemeente !== undefined);
+        const managedExploitanten = securityProfile.managingContactIDs.map((contactID) => exploitanten.find((exploitant) => exploitant.ID === contactID)).filter((exploitant) => exploitant !== undefined);
+        managedContacts = [...managedGemeenten, ...managedExploitanten];
+    } else {
+        if(selectedUser) {
+        console.error("No security profile found for user", selectedUser?.UserID);
+        }
+    }
+
+    // limit list size to 20
+    const displayedContacts = showAllContacts ? managedContacts : managedContacts.slice(0, 16);
 
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -566,10 +715,32 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 {renderFilterSection()}
             </div>
             <div>
-                {renderUserDetailsSection()}
+                {renderUserDetailsSection(mainContact, managedContacts)}
+                {renderSecurityProfileSection(securityProfile)}
             </div>
         </div>
     );
+}
+
+async function fetchSecurityProfile(userId: string, activeContactId: string) {
+    let url = `/api/security/profile/${userId}`;
+    if (activeContactId) {
+        url += `/${activeContactId}`;
+    }
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch security profile');
+    }
+
+    const data = await response.json();
+    return data.profile as VSUserSecurityProfile;
 }
 
 export default ExploreUsersComponent;

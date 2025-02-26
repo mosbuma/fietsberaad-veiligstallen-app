@@ -12,6 +12,8 @@ import {
   getUserFromCredentials,
 } from "../../../utils/auth-tools";
 
+import { type VSUserWithRoles, securityUserSelect } from "~/types";
+import { createSecurityProfile } from "~/utils/securitycontext";
 const providers: Provider[] = [];
 
 // https://next-auth.js.org/configuration/providers/credentials
@@ -71,12 +73,16 @@ export const authOptions: NextAuthOptions = {
   // https://next-auth.js.org/configuration/callbacks
   callbacks: {
     // augment jwt token with information that will be used on the server side
-    async jwt({ user, token, _account: accountParam }: { user: User | null; token: any; _account?: any }) {
-      if (token && 'OrgUserID' in token === false && user) {
-        console.log("**** JWT USER", user);
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
         token.id = user.id;
         token.OrgUserID = user.OrgUserID;
-        console.log("**** JWT TOKEN", token);
+        token.activeContactId = user.activeContactId;
+      }
+
+      // Update the token when the session is updated
+      if (trigger === "update" && session?.user?.activeContactId) {
+        token.activeContactId = session.user.activeContactId;
       }
 
       return token;
@@ -85,43 +91,29 @@ export const authOptions: NextAuthOptions = {
     // augment session with information that will be used on the client side
     async session({ session, token }: { session: any; token: any }) {
       if (session?.user && token?.id) {
-        const account = await prisma.security_users.findFirst({ where: { UserID: token.id } });
+        const account = await prisma.security_users.findFirst({ 
+          where: { UserID: token.id }, 
+          select: securityUserSelect 
+        }) as VSUserWithRoles;
+
         if (account) {
-          // console.log("session - account", JSON.stringify(account, null, 2));
-          // console.log("session - token", JSON.stringify(token, null, 2));
+          // Use token's activeContactId if it exists, otherwise use the main contact
+          const securityProfile = await createSecurityProfile(
+            account,
+            token.activeContactId
+          );
+
           session.user.id = token.id;
           session.user.OrgUserID = token.OrgUserID;
           session.user.RoleID = account.RoleID;
-
-          const sites = await prisma.security_users_sites.findMany({ where: { UserID: token.OrgUserID } });
-          const role = await prisma.security_roles.findFirst({ where: { RoleID: account.RoleID || -1 } });
-
-          // console.log("#### SESSION GOT ROLE", role);
-          // console.log("#### SESSION USER ROLEID", session.user.RoleID);
-
-          const linkedroles = await prisma.security_roles.findMany({ where: { GroupID: role?.GroupID } });
-          // console.log("#### SESSION LINKED ROLES", linkedroles);
-
-          session.user.sites = sites.map((s) => s.SiteID);
-          session.user.GroupID = role?.GroupID;
-          session.user.Role = role?.GroupID;
-
           session.user.name = account.DisplayName;
-          // session.user.email = account.Email;
-          // session.user.image = account.Image;
-
-          // console.log(
-          //   "session",
-          //   JSON.stringify(session, null, 2),
-          //   // JSON.stringify(token, null, 2)
-          // );
+          session.user.activeContactId = token.activeContactId;
+          session.user.securityProfile = securityProfile;
         }
       } else {
-        console.log("session - no user or token");
+        console.log(">>> SESSION NO USER");
       }
-      // console.log(">>>> SESSION", session);
-      // console.log(">>>> SESSION USER", session?.user);
-      // console.log(">>>> SESSION TOKEN", token);
+
       return session;
     },
   },

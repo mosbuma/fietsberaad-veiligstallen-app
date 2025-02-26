@@ -1,4 +1,4 @@
-import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites, modules, contact_contact } from '@prisma/client';
+import { abonnementsvormen, fietsenstallingtypen, contacts, security_users, security_roles, fietsenstallingen, security_users_sites, modules } from '@prisma/client';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -104,19 +104,39 @@ export type ParkingDetailsType = {
     }[]
 }
 
-export enum VSGroup {
+export enum VSUserGroupValues {
     Intern = "intern",
     Extern = "extern",
     Exploitant = "exploitant",
     Beheerder = "beheerder",
-    Dataprovider = "dataprovider",
 }
 
-export type VSRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
+export type VSUserRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
+
+export enum VSUserRoleValues {
+    Root = 1,
+    InternAdmin = 2,
+    InternEditor = 3,
+    ExternAdmin = 4,
+    ExternEditor = 5,
+    Exploitant = 6,
+    Beheerder = 7,
+    ExploitantDataAnalyst = 8,
+    InternDataAnalyst = 9,
+    ExternDataAnalyst = 10
+}
+
+export enum VSUserRoleValuesNew {
+    RootAdmin = "rootadmin",
+    None = 'none',
+    Admin = 'admin',
+    Editor = 'editor',
+    DataAnalyst = 'dataanalyst',
+}
 
 export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID" | "ParentID" | "LastLogin"> & 
     {
-        security_roles: VSRole | null;
+        security_roles: VSUserRole | null;
         security_users_sites: Pick<security_users_sites, "UserID" | "SiteID" | "IsContact">[]
     }
 
@@ -148,6 +168,14 @@ export const securityUserSelect = {
 }
 
 export type VSModule = Pick<modules, "ID" | "Name">;
+
+export enum VSModuleValues {
+    Abonnementen = "abonnementen",
+    Buurtstallingen = "buurtstallingen",
+    Fietskluizen = "fietskluizen",
+    Fms = "fms",
+    Veiligstallen = "veiligstallen"
+}
   
 export type VSParking = Pick<fietsenstallingen,
 "ID" | 
@@ -174,6 +202,9 @@ export interface VSContactExploitant {
     parentSiteID: string;
     admin: boolean;
   }[];
+  modules_contacts: {
+    module: VSModule;
+  }[];
 }
 
 export const exploitantSelect = {
@@ -196,6 +227,16 @@ export const exploitantSelect = {
             ID: true,
             childSiteID: true,
             admin: true
+        }
+    },
+    modules_contacts: {
+        select: {
+            module: {
+                select: {
+                    ID: true,
+                    Name: true
+                }
+            }
         }
     }
 }
@@ -292,20 +333,79 @@ export const gemeenteSelect = {
     }
   }
 
-  export type VSContactDataprovider = Pick<contacts,
-    "ID" |
-    "CompanyName" |
-    "ItemType" |
-    "UrlName" | 
-    "Password"
-  >
+export type VSContactDataprovider = Pick<contacts,
+"ID" |
+"CompanyName" |
+"ItemType" |
+"UrlName" | 
+"Password"
+>
 
-  export const dataproviderSelect = {
-    ID: true,
-    CompanyName: true,
-    ItemType: true,
-    UrlName: true,
-    Password: true
-  }
+export const dataproviderSelect = {
+ID: true,
+CompanyName: true,
+ItemType: true,
+UrlName: true,
+Password: true
+}
 
-  export type VSContact = VSContactGemeente & VSContactDataprovider & VSContactExploitant;
+export type VSContact = VSContactGemeente & VSContactDataprovider & VSContactExploitant;
+
+export type VSUserSecurityProfile = {
+    modules: VSModuleValues[];
+    roleId: VSUserRoleValuesNew;
+    rights: {
+        [key in VSSecurityTopic]?: VSCRUDRight;
+    };
+    mainContactId: string;
+    managingContactIDs: string[];
+};
+
+export interface SessionUser {
+    id: string;
+    name: string;
+    email: string;
+    activeContactId: string | null;
+    securityProfile: VSUserSecurityProfile;
+}
+
+export interface Session {
+    user?: SessionUser;
+    expires: string;
+}
+
+export enum VSSecurityTopic {
+    Abonnementen = "abonnementen",
+    ApiAccess = "api_access",
+    Apis = "apis",
+    Beheerder = "beheerder",
+    Buurtstallingen = "buurtstallingen",
+    Dataproviders = "dataproviders",
+    Diashow = "diashow",
+    Exploitant = "exploitant",
+    Exploitanten = "exploitanten",
+    ExternalApis = "externalApis",
+    Fietskluizen = "fietskluizen",
+    Gemeente = "gemeente",
+    Locaties = "locaties",
+    Locations = "locations",
+    Permits = "permits",
+    Registranten = "registranten",
+    Reports = "reports",
+    Sleutelhangerreeksen = "sleutelhangerreeksen",
+    Sleutelhangers = "sleutelhangers",
+    Stickers = "stickers",
+    System = "system",
+    SystemUsers = "systemusers",
+    Users = "users",
+    View = "view",
+    Website = "website",
+}
+
+// Define basic types for the RBAC system
+export type VSCRUDRight = {
+    create: boolean;
+    read: boolean;
+    update: boolean;
+    delete: boolean;
+};

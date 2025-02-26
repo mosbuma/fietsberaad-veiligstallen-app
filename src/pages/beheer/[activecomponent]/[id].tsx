@@ -40,13 +40,15 @@ import ExploreExploitant from '~/components/ExploreExploitantComponent';
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
 import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModule, VSUserWithRoles } from "~/types/";
-import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect } from "~/types/";
+import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect, VSUserRoleValuesNew } from "~/types/";
 
 import Styles from "~/pages/content.module.css";
-
+import { useSession } from "next-auth/react";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
+
+  console.log(">>> SERVERSESSION ACID", session?.user?.activeContactId);
   // Check if there is no session (user not logged in)
   if (!session) {
     return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
@@ -63,20 +65,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     }
   });
 
-  const adminIDs = roles.filter(
-    r => r.GroupID === "intern" && r.Role === "intern_admin" || 
-         r.Role === "root"
-  ).map(r => r.RoleID);
-  // console.log("**** ADMIN IDS", adminIDs);
-  // console.log("**** SESSION USER", session?.user);
-  const userIsAdmin =  adminIDs.includes(parseInt(session?.user?.RoleID || "-1"));
+  // const userIsAdmin = session?.user?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin ||  ? "-1" : session?.user?.securityProfile?.roleId || "-1"));
   // console.log("**** USER IS ADMIN", userIsAdmin);
-  const whereCondition = userIsAdmin ? undefined : { ID: { in: currentUser?.sites || [] } };
-
+  const validContactIDs = currentUser?.securityProfile?.managingContactIDs || [];
+  const whereCondition = { ID: { in: validContactIDs } };
   // console.log("**** WHERE CONDITION", userIsAdmin, whereCondition);
 
-  const activeGemeenten: VSContactGemeente[] | undefined = await prisma.contacts.findMany({
-    where: { ItemType: 'organizations', ...whereCondition },
+  const gemeenten: VSContactGemeente[] | undefined = await prisma.contacts.findMany({
+    where: { 
+      ItemType: { in: ['organizations', 'admin'] },
+      ...whereCondition 
+    },
     select: gemeenteSelect,
   });
 
@@ -91,9 +90,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   });
 
   let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
-    security_users_sites: { some: { SiteID: { in: currentUser?.sites || [] } } }
+    security_users_sites: { some: { SiteID: { in: validContactIDs } } }
   };
-  if(adminIDs.includes(parseInt(session?.user?.RoleID || "-1"))) {
+
+  if(currentUser?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin) {
     condition = undefined;
   }
   const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
@@ -113,8 +113,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   }
 
   const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeenten using map reduce
-  if(activeGemeenten !== undefined && activeGemeenten[0]!== undefined) {
-    activeGemeenten.forEach(gemeente => {
+  if(gemeenten !== undefined && gemeenten[0]!== undefined) {
+    gemeenten.forEach(gemeente => {
       if(gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts !== undefined) { 
         gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
           .filter(stalling => stalling.StallingsID !== null)
@@ -141,7 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   }else {
     console.log("no current user");
   }
-  return { props: { currentUser, gemeenten: activeGemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
+  return { props: { currentUser, gemeenten: gemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
@@ -168,8 +168,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   modules,
   fietsenstallingtypen }) => {
   const router = useRouter();
+  const { data: session, update: updateSession } = useSession();
 
-  const [selectedGemeenteID, setSelectedGemeenteID] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const showAbonnementenRapporten = true;
 
@@ -207,17 +208,45 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     }
   };
 
-  const handleSelectGemeente = (gemeenteID: string) => {
+  const handleSelectGemeente = async (gemeenteID: string) => {
     try {
-      setSelectedGemeenteID(gemeenteID);
+      if (!session) return;
+
+        setIsLoading(true);
+        const response = await fetch('/api/security/switch-contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ contactId: gemeenteID })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to switch contact');
+        }
+
+        const { user } = await response.json();
+
+        console.log(">>> new user activeContactId", user.activeContactId);
+        
+        // Update the session with new user data
+        const newSession = await updateSession({
+            ...session,
+            user
+        });
+
+        console.log(">>> new session activeContactId", newSession);
     } catch (error) {
-      console.error("Error in handleSelectComponent:", error);
+        console.error("Error switching contact:", error);
+    } finally {
+        setIsLoading(false);
     }
   };
 
+  const selectedGemeenteID = session?.user?.activeContactId || "";
   const filteredBikeparks = bikeparks?.filter((bikepark) => (selectedGemeenteID !== "") && (bikepark.gemeenteID === selectedGemeenteID));
 
-  const filteredUsers = users?.filter((user) => (selectedGemeenteID !== "") && (user.security_users_sites.some(site => site.SiteID === selectedGemeenteID)));
+  // const filteredUsers = users?.filter((user) => (selectedGemeenteID !== "") && (user.security_users_sites.some(site => site.SiteID === selectedGemeenteID)));
 
   const renderComponent = () => {
     try {
@@ -289,7 +318,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <ExploreGemeenteComponent gemeenten={gemeenten || []} exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
         case "explore-exploitanten":
-          selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
+          selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} gemeenten={gemeenten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
         case "products":
           selectedComponent = <ProductsComponent />;
@@ -384,12 +413,23 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     );
   }
 
+  const sortedGemeenten = gemeenten?.sort((a, b) => {
+    // If a is the main contact, it should come first
+    if (a.ID === currentUser?.securityProfile?.mainContactId) return -1;
+    // If b is the main contact, it should come first
+    if (b.ID === currentUser?.securityProfile?.mainContactId) return 1;
+    // Otherwise sort alphabetically
+    return (a.CompanyName || '').localeCompare(b.CompanyName || '');
+  });
+
+  console.log(">>> session", session);
+
   return (
     <div className="flex flex-col h-screen">
       <TopBar
         title="Veiligstallen Beheer Dashboard"
         currentComponent={activecomponent || "home"}
-        user={currentUser} gemeenten={gemeenten}
+        user={currentUser} gemeenten={sortedGemeenten}
         selectedGemeenteID={selectedGemeenteID}
         onGemeenteSelect={handleSelectGemeente}
       />

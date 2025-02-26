@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
-import { VSContactGemeente } from "~/types";
+import { VSUserSecurityProfile, VSContactGemeente } from "~/types";
 
 interface TopBarProps {
   title: string;
@@ -13,7 +13,7 @@ interface TopBarProps {
   user: User | undefined;
   gemeenten: VSContactGemeente[] | undefined;
   selectedGemeenteID: string | undefined;
-  onGemeenteSelect: (gemeente: string) => void;
+  onGemeenteSelect: (gemeenteID: string) => void;
 }
 
 const TopBar: React.FC<TopBarProps> = ({
@@ -55,6 +55,17 @@ const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
       signOut();
     }
   };
+
+  const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
+
+  const visibleContacts = gemeenten?.sort((a, b) => {
+    // If a is the main contact, it should come first
+    if (a.ID === (profile?.mainContactId || "")) return -1;
+    // If b is the main contact, it should come first
+    if (b.ID === (profile?.mainContactId || "")) return 1;
+    // Otherwise sort alphabetically
+    return (a.CompanyName || '').localeCompare(b.CompanyName || '');
+  });
 
   return (
     <div
@@ -109,21 +120,18 @@ const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
             Beheer Home
           </Link>
         )}
-        {gemeenten && (
+        {visibleContacts && visibleContacts.length > 0 && (
           <select
             onChange={handleGemeenteChange}
             value={selectedGemeenteID || ""}
             className="rounded bg-gray-700 px-2 py-1 text-white"
           >
-            <option key="select-gemeente-placeholder" value="">
-              Selecteer gemeente
-            </option>
-            {gemeenten.map(gemeente => (
+            {visibleContacts.map(gemeente => (
               <option
                 key={`select-gemeente-option-${gemeente.ID}`}
                 value={gemeente.ID}
               >
-                {gemeente.CompanyName}
+                {gemeente.CompanyName} {gemeente.ID===profile?.mainContactId ? " (mijn organisatie)" : ""}
               </option>
             ))}
           </select>

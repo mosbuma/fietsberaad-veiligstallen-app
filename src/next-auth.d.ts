@@ -1,18 +1,16 @@
 import NextAuth, { DefaultSession, NextAuthOptions as OriginalNextAuthOptions, RequestInternal as OriginalRequestInternal } from "next-auth";
+import { VSUserSecurityProfile } from "~/types";
 
 declare module "next-auth" {
   export type ISODateString = string
 
   interface User extends DefaultSession["user"] {
     id: string;
-    OrgUserID?: string;
-    RoleID?: string;
-    Role?: string;
-    GroupID?: string;
     name?: string | null;
     email?: string | null;
     image?: string | null;
-    sites?: string[];
+    activeContactId?: string | null;  
+    securityProfile?: VSUserSecurityProfile;
   } 
 
   interface Session {
