@@ -26,9 +26,7 @@ providers.push(
     // e.g. domain, username, password, 2FA token, etc.
     // You can pass any HTML attribute to the <input> tag through the object.
     credentials: {
-      email: {
-        label: "Email",
-        type: "email",
+      username: { label: "Email", type: "email",
         placeholder: "user@example.com",
       },
       password: {
