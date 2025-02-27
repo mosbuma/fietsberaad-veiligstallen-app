@@ -8,6 +8,8 @@ import type { User } from "next-auth";
 import { securityUserSelect, VSUserRoleValuesNew, VSUserWithRoles } from "~/types";
 import { createSecurityProfile } from "~/utils/securitycontext";
 import { initAllTopics } from "~/types/utils";
+import { checkToken } from "~/utils/token-tools";
+
 export const getUserFromCredentials = async (
   credentials: Record<"email" | "password", string> | undefined
 ): Promise<User | null> => {
@@ -42,6 +44,9 @@ export const getUserFromCredentials = async (
       validaccount = true;
       account.id = userdata?.UserID || "";
       account.securityProfile = await createSecurityProfile(userdata);
+      if(account.securityProfile) {
+        account.activeContactId = account.securityProfile.mainContactId;
+      }
     } else {
       console.log("### getUserFromCredentials - invalid password for security_users table");
     }
@@ -64,6 +69,50 @@ export const getUserFromCredentials = async (
   //   console.log("### getUserFromCredentials - no useraccount");
   // }
 
+
+  return validaccount ? account : null;
+};
+
+export const getUserFromLoginCode = async (
+  credentials: Record<"userid" | "token", string> | undefined
+): Promise<User | null> => {
+  if (!credentials) return null;
+
+  console.log("### getUserFromLoginCode", credentials);
+
+  const { userid, token } = credentials;
+  if (!userid || !token) return null;
+
+  let validaccount = false;
+  let account: User = {
+    id: "",
+    email: "",
+    activeContactId: "",
+    securityProfile: {
+      managingContactIDs: [],
+      mainContactId: "",
+      roleId: VSUserRoleValuesNew.None,
+      rights: initAllTopics({ create: false, read: false, update: false, delete: false }),
+      modules: [],
+    }
+  };
+
+  // check if the login code is correct
+  const tokenData = checkToken(token);
+  console.log("### got credentials", userid, token);
+  console.log("### got tokenData", tokenData);
+  if (tokenData !== false && tokenData.userid.toLowerCase() === userid.toLowerCase()) {
+      const userdata = await prisma.security_users.findFirst({ where: { UserID: userid }, select: securityUserSelect }) as VSUserWithRoles;
+      validaccount = true;
+      account.id = userdata?.UserID || "";
+      account.email = userdata?.UserName || "";
+      account.securityProfile = await createSecurityProfile(userdata);
+      if(account.securityProfile) {
+        account.activeContactId = account.securityProfile.mainContactId;
+      }
+  } else {
+    console.log("### getUserFromLoginCode - invalid login code");
+  }
 
   return validaccount ? account : null;
 };

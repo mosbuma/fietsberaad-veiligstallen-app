@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import { VSUserWithRoles, VSUserRoleValues, VSModuleValues, VSContactGemeente, VSContactExploitant, gemeenteSelect, exploitantSelect, VSUserRoleValuesNew, VSCRUDRight, VSSecurityTopic, VSUserGroupValues } from "~/types";
+import { VSUserWithRoles, VSUserRoleValues, VSModuleValues, VSContactGemeente, VSContactExploitant, gemeenteSelect, exploitantSelect, VSUserRoleValuesNew, VSCRUDRight, VSSecurityTopic } from "~/types";    
 import { VSUserSecurityProfile } from "~/types";
 import { changeTopics, initAllTopics } from "~/types/utils";
 
@@ -88,7 +88,6 @@ const convertRoleToNewRole = (roleID: VSUserRoleValues | null, isOwnOrganization
             break;
     }
 
-    console.log(">>> CONVERT ROLE TO NEW ROLE", roleID, isOwnOrganization, newRoleID);
     return newRoleID;
 }
 
@@ -125,9 +124,7 @@ export const getMainContact = async (user: VSUserWithRoles | undefined): Promise
             // SiteID is not used for extern users
 
             const relatedSites = user.security_users_sites;
-            console.log(">>> RELATED SITES", relatedSites);
             contact = await prisma.contacts.findFirst({ where: { ID: relatedSites[0]?.SiteID, ItemType: "organizations" } , select: gemeenteSelect }) as VSContactGemeente;
-            console.log(">>> MAIN CONTACT", contact);
             break;
         }
         case 'exploitant': {
@@ -226,27 +223,27 @@ const getRoleRights = (
             // only root admin gets to manage system settings and users
             return changeTopics(allrights, [
                 VSSecurityTopic.System,
-                VSSecurityTopic.SystemUsers,
+                VSSecurityTopic.Development,
             ], allowNone);
         case VSUserRoleValuesNew.Editor:
             return changeTopics(noRights, [
-                VSSecurityTopic.Gemeente,
-                VSSecurityTopic.Exploitanten,
-                VSSecurityTopic.Reports,
-                VSSecurityTopic.Buurtstallingen,
-                VSSecurityTopic.Fietskluizen,
-                VSSecurityTopic.Locaties,
+                // VSSecurityTopic.ContactsGemeenten,
+                // VSSecurityTopic.ContactsExploitanten,
+                // VSSecurityTopic.Report,
+                // VSSecurityTopic.Buurtstallingen,
+                // VSSecurityTopic.Fietskluizen,
+                VSSecurityTopic.Website,
             ], allowCRUD);
         case VSUserRoleValuesNew.DataAnalyst:
             let rights = changeTopics(noRights, [
-                VSSecurityTopic.Gemeente,
-                VSSecurityTopic.Exploitanten,
+                VSSecurityTopic.ContactsGemeenten,
+                VSSecurityTopic.ContactsExploitanten,
                 VSSecurityTopic.Buurtstallingen,
                 VSSecurityTopic.Fietskluizen,
-                VSSecurityTopic.Locaties,
+                VSSecurityTopic.ApisGekoppeldeLocaties,
             ], allowRead);
             rights = changeTopics(rights, [
-                VSSecurityTopic.Reports,
+                VSSecurityTopic.Report,
             ], allowCRUD);
             return rights;
         case VSUserRoleValuesNew.None:  

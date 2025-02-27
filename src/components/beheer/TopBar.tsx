@@ -5,7 +5,8 @@ import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
-import { VSUserSecurityProfile, VSContactGemeente } from "~/types";
+import { VSUserSecurityProfile, VSContactGemeente, VSSecurityTopic, Session } from "~/types";
+import { userHasRight, logSession } from '~/types/utils';
 
 interface TopBarProps {
   title: string;
@@ -53,6 +54,12 @@ const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
     } else {
       // sign out
       signOut();
+    }
+  };
+
+  const handleDisplaySessionInfo = () => {
+    if(process.env.NODE_ENV === 'development') {
+      logSession(session as Session | null);
     }
   };
 
@@ -115,6 +122,11 @@ const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
         className="flex items-center justify-end space-x-4 text-sm"
         style={{ flex: 3 }}
       >
+        {session?.user?.name && (
+          <div className="text-sm" onClick={handleDisplaySessionInfo}>
+            {session?.user?.name || "---"}
+          </div>
+        )}
         {currentComponent !== "home" && (
           <Link href="/beheer" className="hover:underline">
             Beheer Home

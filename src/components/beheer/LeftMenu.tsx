@@ -2,101 +2,14 @@
 import React from 'react';
 import Link from 'next/link';
 
-import {  } from '../../utils/mock';
 import { type User } from "next-auth";
-import { userHasRole, userHasRight, userHasModule } from "~/utils/mock";
-import { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from '~/types';
-
-export type AvailableComponents =
-  | "abonnementen"
-  | "abonnementsvormen"
-  | "accounts"
-  | "apis-gekoppelde-locaties"
-  | "apis-overzicht"
-  | "articles-abonnementen"
-  | "articles-articles"
-  | "articles-buurtstallingen"
-  | "articles-fietskluizen"
-  | "articles-pages"
-  | "barcodereeksen-uitgifte-barcodes"
-  | "barcodereeksen-sleutelhangers"
-  | "barcodereeksen-fietsstickers"
-  | "contacts-gemeenten"
-  | "contacts-exploitanten"
-  | "contacts-dataproviders"
-  | "contacts-admin"
-  | "explore-users"
-  | "explore-gemeenten"
-  | "explore-exploitanten"
-  | "database"
-  | "documents"
-  | "export"
-  | "faq"
-  | "home"
-  | "logboek"
-  | "fietsenstallingen"
-  | "fietskluizen"
-  | "buurtstallingen"
-  | "presentations"
-  | "products"
-  | "report"
-  | "settings"
-  | "stalling-info"
-  | "trekkingen"
-  | "trekkingenprijzen"
-  | "users-gebruikersbeheer"
-  | "users-beheerders";
-
-
-export const isAvailableComponent = (value: string): boolean => {
-  const allcomponents = [
-    "abonnementen",
-    "abonnementsvormen",
-    "accounts",
-    "apis-gekoppelde-locaties",
-    "apis-overzicht",
-    "articles-abonnementen",
-    "articles-articles",
-    "articles-buurtstallingen",
-    "articles-fietskluizen",
-    "articles-pages",
-    "barcodereeksen-uitgifte-barcodes",
-    "barcodereeksen-sleutelhangers",
-    "barcodereeksen-fietsstickers",
-    "contacts-gemeenten",
-    "contacts-exploitanten",
-    "contacts-dataproviders",
-    "explore-users",
-    "explore-gemeenten",
-    "explore-exploitanten",
-    "contacts-admin",
-    "database",
-    "documents",
-    "export",
-    "faq",
-    "home",
-    "logboek",
-    "fietsenstallingen",
-    "fietskluizen",
-    "buurtstallingen",
-    "presentations",
-    "products",
-    "report",
-    "settings",
-    "trekkingen",
-    "trekkingenprijzen",
-    "users-gebruikersbeheer",
-    "users-beheerders",
-  ];
-
-  return allcomponents.includes(value);
-}
-
+import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModuleValues, VSSecurityTopic, VSUserRoleValuesNew, VSUserSecurityProfile, VSMenuTopic } from '~/types';
+import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
 interface LeftMenuProps {
   user?: User;
   activecontact: VSContactGemeente | VSContactExploitant | VSContactDataprovider | undefined;
-  activecomponent: AvailableComponents | undefined;
-  onSelect: (component: AvailableComponents) => void;
+  activecomponent: VSMenuTopic | undefined;
+  onSelect: (component: VSMenuTopic) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
@@ -108,7 +21,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   // const router = useRouter();
   // const { query } = router;
 
-  const formatLi = (component: AvailableComponents | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
+  const formatLi = (component: VSMenuTopic | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
@@ -130,185 +43,193 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     );
   }
 
-  // const renderFullMenu = (isInternal: boolean, isExternal: boolean) => {
-  //   return (
-  //     <>
-  //       {isInternal && renderInternalUserMenu()}
-  //       {isExternal && renderExternalUserMenu()}
-  //     </>
-  //   )
-  // }
+  const renderUnifiedMenu = () => {
+    // Base conditions from user security profile
+    const profile = user?.securityProfile;
 
-  const renderInternalUserMenu = () => {
-    // Base conditions
-    const showSiteBeheer = userHasRole(user, 'intern_editor') || userHasRole(user, 'intern_admin') || userHasRole(user, 'root');
-    const showAdminOnly = userHasRole(user, 'root') || userHasRole(user, 'admin');
-    const showUitgifteBarcodes = userHasRight(user, 'sleutelhangerreeksen');
-    const showExterneApis = userHasRight(user, 'externalApis');
-    const showDataleveranciers = userHasRight(user, 'contacts-dataproviders');
-  
-    // Menu item visibility
-    const showHome = true;
-    const showInstellingen = true;
-    const showProducts = true;
-    const showReports = true;
-    const showExport = true;
-    const showLogboek = true;
-    const showGebruikersbeheer = showAdminOnly;
-    const showExploitanten = showAdminOnly;
-    const showDataleveranciersMenu = showAdminOnly && showDataleveranciers;
-    const showDatabase = showAdminOnly;
-    const showStallingInfo = showAdminOnly;
-    const showGemeenten = showAdminOnly;
-    const showBeheerders = showAdminOnly;
-  
+    console.log("### profile", profile);
+
+    const hasFietskluizenModule = userHasModule(profile, VSModuleValues.Fietskluizen);
+    const hasAbonnementenModule = userHasModule(profile, VSModuleValues.Abonnementen);
+
+    const hasSystemRight = userHasRight(profile, VSSecurityTopic.System);
+    const hasWebsiteRight = userHasRight(profile, VSSecurityTopic.Website);
+    const hasGemeenteRight = userHasRight(profile, VSSecurityTopic.ContactsGemeenten);
+    const hasLocatiesRight = userHasRight(profile, VSSecurityTopic.ApisGekoppeldeLocaties);
+    const hasFietskluizenRight = userHasRight(profile, VSSecurityTopic.Fietskluizen);
+    const hasBuurtstallingenModule = userHasModule(profile, VSModuleValues.Buurtstallingen);
+    const hasBuurtstallingenRight = userHasRight(profile, VSSecurityTopic.Buurtstallingen);
+    const hasAbonnementenRight = userHasRight(profile, VSSecurityTopic.Abonnementen);
+    const hasDocumentenModule = userHasRight(profile, VSSecurityTopic.Documents);
+    const hasDiashowRight = userHasRight(profile, VSSecurityTopic.Presentations);
+    const hasFmsModule = userHasModule(profile, VSModuleValues.Fms);
+    const hasRegistrantenRight = userHasRight(profile, VSSecurityTopic.Accounts);
+    const hasRapportagesRight = userHasRight(profile, VSSecurityTopic.Report);
+    const hasUsersRight = userHasRight(profile, VSSecurityTopic.UsersGebruikersbeheer);
+    // const hasUsersBeheerdersRight = userHasRight(profile, VSSecurityTopic.UsersBeheerders);
+    const hasDataprovidersRight = userHasRight(profile, VSSecurityTopic.ContactsDataproviders);
+    const hasSleutelhangerreeksenRight = userHasRight(profile, VSSecurityTopic.BarcodereeksenSleutelhangers);
+    const hasExternalApisRight = userHasRight(profile, VSSecurityTopic.ApisOverzicht);
+
+    const hasDevelopmentRight = userHasRight(profile, VSSecurityTopic.Development);
+
+    // Role-based conditions
+    const isAdmin = userHasRole(profile, VSUserRoleValuesNew.RootAdmin) || userHasRole(profile, VSUserRoleValuesNew.Admin);
+
+    // console.log("### hasSystemRight", hasSystemRight);
+
     return (
       <>
-        {showHome && formatLi("home", 'Home')}
-        {showInstellingen && formatLi("settings", 'Instellingen')}
+        {/* Always visible */}
+        {formatLi(VSMenuTopic.Home, 'Home')}
   
-        {showSiteBeheer &&
-          formatLi(false, 'Site beheer', false,
-            <ul className="ml-4 mt-1">
-              {showSiteBeheer && formatLi("articles-pages", 'Paginabeheer', true)}
-              {showSiteBeheer && formatLi("faq", 'FAQ', true)}
-            </ul>)
+        {/* Internal only */}
+        {hasSystemRight && formatLi(VSMenuTopic.Settings, 'Instellingen')}
+
+        { hasDevelopmentRight && (
+            formatLi(false, 'Ontwikkeling', false,
+              <ul className="ml-4 mt-1">
+                {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikersoverzicht', true)}
+                {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeentenoverzicht', true)}
+                {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitantenoverzicht', true)}
+              </ul>)
+            )
         }
   
-        {showGemeenten && formatLi("contacts-gemeenten", 'Gemeenten')}
-        {showBeheerders && formatLi("contacts-admin", 'Beheerders')}
-  
-        {showProducts && formatLi("products", 'Opwaardeerproducten')}
-        {showReports && formatLi("report", 'Rapportages', true)}
-        {showExport && formatLi("export", 'Export', true)}
-        {showLogboek && formatLi("logboek", 'Logboek', true)}
-        {showGebruikersbeheer && formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)}
-        {showExploitanten && formatLi("contacts-exploitanten", 'Exploitanten', false)}
-        {showDataleveranciersMenu && formatLi("contacts-dataproviders", 'Dataleveranciers', false)}
-  
-        {showUitgifteBarcodes && (
-          formatLi(false, 'Barcodes', false,
+        {/* Website beheer - both internal and external */}
+        {(hasWebsiteRight) && 
+          formatLi(VSMenuTopic.Website, 'Website beheer', false,
             <ul className="ml-4 mt-1">
-              {showUitgifteBarcodes && formatLi("barcodereeksen-uitgifte-barcodes", 'Uitgifte Barcodes', true)}
-              {showUitgifteBarcodes && formatLi("barcodereeksen-sleutelhangers", 'Sleutelhangers', true)}
-              {showUitgifteBarcodes && formatLi("barcodereeksen-fietsstickers", 'Fietsstickers', true)}
-            </ul>)
-        )}
-  
-        {showExterneApis && (
-          formatLi(false, 'Externe API\'s', false,
-            <ul className="ml-4 mt-1">
-              {showExterneApis && formatLi("apis-overzicht", 'Overzicht API\'s', true)}
-              {showExterneApis && formatLi("apis-gekoppelde-locaties", 'Gekoppelde locaties', true)}
+              {formatLi(VSMenuTopic.ArticlesPages, 'Paginabeheer', true)}
+              {formatLi(VSMenuTopic.Faq, 'FAQ', true)}
             </ul>
-          ))}
+          )
+        }
   
-        {showDatabase && formatLi("database", 'Database', false)}
-        {showStallingInfo && formatLi("stalling-info", 'Stalling info', false)}
-      </>
-    )
-  }
-
-  const renderExternalUserMenu = () => {
-    // Base conditions
-    const showContactsGemeente = userHasRight(user, 'gemeente');
-    const showWebsiteBeheer = userHasRight(user, 'website');
-    const showLocatieStallingen = userHasRight(user, 'locaties');
-    const showStatusChipkluizen = userHasModule(user, 'fietskluizen') && userHasRight(user, 'fietskluizen');
-    const showBuurtstallingen = userHasModule(user, 'buurtstallingen') && userHasRight(user, 'buurtstallingen');
-    const showAbonnementen = activecontact?.ID === '1' || (userHasModule(user, 'abonnementen') && userHasRight(user, 'abonnementen'));
-    const showDocumenten = userHasModule(user, 'documenten');
-    const showDiashow = userHasRole(user,'exploitant') && userHasRight(user, 'diashow');
-    const showRegistranten = userHasModule(user, 'fms') && userHasRight(user, 'registranten');
-    const showRapportages = userHasModule(user, 'fms') && userHasRight(user, 'rapportages');
-    const showGebruikersBeheer = userHasRight(user, 'users');
-    const showToegangFmsservice = userHasModule(user, 'fms') && userHasRight(user, 'contacts-dataproviders');
-    const showGebruikersBeheerUitgebreid = userHasRole(user, 'exploitant');
-    
-    // Menu item visibility
-    const showHome = true;
-    const showAbonnementenVormen = showAbonnementen;
-    const showAbonnementenBeheer = showAbonnementen;
-    const showGebruikersBeheerGemeente = showGebruikersBeheerUitgebreid && userHasRole(user, 'admin');
-    const showGebruikersBeheerExploitant = showGebruikersBeheerUitgebreid && userHasRole(user, 'exploitant');
-    const showGebruikersBeheerBeheerders = showGebruikersBeheerUitgebreid;
-
-    return (
-      <>
-        {showHome && formatLi("home", 'Home')}
-
-        {showContactsGemeente && formatLi("contacts-gemeenten", 'Gegevens gemeente', false)}
-
-        {showWebsiteBeheer && formatLi(false, 'Website beheer', false,
-          <ul className="ml-4 mt-1">
-            {formatLi("articles-pages", 'Paginabeheer', true)}
-            {formatLi("faq", 'FAQ', true)}
-          </ul>
+        {/* Gemeente section */}
+        {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
+        
+        {/* Internal admin sections */}
+        {hasSystemRight && isAdmin && (
+          <>
+            {formatLi(VSMenuTopic.ContactsAdmin, 'Beheerders')}
+            {formatLi(VSMenuTopic.Products, 'Opwaardeerproducten')}
+          </>
         )}
-
-        {showLocatieStallingen && formatLi("fietsenstallingen", 'Locatie stallingen', false)}
-        {showStatusChipkluizen && formatLi("fietskluizen", 'Status chipkluizen', false)}
-        {showBuurtstallingen && formatLi("buurtstallingen", 'Buurtstallingen / fietstrommels', false)}
-
-        {(showAbonnementenVormen||showAbonnementenBeheer) && formatLi(false, 'Abonnementen', false,
-          <ul className="ml-4 mt-1">
-            {showAbonnementenVormen && formatLi("abonnementsvormen", 'Abonnementsvormen', true)}
-            {showAbonnementenBeheer && formatLi("abonnementen", 'Abonnementen', true)}
-          </ul>
+  
+        {/* External specific sections */}
+        {!hasSystemRight && (
+          <>
+            {hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Locatie stallingen')}
+            {(hasFietskluizenModule && hasFietskluizenRight) && formatLi(VSMenuTopic.Fietskluizen, 'Status chipkluizen')}
+            {(hasBuurtstallingenModule && hasBuurtstallingenRight) && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / fietstrommels')}
+          </>
         )}
-
-        {showDocumenten && formatLi("documents", 'Documenten', false)}
-
-        {showDiashow && formatLi("presentations", 'Diashow', false)}
-        {showRegistranten && formatLi("accounts", 'Registranten', false)}
-
-        {showRapportages && formatLi(false, 'Rapportages', false,
-          <ul className="ml-4 mt-1">
-            { formatLi("report", 'Rapportage', true)}
-            { formatLi("export", 'Export', true)}
-            { formatLi("logboek", 'Logboek', true)}
-          </ul>
-        )}
-
-        {showGebruikersBeheer && (
-          showGebruikersBeheerUitgebreid ? (
-            formatLi(false, 'Gebruikersbeheer', false,
-              <ul className="ml-4 mt-1">
-                {showGebruikersBeheerGemeente && formatLi("users-gebruikersbeheer", `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {showGebruikersBeheerExploitant && formatLi("contacts-exploitanten", `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {showGebruikersBeheerBeheerders && formatLi("users-beheerders", 'Beheerders', true)}
-              </ul>
-            )
-          ) : (
-            formatLi("users-gebruikersbeheer", 'Gebruikersbeheer', false)
+  
+        {/* Abonnementen section - external only */}
+        {!hasSystemRight && (activecontact?.ID === '1' || (hasAbonnementenModule && hasAbonnementenRight)) && (
+          formatLi(false, 'Abonnementen', false,
+            <ul className="ml-4 mt-1">
+              {formatLi(VSMenuTopic.Abonnementsvormen, 'Abonnementsvormen', true)}
+              {formatLi(VSMenuTopic.Abonnementen, 'Abonnementen', true)}
+            </ul>
           )
         )}
-
-        {showToegangFmsservice && formatLi("contacts-dataproviders", 'Toegang fmsservice', false)}
+  
+        {/* Documents - external only */}
+        {!hasSystemRight && hasDocumentenModule && formatLi(VSMenuTopic.Documents, 'Documenten')}
+  
+        {/* Diashow - external only */}
+        {!hasSystemRight && hasDiashowRight && formatLi(VSMenuTopic.Presentations, 'Diashow')}
+  
+        {/* Registranten - external only */}
+        {!hasSystemRight && hasFmsModule && hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
+  
+        {/* Rapportages section - both */}
+        {(hasSystemRight || (hasFmsModule && hasRapportagesRight)) && (
+          formatLi(false, 'Rapportages', false,
+            <ul className="ml-4 mt-1">
+              {formatLi(VSMenuTopic.Report, 'Rapportage', true)}
+              {formatLi(VSMenuTopic.Export, 'Export', true)}
+              {formatLi(VSMenuTopic.Logboek, 'Logboek', true)}
+            </ul>
+          )
+        )}
+  
+        {/* Gebruikersbeheer section */}
+        {(isAdmin || hasUsersRight) && (
+            formatLi(false, 'Gebruikersbeheer', false,
+              <ul className="ml-4 mt-1">
+                {userHasRole(profile, VSUserRoleValuesNew.Admin) && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers ${activecontact?.CompanyName}`, true)}
+                {formatLi(VSMenuTopic.ContactsExploitanten, `Gebruikers ${activecontact?.CompanyName}`, true)}
+                {formatLi(VSMenuTopic.UsersBeheerders, 'Beheerders', true)}
+              </ul>
+            )
+        )}
+  
+        {/* Internal only sections */}
+        {hasSystemRight && (
+          <>
+            {isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
+            
+            {/* Barcodes section */}
+            {hasSleutelhangerreeksenRight && (
+              formatLi(false, 'Barcodes', false,
+                <ul className="ml-4 mt-1">
+                  {formatLi(VSMenuTopic.BarcodereeksenUitgifteBarcodes, 'Uitgifte Barcodes', true)}
+                  {formatLi(VSMenuTopic.BarcodereeksenSleutelhangers, 'Sleutelhangers', true)}
+                  {formatLi(VSMenuTopic.BarcodereeksenFietsstickers, 'Fietsstickers', true)}
+                </ul>
+              )
+            )}
+  
+            {/* Externe APIs section */}
+            {hasExternalApisRight && (
+              formatLi(false, 'Externe API\'s', false,
+                <ul className="ml-4 mt-1">
+                  {formatLi(VSMenuTopic.ApisOverzicht, 'Overzicht API\'s', true)}
+                  {formatLi(VSMenuTopic.ApisGekoppeldeLocaties, 'Gekoppelde locaties', true)}
+                </ul>
+              )
+            )}
+  
+            {/* Admin only sections */}
+            {isAdmin && (
+              <>
+                {formatLi(VSMenuTopic.Database, 'Database')}
+                {formatLi(VSMenuTopic.StallingInfo, 'Stalling info')}
+              </>
+            )}
+          </>
+        )}
+  
+        {/* Dataleveranciers - both */}
+        {((hasSystemRight && isAdmin && hasDataprovidersRight) || 
+          (!hasSystemRight && hasFmsModule && hasDataprovidersRight)) && 
+          formatLi(VSMenuTopic.ContactsDataproviders, hasSystemRight ? 'Dataleveranciers' : 'Toegang fmsservice')}
       </>
     )
   }
-
+  
   // for now, only show the temporary production menu in production
   const isProduction = process.env.NODE_ENV === 'production';
   if(isProduction) {
     return (
       <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
-        {formatLi("report", 'Rapportages', true)}
+        {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
       </ul>
     )
   }
-
+  
   return (
     <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
-      {(!userHasRole(user, 'user') || !activecontact) && (
-        renderInternalUserMenu()
-      )}
-      {userHasRole(user, 'user') && activecontact && (
-        renderExternalUserMenu()
+      {isProduction ? (
+        formatLi(VSMenuTopic.Report, 'Rapportages', true)
+      ) : (
+        renderUnifiedMenu()
       )}
     </ul>
   );
-};
+}
 
 export default LeftMenu;

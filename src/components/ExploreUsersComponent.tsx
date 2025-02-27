@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
-import { VSUserWithRoles, VSUserRole, VSUserGroupValues, VSContactDataprovider, VSContactGemeente, VSContactExploitant, VSUserSecurityProfile } from "~/types";
+import { VSUserWithRoles, VSUserRole, VSUserGroupValues, VSContactDataprovider, VSContactGemeente, VSContactExploitant, VSUserSecurityProfile, VSMenuTopic } from "~/types";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 
 interface ExploreUsersComponentProps {
@@ -436,8 +437,34 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     }
 
     const renderUserDetailsSection = (mainContact: VSContactGemeente | VSContactExploitant | undefined | null, managedContacts: (VSContactGemeente | VSContactExploitant)[]) => {
-
         if(!selectedUser) return null;
+
+        const handleLoginAsUser = async () => {
+            if (!selectedUser||!selectedUser.UserName) return;
+
+            try {
+                // First get the auth token
+                const tokenResponse = await fetch(`/api/security/gettoken/${encodeURIComponent(selectedUser.UserID)}`);
+                
+                if (!tokenResponse.ok) {
+                    const error = await tokenResponse.json();
+                    console.error("Failed to get token:", error);
+                    return;
+                }
+
+                const { token } = await tokenResponse.json();
+
+                // Attempt to sign in using the token provider
+                const result = await signIn("token-login", {
+                    userid: selectedUser.UserID,
+                    token,
+                    redirect: true,
+                    callbackUrl: "/beheer"
+                });
+            } catch (error) {
+                console.error("Error during login:", error);
+            }
+        };
 
         let linkElement: React.ReactElement | null = null;
         if(mainContact) {
@@ -446,10 +473,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                     linkElement = <span className="text-gray-900">{mainContact?.CompanyName} [Admin]</span>;
                     break;
                 case 'organizations':
-                    linkElement = <Link href={`/beheer/explore-gemeenten/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    linkElement = <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
                     break;
                 case 'exploitant':
-                    linkElement = <Link href={`/beheer/explore-exploitanten/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    linkElement = <Link href={`/beheer/${VSMenuTopic.ExploreExploitanten}/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
                     break;
                 case 'dataprovider':
                     linkElement = <span className="text-gray-900">{mainContact?.CompanyName}</span>;
@@ -479,7 +506,17 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
-                <h2 className="text-2xl font-bold mb-4">User Details</h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold">User Details</h2>
+                    {process.env.NODE_ENV === "development" && (
+                        <button
+                            onClick={handleLoginAsUser}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                        >
+                            Login as this user
+                        </button>
+                    )}
+                </div>
                 <div className="space-y-2">
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Name:</label>
@@ -524,7 +561,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 const isContact = managedContacts.some((contact) => contact?.ID === gemeente.ID);
                                 return (
                                     <div key={gemeente.ID} className={`${isContact ? 'bg-red-200 text-black': 'bg-blue-100 text-blue-800'} px-2 py-1 rounded-md`}>
-                                        <Link href={`/beheer/explore-gemeenten/${gemeente.ID}`} target="_blank">{gemeente.CompanyName}</Link>
+                                        <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/${gemeente.ID}`} target="_blank">{gemeente.CompanyName}</Link>
                                     </div>
                                 );
                             })}
@@ -563,7 +600,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
         return (
             <div className="mb-6 flex flex-col">
-                <label htmlFor="group" className="text-lg font-semibold mb-2 mt-4">Select Active Organization</label>
+                <label htmlFor="group" className="text-2xl font-semibold mb-2 mt-4">{managedContacts.length <2 ? "" : "Select"} Active Organization</label>
                 <select 
                     id="group" 
                     name="group" 

@@ -101,7 +101,7 @@ export const getDefaultLocation = (): string => {
 }
 
 const determineNewStatus = (session: Session | null): "1" | "aanm" => {
-  if (session === null || !session.user || !session.user.OrgUserID) {
+  if (session === null || !session.user || !session.user.securityProfile) { // TODO: check if this is correct, used OrgUserID before
     return "aanm";
   } else {
     return "1";

@@ -5,10 +5,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { useRouter } from "next/router";
-import LeftMenu, {
-  AvailableComponents,
-  isAvailableComponent,
-} from "~/components/beheer/LeftMenu";
+import LeftMenu from "~/components/beheer/LeftMenu";
 import TopBar from "~/components/beheer/TopBar";
 import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
 
@@ -39,8 +36,9 @@ import ExploreExploitant from '~/components/ExploreExploitantComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModule, VSUserWithRoles } from "~/types/";
-import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect, VSUserRoleValuesNew } from "~/types/";
+import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModule, VSUserWithRoles  } from "~/types/";
+import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect, VSUserRoleValuesNew, VSMenuTopic } from "~/types/";
+
 
 import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
@@ -49,6 +47,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
 
   console.log(">>> SERVERSESSION ACID", session?.user?.activeContactId);
+  // console.log(">>> SERVERSESSION USER", session?.user);
+
   // Check if there is no session (user not logged in)
   if (!session) {
     return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
@@ -179,7 +179,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   const lastDate = new Date();
   lastDate.setHours(0, 0, 0, 0); // set time to midnight
 
-  let activecomponent: AvailableComponents | undefined = "home";
+  let activecomponent: VSMenuTopic | undefined = VSMenuTopic.Home;
 
   // useEffect(() => {
   //   if (selectedGemeenteID === "" && gemeenten && gemeenten.length > 0 && gemeenten[0] !== undefined) {
@@ -187,20 +187,20 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   //   }
   // }, [gemeenten, selectedGemeenteID]);
 
-  const activeComponentQuery = router.query.activecomponent;
+  const validTopics = Object.values(VSMenuTopic) as String[];
+  const activeComponentQuery = Array.isArray(router.query.activecomponent) ? router.query.activecomponent[0] : router.query.activecomponent;
   if (
     activeComponentQuery &&
     typeof activeComponentQuery === 'string' &&
-    isAvailableComponent(activeComponentQuery)
+    validTopics.includes(activeComponentQuery)
   ) {
-    activecomponent = activeComponentQuery as AvailableComponents;
+    activecomponent = activeComponentQuery as VSMenuTopic;
   }
 
-  const activeIDQuery = router.query.id;
-  const activeId = typeof activeIDQuery === 'string' ? router.query.id as string : undefined;
+  // const activeIDQuery = router.query.id;
+  // const activeId = typeof activeIDQuery === 'string' ? router.query.id as string : undefined;
 
-
-  const handleSelectComponent = (componentKey: AvailableComponents) => {
+  const handleSelectComponent = (componentKey: VSMenuTopic) => {
     try {
       router.push(`/beheer/${componentKey}`); // this returns a promise!
     } catch (error) {
@@ -252,10 +252,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     try {
       let selectedComponent = undefined;
       switch (activecomponent) {
-        case "home":
+        case VSMenuTopic.Home:
           selectedComponent = <HomeComponent />;
           break;
-        case "report":
+        case VSMenuTopic.Report:
           { selectedGemeenteID!=="" ? (
             selectedComponent = <ReportComponent
               showAbonnementenRapporten={showAbonnementenRapporten}
@@ -267,16 +267,16 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
             selectedComponent = <div className="text-center text-gray-500 mt-10 text-xl" >Selecteer een gemeente om rapportages te bekijken</div>
           )}
           break;
-        case "articles-pages":
+        case VSMenuTopic.ArticlesPages:
           selectedComponent = <ArticlesComponent type="pages" />;
           break;
-        case "faq":
+        case VSMenuTopic.Faq:
           selectedComponent = <FaqComponent />;
           break;
-        case "database":
+        case VSMenuTopic.Database:
           selectedComponent = <DatabaseComponent bikeparks={bikeparks} firstDate={firstDate} lastDate={lastDate} />;
           break;
-        case "export":
+        case VSMenuTopic.Export:
           selectedComponent = <ExportComponent
               gemeenteID={selectedGemeenteID}
               gemeenteName={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.CompanyName || ""}
@@ -285,10 +285,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
               bikeparks={filteredBikeparks || []}
           />; 
           break;
-        case "documents":
+        case VSMenuTopic.Documents:
           selectedComponent = <DocumentsComponent />;
           break;
-        case "contacts-gemeenten":
+        case VSMenuTopic.ContactsGemeenten:
           selectedComponent = (
             <GemeenteComponent
               gemeenten={gemeenten || []}
@@ -298,7 +298,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
             />
           );
           break;
-        case "contacts-exploitanten":
+        case VSMenuTopic.ContactsExploitanten:
           selectedComponent = <ExploitantComponent
             users={users || []} 
             roles={roles || []} 
@@ -307,89 +307,83 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
             fietsenstallingtypen={fietsenstallingtypen || []} 
           />;
           break;
-        case "contacts-dataproviders":
+        case VSMenuTopic.ContactsDataproviders:
           selectedComponent = <DataproviderComponent dataproviders={dataproviders || []} />;
           break;
-        case "explore-users":
+        case VSMenuTopic.ExploreUsers:
           selectedComponent = <ExploreUsersComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []} 
           gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
           break;
-        case "explore-gemeenten":
+        case VSMenuTopic.ExploreGemeenten:
           selectedComponent = <ExploreGemeenteComponent gemeenten={gemeenten || []} exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
-        case "explore-exploitanten":
+        case VSMenuTopic.ExploreExploitanten:
           selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} gemeenten={gemeenten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
-        case "products":
+        case VSMenuTopic.Products:
           selectedComponent = <ProductsComponent />;
           break;
-        case "logboek":
+        case VSMenuTopic.Logboek:
           selectedComponent = <LogboekComponent />;
           break;
-        case "users-gebruikersbeheer":
+        case VSMenuTopic.UsersGebruikersbeheer:
           selectedComponent = <UsersComponent type="interne-gebruiker" users={users || []} roles={roles || []} />;
           break;
-        // case "users-beheerders":
+        // case VSMenuTopic.users-beheerders:
         //   selectedComponent = <GemeenteComponent type="admins" users={users || []} roles={roles || []} contacts={dataproviders || []} modules={modules || []} fietsenstallingtypen={fietsenstallingtypen || []} />;
         //   break;
-        case "fietsenstallingen":
+        case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
           break;
-        case "fietskluizen":
+        case VSMenuTopic.Fietskluizen:
           selectedComponent = <FietsenstallingenComponent type="fietskluizen" />;
           break;
-        case "buurtstallingen":
+        case VSMenuTopic.Buurtstallingen:
           selectedComponent = <FietsenstallingenComponent type="buurtstallingen" />;
           break;
-        case "barcodereeksen-uitgifte-barcodes":
+        case VSMenuTopic.BarcodereeksenUitgifteBarcodes:
           selectedComponent = <BarcodereeksenComponent type="uitgifte-barcodes" />;
           break;
-        case "barcodereeksen-sleutelhangers":
+        case VSMenuTopic.BarcodereeksenSleutelhangers:
           selectedComponent = <BarcodereeksenComponent type="sleutelhangers" />;
           break;
-        case "barcodereeksen-fietsstickers":
+        case VSMenuTopic.BarcodereeksenFietsstickers:
           selectedComponent = <BarcodereeksenComponent type="fietsstickers" />;
           break;
-        case "presentations":
+        case VSMenuTopic.Presentations:
           selectedComponent = <PresentationsComponent />;
           break;
-        case "settings":
+        case VSMenuTopic.Settings:
           selectedComponent = <SettingsComponent />;
           break;
-        case "trekkingen":
-          selectedComponent = <TrekkingenComponent type="trekkingen" />;
-          break;
-        case "trekkingenprijzen":
-          selectedComponent = <TrekkingenComponent type="prijzen" />;
-          break;
-        case "abonnementen":
+        case VSMenuTopic.Abonnementen:
           selectedComponent = <AbonnementenComponent type="abonnementen" />;
           break;
-        case "abonnementsvormen":
+        case VSMenuTopic.Abonnementsvormen:
           selectedComponent = <AbonnementenComponent type="abonnementsvormen" />;
           break;
-        case "accounts":
+        case VSMenuTopic.Accounts:
           selectedComponent = <AccountsComponent />;
           break;
-        case "apis-gekoppelde-locaties":
+        case VSMenuTopic.ApisGekoppeldeLocaties:
           selectedComponent = <ApisComponent type="gekoppelde-locaties" />;
           break;
-        case "apis-overzicht":
+        case VSMenuTopic.ApisOverzicht:
           selectedComponent = <ApisComponent type="overzicht" />;
           break;
-        case "articles-abonnementen":
+        case VSMenuTopic.ArticlesAbonnementen:
           selectedComponent = <ArticlesComponent type="abonnementen" />;
           break;
-        case "articles-articles":
+        case VSMenuTopic.ArticlesArticles:
           selectedComponent = <ArticlesComponent type="articles" />;
           break;
-        case "articles-buurtstallingen":
+        case VSMenuTopic.ArticlesBuurtstallingen:
           selectedComponent = <ArticlesComponent type="buurtstallingen" />;
           break;
-        case "articles-fietskluizen":
+        case VSMenuTopic.ArticlesFietskluizen:
           selectedComponent = <ArticlesComponent type="fietskluizen" />;
           break;
-        // case "stalling-info":
+        // case VSMenuTopic.StallingInfo:
         //   selectedComponent = <StallingInfoComponent />;
         //   break;
         default:
@@ -428,7 +422,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     <div className="flex flex-col h-screen">
       <TopBar
         title="Veiligstallen Beheer Dashboard"
-        currentComponent={activecomponent || "home"}
+        currentComponent={activecomponent}
         user={currentUser} gemeenten={sortedGemeenten}
         selectedGemeenteID={selectedGemeenteID}
         onGemeenteSelect={handleSelectGemeente}
@@ -438,7 +432,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           user={currentUser}
           activecontact={getActiveContact()}
           activecomponent={activecomponent}
-          onSelect={(componentKey: AvailableComponents) => handleSelectComponent(componentKey)} // Pass the component key
+          onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
         />
 
         {/* Main Content */}

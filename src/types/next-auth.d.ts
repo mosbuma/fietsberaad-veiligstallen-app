@@ -1,23 +1,30 @@
-// import "next-auth";
-// import { VSUserSecurityProfile } from "./index";
+import NextAuth, { DefaultSession, NextAuthOptions as OriginalNextAuthOptions, RequestInternal as OriginalRequestInternal } from "next-auth";
+import { VSUserSecurityProfile } from "~/types";
 
-// declare module "next-auth" {
-//     interface Session {
-//         user: {
-//             id: string;
-//             name: string;
-//             email: string;
-//             activeContactId: string | null;
-//             securityProfile: VSUserSecurityProfile;
-//         }
-//     }
+declare module "next-auth" {
+  export type ISODateString = string
 
-//     // You might also need to extend the User interface
-//     interface User {
-//         id: string;
-//         name: string;
-//         email: string;
-//         activeContactId: string | null;
-//         securityProfile: VSUserSecurityProfile;
-//     }
-// } 
+  interface User extends DefaultSession["user"] {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    activeContactId?: string | null;  
+    securityProfile?: VSUserSecurityProfile;
+  } 
+
+  interface Session {
+    expires: ISODateString
+    user: User; // overwrite the user type
+  }
+
+  // Re-export the original NextAuthOptions
+  export type NextAuthOptions = OriginalNextAuthOptions;
+
+  export type RequestInternal = OriginalRequestInternal;
+
+  export type NextAuthOptions = OriginalNextAuthOptions;
+
+  export function NextAuth(options: NextAuthOptions): NextAuthOptions;
+}
+

@@ -92,6 +92,9 @@ Als na pull er prisma errors zijn, dan doe:
 # data exploration paginas
 
 Deze paginas kunnen worden gebruikt voor het bekijken van gebruiksdata/organisatie data
-- http://localhost:3000/beheer/explore-exploitanten
-- http://localhost:3000/beheer/explore-gemeenten
-- http://localhost:3000/beheer/explore-users
+- http://localhost:3000/beheer/exploreexploitanten
+- http://localhost:3000/beheer/exploregemeenten
+- http://localhost:3000/beheer/exploreusers
+
+# various
+- in development mode: klik op de gebruikersnaam om de sessie info te tonen in het console log

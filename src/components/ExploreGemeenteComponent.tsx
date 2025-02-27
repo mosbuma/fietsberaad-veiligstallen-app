@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSParking, VSUserWithRoles } from "~/types";
+import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSMenuTopic, VSParking, VSUserWithRoles } from "~/types";
 import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter'; // Adjust the import path if necessary
 import Link from "next/link";
 
@@ -157,7 +157,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         <h2 className="text-xl font-semibold mt-6">List of Gemeenten</h2>
                         <ul className="list-disc list-inside max-h-fit overflow-y-auto">
                             {filteredGemeenten.map((gemeente) => (
-                                <Link href={`/beheer/explore-gemeente/?gemeenteID=${gemeente.ID}`} target="_blank">
+                                <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/?gemeenteID=${gemeente.ID}`} target="_blank">
                                     <li 
                                         key={gemeente.ID} 
                                         className={`cursor-pointer p-2 ${selectedGemeenteID === gemeente.ID ? 'bg-blue-100' : ''}`} 
@@ -260,7 +260,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             <ul className="list-disc list-inside pl-4">
                                 {myExploitants?.map((contact, idx) => (
                                     contact ? (
-                                        <Link href={`/beheer/explore-exploitanten/?exploitantID=${contact.ID}`} target="_blank"><li key={contact.ID}>{contact.CompanyName}</li></Link>
+                                        <Link href={`/beheer/${VSMenuTopic.ExploreExploitanten}/?exploitantID=${contact.ID}`} target="_blank"><li key={contact.ID}>{contact.CompanyName}</li></Link>
                                     ) : (
                                         <li key={'no-contact' + idx}>No contact found</li>
                                     )
