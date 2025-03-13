@@ -2,7 +2,7 @@ import React from "react";
 import { Session } from "next-auth";
 import { reverseGeocode } from "~/utils/nomatim";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
-
+import type { VSservice } from "~/types/services";
 import type { fietsenstallingen, contacts } from "@prisma/client";
 import type { ParkingDetailsType } from "~/types/parking";
 
@@ -41,17 +41,18 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
   }
 };
 
-export const getAllServices = async (): Promise<any> => {
+export const getAllServices = async (): Promise<VSservice[]> => {
   try {
     const response = await fetch(
       `/api/services/`
     );
     const json = await response.json();
-    if (!json) return;
+    if (!json) return [];
 
-    return json;
+    return json as VSservice[];
   } catch (err) {
     console.error("get all services error", err);
+    return []
   }
 };
 

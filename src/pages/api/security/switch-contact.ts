@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "~/server/db";
 import { createSecurityProfile } from "~/utils/securitycontext";
-import { VSUserWithRoles, securityUserSelect } from "~/types";
+import { VSUserWithRoles, securityUserSelect } from "~/types/users";
 
 export default async function handler(
     req: NextApiRequest,

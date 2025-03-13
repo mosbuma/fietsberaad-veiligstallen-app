@@ -5,9 +5,9 @@ import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
-import type { VSUserSecurityProfile, Session } from "~/types";
+import type { VSUserSecurityProfile } from "~/types/";
+import type { Session } from "next-auth";
 import type { VSContactGemeente } from "~/types/contacts";
-
 import { userHasRight, logSession } from '~/types/utils';
 
 

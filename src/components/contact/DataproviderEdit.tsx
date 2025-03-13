@@ -3,7 +3,8 @@ import FormInput from "~/components/Form/FormInput";
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 
-import { VSContactDataprovider, VSUserWithRoles } from '~/types';
+import { VSUserWithRoles } from '~/types/users';
+import { VSContactDataprovider } from '~/types/contacts';
 
 type DataproviderEditProps = {
     id: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { VSUserWithRoles } from '~/types';
+import { VSUserWithRoles } from '~/types/users';
 import { security_roles } from '@prisma/client';
 
 const bcrypt = require('bcryptjs');

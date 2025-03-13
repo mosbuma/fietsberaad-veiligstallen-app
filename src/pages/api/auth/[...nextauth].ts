@@ -13,9 +13,8 @@ import {
   getUserFromLoginCode,
 } from "../../../utils/auth-tools";
 
-import { type VSUserWithRoles, securityUserSelect } from "~/types";
+import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
 import { createSecurityProfile } from "~/utils/securitycontext";
-import { checkToken } from "~/utils/token-tools";
 
 const providers: Provider[] = [];
 

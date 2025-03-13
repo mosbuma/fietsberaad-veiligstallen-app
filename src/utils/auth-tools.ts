@@ -5,7 +5,7 @@
 import bcrypt from "bcrypt";
 import { prisma } from "~/server/db";
 import type { User } from "next-auth";
-import { securityUserSelect, VSUserRoleValuesNew, VSUserWithRoles } from "~/types";
+import { securityUserSelect, VSUserRoleValuesNew, VSUserWithRoles } from "~/types/users";
 import { createSecurityProfile } from "~/utils/securitycontext";
 import { initAllTopics } from "~/types/utils";
 import { checkToken } from "~/utils/token-tools";

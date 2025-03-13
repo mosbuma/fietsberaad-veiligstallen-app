@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { security_roles } from '@prisma/client';
-import { VSUserWithRoles } from '~/types';
+import { VSUserWithRoles } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { type UserType } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
