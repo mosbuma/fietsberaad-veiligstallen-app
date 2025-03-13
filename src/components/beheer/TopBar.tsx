@@ -5,8 +5,11 @@ import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
-import { VSUserSecurityProfile, VSContactGemeente, VSSecurityTopic, Session } from "~/types";
+import type { VSUserSecurityProfile, Session } from "~/types";
+import type { VSContactGemeente } from "~/types/contacts";
+
 import { userHasRight, logSession } from '~/types/utils';
+
 
 interface TopBarProps {
   title: string;

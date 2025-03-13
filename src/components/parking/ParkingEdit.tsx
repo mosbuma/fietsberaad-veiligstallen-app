@@ -7,7 +7,7 @@ import { Button } from "~/components/Button";
 import FormInput from "~/components/Form/FormInput";
 import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
-import type { ParkingDetailsType, ParkingSections } from "~/types/";
+import type { ParkingDetailsType, ParkingSections } from "~/types/parking";
 import {
   getAllServices,
   generateRandomId,
@@ -39,7 +39,7 @@ import {
   type MunicipalityType,
   getMunicipalityBasedOnLatLng,
 } from "~/utils/map/active_municipality";
-import { geocodeAddress, reverseGeocode } from "~/utils/nomatim";
+import { geocodeAddress, reverseGeocode, ReverseGeocodeResult } from "~/utils/nomatim";
 import toast from "react-hot-toast";
 
 type connectFietsenstallingType = {
@@ -202,6 +202,7 @@ const ParkingEdit = ({
   const updateSiteID = () => {
     const currentll =
       undefined !== newCoordinaten ? newCoordinaten : parkingdata.Coordinaten;
+    if (!currentll) return;
     getMunicipalityBasedOnLatLng(currentll.split(","))
       .then(async result => {
         if (result !== false) {
@@ -638,7 +639,7 @@ const ParkingEdit = ({
   const updateCoordinatesFromForm =
     (isLat: boolean) => (e: { target: { value: string } }) => {
       try {
-        const latlng = parkingdata.Coordinaten.split(",");
+        const latlng = parkingdata.Coordinaten!==null ? parkingdata.Coordinaten.split(",") : [];
         if (isLat) {
           latlng[0] = e.target.value;
         } else {
@@ -665,7 +666,7 @@ const ParkingEdit = ({
     if (newCoordinaten !== undefined) {
       coords = newCoordinaten;
     }
-    if (coords === "") return "";
+    if (coords === "" || coords === null) return "";
 
     const latlng = coords.split(",");
     if (isLat) {
@@ -732,9 +733,11 @@ const ParkingEdit = ({
     };
 
     const handleCoordinatesLookup = async () => {
-      let address = await reverseGeocode(
-        newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten,
-      );
+      let address: ReverseGeocodeResult | false = false;
+      if(parkingdata.Coordinaten!==null && newCoordinaten !== undefined) {
+         address = await reverseGeocode(newCoordinaten !== undefined ? newCoordinaten : parkingdata.Coordinaten);
+      } 
+
       if (address && address.address) {
         let location = (
           (address.address.road || "---") +

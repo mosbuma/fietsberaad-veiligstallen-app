@@ -1,4 +1,8 @@
-import { VSUserRoleValuesNew, VSSecurityTopic, VSCRUDRight, VSUserRoleValues, VSUserSecurityProfile, VSModuleValues, Session } from "~/types";
+import { VSUserRoleValuesNew } from "~/types/users";
+import { VSSecurityTopic, VSCRUDRight, VSUserSecurityProfile } from "~/types/index";
+import { Session } from "next-auth";
+import { VSModuleValues } from "~/types/modules";
+import { VSUserRoleValues } from "~/types/users";
 
 export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
     switch(roleId) {

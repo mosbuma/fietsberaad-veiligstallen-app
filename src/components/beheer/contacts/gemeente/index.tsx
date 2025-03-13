@@ -7,7 +7,9 @@ import type { fietsenstallingtypen, security_roles } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
-import type { ParkingDetailsType, VSContactGemeente, VSModule, VSUserWithRoles } from "~/types/";
+import type { VSContactGemeente } from "~/types/contacts";
+import type { VSUserWithRoles } from "~/types/users";
+import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 
 import moment from "moment";

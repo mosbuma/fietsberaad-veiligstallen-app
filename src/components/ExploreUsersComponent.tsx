@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 
-import { VSUserWithRoles, VSUserRole, VSUserGroupValues, VSContactDataprovider, VSContactGemeente, VSContactExploitant, VSUserSecurityProfile, VSMenuTopic } from "~/types";
+import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
+import { VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types/contacts";
+import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 
 interface ExploreUsersComponentProps {

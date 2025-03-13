@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { displayInOverlay } from '~/components/Overlay';
 import DataproviderEdit from "~/components/contact/DataproviderEdit";
 
-import type { VSContactDataprovider } from "~/types/";
+import type { VSContactDataprovider } from "~/types/contacts";
 
 type DataproviderComponentProps = { 
   dataproviders: VSContactDataprovider[]
@@ -120,7 +120,6 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
             id={currentContact.ID} 
             dataproviders={dataproviders} 
             onClose={() => setCurrentContact(undefined)} 
-            hidden={false}
           />
         )}
       </>

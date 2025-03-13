@@ -1,6 +1,6 @@
 import type { fietsenstallingen } from "@prisma/client";
 import { ReportContent } from "./types";
-import { ParkingDetailsType } from "~/types";
+import { ParkingDetailsType } from "~/types/parking";
 import moment from "moment";
 import { formatOpeningTimes, formatOpeningToday } from "~/utils/parkings-openclose";
 import { createVeiligstallenOrgLink } from "~/utils/parkings";

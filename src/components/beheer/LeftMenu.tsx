@@ -3,7 +3,11 @@ import React from 'react';
 import Link from 'next/link';
 
 import { type User } from "next-auth";
-import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModuleValues, VSSecurityTopic, VSUserRoleValuesNew, VSUserSecurityProfile, VSMenuTopic } from '~/types';
+import { VSSecurityTopic, VSMenuTopic } from '~/types/index';
+import { VSModuleValues } from '~/types/modules';
+import { type VSContactDataprovider, VSContactExploitant, type VSContactGemeente } from '~/types/contacts';
+import { VSUserRoleValuesNew } from '~/types/users';
+
 import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
 interface LeftMenuProps {
   user?: User;

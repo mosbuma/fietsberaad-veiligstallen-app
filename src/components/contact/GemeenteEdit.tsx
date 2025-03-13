@@ -10,7 +10,9 @@ import SectionBlockEdit from "~/components/SectionBlock";
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 
-import { VSContactGemeente, VSUserWithRoles } from '~/types';
+import type { VSContactGemeente } from '~/types/contacts';
+import type { VSUserWithRoles } from '~/types/users';
+
 import ContactUsers from './ContactUsers';
 import FormSelect from '../Form/FormSelect';
 import moment from 'moment';
@@ -30,6 +32,7 @@ type GemeenteEditProps = {
 export const DEFAULTGEMEENTE: VSContactGemeente = {
   ID: 'nieuw',
   CompanyName: "Nieuwe gemeente",
+  ItemType: "organization",
   AlternativeCompanyName: "",
   UrlName: "",
   ZipID: "",
@@ -46,7 +49,7 @@ export const DEFAULTGEMEENTE: VSContactGemeente = {
   CompanyLogo2: "",
   ThemeColor1: "#1f99d2",
   ThemeColor2: "#96c11f",
-  modules_contacts: []
+  modules_contacts: [],
 };
 
 const GemeenteEdit = (props: GemeenteEditProps) => {
@@ -57,7 +60,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
       organisatie: string|null,
       alternatieveNaam: string|null,
       urlVriendelijkeNaam: string|null,
-      postcodeID: string|null,
+      zipID: string|null,
       emailHelpdesk: string|null,
       dagstart: Date|null,
       coordinaten: string|null,
@@ -74,7 +77,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     const [organisatie, setOrganisatie] = useState<string|null>(null);
     const [alternatieveNaam, setAlternatieveNaam] = useState<string|null>(null);
     const [urlVriendelijkeNaam, setUrlVriendelijkeNaam] = useState<string|null>(null);
-    const [postcodeID, setPostcodeID] = useState<string|null>(null);
+    const [zipID, setZipID] = useState<string|null>(null);
     const [emailHelpdesk, setEmailHelpdesk] = useState<string|null>(null);
     const [dagstart, setDagstart] = useState<Date|null>(null);
     const [coordinaten, setCoordinaten] = useState<string|null>(null);
@@ -92,7 +95,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
       organisatie: '',
       alternatieveNaam: null,
       urlVriendelijkeNaam: null,
-      postcodeID: null,
+      zipID: null,
       emailHelpdesk: null,
       dagstart: null,
       coordinaten: cDefaultCoordinaten,
@@ -111,7 +114,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                 organisatie: DEFAULTGEMEENTE.CompanyName,
                 alternatieveNaam: DEFAULTGEMEENTE.AlternativeCompanyName,
                 urlVriendelijkeNaam: DEFAULTGEMEENTE.UrlName,
-                postcodeID: DEFAULTGEMEENTE.ZipID,
+                zipID: DEFAULTGEMEENTE.ZipID,
                 emailHelpdesk: DEFAULTGEMEENTE.Helpdesk,
                 dagstart: DEFAULTGEMEENTE.DayBeginsAt,
                 coordinaten: DEFAULTGEMEENTE.Coordinaten,
@@ -126,7 +129,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
             setOrganisatie(initial.organisatie);
             setAlternatieveNaam(initial.alternatieveNaam);
             setUrlVriendelijkeNaam(initial.urlVriendelijkeNaam);
-            setPostcodeID(initial.postcodeID);
+            setZipID(initial.zipID);
             setEmailHelpdesk(initial.emailHelpdesk);
             setDagstart(initial.dagstart);
             setCoordinaten(initial.coordinaten);
@@ -146,7 +149,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                         organisatie: thecontact.CompanyName || initialData.organisatie,
                         alternatieveNaam: thecontact.AlternativeCompanyName || initialData.alternatieveNaam,
                         urlVriendelijkeNaam: thecontact.UrlName || initialData.urlVriendelijkeNaam,
-                        postcodeID: thecontact.ZipID || initialData.postcodeID,
+                        zipID: thecontact.ZipID || initialData.zipID,
                         emailHelpdesk: thecontact.Helpdesk || initialData.emailHelpdesk,
                         dagstart: thecontact.DayBeginsAt || initialData.dagstart,
                         coordinaten: thecontact.Coordinaten || initialData.coordinaten,
@@ -161,7 +164,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                     setOrganisatie(initial.organisatie);
                     setAlternatieveNaam(initial.alternatieveNaam);
                     setUrlVriendelijkeNaam(initial.urlVriendelijkeNaam);
-                    setPostcodeID(initial.postcodeID);
+                    setZipID(initial.zipID);
                     setEmailHelpdesk(initial.emailHelpdesk);
                     setDagstart(initial.dagstart);
                     setCoordinaten(initial.coordinaten);
@@ -180,13 +183,13 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
 
     const isDataChanged = () => {
         if (isNew) {
-          return organisatie || postcodeID || dagstart || coordinaten || initialzoom;
+          return organisatie || zipID || dagstart || coordinaten || initialzoom;
         }
         return (
             organisatie !== initialData.organisatie ||
             alternatieveNaam !== initialData.alternatieveNaam ||
             urlVriendelijkeNaam !== initialData.urlVriendelijkeNaam ||
-            postcodeID !== initialData.postcodeID ||
+            zipID !== initialData.zipID ||
             emailHelpdesk !== initialData.emailHelpdesk ||
             dagstart !== initialData.dagstart ||
             coordinaten !== initialData.coordinaten ||
@@ -200,14 +203,14 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
       };
     
       const handleUpdateParking = async () => {
-        if (!organisatie || !postcodeID || !dagstart || !coordinaten) {
+        if (!organisatie || !zipID || !dagstart || !coordinaten) {
           alert("Organisatie, Postcode ID, Dagstart en Coordinaten mogen niet leeg zijn.");
           return;
         }
     
         try {
           const method = isNew ? 'POST' : 'PUT';
-          const url = isNew ? '/api/gemeenten' : `/api/gemeenten/${props.id}`;
+          const url = isNew ? '/api/protected/gemeenten' : `/api/protected/gemeenten/${props.id}`;
           const response = await fetch(url, {
             method,
             headers: {
@@ -217,7 +220,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
               organisatie: organisatie || '',
               alternatieveNaam: alternatieveNaam || '',
               urlVriendelijkeNaam: urlVriendelijkeNaam || '',
-              postcodeID: postcodeID || '',
+              zipID: zipID || '',
               emailHelpdesk: emailHelpdesk || '',
               dagstart,
               coordinaten: coordinaten || '',
@@ -245,7 +248,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
           setOrganisatie(null);
           setAlternatieveNaam(null);
           setUrlVriendelijkeNaam(null);
-          setPostcodeID(null);
+          setZipID(null);
           setEmailHelpdesk(null);
           setDagstart(null);
           setCoordinaten(null);
@@ -259,7 +262,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
           setOrganisatie(initialData.organisatie);
           setAlternatieveNaam(initialData.alternatieveNaam);
           setUrlVriendelijkeNaam(initialData.urlVriendelijkeNaam);
-          setPostcodeID(initialData.postcodeID);
+          setZipID(initialData.zipID);
           setEmailHelpdesk(initialData.emailHelpdesk);
           setDagstart(initialData.dagstart);
           setCoordinaten(initialData.coordinaten);
@@ -401,7 +404,6 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         { label: "Geen", value: undefined },
         ...props.users.map(user => ({ label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", value: user.UserID || "" }))
       ];
-      console.log("#### userlist", userlist);
       /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
 
     return (
@@ -455,8 +457,9 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                   <br />
                   <FormInput 
                     label="Postcode ID"
-                    value={postcodeID || ''} 
-                    onChange={(e) => setPostcodeID(e.target.value || null)} 
+                    value={zipID || ''} 
+                    onChange={(e) => setZipID(e.target.value || null)} 
+                    required
                   />
                   <br />
                   <FormInput 

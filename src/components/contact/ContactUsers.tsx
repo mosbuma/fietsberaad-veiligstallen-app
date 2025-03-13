@@ -1,5 +1,6 @@
 import React from 'react';
-import type { VSContact, VSParking, VSUserWithRoles } from "~/types/";
+import type { VSContact } from "~/types/contacts";
+import type { VSUserWithRoles } from "~/types/users";
 
 interface ContactuserenProps {
   contact: VSContact | undefined;

@@ -10,7 +10,6 @@ import CardList from "~/components/CardList";
 import { CardData } from "~/components/Card";
 import FilterBox from "~/components/FilterBox";
 import FooterNav from "~/components/FooterNav";
-import { ParkingDetailsType } from "~/types";
 
 const ParkingFacilities = ({
   fietsenstallingen,

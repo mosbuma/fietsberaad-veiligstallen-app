@@ -1,6 +1,9 @@
 import { prisma } from "~/server/db";
-import { VSUserWithRoles, VSUserRoleValues, VSModuleValues, VSContactGemeente, VSContactExploitant, gemeenteSelect, exploitantSelect, VSUserRoleValuesNew, VSCRUDRight, VSSecurityTopic } from "~/types";    
-import { VSUserSecurityProfile } from "~/types";
+import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/index";    
+import { VSModuleValues } from "~/types/modules";
+import { type VSContactGemeente, type VSContactExploitant, gemeenteSelect, exploitantSelect } from "~/types/contacts";    
+import { type VSUserWithRoles, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
+
 import { changeTopics, initAllTopics } from "~/types/utils";
 
 const allowNone: VSCRUDRight = {
@@ -29,12 +32,12 @@ const allowReadUpdate: VSCRUDRight = {
 };
 
 // Module access definitions per contact type
-type ModuleAccess = {
-    [key in VSModuleValues]: boolean;
-};
+// type ModuleAccess = {
+//     [key in VSModuleValues]: boolean;
+// };
 
 // Role definitions with CRUD rights per topic
-type RoleRights = {
+export type RoleRights = {
     [key in VSSecurityTopic]?: VSCRUDRight;
 };
 

@@ -7,7 +7,10 @@ import type { fietsenstallingtypen, security_roles } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
-import type { ParkingDetailsType, VSContactExploitant, VSContactGemeente, VSUserWithRoles } from "~/types/";
+import type { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
+import type { VSUserWithRoles } from "~/types/users";
+import type { ParkingDetailsType } from "~/types/parking";
+
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 
 type ExploitantComponentProps = { 
@@ -83,7 +86,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   };
 
   const getGemeenten = (contact: VSContactExploitant) => {
-    const gemeenteIDs = contact.isManaging?.map(c => c.childSiteID);
+    const gemeenteIDs = contact.isManagingContacts?.map(c => c.childSiteID);
     const selected = gemeenteIDs.map(id=>{
       const gemeente = gemeenten.find(g => g.ID === id);
       return gemeente ? gemeente.CompanyName : "Onbekende gemeente";

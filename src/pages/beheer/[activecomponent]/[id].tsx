@@ -27,7 +27,6 @@ import PresentationsComponent from '~/components/beheer/presentations';
 import ProductsComponent from '~/components/beheer/producten';
 import ReportComponent from '~/components/beheer/reports';
 import SettingsComponent from '~/components/beheer/settings';
-import TrekkingenComponent from '~/components/beheer/trekkingen';
 import UsersComponent from '~/components/beheer/users';
 import DatabaseComponent from '~/components/beheer/database';
 import ExploreUsersComponent from '~/components/ExploreUsersComponent';
@@ -36,9 +35,11 @@ import ExploreExploitant from '~/components/ExploreExploitantComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSModule, VSUserWithRoles  } from "~/types/";
-import { gemeenteSelect, exploitantSelect, securityUserSelect, dataproviderSelect, VSUserRoleValuesNew, VSMenuTopic } from "~/types/";
-
+import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente  } from "~/types/contacts";
+import { gemeenteSelect, exploitantSelect, dataproviderSelect } from "~/types/contacts";
+import { securityUserSelect, VSUserRoleValuesNew, type VSUserWithRoles  } from "~/types/users";
+import type { VSModule  } from "~/types/modules";
+import { VSMenuTopic  } from "~/types/index";
 
 import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
@@ -124,7 +125,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
               stallingsID: stalling.StallingsID || "---",
               title: stalling.Title || `Stalling ${stalling.ID}`,
               gemeenteID: gemeente.ID,
-              ZipID: gemeente.ZipID || "---",
               hasData: true,
           });
         });

@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 import { Session } from "next-auth";
 
-const getParkingsFromDatabase = async (sites: any, session: Session | null = null) => {
+const getParkingsFromDatabase = async (sites: string[] | undefined, session: Session | null = null) => {
 
   let fietsenstallingen;
 
@@ -13,7 +13,7 @@ const getParkingsFromDatabase = async (sites: any, session: Session | null = nul
     }
   }
 
-  if (sites.length === 0) {
+  if (!sites || sites.length === 0) {
     fietsenstallingen = await prisma.fietsenstallingen.findMany({
       where: wherefilter,
     });

@@ -4,7 +4,7 @@ import { reverseGeocode } from "~/utils/nomatim";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 import type { fietsenstallingen, contacts } from "@prisma/client";
-import type { ParkingDetailsType, DayPrefix } from "~/types/";
+import type { ParkingDetailsType } from "~/types/parking";
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
   let index = 0,
@@ -20,9 +20,8 @@ export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: strin
 
 export const getParkingDetails = async (stallingId: string): Promise<ParkingDetailsType | null> => {
   try {
-    // const response = await fetch(`/api/parking?stallingid=${stallingId}`);
     const response = await fetch(
-      "/api/fietsenstallingen?id=" + stallingId,
+      `/api/fietsenstallingen?id=${stallingId}`,
       {
         method: "GET",
         headers: {
@@ -111,7 +110,7 @@ const determineNewStatus = (session: Session | null): "1" | "aanm" => {
 export const createNewStalling = async (session: Session | null, currentLatLong: string[]): Promise<string | undefined> => {
   const data = await getNewStallingDefaultRecord(determineNewStatus(session), currentLatLong)
   const result = await fetch(
-    "/api/fietsenstallingen",
+    `/api/fietsenstallingen`,
     {
       method: "POST",
       body: JSON.stringify(data),

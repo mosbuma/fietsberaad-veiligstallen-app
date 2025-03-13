@@ -25,7 +25,6 @@ export type ReportBikepark = {
   title: string; 
   gemeenteID: string; 
   hasData: boolean;
-  ZipID: string;
 };
 
 export interface ReportParams {

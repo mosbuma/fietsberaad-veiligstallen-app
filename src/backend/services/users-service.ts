@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import type { security_users } from "@prisma/client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
-import { securityUserSelect, type VSUserWithRoles } from "~/types/";
+import { securityUserSelect, type VSUserWithRoles } from "~/types/users";
 import crypto from 'crypto';
 
 function generateCustomId(): string {

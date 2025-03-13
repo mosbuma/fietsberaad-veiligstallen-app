@@ -78,18 +78,35 @@
 // Example usage:
 // var polygon = [ [ 1, 1 ], [ 1, 2 ], [ 2, 2 ], [ 2, 1 ] ];
 // isPointInsidePolygon([ 1.5, 1.5 ], polygon); // true
-const isPointInsidePolygon = (point, vs) => {
+const isPointInsidePolygon = (point: [number, number], vs: [number, number][]): boolean => {
+  // Check if point has exactly two numbers
+  if (!Array.isArray(point) || point.length !== 2 || point.some(coord => typeof coord !== 'number')) {
+    return false;
+  }
+
+  // Check if vs is a non-empty array of arrays with two numbers each
+  if (!Array.isArray(vs) || vs.length === 0 || vs.some(v => !Array.isArray(v) || v.length !== 2 || v.some(coord => typeof coord !== 'number'))) {
+    return false;
+  }
+
   // ray-casting algorithm based on
   // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
 
-  var x = point[0], y = point[1];
+  const [x, y] = point;
 
-  var inside = false;
-  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-    var xi = vs[i][0], yi = vs[i][1];
-    var xj = vs[j][0], yj = vs[j][1];
+  let inside = false;
+  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    const vertex1 = vs[i];
+    const vertex2 = vs[j];
 
-    var intersect = ((yi > y) != (yj > y))
+    if (!vertex1 || !vertex2) {
+      continue; // Skip iteration if either vertex is undefined
+    }
+
+    const [xi, yi] = vertex1;
+    const [xj, yj] = vertex2;
+
+    const intersect = ((yi > y) !== (yj > y))
       && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
     if (intersect) inside = !inside;
   }
@@ -97,18 +114,19 @@ const isPointInsidePolygon = (point, vs) => {
   return inside;
 };
 
-const convertCoordinatenToCoords = (Coordinaten) => {
-  if (!Coordinaten) return;
+const convertCoordinatenToCoords = (Coordinaten: string | null) => {
+  if (Coordinaten===null) return;
 
   const coords = Coordinaten.split(",").map((coord: any) => Number(coord)); // I.e.: 52.508011,5.473280;
 
   return [coords[1], coords[0]];
 }
 
-const openRoute = (Coordinaten) => {
-  if (!Coordinaten) return;
+const openRoute = (Coordinaten: string | null) => {
+  if (Coordinaten===null) return;
   // Get coords from parking variable
   const coords = convertCoordinatenToCoords(Coordinaten);
+  if(coords===undefined||coords.length!==2) return;
   const coordsString = "" + coords[1] + ',' + coords[0]; // E.g. 51.9165409,4.4480073
   // Generate route URL
   // dirflg: b=bicycling. Source: https://webapps.stackexchange.com/a/67255

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { VSContactDataprovider, VSContactExploitant, VSContactGemeente, VSMenuTopic, VSParking, VSUserWithRoles } from "~/types";
-import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter'; // Adjust the import path if necessary
+import { VSMenuTopic } from "~/types";
+import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
+import type { VSUserWithRoles } from "~/types/users";
+import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter'; 
 import Link from "next/link";
-
+import { getRelatedUsersForGemeente, groupUsersByGroupID } from "~/utils/contactfilters";
 // import moment from "moment";
 interface ExploreGemeenteComponentProps {
     users: VSUserWithRoles[];
@@ -173,24 +175,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     }
 
-    const relatedUsers = props.users.filter((user) => { 
-        return (
-            user.security_users_sites.some((site) => (site.SiteID === selectedGemeenteID || (user.GroupID === "intern" && site.SiteID === "0")))
-        )
-    })
-
-    const relatedUsersByGroup = relatedUsers.reduce((acc, user) => {
-        const key = user.GroupID || "unknown";
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(user);
-        return acc;
-    }, {} as Record<string, VSUserWithRoles[]>);
-
-    const renderUserSection = (groupID: string, title: string) => {
-        const users = relatedUsersByGroup[groupID];
-        if (!users || users.length === 0) return null;
+    const renderUserSection = (users: VSUserWithRoles[] | undefined, title: string) => {
+        if (users === undefined || users.length === 0) return null;
 
         return (
             <>
@@ -208,7 +194,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     };
 
-    const renderGemeenteDetailsSection = () => {
+    const renderGemeenteDetailsSection = (relatedUsersByGroup: Record<string, VSUserWithRoles[]>) => {
         const selectedGemeente = gemeenten.find(gemeente => gemeente.ID === selectedGemeenteID);
         if (!selectedGemeente) return null;
 
@@ -276,10 +262,10 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         ))}
                     </ul>
 
-                    {renderUserSection('intern', 'Veiligstallen gebruikers')}
-                    {renderUserSection('extern', 'Gemeentegebruikers')}
-                    {renderUserSection('exploitant', 'Exploitant gebruikers')}
-                    {renderUserSection('dataprovider', 'Dataprovider Users')}
+                    {renderUserSection(relatedUsersByGroup['intern'], 'Veiligstallen gebruikers')}
+                    {renderUserSection(relatedUsersByGroup['extern'], 'Gemeentegebruikers')}
+                    {renderUserSection(relatedUsersByGroup['exploitant'], 'Exploitant gebruikers')}
+                    {renderUserSection(relatedUsersByGroup['dataprovider'], 'Dataprovider Users')}
 
                     <div className="text-xl font-bold mb-4">Fietsenstallingen</div>
                     <ul className="list-disc list-inside">
@@ -292,13 +278,16 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     }
 
+    const relatedUsers = getRelatedUsersForGemeente(props.users, selectedGemeenteID);
+    const relatedUsersByGroup = groupUsersByGroupID(relatedUsers);
+
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 {renderFilterSection()}
             </div>
             <div>
-                {renderGemeenteDetailsSection()}
+                {renderGemeenteDetailsSection(relatedUsersByGroup)}
             </div>
         </div>
     );

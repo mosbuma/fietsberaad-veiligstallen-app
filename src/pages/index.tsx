@@ -59,9 +59,8 @@ export async function getServerSideProps(context: any) {
       context.res,
       authOptions,
     );
-    const sites = session?.user?.sites || [];
     const fietsenstallingen: fietsenstallingen[] =
-      await getParkingsFromDatabase(sites, session);
+      await getParkingsFromDatabase([], session);
 
     // TODO: Don't include: EditorCreated, EditorModified
 
