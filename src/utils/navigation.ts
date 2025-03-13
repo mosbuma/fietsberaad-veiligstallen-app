@@ -1,8 +1,8 @@
-
+import { VSArticle } from "~/types/articles";
 export const getNavigationItemsForMunicipality = async (siteId: string | null) => {
   try {
     const response = await fetch(`/api/articles/?SiteID=${siteId}`);
-    const articles = await response.json();
+    const articles: VSArticle[] = await response.json();
 
     let primaryMenuItems = articles;
 
@@ -15,7 +15,7 @@ export const getNavigationItemsForMunicipality = async (siteId: string | null) =
   }
 }
 
-export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
+export const filterNavItemsBasedOnMapZoom = (items: VSArticle[], mapZoom: number) => {
   if (!items) return items;
 
   // Only keep items that are unique for this site
@@ -32,7 +32,7 @@ export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
   return items;
 }
 
-export const getPrimary = (items) => {
+export const getPrimary = (items: VSArticle[]) => {
   let primaryItems = items;
   if (!primaryItems) return;
 
@@ -54,7 +54,7 @@ export const getPrimary = (items) => {
   });
 }
 
-export const getSecundary = (items) => {
+export const getSecundary = (items: VSArticle[]) => {
   let secundaryItems = items;
   if (!secundaryItems) return [];
 
@@ -66,7 +66,7 @@ export const getSecundary = (items) => {
   });
 }
 
-export const getFooter = (items) => {
+export const getFooter = (items: VSArticle[]) => {
   if (items) {
     return items.filter((x) => {
       return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene Voorwaarden';

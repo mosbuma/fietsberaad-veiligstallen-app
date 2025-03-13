@@ -9,7 +9,7 @@ import Head from "next/head";
 import { usePathname } from 'next/navigation';
 import type { fietsenstallingen } from "@prisma/client";
 import { AppState } from "~/store/store";
-
+import { VSArticle } from "~/types/articles";
 // Import components
 import PageTitle from "~/components/PageTitle";
 import AppHeader from "~/components/AppHeader";
@@ -66,7 +66,7 @@ const Content: NextPage<ContentProps> = ({fietsenstallingen}: ContentProps) => {
 
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [currentStalling, setCurrentStalling] = useState<fietsenstallingen | undefined>(undefined);
-  const [pageContent, setPageContent] = useState<Record<string, any> | undefined>(undefined); // TODO: type -> generic JSON object, make more specific later
+  const [pageContent, setPageContent] = useState<VSArticle | undefined>(undefined);
 
   useEffect(() => {
     if (currentStallingId === undefined) {
@@ -117,7 +117,7 @@ const Content: NextPage<ContentProps> = ({fietsenstallingen}: ContentProps) => {
         const json = await response.json();
         if (!json) return;
         // If result is an array with 1 node: Get node only
-        const pageContentToSet = json && json.SiteID ? json : json[0];
+        const pageContentToSet: VSArticle = json && json.SiteID ? json : json[0];
         setPageContent(pageContentToSet);
       } catch (err) {
         console.error(err);

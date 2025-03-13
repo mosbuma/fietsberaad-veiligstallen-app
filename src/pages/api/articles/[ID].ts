@@ -1,5 +1,6 @@
 import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { articlesSelect } from "~/types/articles";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (!req.query.ID || Array.isArray(req.query.ID)) return;
@@ -9,18 +10,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       ID: req.query.ID,
       Status: "1",
     },
-    select: {
-      SiteID: true,
-      Title: true,
-      DisplayTitle: true,
-      Abstract: true,
-      Article: true,
-      CustomField1_Title: true,
-      CustomField1: true,
-      SortOrder: true,
-      ShowInNav: true,
-      ModuleID: true
-    },
+    select: articlesSelect,
     orderBy: [
       {
         SiteID: 'asc',

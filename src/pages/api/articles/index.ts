@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { articlesSelect } from "~/types/articles";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (req.query.SiteID && Array.isArray(req.query.SiteID)) return;
@@ -28,22 +29,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
   const query: Prisma.articlesFindFirstArgs = {
     where,
-    select: {
-      ID: true,
-      SiteID: true,
-      Title: true,
-      DisplayTitle: true,
-      DateCreated: true,
-      DateModified: true,
-      Abstract: true,
-      Article: true,
-      CustomField1_Title: true,
-      CustomField1: true,
-      SortOrder: true,
-      ShowInNav: true,
-      ModuleID: true,
-      Navigation: true
-    },
+    select: articlesSelect,
     orderBy: {
       SortOrder: 'asc',
     }
