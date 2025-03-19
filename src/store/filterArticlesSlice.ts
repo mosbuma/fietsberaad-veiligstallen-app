@@ -1,39 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HYDRATE } from "next-redux-wrapper";
-export interface FilterState {
-  activeTypes: String[];
-  query: String;
-  activeTypes2: String[]; // used to store the showSubmissions filter
-}
+import { initialState, allowedTypes, allowedTypes2 } from "./filterSlice";
 
-// Initial state
-export const initialState: FilterState = {
-  activeTypes: [
-    "bewaakt",
-    "geautomatiseerd",
-    "toezicht"
-  ],
-  query: "",
-  activeTypes2: []
-};
-
-export const allowedTypes = [
-  'bewaakt',
-  'geautomatiseerd',
-  'toezicht',
-  'onbewaakt',
-  'buurtstalling',
-  'fietstrommel',
-  'fietskluizen'
-];
-
-export const allowedTypes2 = [
-  'show_submissions',
-];
-
-// Actual Slice
-export const filterSlice = createSlice({
-  name: "filter",
+// Exact copy of filterSlice, but with different state and reducers for articles filter
+export const filterArticlesSlice = createSlice({
+  name: "filterArticles",
   initialState,
   reducers: {
     // Action to toggle the type
@@ -121,4 +92,4 @@ export const {
   setTypes,
   setTypes2,
   setQuery
-} = filterSlice.actions;
+} = filterArticlesSlice.actions;

@@ -1,32 +1,37 @@
 import { MunicipalityType } from "./map/active_municipality";
-
-export const getMunicipalityBasedOnCbsCode = async (cbsCode: number) => {
-  if (!cbsCode) return;
+import { VSContactGemeente } from "~/types/contacts";
+export const getMunicipalityBasedOnCbsCode = async (cbsCode: number): Promise<VSContactGemeente | undefined> => {
+  if (!cbsCode) return undefined;
 
   const response = await fetch(`/api/contacts?cbsCode=${cbsCode}`);
   const json = await response.json();
-  return json[0];
+  return json[0] as VSContactGemeente;
 };
 
-export const getMunicipalityBasedOnUrlName = async (urlName: string) => {
+export const getMunicipalityBasedOnUrlName = async (urlName: string): Promise<VSContactGemeente | undefined> => {
   if (!urlName) {
     console.log('No urlName given');
-    return;
+    return undefined;
+  }
+
+  if(urlName === "fietsberaad") {
+    urlName = "1";
   }
 
   try {
     const response = await fetch(`/api/contacts?urlName=${urlName}`);
     const json = await response.json();
-    return json[0];
+    return json[0] as VSContactGemeente;
   } catch (err) {
+    return undefined;
     // console.error('err', err)
   }
 }
 
-export const getMunicipalities = async () => {
+export const getMunicipalities = async (): Promise<VSContactGemeente[] | false> => {
   try {
     const response = await fetch(`/api/contacts?itemType=organizations`);
-    return await response.json();
+    return await response.json() as VSContactGemeente[];
   } catch (err) {
     console.error('err', err)
     return false;

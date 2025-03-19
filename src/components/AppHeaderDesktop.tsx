@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react"
 import { usePathname } from 'next/navigation';
 import Link from 'next/link'
 import { AppState } from "~/store/store";
-
+import { setActiveArticle } from "~/store/appSlice";
 import Logo from './Logo';
 import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
 
@@ -13,58 +13,20 @@ import {
   setIsMobileNavigationVisible
 } from "~/store/appSlice";
 
-import {
-  getNavigationItemsForMunicipality,
-  filterNavItemsBasedOnMapZoom,
-  getPrimary,
-  getSecundary,
-} from "~/utils/navigation";
-
-// Define the type for the menu item
-interface MenuItem {
-  DisplayTitle?: string;
-  Title?: string;
-}
-
-const PrimaryMenuItem = (props: any) => {
-  const { push } = useRouter();
-
-  return <div className="
-    PrimaryMenuItem
-    px-5
-  ">
-    <a href={props.url} className="flex flex-col justify-center h-full" onClick={(e) => {
-      e.preventDefault();
-
-      push(props.url);
-    }}>
-      {props.icon ? <img src={props.icon} style={{ height: '30px' }} /> : ''}
-      {props.title}
-    </a>
-  </div>
-}
-
-const SecundaryMenuItem = (props: any) => {
-  const { push } = useRouter();
-
-  return <div className="
-    SecundaryMenuItem
-    px-2
-  ">
-    <a href="#" className="flex flex-col justify-center h-full" onClick={(e) => {
-      e.preventDefault();
-
-      push(props.url);
-    }}>
-      {props.title}
-    </a>
-  </div>
-}
+import { MenuItem, PrimaryMenuItem, SecundaryMenuItem } from "~/components/MenuItems";
+import { VSContactGemeente } from "~/types/contacts";
+import { VSArticle } from "~/types/articles";
 
 function AppHeaderDesktop({
+  activeMunicipalityInfo,
+  primaryMenuItems,
+  secundaryMenuItems,
   onStallingAanmelden,
   children
 }: {
+  activeMunicipalityInfo: VSContactGemeente | undefined,
+  primaryMenuItems: VSArticle[] | undefined,
+  secundaryMenuItems: VSArticle[] | undefined,
   onStallingAanmelden?: () => void,
   children?: any
 }) {
@@ -73,41 +35,18 @@ function AppHeaderDesktop({
   const pathName = usePathname();
   const { data: session } = useSession()
 
-  const [articles, setArticles] = useState([]);
-  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
   const [didNavOverflow, setDidNavOverflow] = useState(false);
 
   // const isAuthenticated = useSelector(
   //   (state: AppState) => state.auth.authState
   // );
 
-  const activeMunicipalityInfo = useSelector(
-    (state: AppState) => state.map.activeMunicipalityInfo
-  );
-
   const mapZoom = useSelector((state: AppState) => state.map.zoom);
 
-  // Get menu items based on active municipality
-  useEffect(() => {
-    // Get menu items from SiteID 1 OR SiteID of the municipality
-    let SiteIdToGetArticlesFrom;
-    if (mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
-      SiteIdToGetArticlesFrom = activeMunicipalityInfo.ID;
-    } else {
-      SiteIdToGetArticlesFrom = "1";
-    }
-
-    (async () => {
-      const response = await getNavigationItemsForMunicipality(SiteIdToGetArticlesFrom);
-      setArticles(response);
-    })();
-  }, [
-    activeMunicipalityInfo,
-    pathName
-  ]);
-
-  const [forceShowingMobileHeader, setForceShowingMobileHeader] = useState(false);
-
+  // 
+  const articlemunicipality = useSelector((state: AppState) => state.app.municipality);
+  const articlepage = useSelector((state: AppState) => state.app.page);
+  
   // Handler if screen size changes
   useEffect(() => {
     // Run at least once
@@ -118,7 +57,8 @@ function AppHeaderDesktop({
       window.removeEventListener('resize', overflowNavItems);
     };
   }, [
-    articles
+    primaryMenuItems,
+    secundaryMenuItems
   ]);
 
   function overflowNavItems(): void {
@@ -147,7 +87,6 @@ function AppHeaderDesktop({
     setDidNavOverflow(navOverflow);
   }
 
-
   const handleNieuweStallingClick = () => {
     if (onStallingAanmelden) {
       onStallingAanmelden();
@@ -171,11 +110,7 @@ function AppHeaderDesktop({
     ? `#${activeMunicipalityInfo.ThemeColor2}`
     : '#15aeef';
 
-  const showMapIcon = pathName !== '/';
-
-  const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom)
-  const primaryMenuItems = getPrimary(allMenuItems)
-  const secundaryMenuItems = getSecundary(allMenuItems);
+  const showMapIcon = articlepage!=='';
 
   const showStallingAanmaken = session && mapZoom >= 13 && activeMunicipalityInfo;
 
@@ -218,12 +153,17 @@ function AppHeaderDesktop({
           {showMapIcon && <PrimaryMenuItem
             key={'pmi-h1-map'}
             icon={'/images/icon-map.png'}
-            url={'/'}
+            targetmunicipality={articlemunicipality}
+            targetpage={articlepage}
+            title={''}
+            // url={'/'}
           />}
-          {primaryMenuItems ? primaryMenuItems.map((x: MenuItem, idx: number) => <PrimaryMenuItem
+          {primaryMenuItems ? primaryMenuItems.map((x: VSArticle, idx: number) => <PrimaryMenuItem
             key={'pmi-h1-' + idx}
-            title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
-            url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
+            targetmunicipality={x.SiteID}
+            targetpage={x.Title}
+            title={x.DisplayTitle ? x.DisplayTitle : x.Title}
+            // url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
           <div className="
           " style={{
@@ -243,11 +183,18 @@ function AppHeaderDesktop({
           </div>
         </div>
         <div className="flex flex-end">
-          {secundaryMenuItems.map((x: MenuItem, idx: number) => {
+          {secundaryMenuItems && secundaryMenuItems.map((x: VSArticle, idx: number) => {
             return <SecundaryMenuItem
               key={'pmi-h2-' + idx}
-              title={x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
-              url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
+              targetmunicipality={x.SiteID}
+              targetpage={x.Title}
+              title={x.DisplayTitle}
+              onClick={() => {
+                dispatch(setActiveArticle({
+                  articleTitle: x.Title,
+                  municipality: ""
+                }));
+              }}  
             />
           })}
 

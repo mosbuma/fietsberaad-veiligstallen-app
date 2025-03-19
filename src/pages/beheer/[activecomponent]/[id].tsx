@@ -9,11 +9,11 @@ import LeftMenu from "~/components/beheer/LeftMenu";
 import TopBar from "~/components/beheer/TopBar";
 import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
 
-import AbonnementenComponent from '~/components/beheer/abonnementen';
+// import AbonnementenComponent from '~/components/beheer/abonnementen';
 import AccountsComponent from '~/components/beheer/accounts';
 import ApisComponent from '~/components/beheer/apis';
 import ArticlesComponent from '~/components/beheer/articles';
-import BarcodereeksenComponent from '~/components/beheer/barcodereeksen';
+// import BarcodereeksenComponent from '~/components/beheer/barcodereeksen';
 import GemeenteComponent from '~/components/beheer/contacts/gemeente';
 import ExploitantComponent from '~/components/beheer/contacts/expoitant';
 import DataproviderComponent from '~/components/beheer/contacts/dataprovider';
@@ -23,8 +23,8 @@ import FaqComponent from '~/components/beheer/faq';
 import HomeComponent from '~/components/beheer/home';
 import LogboekComponent from '~/components/beheer/logboek';
 import FietsenstallingenComponent from '~/components/beheer/fietsenstallingen';
-import PresentationsComponent from '~/components/beheer/presentations';
-import ProductsComponent from '~/components/beheer/producten';
+// import PresentationsComponent from '~/components/beheer/presentations';
+// import ProductsComponent from '~/components/beheer/producten';
 import ReportComponent from '~/components/beheer/reports';
 import SettingsComponent from '~/components/beheer/settings';
 import UsersComponent from '~/components/beheer/users';
@@ -32,6 +32,7 @@ import DatabaseComponent from '~/components/beheer/database';
 import ExploreUsersComponent from '~/components/ExploreUsersComponent';
 import ExploreGemeenteComponent from '~/components/ExploreGemeenteComponent';
 import ExploreExploitant from '~/components/ExploreExploitantComponent';
+import ExploreArticlesComponent from '~/components/ExploreArticlesComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
@@ -41,8 +42,37 @@ import { securityUserSelect, VSUserRoleValuesNew, type VSUserWithRoles  } from "
 import type { VSModule  } from "~/types/modules";
 import { VSMenuTopic  } from "~/types/index";
 
-import Styles from "~/pages/content.module.css";
+// import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
+
+//   .ContentPage_Body h2 {
+//     font-size: 1.1em;
+//     font-weight: bold;
+//   }
+//   .ContentPage_Body ul {
+//       list-style-type: disc;
+//   }
+//   .ContentPage_Body ul,
+//   .ContentPage_Body ol {
+//     margin: 1em 0;
+//       padding: 0 0 0 40px;
+//       margin-left: 0;
+//     padding-left: 1em;
+//   }
+//   .ContentPage_Body li {
+//     display: list-item;
+//   }
+//   .ContentPage_Body a {
+//       text-decoration: underline;
+//   }
+//   .ContentPage_Body strong {
+//       font-weight: bold;
+//   }
+//   .ContentPage_Body p {
+//       margin-top: 5px;
+//       margin-bottom: 15px;
+//   }
+
 
 export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
@@ -86,9 +116,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   });
 
   const dataproviders: VSContactDataprovider [] | undefined = await prisma.contacts.findMany({
-    where: { ItemType: 'dataprovider', ...whereCondition },
+    where: { ItemType: 'dataprovider' },
     select: dataproviderSelect,
   });
+
+  console.log(">>> dataproviders", dataproviders);
+
 
   let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
     security_users_sites: { some: { SiteID: { in: validContactIDs } } }
@@ -141,7 +174,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   }else {
     console.log("no current user");
   }
-  return { props: { currentUser, gemeenten: gemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
+  return { props: { currentUser, gemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
@@ -268,7 +301,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           )}
           break;
         case VSMenuTopic.ArticlesPages:
-          selectedComponent = <ArticlesComponent type="pages" />;
+          selectedComponent = <ExploreArticlesComponent gemeenten={gemeenten || []} />;
           break;
         case VSMenuTopic.Faq:
           selectedComponent = <FaqComponent />;
@@ -320,9 +353,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.ExploreExploitanten:
           selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} gemeenten={gemeenten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
-        case VSMenuTopic.Products:
-          selectedComponent = <ProductsComponent />;
-          break;
+          // case VSMenuTopic.Products:
+        //   selectedComponent = <ProductsComponent />;
+        //   break;
         case VSMenuTopic.Logboek:
           selectedComponent = <LogboekComponent />;
           break;
@@ -341,27 +374,27 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.Buurtstallingen:
           selectedComponent = <FietsenstallingenComponent type="buurtstallingen" />;
           break;
-        case VSMenuTopic.BarcodereeksenUitgifteBarcodes:
-          selectedComponent = <BarcodereeksenComponent type="uitgifte-barcodes" />;
-          break;
-        case VSMenuTopic.BarcodereeksenSleutelhangers:
-          selectedComponent = <BarcodereeksenComponent type="sleutelhangers" />;
-          break;
-        case VSMenuTopic.BarcodereeksenFietsstickers:
-          selectedComponent = <BarcodereeksenComponent type="fietsstickers" />;
-          break;
-        case VSMenuTopic.Presentations:
-          selectedComponent = <PresentationsComponent />;
-          break;
+        // case VSMenuTopic.BarcodereeksenUitgifteBarcodes:
+        //   selectedComponent = <BarcodereeksenComponent type="uitgifte-barcodes" />;
+        //   break;
+        // case VSMenuTopic.BarcodereeksenSleutelhangers:
+        //   selectedComponent = <BarcodereeksenComponent type="sleutelhangers" />;
+        //   break;
+        // case VSMenuTopic.BarcodereeksenFietsstickers:
+        //   selectedComponent = <BarcodereeksenComponent type="fietsstickers" />;
+        //   break;
+        // case VSMenuTopic.Presentations:
+        //   selectedComponent = <PresentationsComponent />;
+        //   break;
         case VSMenuTopic.Settings:
           selectedComponent = <SettingsComponent />;
           break;
-        case VSMenuTopic.Abonnementen:
-          selectedComponent = <AbonnementenComponent type="abonnementen" />;
-          break;
-        case VSMenuTopic.Abonnementsvormen:
-          selectedComponent = <AbonnementenComponent type="abonnementsvormen" />;
-          break;
+        // case VSMenuTopic.Abonnementen:
+        //   selectedComponent = <AbonnementenComponent type="abonnementen" />;
+        //   break;
+        // case VSMenuTopic.Abonnementsvormen:
+        //   selectedComponent = <AbonnementenComponent type="abonnementsvormen" />;
+        //   break;
         case VSMenuTopic.Accounts:
           selectedComponent = <AccountsComponent />;
           break;
@@ -436,7 +469,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         />
 
         {/* Main Content */}
-        <div className={`flex-1 p-4 overflow-auto ${Styles.ContentPage_Body}`} style={{ maxHeight: 'calc(100vh - 64px)' }}>
+        {/* ${Styles.ContentPage_Body}`} */}
+        <div className={`flex-1 p-4 overflow-auto style={{ maxHeight: 'calc(100vh - 64px)' }}`}>
           {renderComponent()}
         </div>
       </div>

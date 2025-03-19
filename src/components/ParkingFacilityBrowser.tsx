@@ -299,10 +299,6 @@ function ParkingFacilityBrowser({
   };
 
   const clickParking = (id: string) => {
-    // Set URL
-    // window.history.replaceState(null, document.title, `/stalling/${id}`); // Only change URL
-    // push(`/stalling/${id}`);// Redirect
-
     // Set active parking ID
     expandParking(id);
 
@@ -333,7 +329,7 @@ function ParkingFacilityBrowser({
         }}
       /> : ''}
 
-      <div className="px-0">
+      <div className="px-0 bg-transparent">
         {visibleMunicipalities.map((x: any) => {
           return (
             <MunicipalityBlock

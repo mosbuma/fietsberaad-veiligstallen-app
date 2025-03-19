@@ -8,20 +8,16 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   if (req.query.Title && Array.isArray(req.query.Title)) return;
   if (req.query.Navigation && Array.isArray(req.query.Navigation)) return;
 
+  // For now, only veiligstallen is supported
   const where: Prisma.articlesWhereInput = {
-    Status: "1"
+    ModuleID: "veiligstallen"
   }
 
   if (req.query.SiteID) {
-    where.OR = [
-      { SiteID: req.query.SiteID },
-      { SiteID: "1" }// 1 = Default site / menu items
-    ]
+    where.SiteID = req.query.SiteID as string;
   }
   if (req.query.Title) {
-    where.Title = {
-      equals: req.query.Title,
-    }
+    where.Title = req.query.Title as string
   }
   if (req.query.Navigation) {
     where.Navigation = req.query.Navigation;

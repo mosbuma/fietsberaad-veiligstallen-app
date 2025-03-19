@@ -107,7 +107,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             type="text" 
                             id="gemeenteName" 
                             name="gemeenteName" 
-                            placeholder="Type to search..." 
+                            placeholder="Type om te zoeken..." 
                             className="mt-1 p-2 border border-gray-300 rounded-md" 
                             value={nameFilter}
                             onChange={filterNameHandler} 
@@ -122,8 +122,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutStallingen(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>
@@ -136,8 +136,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutUsers(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>
@@ -150,8 +150,8 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutExploitanten(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>

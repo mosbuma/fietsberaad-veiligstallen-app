@@ -1,9 +1,5 @@
-// @ts-nocheck
-
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-
-const isServer = typeof window === "undefined";
 
 interface ModalProps {
   onClose: () => void;
@@ -23,6 +19,13 @@ const Modal: React.FC<ModalProps> = ({
   clickOutsideClosesDialog = false,
 }) => {
   const modalWrapperRef = useRef<HTMLDivElement>(null);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);  
 
   const backDropHandler = useCallback(
     (e: MouseEvent) => {
@@ -49,7 +52,7 @@ const Modal: React.FC<ModalProps> = ({
   }, [backDropHandler]);
 
   useEffect(() => {
-    const initEscapeHandler = (event) => {
+    const initEscapeHandler = (event: KeyboardEvent) => {
       // Check if <escape> is pressed
       if ( event.keyCode == 27 ) {
         console.log('escape pressed');
@@ -65,7 +68,7 @@ const Modal: React.FC<ModalProps> = ({
   }, []);
 
   const handleCloseClick = (
-    e?: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    e?: React.MouseEvent<HTMLDivElement|HTMLAnchorElement, MouseEvent>
   ) => {
     if(e) e.preventDefault();
     onClose();
@@ -101,6 +104,10 @@ const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  if(!mounted) {
+    return null;
+  }
 
   return ReactDOM.createPortal(
     modalContent,

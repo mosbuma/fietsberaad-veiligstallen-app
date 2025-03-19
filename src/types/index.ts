@@ -60,8 +60,8 @@ export enum VSSecurityTopic {
 }
 
 export enum VSMenuTopic {
-    "Abonnementen" = "abonnementen",
-    "Abonnementsvormen" = "abonnementsvormen",
+    // "Abonnementen" = "abonnementen",
+    // "Abonnementsvormen" = "abonnementsvormen",
     "Accounts" = "accounts",
     "ApisGekoppeldeLocaties" = "apisgekoppeldelocaties",
     "ApisOverzicht" = "apisoverzicht",
@@ -70,9 +70,9 @@ export enum VSMenuTopic {
     "ArticlesBuurtstallingen" = "articlesbuurtstallingen",
     "ArticlesFietskluizen" = "articlesfietskluizen",
     "ArticlesPages" = "articlespages",
-    "BarcodereeksenFietsstickers" = "barcodereeksenfietsstickers",
-    "BarcodereeksenSleutelhangers" = "barcodereeksensleutelhangers",
-    "BarcodereeksenUitgifteBarcodes" = "barcodereeksenuitgiftebarcodes",
+    // "BarcodereeksenFietsstickers" = "barcodereeksenfietsstickers",
+    // "BarcodereeksenSleutelhangers" = "barcodereeksensleutelhangers",
+    // "BarcodereeksenUitgifteBarcodes" = "barcodereeksenuitgiftebarcodes",
     "Buurtstallingen" = "buurtstallingen",
     "ContactsAdmin" = "contactsadmin",
     "ContactsDataproviders" = "contactsdataproviders",
@@ -90,14 +90,15 @@ export enum VSMenuTopic {
     "Fietskluizen" = "fietskluizen",
     "Home" = "home",
     "Logboek" = "logboek",
-    "Presentations" = "presentations",
-    "Products" = "products",
+    // // "Presentations" = "presentations",
+    // "Products" = "products",
     "Report" = "report",
     "Settings" = "settings",
-    "StallingInfo" = "stallinginfo",
     "UsersBeheerders" = "usersbeheerders",
     "UsersGebruikersbeheer" = "usersgebruikersbeheer",
     "Website" = "website",
+
+    "UnderConstruction" = "underconstruction",
 }
 
 

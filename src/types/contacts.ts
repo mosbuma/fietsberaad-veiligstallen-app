@@ -156,7 +156,8 @@ export interface VSContactExploitant {
   "CompanyName" |
   "ItemType" |
   "UrlName" | 
-  "Password"
+  "Password" |
+  "Status"
   >
   
   export const dataproviderSelect = {
@@ -164,7 +165,8 @@ export interface VSContactExploitant {
   CompanyName: true,
   ItemType: true,
   UrlName: true,
-  Password: true
+  Password: true,
+  Status: true
   }
   
   export type VSContact = VSContactGemeente | VSContactDataprovider | VSContactExploitant;

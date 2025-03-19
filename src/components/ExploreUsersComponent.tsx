@@ -295,7 +295,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold">User Explorer</h1>
+                    <h1 className="text-2xl font-bold">Filter Gebruikers</h1>
                     <button 
                         className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                         onClick={resetFilters}
@@ -305,19 +305,19 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 </div>
                 <form className="space-y-4">
                     <div className="flex flex-col">
-                        <label htmlFor="userEmail" className="text-sm font-medium text-gray-700">User Name or Email:</label>
+                        <label htmlFor="userEmail" className="text-sm font-medium text-gray-700">Naam of Email:</label>
                         <input 
                             type="text" 
                             id="userEmail" 
                             name="userEmail" 
-                            placeholder="Type to search..." 
+                            placeholder="Type om te zoeken..." 
                             className="mt-1 p-2 border border-gray-300 rounded-md" 
                             value={emailFilter}
                             onChange={filterEmailHandler} 
                         />
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="group" className="text-sm font-medium text-gray-700">Select Group:</label>
+                        <label htmlFor="group" className="text-sm font-medium text-gray-700">Selecteer Groep:</label>
                         <select 
                             id="group" 
                             name="group" 
@@ -325,14 +325,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={groupFilter}
                             onChange={(e) => setGroupFilter(e.target.value)}
                         >
-                            <option value="">All groups</option>
+                            <option value="">Alle Groepen</option>
                             {groups.map((group) => (
                                 <option value={group} key={group}>{group}</option>
                             ))}
                         </select>
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="role" className="text-sm font-medium text-gray-700">Select Role:</label>
+                        <label htmlFor="role" className="text-sm font-medium text-gray-700">Selecteer Rol:</label>
                         <select 
                             id="role" 
                             name="role" 
@@ -340,14 +340,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={roleFilter ?? ""}
                             onChange={(e) => setRoleFilter(Number(e.target.value) || undefined)}
                         >
-                            <option value="">All roles</option>
+                            <option value="">Alle Rollen</option>
                             {roles.map((role) => (
                                 <option value={role.RoleID} key={role.RoleID}>{getOldRoleLabel(role.RoleID)}</option>
                             ))}
                         </select>
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="contact" className="text-sm font-medium text-gray-700">Show only contact persons:</label>
+                        <label htmlFor="contact" className="text-sm font-medium text-gray-700">Alleen contactpersonen weergeven:</label>
                         <select 
                             id="contact" 
                             name="contact" 
@@ -355,12 +355,12 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={contactFilter}
                             onChange={(e) => setContactFilter(e.target.value === "Yes" ? "Yes" : "No")}
                         >
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
                         </select>                        
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="gemeente" className="text-sm font-medium text-gray-700">Select Gemeente:</label>
+                        <label htmlFor="gemeente" className="text-sm font-medium text-gray-700">Selecteer Gemeente:</label>
                         <select 
                             id="gemeente" 
                             name="gemeente" 
@@ -368,14 +368,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={gemeenteFilter}
                             onChange={(e) => setGemeenteFilter(e.target.value)}
                         >
-                            <option value="">All gemeenten</option>
+                            <option value="">Alle gemeenten</option>
                             {gemeenten.map((gemeente) => (
                                 <option value={gemeente.ID} key={gemeente.ID}>{gemeente.CompanyName}</option>
                             ))}
                         </select>
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="invalidData" className="text-sm font-medium text-gray-700">Users with invalid data:</label>
+                        <label htmlFor="invalidData" className="text-sm font-medium text-gray-700">Gebruikers met ongeldige data:</label>
                         <select 
                             id="invalidData" 
                             name="invalidData" 
@@ -383,13 +383,13 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={invalidDataFilter}
                             onChange={(e) => setInvalidDataFilter(e.target.value as "Yes" | "No" | "Only")}
                         >
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                            <option value="Only">Only</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
+                            <option value="Only">Alleen</option>
                         </select>                        
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="inactiveUsers" className="text-sm font-medium text-gray-700">Show Inactive Users:</label>
+                        <label htmlFor="inactiveUsers" className="text-sm font-medium text-gray-700">Toon Inactieve Gebruikers:</label>
                         <select 
                             id="inactiveUsers" 
                             name="inactiveUsers" 
@@ -397,14 +397,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             value={inactiveUserFilter}
                             onChange={(e) => setInactiveUserFilter(e.target.value as "Yes" | "No" | "Only")}
                         >
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                            <option value="Only">Only</option>
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
+                            <option value="Only">Alleen</option>
                         </select>                        
                     </div>
                     {groupFilter === 'exploitant' && (
                         <div className="flex flex-col">
-                            <label htmlFor="exploitant" className="text-sm font-medium text-gray-700">Select Exploitant:</label>
+                            <label htmlFor="exploitant" className="text-sm font-medium text-gray-700">Selecteer Exploitant:</label>
                             <select 
                                 id="exploitant" 
                                 name="exploitant" 
@@ -412,7 +412,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 value={exploitantFilter}
                                 onChange={(e) => setExploitantFilter(e.target.value)}
                             >
-                                <option value="">All exploitants</option>
+                                <option value="">Alle exploitanten</option>
                                 {exploitanten.map((exploitant) => (
                                     <option value={exploitant.ID} key={exploitant.ID}>{exploitant.CompanyName}</option>
                                 ))}
@@ -420,7 +420,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                         </div>
                     )}
                     <div>
-                        <h2 className="text-xl font-semibold mt-6">List of Users</h2>
+                        <h2 className="text-xl font-semibold mt-6">Gebruikerslijst</h2>
                         <ul className="list-disc list-inside max-h-fit overflow-y-auto">
                             {filteredUsers.map((user) => (
                                 <li 
@@ -509,19 +509,19 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         return (
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">User Details</h2>
+                    <h2 className="text-2xl font-bold">Details Gebruiker</h2>
                     {process.env.NODE_ENV === "development" && (
                         <button
                             onClick={handleLoginAsUser}
                             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
                         >
-                            Login as this user
+                            Inloggen als deze gebruiker
                         </button>
                     )}
                 </div>
                 <div className="space-y-2">
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Name:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Naam:</label>
                         <span className="text-gray-900">{selectedUser.DisplayName}</span>
                     </div>
                     <div className="flex items-center">
@@ -529,31 +529,31 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                         <span className="text-gray-900">{selectedUser.UserName}</span>
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">User ID:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Gebruiker ID:</label>
                         <span className="text-gray-900">{selectedUser.UserID}</span>
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Organization:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Organisatie:</label>
                         { linkElement }
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Group:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Groep:</label>
                         { selectedUser?.GroupID === 'exploitant' ? (
-                            <span className="text-gray-900">{selectedUser.GroupID} ({selectedUser.ParentID===null ? "Main user" : "Sub user"})</span>
+                            <span className="text-gray-900">{selectedUser.GroupID} ({selectedUser.ParentID===null ? "Hoofdgebruiker" : "Subgebruiker"})</span>
                         ) : (
                             <span className="text-gray-900">{selectedUser.GroupID}</span>
                         )}
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Role ID:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Rol ID:</label>
                         <span className="text-gray-900">{roles.find(role => role.RoleID === selectedUser.RoleID)?.Role} [{selectedUser.RoleID}]</span>
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Roles:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Rollen:</label>
                         <span className="text-gray-900">{roles.find(role => role.RoleID === selectedUser.RoleID)?.Role}</span>
                     </div>
                     <div className="flex items-center">
-                        <label className="w-32 text-sm font-medium text-gray-700">Last Login:</label>
+                        <label className="w-32 text-sm font-medium text-gray-700">Laatste Inlog:</label>
                         <span className="text-gray-900">{formatLastLogin(selectedUser.LastLogin)}</span>
                     </div>
                     <div className="flex items-center">
@@ -569,14 +569,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             })}
                             {managedContacts.length > 20 && (
                                 <button onClick={() => setShowAllContacts(!showAllContacts)} className="mt-2 text-blue-500">
-                                    {showAllContacts ? 'Show Less' : 'Show More'}
+                                    {showAllContacts ? 'Toon Minder' : 'Toon Meer'}
                                 </button>
                             )}
                         </div>
                     </div>
                     { baddataReasons.length > 0 && (
                         <div className="flex items-center">
-                            <label className="w-32 text-sm font-medium text-gray-700">Invalid data:</label>
+                            <label className="w-32 text-sm font-medium text-gray-700">Ongeldige data:</label>
                             <ul className="list-disc list-inside max-h-fit overflow-y-auto">
                             {baddataReasons.map((reason) => {
                                 return (
@@ -602,7 +602,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
         return (
             <div className="mb-6 flex flex-col">
-                <label htmlFor="group" className="text-2xl font-semibold mb-2 mt-4">{managedContacts.length <2 ? "" : "Select"} Active Organization</label>
+                <label htmlFor="group" className="text-2xl font-semibold mb-2 mt-4">{managedContacts.length <2 ? "" : "Selecteer"} Actieve Organisatie</label>
                 <select 
                     id="group" 
                     name="group" 
@@ -624,10 +624,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 >
                     { managedContacts.map((contact) => {
                         const showMainContact = contact?.ID === mainContact?.ID && managedContacts.length > 1;
-                        return (<option key={contact?.ID} value={contact?.ID}>{contact?.CompanyName} {showMainContact ? "(own organization)" : ""}</option>);
+                        return (<option key={contact?.ID} value={contact?.ID}>{contact?.CompanyName} {showMainContact ? "(eigen organisatie)" : ""}</option>);
                     })}
                     { activeOrganization === null && (
-                        <option value="none">No active organization</option>
+                        <option value="none">Geen actieve organisatie</option>
                     )}
                 </select>
             </div>
@@ -653,26 +653,26 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             <div className="p-6 bg-white shadow-md rounded-md mt-2 flex flex-col mb-6">
                 {renderSelectActiveOrganization(mainContact, managedContacts)}
                 
-                <div className="text-2xl font-bold mb-4">Security Profile</div>
+                <div className="text-2xl font-bold mb-4">Beveiligingsprofiel</div>
 
                 {isLoadingProfile && (
-                    <div className="text-gray-600">Loading security profile...</div>
+                    <div className="text-gray-600">Beveiligingsprofiel laden...</div>
                 )}
 
                 {profileError && (
-                    <div className="text-red-600">Error: {profileError}</div>
+                    <div className="text-red-600">Fout: {profileError}</div>
                 )}
 
                 {!isLoadingProfile && !profileError && securityProfile && (
                     <>
                         <div className="space-y-2">
                             <div className="flex items-center">
-                                <label className="w-32 text-sm font-medium text-gray-700">RoleID:</label>
+                                <label className="w-32 text-sm font-medium text-gray-700">Rol ID:</label>
                                 <span className="text-gray-900">{getNewRoleLabel(securityProfile.roleId)}</span>
                             </div>
                         </div>
 
-                        <div className="text-lg font-semibold mb-2 mt-4">Module Access</div>
+                        <div className="text-lg font-semibold mb-2 mt-4">Module Toegang</div>
                         <div className="flex flex-wrap gap-2 mb-6">
                             {securityProfile.modules.map(module => (
                                 <span key={module} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -681,7 +681,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             ))}
                         </div>
                         <div className="text-lg font-semibold mb-6 flex flex-row items-center">
-                            Access Rights
+                            Toegangsrechten
                             <button 
                                 onClick={toggleShowAll}
                                 className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
@@ -689,38 +689,38 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                                 {showAllAccessRights ? "Show Less" : "Show All"}
                             </button>
                         </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            <div className="col-span-5 grid grid-cols-5 gap-1 text-sm font-medium">
-                                <div></div> {/* Empty cell for alignment with topic labels */}
-                                <div>Create</div>
-                                <div>Read</div>
-                                <div>Update</div>
-                                <div>Delete</div>
-                            </div>
+                        <div className="grid grid-cols-[1fr,auto,auto,auto,auto] gap-2">
+                            {/* Headers */}
+                            <div className="font-medium text-sm">Topics</div>
+                            <div className="font-medium text-sm px-2">Create</div>
+                            <div className="font-medium text-sm px-2">Read</div>
+                            <div className="font-medium text-sm px-2">Update</div>
+                            <div className="font-medium text-sm px-2">Delete</div>
+
                             {displayRights.map(([topic, rights]) => {
                                 const hasRights = rights.create || rights.read || rights.update || rights.delete;
                                 if (!showAllAccessRights && !hasRights) return null;
 
                                 return (
-                                    <div key={topic} className="col-span-5 border-b pb-2 grid grid-cols-5 gap-1 text-sm">
-                                        <h4 className="font-medium">{topic}</h4>
-                                        <div className={`${rights.create ? 'text-green-600' : 'text-red-600'}`}>
+                                    <>
+                                        <h4 className="font-medium truncate border-b pb-2">{topic}</h4>
+                                        <div className={`${rights.create ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
                                             {rights.create ? '✓' : '✗'}
                                         </div>
-                                        <div className={`${rights.read ? 'text-green-600' : 'text-red-600'}`}>
+                                        <div className={`${rights.read ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
                                             {rights.read ? '✓' : '✗'}
                                         </div>
-                                        <div className={`${rights.update ? 'text-green-600' : 'text-red-600'}`}>
+                                        <div className={`${rights.update ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
                                             {rights.update ? '✓' : '✗'}
                                         </div>
-                                        <div className={`${rights.delete ? 'text-green-600' : 'text-red-600'}`}>
+                                        <div className={`${rights.delete ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
                                             {rights.delete ? '✓' : '✗'}
                                         </div>
-                                    </div>
+                                    </>
                                 );
                             })}
                             {displayRights.length === 0 && (
-                                <div className="col-span-5 text-gray-600">No access rights</div>
+                                <div className="col-span-5 text-gray-600">Geen toegangsrechten</div>
                             )}
                         </div>
                     </>  

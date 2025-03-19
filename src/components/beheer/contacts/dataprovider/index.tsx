@@ -15,6 +15,8 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
 
   const { dataproviders } = props;
 
+  console.log("#### DATAPROVIDERS", dataproviders);
+
   const [currentContact, setCurrentContact] = useState<VSContactDataprovider | undefined>(undefined);
   
   const [filterText, setFilterText] = useState("");
@@ -52,7 +54,7 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
       <div>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4 flex-1">
-            <h1 className="text-2xl font-bold">Exploitanten</h1>
+            <h1 className="text-2xl font-bold">Dataleveranciers</h1>
             {dataproviders.length > 20 && (
               <input
                 type="text"
@@ -74,6 +76,8 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
           <thead>
             <tr>
               <th className="py-2">Naam</th>
+              <th className="py-2">Naam in URL</th>
+              <th className="py-2">Status</th>
               <th className="py-2"></th>
             </tr>
           </thead>
@@ -82,6 +86,8 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
               return (
                 <tr key={contact.ID}>
                   <td className="border px-4 py-2">{contact.CompanyName}</td>
+                  <td className="border px-4 py-2">{contact.UrlName}</td>
+                  <td className="border px-4 py-2">{contact.Status === "1" ? "Actief" : "Inactief"}</td>
                   <td className="border px-4 py-2">
                     <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
                     <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
