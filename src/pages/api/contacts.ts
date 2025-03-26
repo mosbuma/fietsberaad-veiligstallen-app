@@ -22,7 +22,7 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
     case "GET": {
       console.log("#### GET", request.query);
       const queryparams = request.query;
-      if(queryparams.cbsCode) {
+      if (queryparams.cbsCode) {
         const cbsCode = queryparams.cbsCode as string;
         const municipality = await prisma.contacts.findFirst({
           where: {
@@ -31,7 +31,8 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
           select: gemeenteSelect
         });
         response.status(200).json([municipality]);
-      } else if (queryparams.urlName) {
+      }
+      else if (queryparams.urlName) {
         const urlName = queryparams.urlName as string;
         const municipality = await prisma.contacts.findFirst({
           where: {
@@ -40,6 +41,16 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
           select: gemeenteSelect
         });
         response.status(200).json([municipality]);
+      }
+      else if (queryparams.ID) {
+        const ID = queryparams.ID as string;
+        const municipality = await prisma.contacts.findFirst({
+          where: {
+            ID: ID
+          },
+          select: gemeenteSelect
+        });
+        response.status(200).json(municipality);
       }
 
       console.log("GET", queryparams);

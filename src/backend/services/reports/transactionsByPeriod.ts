@@ -14,6 +14,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     bikeparkIDs,
     startDT: startDate,
     endDT: endDate,
+    dayBeginsAt: dayBeginsAt
   } = params;
 
   if (["transacties_voltooid", "inkomsten"].includes(reportType) === false) {
@@ -21,9 +22,9 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     return false;
   }
 
-  const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
+  const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate, dayBeginsAt);
 
-  if(adjustedStartDate === undefined || adjustedEndDate === undefined) {
+  if (adjustedStartDate === undefined || adjustedEndDate === undefined) {
     throw new Error("Start or end date is undefined");
     return false;
   }
@@ -96,5 +97,5 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
-  return sqlfilledin; 
+  return sqlfilledin;
 }

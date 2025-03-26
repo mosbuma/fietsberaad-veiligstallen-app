@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment, { utc } from "moment";
 import { ReportState } from "./ReportsFilter";
 
 export const getWeekNumber = (date: Date): number => {
@@ -174,11 +174,14 @@ export const getSingleWeekRange = (year: number | "lastPeriod", week: number | "
 //     return weekNumber === 1 ? 52 : weekNumber; // If the last day is in week 1, the year has 52 weeks
 // };
 
-export const getAdjustedStartEndDates = (startDT: Date | undefined, endDT: Date | undefined, dayBeginsAt = new Date(0, 0, 0)): { timeIntervalInMinutes: number, adjustedStartDate: moment.Moment | undefined, adjustedEndDate: moment.Moment | undefined } => {
-  // TODO: check if timeinterval offset works correctly, link dayBeginsAt to offset settings in database
-  // current db model links to contacts.DayBeginsAt field
-
-  const timeIntervalInMinutes = dayBeginsAt.getHours() * 60 + dayBeginsAt.getMinutes();
+export const getAdjustedStartEndDates = (
+  startDT: Date | undefined,
+  endDT: Date | undefined,
+  dayBeginsAt: string | undefined
+) => {
+  // Calculate diff to apply because of municipality specific start time
+  let dayBeginsAtDateTime: string = moment(dayBeginsAt ? dayBeginsAt : new Date(0, 0, 0)).utc().format('YYYY-MM-DD HH:mm');
+  const timeIntervalInMinutes = new Date(dayBeginsAtDateTime).getHours() * 60 + new Date(dayBeginsAtDateTime).getMinutes();
 
   let adjustedStartDate = undefined !== startDT ? moment(startDT).add(timeIntervalInMinutes, 'minutes') : undefined;
   let adjustedEndDate = undefined !== endDT ? moment(endDT).add(timeIntervalInMinutes, 'minutes') : undefined;

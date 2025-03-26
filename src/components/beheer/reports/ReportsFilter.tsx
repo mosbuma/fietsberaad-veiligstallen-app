@@ -9,7 +9,7 @@ export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", 
 export type ReportDatatype = "bezettingsdata" | "ruwedata"
 export const reportDatatypeValues = ["bezettingsdata", "ruwedata"]
 
-export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant" 
+export type ReportCategories = "none" | "per_stalling" | "per_weekday" | "per_section" | "per_type_klant"
 export const reportCategoriesValues = ["none", "per_stalling", "per_weekday", "per_section", "per_type_klant"]
 
 export type ReportGrouping = "per_hour" | "per_day" | "per_weekday" | "per_week" | "per_month" | "per_quarter" | "per_year" | "per_bucket"
@@ -19,11 +19,11 @@ export type ReportRangeUnit = "range_all" | "range_year" | "range_month" | "rang
 export const reportRangeUnitValues = ["range_all", "range_year", "range_month", "range_quarter", "range_week"]
 // export type ReportUnit = "reportUnit_day" | "reportUnit_weekDay" | "reportUnit_week" | "range_month" | "reportUnit_quarter" | "reportUnit_year" // | "reportUnit_onequarter" | "reportUnit_oneyear"
 
-export type ReportBikepark = { 
-  id: string; 
-  stallingsID: string; 
-  title: string; 
-  gemeenteID: string; 
+export type ReportBikepark = {
+  id: string;
+  stallingsID: string;
+  title: string;
+  gemeenteID: string;
   hasData: boolean;
 };
 
@@ -38,6 +38,8 @@ export interface ReportParams {
   endDT: Date | undefined;
   fillups: boolean;
   source?: string;
+
+  dayBeginsAt?: string;
 }
 
 export const defaultReportState: ReportState = {

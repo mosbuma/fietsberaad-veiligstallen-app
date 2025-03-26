@@ -5,7 +5,14 @@ import { AvailableDataDetailedResult } from "~/backend/services/reports/availabl
 import { getStartEndDT } from "./ReportsDateFunctions";
 import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
 
+import type { VSUserSecurityProfile } from "~/types/";
+
 import LineChart from './LineChart';
+import { AppState } from "~/store/store";
+import { useSelector } from "react-redux";
+import { useSession } from "next-auth/react";
+import { gemeenteSelect, VSContactGemeente } from "~/types/contacts";
+import { prisma } from "~/server/db";
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
@@ -24,8 +31,12 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   error,
   warning,
 }) => {
+  const { data: session } = useSession()
+
   const [errorState, setErrorState] = useState(error);
   const [warningState, setWarningState] = useState(warning);
+
+  const [gemeenteInfo, setGemeenteInfo] = useState<VSContactGemeente | undefined>(undefined);
 
   // const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
@@ -70,9 +81,9 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               bikeparkIDs: filterState.selectedBikeparkIDs,
               startDT,
               endDT,
-              fillups: filterState.fillups
+              fillups: filterState.fillups,
+              dayBeginsAt: gemeenteInfo?.DayBeginsAt
             }
-
           }),
         });
         // reportParams.reportUnit <- I.e. reportUnit_weekDay
@@ -93,7 +104,10 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     };
 
     fetchReportData();
-  }, [filterState]);
+  }, [
+    filterState,
+    gemeenteInfo?.DayBeginsAt
+  ]);
 
   useEffect(() => {
     const fetchBikeparksWithData = async () => {
@@ -137,6 +151,19 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
     fetchBikeparksWithData();
   }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
+
+  const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
+  const selectedGemeenteID = session?.user?.activeContactId || "";
+
+  useEffect(() => {
+    // Do API call to get gemeente inffo based on selectedGemeenteID
+    const fetchGemeenteInfo = async () => {
+      const response = await fetch(`/api/contacts?ID=${selectedGemeenteID}`);
+      const data = await response.json();
+      setGemeenteInfo(data);
+    };
+    fetchGemeenteInfo();
+  }, [selectedGemeenteID]);
 
   const renderReportParams = (params: ReportParams) => {
     const formatValue = (value: any) => {

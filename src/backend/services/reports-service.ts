@@ -1,13 +1,13 @@
 import { getSQL as getTransactionsByPeriodSQL } from "~/backend/services/reports/transactionsByPeriod";
-import { getSQL as getBezettingsdataSQL} from "~/backend/services/reports/bezettingsdataByPeriod";
+import { getSQL as getBezettingsdataSQL } from "~/backend/services/reports/bezettingsdataByPeriod";
 import { getSQL as getStallingsduurSQL } from "~/backend/services/reports/stallingsduur";
 import { ReportParams, ReportType } from "~/components/beheer/reports/ReportsFilter";
 import { getData } from "~/backend/services/reports/ReportFunctions";
-import { 
-  AvailableDataDetailedResult, 
-  AvailableDataPerStallingResult, 
-  getSQLDetailed as getAvailableDataSQLDetailed, 
-  getSQLPerBikepark as getAvailableDataSQLPerBikepark 
+import {
+  AvailableDataDetailedResult,
+  AvailableDataPerStallingResult,
+  getSQLDetailed as getAvailableDataSQLDetailed,
+  getSQLPerBikepark as getAvailableDataSQLPerBikepark
 } from "~/backend/services/reports/availableData";
 import { prisma } from "~/server/db";
 
@@ -24,7 +24,7 @@ const ReportService = {
   getTransactionsPerPeriodData: async (params: ReportParams) => {
     try {
       const sql = getTransactionsByPeriodSQL(params);
-      if(!sql) {
+      if (!sql) {
         console.error("No result from getTransactionsByPeriodSQL");
         return false;
       }
@@ -39,9 +39,9 @@ const ReportService = {
   getBezettingsdata: async (params: ReportParams) => {
     try {
       const sql = getBezettingsdataSQL(params); // , queryParams
-      if(!sql) {
-          console.error("No result from getBezettingsdataSQL");
-          return false;
+      if (!sql) {
+        console.error("No result from getBezettingsdataSQL");
+        return false;
       }
       const data = await getData(sql, params);
 
@@ -55,9 +55,9 @@ const ReportService = {
   getStallingsduurData: async (params: ReportParams) => {
     try {
       const sql = getStallingsduurSQL(params); // , queryParams
-      if(!sql) {
-          console.error("No result from getStallingsduurSQL");
-          return false;
+      if (!sql) {
+        console.error("No result from getStallingsduurSQL");
+        return false;
       }
 
       const data = await getData(sql, params);
@@ -72,7 +72,7 @@ const ReportService = {
   getAvailableDataDetailed: async (reportType: ReportType, possibleBikeparkIDs: string[], startDT: Date | undefined, endDT: Date | undefined) => {
     try {
       const sql = getAvailableDataSQLDetailed(reportType, possibleBikeparkIDs, startDT, endDT);
-      if(!sql) {
+      if (!sql) {
         console.error("No result from getAvailableDataSQLDetailed");
         return false;
       }
@@ -92,7 +92,7 @@ const ReportService = {
   getAvailableDataPerBikepark: async (reportType: ReportType, possibleBikeparkIDs: string[], startDT: Date | undefined, endDT: Date | undefined) => {
     try {
       const sql = getAvailableDataSQLPerBikepark(reportType, possibleBikeparkIDs, startDT, endDT);
-      if(!sql) {
+      if (!sql) {
         console.error("No result from getAvailableDataSQLDetailed");
         return false;
       }
