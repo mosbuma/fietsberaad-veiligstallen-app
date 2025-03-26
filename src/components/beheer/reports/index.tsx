@@ -3,6 +3,7 @@ import ReportsFilterComponent, { ReportParams, ReportBikepark, ReportState } fro
 import { ReportData } from "~/backend/services/reports/ReportFunctions";
 import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 import { getStartEndDT } from "./ReportsDateFunctions";
+import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
 
 import LineChart from './LineChart';
 
@@ -137,7 +138,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     fetchBikeparksWithData();
   }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
 
-
   const renderReportParams = (params: ReportParams) => {
     const formatValue = (value: any) => {
       if (Array.isArray(value)) {
@@ -164,87 +164,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         </tbody>
       </table>
     );
-  }
-
-  const renderChart = (reportData: ReportData) => {
-    try {
-      return (
-        <LineChart
-          type={filterState?.reportType === 'stallingsduur' ? 'bar' : "line"}
-          options={{
-            chart: {
-              id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
-              zoom: {
-                enabled: true
-              },
-              toolbar: {
-                show: true
-              },
-              animations: {
-                enabled: false
-              }
-            },
-            responsive: [{
-              breakpoint: undefined,
-              options: {},
-            }],
-            // colors: ['#77B6EA', '#545454'],
-            dataLabels: {
-              enabled: false,
-            },
-            stroke: {
-              curve: 'straight',
-              width: 3,
-              // width: reportData.series.some(s => s.data.length === 1) ? 0 : 2, // Disable line for single data point
-            },
-            title: {
-              text: reportData.title || '',
-              align: 'left'
-            },
-            grid: {
-              borderColor: '#e7e7e7',
-              row: {
-                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-                opacity: 0.5
-              },
-            },
-            markers: {
-              // size: reportData.series.some(s => s.data.length === 1) ? 5 : undefined,
-            },
-            xaxis: reportData.options?.xaxis || {
-              type: 'category',
-              categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
-              title: {
-                text: 'Weekdag',
-                align: 'left'
-              },
-            },
-            yaxis: reportData.options?.yaxis || {
-              title: {
-                text: 'Aantal afgeronde transacties'
-              },
-              // min: 5,
-              // max: 40
-            },
-            legend: {
-              position: 'right',
-              horizontalAlign: 'center',
-              floating: false,
-              offsetY: 25,
-              // offsetX: -5
-            },
-            tooltip: {
-              enabled: true,
-              shared: filterState?.reportType === 'stallingsduur' ? false : true,
-            }
-          }}
-          series={reportData.series}
-        />
-      )
-    } catch (error) {
-      console.error(error);
-      return <div>Error loading chart</div>;
-    }
   }
 
   const renderTable = (reportData: ReportData) => {
@@ -297,40 +216,116 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const showReportParams = false; // used for debugging / testing
 
   return (
-    <div className="noPrint w-full" id="ReportComponent">
-      <div className="flex flex-col space-y-4 p-4">
-        <ReportsFilterComponent
-          showAbonnementenRapporten={showAbonnementenRapporten}
-          firstDate={firstDate}
-          lastDate={lastDate}
-          bikeparks={bikeparksWithData}
-          onStateChange={handleFilterChange}
-        />
+    <div className="noPrint w-full h-full" id="ReportComponent">
+      <div className="flex flex-col space-y-4 p-4 h-full">
+        <div className="flex-none">
+          <CollapsibleContent buttonText="Filteropties">
+            <ReportsFilterComponent
+              showAbonnementenRapporten={showAbonnementenRapporten}
+              firstDate={firstDate}
+              lastDate={lastDate}
+              bikeparks={bikeparksWithData}
+              onStateChange={handleFilterChange}
+            />
+          </CollapsibleContent>
+        </div>
 
-        <div className="flex flex-col space-y-2">
+        <div className="flex-none flex flex-col space-y-2">
           {errorState && <div style={{ color: "red", fontWeight: "bold" }}>{errorState}</div>}
           {warningState && <div style={{ color: "orange", fontWeight: "bold" }}>{warningState}</div>}
         </div>
 
         {loading ? (
-          <div className="spinner" style={{ margin: "auto" }}>
-            <div className="loader"></div>
+          <div className="flex-grow flex items-center justify-center">
+            <div className="spinner">
+              <div className="loader"></div>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col space-y-2 overflow-x-auto">
+          <div className="flex-grow min-h-0">
             {reportData ? (
-              <>
-                {renderChart(reportData)}
-                {renderTable(reportData)}
-                {/* {showReportParams && reportParams && renderReportParams(reportParams)} */}
-              </>
+              <div className="w-full h-full">
+                <LineChart
+                  type={filterState?.reportType === 'stallingsduur' ? 'bar' : "line"}
+                  options={{
+                    chart: {
+                      id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
+                      zoom: {
+                        enabled: false
+                      },
+                      toolbar: {
+                        show: true
+                      },
+                      animations: {
+                        enabled: false
+                      }
+                    },
+                    responsive: [{
+                      breakpoint: undefined,
+                      options: {},
+                    }],
+                    // colors: ['#77B6EA', '#545454'],
+                    dataLabels: {
+                      enabled: false,
+                    },
+                    stroke: {
+                      curve: 'straight',
+                      width: 3,
+                      // width: reportData.series.some(s => s.data.length === 1) ? 0 : 2, // Disable line for single data point
+                    },
+                    title: {
+                      text: reportData.title || '',
+                      align: 'left'
+                    },
+                    grid: {
+                      borderColor: '#e7e7e7',
+                      row: {
+                        colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                      },
+                    },
+                    markers: {
+                      // size: reportData.series.some(s => s.data.length === 1) ? 5 : undefined,
+                    },
+                    xaxis: reportData.options?.xaxis || {
+                      type: 'category',
+                      categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
+                      title: {
+                        text: 'Weekdag',
+                        align: 'left'
+                      },
+                    },
+                    yaxis: reportData.options?.yaxis || {
+                      title: {
+                        text: 'Aantal afgeronde transacties'
+                      },
+                      // min: 5,
+                      // max: 40
+                    },
+                    legend: {
+                      position: 'right',
+                      horizontalAlign: 'center',
+                      floating: false,
+                      offsetY: 25,
+                      // offsetX: -5
+                    },
+                    tooltip: {
+                      enabled: true,
+                      shared: filterState?.reportType === 'stallingsduur' ? false : true,
+                    }
+                  }}
+                  series={reportData.series}
+                />
+              </div>
             ) : (
-              <div>No data available yet</div>
+              <div className="flex items-center justify-center h-full">
+                No data available yet
+              </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -37,14 +37,15 @@ const LineChart = ({
   ]);
 
   return (
-    <div>
+    <>
       {chartData.options && <Chart
         options={chartData.options}
         series={chartData.series}
         type={type}
-        height={400 + Math.floor(Math.random() * 2) + 1}
+        height="100%"
+        style={{ minHeight: "400px", ...style }}
       />}
-    </div>
+    </>
   )
 }
 
