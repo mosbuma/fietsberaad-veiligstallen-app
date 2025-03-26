@@ -98,7 +98,7 @@ export enum VSMenuTopic {
     "UsersGebruikersbeheer" = "usersgebruikersbeheer",
     "Website" = "website",
 
-    "UnderConstruction" = "underconstruction",
+    "ExploreLeftMenu" = "exploreleftmenu",
 }
 
 

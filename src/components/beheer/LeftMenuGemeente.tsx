@@ -136,71 +136,23 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       <>
         {formatLiDevelopment(VSMenuTopic.Home, 'Home')}
 
-        { formatLi(false, 'Organisaties', false,
-          <ul className="ml-4 mt-1">
-            {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
-            { hasSystemRight && isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
-            { hasSystemRight && isAdmin && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
-            {!hasSystemRight && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Toegang fmsservice')}
-          </ul>) }
-  
-        {!hasSystemRight && hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
-  
-        {/* {hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
-        {hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')} */}
-
-        {hasUsersRight && (
-            formatLi(false, 'Gebruikersbeheer', false,
-              <ul className="ml-4 mt-1">
-                {userHasRole(profile, VSUserRoleValuesNew.Admin) && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {formatLi(VSMenuTopic.ContactsExploitanten, `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {/* {formatLi(VSMenuTopic.UsersBeheerders, 'Beheerders', true)} */}
-              </ul>
-            )
-        )}
-  
-        {hasRapportagesRight && 
-          formatLi(false, 'Rapportages', false,
-            <ul className="ml-4 mt-1">
-              {formatLi(VSMenuTopic.Report, 'Rapportage', true)}
-              {formatLi(VSMenuTopic.Export, 'Export', true)}
-              {formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
-            </ul>
-          )
-        }
-
-        {hasSystemRight && hasExternalApisRight && (
-          formatLi(false, 'Externe API\'s', false,
-            <ul className="ml-4 mt-1">
-              {formatLiDevelopment(VSMenuTopic.ApisOverzicht, 'Overzicht API\'s', true)}
-              {formatLiDevelopment(VSMenuTopic.ApisGekoppeldeLocaties, 'Gekoppelde locaties', true)}
-            </ul>
-          )
-        )}
-  
-        {(hasWebsiteRight) && 
-          formatLi(VSMenuTopic.Website, 'Website beheer', false,
-            <ul className="ml-4 mt-1">
-              {formatLi(VSMenuTopic.ArticlesPages, 'Paginabeheer', true)}
-              {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
-            </ul>
-          )
-        }
-
         {hasInstellingenRight && formatLiDevelopment(VSMenuTopic.Settings, 'Instellingen')}
 
-        {hasDatabaseRight && formatLi(VSMenuTopic.Database, 'Database')}
+        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers`, true)}
+        { isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
+        { isAdmin && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
+  
+        { hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
+  
+        { hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
+        { hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')}
+  
+        {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
+        {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
+        {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
 
-        { hasDevelopmentRight && (
-            formatLi(false, 'Ontwikkeling', false,
-              <ul className="ml-4 mt-1">
-                {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeenten', true)}
-                {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
-                {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
-                {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
-              </ul>)
-            )
-        }
+        {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Paginabeheer', true)}
+        {hasWebsiteRight && formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
       </>
     )
   }
