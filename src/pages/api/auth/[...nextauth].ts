@@ -14,7 +14,7 @@ import {
 } from "../../../utils/auth-tools";
 
 import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
-import { createSecurityProfile } from "~/utils/securitycontext";
+import { createSecurityProfile } from "~/utils/server/securitycontext";
 
 const providers: Provider[] = [];
 

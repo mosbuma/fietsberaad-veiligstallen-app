@@ -15,7 +15,7 @@ export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
         case VSUserRoleValuesNew.Editor:
             return "Editor";
         case VSUserRoleValuesNew.DataAnalyst:
-            return "Data Analyst";
+            return "Data Analist";
         default:
             return "Unknown";
     }
@@ -38,11 +38,11 @@ export const getOldRoleLabel = (roleId: VSUserRoleValues): string => {
         case VSUserRoleValues.Beheerder:
             return "Beheerder";
         case VSUserRoleValues.ExploitantDataAnalyst:
-            return "Exploitant Data Analyst";
+            return "Exploitant Data Analist";
         case VSUserRoleValues.InternDataAnalyst:
-            return "Intern Data Analyst";
+            return "Intern Data Analist";
         case VSUserRoleValues.ExternDataAnalyst:
-            return "Extern Data Analyst";
+            return "Extern Data Analist";
     }
 }
 

@@ -1,16 +1,26 @@
-import { useRouter } from 'next/router';
 import React from 'react';
 
 const HomeComponent: React.FC = () => {
-  const router = useRouter();
-  const { ...query } = router.query;
-
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Home Module</h1>
-      <div className="bg-gray-100 p-4 rounded">
-        <h2 className="text-xl font-semibold">Query Parameters:</h2>
-        <pre className="mt-2">{JSON.stringify(query, null, 2)}</pre>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-xl font-semibold mb-4">Welkom</h2>
+        <p className="text-gray-600 mb-4">
+          Welkom in de beheersomgeving van Veiligstallen. Via deze omgeving kunt u de volgende onderdelen beheren:
+        </p>
+        
+        <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+          <li>Gebruikers en toegangsrechten</li>
+          <li>Gemeenten en contactpersonen</li>
+          <li>Exploitanten en contactpersonen</li>
+          <li>Dataproviders</li>
+          <li>Pagina's en artikelen</li>
+          <li>Fietsenstallingen</li>
+        </ul>
+
+        <p className="text-gray-600 mt-6">
+          Gebruik het menu aan de linkerkant om naar de verschillende onderdelen te navigeren.
+        </p>
       </div>
     </div>
   );

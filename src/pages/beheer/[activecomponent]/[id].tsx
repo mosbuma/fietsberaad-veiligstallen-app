@@ -44,6 +44,8 @@ import { VSMenuTopic  } from "~/types/index";
 
 // import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
+import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
+import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
 
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
@@ -110,6 +112,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     select: gemeenteSelect,
   });
 
+  console.log(">>> gemeenten size:", gemeenten?.length);
+
   const exploitanten: VSContactExploitant[] | undefined = await prisma.contacts.findMany({
     where: { ItemType: 'exploitant', ...whereCondition },
     select: exploitantSelect,
@@ -119,9 +123,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     where: { ItemType: 'dataprovider' },
     select: dataproviderSelect,
   });
-
-  console.log(">>> dataproviders", dataproviders);
-
 
   let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
     security_users_sites: { some: { SiteID: { in: validContactIDs } } }
@@ -353,6 +354,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.ExploreExploitanten:
           selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} gemeenten={gemeenten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
           break;
+        case VSMenuTopic.ExploreLeftMenu:
+          selectedComponent = <ExploreLeftMenuComponent  roles={roles || []} users={users || []} exploitanten={exploitanten || []} 
+            gemeenten={gemeenten || []} dataproviders={dataproviders || []}  />;
+          break;
           // case VSMenuTopic.Products:
         //   selectedComponent = <ProductsComponent />;
         //   break;
@@ -461,12 +466,21 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         onGemeenteSelect={handleSelectGemeente}
       />
         <div className="flex">
-        <LeftMenu
-          user={currentUser}
-          activecontact={getActiveContact()}
-          activecomponent={activecomponent}
-          onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
-        />
+          { selectedGemeenteID !== "1" ? (
+            <LeftMenuGemeente
+              securityProfile={currentUser?.securityProfile}
+              activecontact={getActiveContact()}
+              activecomponent={activecomponent}
+              onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
+            />
+          ) : (
+            <LeftMenu
+              securityProfile={currentUser?.securityProfile}
+              activecontact={getActiveContact()}
+              activecomponent={activecomponent}
+              onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
+        />) 
+        }
 
         {/* Main Content */}
         {/* ${Styles.ContentPage_Body}`} */}
