@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import BikeparkSelect from './BikeparkSelect';
 import { getMaanden, getWeekNumber, getQuarter } from "./ReportsDateFunctions";
 import { createHash } from 'crypto';
-import BikeparkDataSourceSelect from "./BikeparkDataSourceSelect";
+import BikeparkDataSourceSelect, { BikeparkWithDataSource } from "./BikeparkDataSourceSelect";
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", "inkomsten", "abonnementen", "abonnementen_lopend", "bezetting", "stallingsduur", "volmeldingen", "gelijktijdig_vol", "downloads"]
@@ -120,6 +120,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const [reportCategories, setReportCategories] = useState<ReportCategories>("per_stalling");
   const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>("range_year");
   const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>([]);
+  const [selectedBikeparkDataSources, setSelectedBikeparkDataSources] = useState<BikeparkWithDataSource[]>([]);
   const [datatype, setDatatype] = useState<ReportDatatype | undefined>(undefined);
   const [reportRangeYear, setReportRangeYear] = useState<number | "lastPeriod">(2024);
   const [reportRangeValue, setReportRangeValue] = useState<number | "lastPeriod">(2024);
@@ -484,7 +485,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             <div className="w-96">
               <BikeparkDataSourceSelect
                 bikeparks={bikeparks}
-                selectedBikeparkIDs={selectedBikeparkIDs}
+                onSelectionChange={setSelectedBikeparkDataSources}
               />
             </div>
           </FormLabel>

@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
 import { gemeenteSelect, VSContactGemeente } from "~/types/contacts";
 import { prisma } from "~/server/db";
+import BikeparkDataSourceSelect, { BikeparkWithDataSource } from './BikeparkDataSourceSelect';
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
@@ -47,8 +48,14 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   const [filterState, setFilterState] = useState<ReportState | undefined>(undefined);
 
+  const [bikeparkDataSources, setBikeparkDataSources] = useState<BikeparkWithDataSource[]>([]);
+
   const handleFilterChange = (newState: ReportState) => {
     setFilterState(newState);
+  };
+
+  const handleBikeparkDataSourcesChange = (selectedSources: BikeparkWithDataSource[]) => {
+    setBikeparkDataSources(selectedSources);
   };
 
   useEffect(() => {
@@ -76,6 +83,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               reportGrouping: filterState.reportGrouping,
               reportRangeUnit: filterState.reportRangeUnit,
               bikeparkIDs: filterState.selectedBikeparkIDs,
+              bikeparkDataSources: bikeparkDataSources,
               startDT,
               endDT,
               fillups: filterState.fillups,
@@ -111,7 +119,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     };
   }, [
     filterState,
-    gemeenteInfo?.DayBeginsAt
+    gemeenteInfo?.DayBeginsAt,
+    bikeparkDataSources
   ]);
 
   useEffect(() => {
