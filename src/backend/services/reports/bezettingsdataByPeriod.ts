@@ -7,6 +7,27 @@ import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDat
 
 import moment from 'moment';
 
+const filter_bikeparks_sql = (params: {
+  bikeparkIDs: string[],
+  reportType: string
+}) => {
+  if (!params.bikeparkIDs || params.bikeparkIDs.length === 0) {
+    return '1=1';
+  }
+
+  if (params.reportType === 'bezetting') {
+    const sql_string = params.bikeparkIDs.map(id => {
+      return `(bikeparkID = '${id}' AND source = 'FMS')`;
+    }).join(' OR ');
+
+    return `(${sql_string})`;
+  }
+  else {
+    const bikeparkIDs_string = params.bikeparkIDs.length > 0 ? params.bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""';
+    return `b.bikeparkID IN (${bikeparkIDs_string})`;
+  }
+}
+
 export const getSQL = (params: ReportParams, useCache: boolean = true): string | false => {
   const {
     reportType,
@@ -21,6 +42,8 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     throw new Error("Invalid report type");
     return false;
   }
+
+  // useCache = false;
 
   const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
   if (adjustedStartDate === undefined || adjustedEndDate === undefined) {
@@ -56,12 +79,15 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
       // statementItems.push(`SUM(b.checkouts) AS totalCheckouts,`);
       // statementItems.push(`SUM(b.capacity) as capacity,`);
       // statementItems.push(`SUM(b.occupation) as occupation,`);
-      statementItems.push(`SUM(b.occupation) as value`);
+      statementItems.push(`ROUND(SUM(b.occupation)/SUM(b.capacity)*100, 0) as value,`);
+      // statementItems.push(`SUM(occupation) abs_occupation,`);
+      statementItems.push(`MIN(timestamp) as timestamp`);
     }
   }
   // Selects from cache table
   else {
     if (reportType === "bezetting") {
+      console.log('bezetting');
       // statementItems.push(`SUM(b.totalCheckins) AS totalCheckins,`);
       // statementItems.push(`SUM(b.totalCheckouts) AS totalCheckouts,`);
       // statementItems.push(`SUM(b.totalCapacity) as capacity,`);
@@ -75,9 +101,16 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   // statementItems.push(`LEFT JOIN fietsenstallingen f ON f.stallingsId = b.bikeparkID`)
   // statementItems.push(`INNER JOIN contacts c ON c.ID = f.siteID`)
   statementItems.push(`WHERE`)
+
   if (bikeparkIDs.length > 0) {
-    statementItems.push(`b.bikeparkID IN ( ? )`)
+    statementItems.push(
+      filter_bikeparks_sql({
+        bikeparkIDs: bikeparkIDs,
+        reportType: reportType,
+      })
+    );
   }
+
   statementItems.push(`AND b.timestamp BETWEEN ? AND ?`)
   if (params.fillups) {
     statementItems.push(`AND b.fillup = 0`)
@@ -97,11 +130,10 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   // ${selectType === 'BIKETYPE' ? ', biketypeid' : ''}
   // ${selectType === 'CLIENTTYPE' ? ', clienttypeid' : ''}
 
-  const sql = statementItems.join('\n')
+  const sql = statementItems.join('\n');
 
   // Prepare parameters for the query
   const queryParams = [
-    bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""',
     false === useCache ? adjustedStartDate.format('YYYY-MM-DD HH:mm:ss') : moment(startDate).format('YYYY-MM-DD 00:00:00'),
     false === useCache ? adjustedEndDate.format('YYYY-MM-DD HH:mm:ss') : moment(endDate).format('YYYY-MM-DD 23:59:59')
   ];
@@ -113,5 +145,6 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   }
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
+  console.log('sqlfilledin', sqlfilledin);
   return sqlfilledin; // , queryParams TODO: make queryParams work: 
 }

@@ -13,6 +13,7 @@ export interface ReportData {
   title: string;
   options: {
     xaxis: {
+      type?: string;
       categories?: string[];
       title?: {
         text?: string;
@@ -68,10 +69,13 @@ export const convertToTimegroupSeries = async (
   }, {});
 
   // Convert to series format
-  series = Object.values(groupedByCategory).map((stalling: any) => ({
-    name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
-    data: Object.values(stalling.data)
-  }));
+  series = Object.values(groupedByCategory).map((stalling: any) => {
+    return {
+      name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
+      data: Object.values(stalling.data),
+      groups: Object.keys(stalling.data)
+    }
+  });
 
   return series;
 }
@@ -115,31 +119,20 @@ export const debugLog = (message: string, truncate: boolean = false) => {
   }
 }
 
-// export const interpolateSQL = (sql: string, params: string[]): string => {
-//     let interpolatedSQL = sql;
-//     params.forEach((param, index) => {
-//       interpolatedSQL = interpolatedSQL.replace('?', param);
-//     });
-
-//     return interpolatedSQL;
-// }
-
 export const interpolateSQL = (sql: string, params: string[]): string => {
+  console.log('params', params);
   let interpolatedSQL = sql;
   if (params.length > 0) {
-    interpolatedSQL = interpolatedSQL.replace('?', `${params[0]}`);
+    interpolatedSQL = interpolatedSQL.replace('?', `"${params[0]}"`);
   }
   if (params.length > 1) {
     interpolatedSQL = interpolatedSQL.replace('?', `"${params[1]}"`);
   }
   if (params.length > 2) {
-    interpolatedSQL = interpolatedSQL.replace('?', `"${params[2]}"`);
+    interpolatedSQL = interpolatedSQL.replace('?', `${params[2]}`);
   }
   if (params.length > 3) {
     interpolatedSQL = interpolatedSQL.replace('?', `${params[3]}`);
-  }
-  if (params.length > 4) {
-    interpolatedSQL = interpolatedSQL.replace('?', `${params[4]}`);
   }
   return interpolatedSQL;
 }
@@ -200,7 +193,11 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
   try {
     const results = await prisma.$queryRawUnsafe<SingleResult[]>(sql);
 
-    let keyToLabelMap = getLabelMapForXAxis(params.reportGrouping, params.startDT || new Date(), params.endDT || new Date());
+    let keyToLabelMap = getLabelMapForXAxis(
+      params.reportGrouping,
+      params.startDT || new Date(),
+      params.endDT || new Date()
+    );
     if (!keyToLabelMap) {
       return false;
     }
@@ -210,6 +207,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
       title: getReportTitle(params.reportType),
       options: {
         xaxis: {
+          type: 'string',
           categories: Object.values(keyToLabelMap),
           title: {
             text: getXAxisTitle(params.reportGrouping),

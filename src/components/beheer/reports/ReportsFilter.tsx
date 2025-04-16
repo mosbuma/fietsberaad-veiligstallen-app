@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import BikeparkSelect from './BikeparkSelect';
 import { getMaanden, getWeekNumber, getQuarter } from "./ReportsDateFunctions";
 import { createHash } from 'crypto';
+import BikeparkDataSourceSelect from "./BikeparkDataSourceSelect";
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", "inkomsten", "abonnementen", "abonnementen_lopend", "bezetting", "stallingsduur", "volmeldingen", "gelijktijdig_vol", "downloads"]
@@ -476,8 +477,18 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
                 setSelectedBikeparkIDs={setSelectedBikeparkIDs}
               />
             </div>
-          </FormLabel>}
-
+          </FormLabel>
+        }
+        {showBikeparkSelect && reportType === 'bezetting' && bikeparks.length > 1 &&
+          <FormLabel title="Databron per stalling">
+            <div className="w-96">
+              <BikeparkDataSourceSelect
+                bikeparks={bikeparks}
+                selectedBikeparkIDs={selectedBikeparkIDs}
+              />
+            </div>
+          </FormLabel>
+        }
       </div>
     );
   };

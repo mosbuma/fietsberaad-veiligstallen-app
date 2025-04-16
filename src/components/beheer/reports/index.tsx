@@ -193,52 +193,52 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     );
   }
 
-  const renderTable = (reportData: ReportData) => {
-    try {
-      if (!reportData.options?.xaxis?.categories) {
-        throw new Error("No categories found in xaxis");
-      }
+  // const renderTable = (reportData: ReportData) => {
+  //   try {
+  //     if (!reportData.options?.xaxis?.categories) {
+  //       throw new Error("No categories found in xaxis");
+  //     }
 
-      return (
-        <div className="w-full">
-          {/* <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2> */}
-          <div className="overflow-x-auto flex flex-col justify-center">
-            <table className="border-2 border-gray-300 rounded-md">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="sticky left-0 bg-white text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+  //     return (
+  //       <div className="w-full">
+  //         {/* <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2> */}
+  //         <div className="overflow-x-auto flex flex-col justify-center">
+  //           <table className="border-2 border-gray-300 rounded-md">
+  //             <thead className="bg-gray-50">
+  //               <tr>
+  //                 <th className="sticky left-0 bg-white text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
 
-                  </th>
-                  {reportData.options.xaxis.categories!.map((category) => (
-                    <th key={category} className="text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-                      {category}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {reportData.series.map((serie, serieIndex) => (
-                  <tr key={serieIndex} className="bg-gray-100 even:bg-gray-100">
-                    <td className="sticky left-0 bg-white border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-                      {serie.name}
-                    </td>
-                    {serie.data!.map((value, valueIndex) => (
-                      <td key={`v-${serieIndex}-${valueIndex}`} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
-                        {value}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    } catch (error) {
-      console.error(error);
-      return <div>Error loading table</div>;
-    }
-  }
+  //                 </th>
+  //                 {reportData.options.xaxis.categories!.map((category) => (
+  //                   <th key={category} className="text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+  //                     {category}
+  //                   </th>
+  //                 ))}
+  //               </tr>
+  //             </thead>
+  //             <tbody>
+  //               {reportData.series.map((serie, serieIndex) => (
+  //                 <tr key={serieIndex} className="bg-gray-100 even:bg-gray-100">
+  //                   <td className="sticky left-0 bg-white border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap">
+  //                     {serie.name}
+  //                   </td>
+  //                   {serie.data!.map((value, valueIndex) => (
+  //                     <td key={`v-${serieIndex}-${valueIndex}`} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
+  //                       {value}
+  //                     </td>
+  //                   ))}
+  //                 </tr>
+  //               ))}
+  //             </tbody>
+  //           </table>
+  //         </div>
+  //       </div>
+  //     );
+  //   } catch (error) {
+  //     console.error(error);
+  //     return <div>Error loading table</div>;
+  //   }
+  // }
 
   const showReportParams = false; // used for debugging / testing
 
@@ -338,7 +338,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                     },
                     tooltip: {
                       enabled: true,
-                      shared: filterState?.reportType === 'stallingsduur' ? false : true,
+                      shared: false//filterState?.reportType === 'stallingsduur' ? false : true,
                     }
                   }}
                   series={reportData.series}

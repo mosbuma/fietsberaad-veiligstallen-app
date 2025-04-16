@@ -456,8 +456,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
 
-  console.log(">>> session", session);
-
   return (
     <div className="flex flex-col h-screen overflow-y-hidden">
       <TopBar

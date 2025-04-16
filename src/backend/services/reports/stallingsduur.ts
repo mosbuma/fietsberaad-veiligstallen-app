@@ -73,7 +73,6 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
 
   // Prepare parameters for the query
   const queryParams = [
-    bikeparkIDs.length > 0 ? bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""',
     moment(startDate).format('YYYY-MM-DD 00:00:00'),
     moment(endDate).format('YYYY-MM-DD 23:59:59')
   ];

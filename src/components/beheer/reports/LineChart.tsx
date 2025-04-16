@@ -30,6 +30,10 @@ const LineChart = ({
   }>({})
 
   useEffect(() => {
+    if (!options || !options.xaxis.categories) {
+      return;
+    }
+
     setChartData({
       options: {
         ...options,
@@ -40,8 +44,9 @@ const LineChart = ({
       series: series
     });
   }, [
-    options,
-    series
+    // If you uncomment this, problems on the x-axis will occur.
+    // options,
+    // series
   ]);
 
   if (!chartData.options || !chartData.series) {
