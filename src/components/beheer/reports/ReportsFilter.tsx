@@ -152,8 +152,22 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       grouped
     };
 
+    // If state has changed:
     if (null === previousStateRef.current || JSON.stringify(newState) !== JSON.stringify(previousStateRef.current)) {
-      // state has changed
+
+      // Auto set defaults for 'bezetting' report type
+      if (newState.reportType !== previousStateRef.current?.reportType) {
+        switch (newState.reportType) {
+          case "bezetting":
+            setReportGrouping("per_hour");
+            setReportCategories("per_weekday");
+            break;
+          default:
+            setReportGrouping("per_day");
+            setReportCategories("per_stalling");
+            break;
+        }
+      }
 
       if (null === previousStateRef.current || newState.reportRangeUnit !== previousStateRef.current.reportRangeUnit) {
         switch (newState.reportRangeUnit) {

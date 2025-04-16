@@ -115,9 +115,9 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
         >
           <div className="mt-4">
             <h3 className="text-lg font-medium mb-2">Gegevensbron per stalling</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto p-2 border rounded">
+            <div className="space-y-1 max-h-60 overflow-y-auto p-2 border rounded">
               {bikeparks.map(park => (
-                <div key={park.stallingsID} className="flex justify-flex-start p-2 border-b">
+                <div key={park.stallingsID} className="flex justify-flex-start py-0 px-2 border-b">
                   <div className="flex space-x-4 text-left">
                     <label className="inline-flex items-center">
                       <input
