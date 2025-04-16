@@ -52,15 +52,12 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   };
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchReportData = async () => {
       if (undefined === filterState) {
         return;
       }
-      // if (undefined === reportParams) {
-      //   return;
-      // }
-
-      // console.log("Fetching report data with params:", reportParams);
 
       setLoading(true);
       try {
@@ -85,8 +82,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               dayBeginsAt: gemeenteInfo?.DayBeginsAt
             }
           }),
+          signal: abortController.signal
         });
-        // reportParams.reportUnit <- I.e. reportUnit_weekDay
 
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
@@ -95,21 +92,31 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         setReportData(data);
         setErrorState("");
       } catch (error) {
-        console.error(error);
-        setErrorState("Unable to fetch report data");
-        setReportData(undefined);
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error(error);
+          setErrorState("Unable to fetch report data");
+          setReportData(undefined);
+        }
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchReportData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [
     filterState,
     gemeenteInfo?.DayBeginsAt
   ]);
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchBikeparksWithData = async () => {
       if (undefined === filterState) {
         return;
@@ -130,6 +137,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             startDT: firstDate,
             endDT: lastDate
           }),
+          signal: abortController.signal
         });
 
         if (!response.ok) {
@@ -142,14 +150,23 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           setErrorState("Unable to fetch list of bikeparks with data");
         }
       } catch (error) {
-        console.error(error);
-        setErrorState("Unable to fetch list of bikeparks with data");
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error(error);
+          setErrorState("Unable to fetch list of bikeparks with data");
+          setBikeparksWithData([]);
+        }
       } finally {
-        // setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchBikeparksWithData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
 
   const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
