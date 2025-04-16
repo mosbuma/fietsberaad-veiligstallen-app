@@ -31,7 +31,12 @@ const LineChart = ({
 
   useEffect(() => {
     setChartData({
-      options: options,
+      options: {
+        ...options,
+        xaxis: {
+          categories: options.xaxis.categories
+        }
+      },
       series: series
     });
   }, [
