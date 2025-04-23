@@ -94,11 +94,17 @@ export enum VSMenuTopic {
     // "Products" = "products",
     "Report" = "report",
     "Settings" = "settings",
+    "SettingsGemeente" = "settingsgemeente",
+    "SystemSettings" = "systemsettings",
     "UsersBeheerders" = "usersbeheerders",
-    "UsersGebruikersbeheer" = "usersgebruikersbeheer",
+    "UsersGebruikersbeheerFietsberaad" = "usersgebruikersbeheerfietsberaad",
+    "UsersGebruikersbeheerGemeente" = "usersgebruikersbeheergemeente",
+    "UsersGebruikersbeheerExploitant" = "usersgebruikersbeheerexploitant",
+    "UsersGebruikersbeheerBeheerder" = "usersgebruikersbeheerbeheerder",
     "Website" = "website",
 
     "ExploreLeftMenu" = "exploreleftmenu",
+    "TestDatabaseApi" = "testdatabaseapi",
 }
 
 

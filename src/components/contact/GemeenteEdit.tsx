@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import { Tabs, Tab } from '@mui/material';
-import ContactFietsenstallingen from './ContactFietsenstallingen';
+// import ContactFietsenstallingen from './ContactFietsenstallingen';
 import type { fietsenstallingtypen } from '@prisma/client';
 import FormInput from "~/components/Form/FormInput";
 import FormTimeInput from "~/components/Form/FormTimeInput";
@@ -13,29 +13,54 @@ import Button from '@mui/material/Button';
 import type { VSContactGemeente } from '~/types/contacts';
 import type { VSUserWithRoles } from '~/types/users';
 
-import ContactUsers from './ContactUsers';
+// import ContactUsers from './ContactUsers';
 import FormSelect from '../Form/FormSelect';
 import moment from 'moment';
+import { getRelatedUsersForGemeente, groupUsersByGroupID } from "~/utils/contactfilters";
 
 type GemeenteEditProps = {
     id: string;
     gemeenten: VSContactGemeente[];
     users: VSUserWithRoles[];
     fietsenstallingtypen: fietsenstallingtypen[]; 
-    onClose: () => void;
+    onClose?: (confirmClose: boolean) => void;
     onEditStalling: (stallingID: string | undefined) => void;
     onEditUser: (userID: string | undefined) => void;
     onSendPassword: (userID: string | undefined) => void;
     hidden: boolean;
+    allowEdit?: boolean;
 }
+
+// export const DEFAULTGEMEENTE: VSContactGemeente = {
+//   ID: 'nieuw',
+//   CompanyName: "Nieuwe gemeente",
+//   ItemType: "organizations",
+//   AlternativeCompanyName: "",
+//   UrlName: "",
+//   ZipID: "",
+//   Helpdesk: "",
+//   DayBeginsAt: moment().utc().startOf('day').toDate(),
+//   Coordinaten: "52.09295124616021, 5.108314829064904",
+//   Zoom: 12,
+//   Bankrekeningnr: "",
+//   PlaatsBank: "",
+//   Tnv: "",
+//   Notes: "",
+//   DateRegistration: moment().toDate(),
+//   CompanyLogo: "",
+//   CompanyLogo2: "",
+//   ThemeColor1: "#1f99d2",
+//   ThemeColor2: "#96c11f",
+//   modules_contacts: [],
+// };
 
 export const DEFAULTGEMEENTE: VSContactGemeente = {
   ID: 'nieuw',
-  CompanyName: "Nieuwe gemeente",
-  ItemType: "organization",
-  AlternativeCompanyName: "",
+  CompanyName: "Testgemeente Marc",
+  ItemType: "organizations",
+  AlternativeCompanyName: "Testgemeente Marc",
   UrlName: "",
-  ZipID: "",
+  ZipID: "mb",
   Helpdesk: "",
   DayBeginsAt: moment().utc().startOf('day').toDate(),
   Coordinaten: "52.09295124616021, 5.108314829064904",
@@ -55,186 +80,192 @@ export const DEFAULTGEMEENTE: VSContactGemeente = {
 const GemeenteEdit = (props: GemeenteEditProps) => {
     const [selectedTab, setSelectedTab] = useState<string>("tab-algemeen");
     const [centerCoords, setCenterCoords] = React.useState<string | undefined>(undefined);
+    const [isEditing, setIsEditing] = useState(!!props.onClose);
 
     type CurrentState = {
-      organisatie: string|null,
-      alternatieveNaam: string|null,
-      urlVriendelijkeNaam: string|null,
-      zipID: string|null,
-      emailHelpdesk: string|null,
-      dagstart: Date|null,
-      coordinaten: string|null,
-      initialzoom: number,
-      bankRekeningnummer: string|null,
-      bankPlaats: string|null,
-      bankTnv: string|null,
-      notitie: string|null,
-      registratiedatum: Date|null,
+      CompanyName: string|null,
+      AlternativeCompanyName: string|null,
+      UrlName: string|null,
+      ZipID: string|null,
+      Helpdesk: string|null,
+      DayBeginsAt: Date|null,
+      Coordinaten: string|null,
+      Zoom: number,
+      Bankrekeningnr: string|null,
+      PlaatsBank: string|null,
+      Tnv: string|null,
+      Notes: string|null,
+      DateRegistration: Date|null,
     }
   
     const isNew = props.id === "nieuw";
 
-    const [organisatie, setOrganisatie] = useState<string|null>(null);
-    const [alternatieveNaam, setAlternatieveNaam] = useState<string|null>(null);
-    const [urlVriendelijkeNaam, setUrlVriendelijkeNaam] = useState<string|null>(null);
-    const [zipID, setZipID] = useState<string|null>(null);
-    const [emailHelpdesk, setEmailHelpdesk] = useState<string|null>(null);
-    const [dagstart, setDagstart] = useState<Date|null>(null);
-    const [coordinaten, setCoordinaten] = useState<string|null>(null);
-    const [initialzoom, setInitialzoom] = useState<number>(13);
-    const [bankRekeningnummer, setBankRekeningnummer] = useState<string|null>(null);
-    const [bankPlaats, setBankPlaats] = useState<string|null>(null);
-    const [bankTnv, setBankTnv] = useState<string|null>(null);
-    const [notitie, setNotitie] = useState<string|null>(null);
-    const [registratiedatum, setRegistratiedatum] = useState<Date|null>(null);
+    const [CompanyName, setCompanyName] = useState<string|null>(null);
+    const [AlternativeCompanyName, setAlternativeCompanyName] = useState<string|null>(null);
+    const [UrlName, setUrlName] = useState<string|null>(null);
+    const [ZipID, setZipID] = useState<string|null>(null);
+    const [Helpdesk, setHelpdesk] = useState<string|null>(null);
+    const [DayBeginsAt, setDayBeginsAt] = useState<Date|null>(null);
+    const [Coordinaten, setCoordinaten] = useState<string|null>(null);
+    const [Zoom, setZoom] = useState<number>(13);
+    const [Bankrekeningnr, setBankrekeningnr] = useState<string|null>(null);
+    const [PlaatsBank, setPlaatsBank] = useState<string|null>(null);
+    const [Tnv, setTnv] = useState<string|null>(null);
+    const [Notes, setNotes] = useState<string|null>(null);
+    const [DateRegistration, setDateRegistration] = useState<Date|null>(null);
     const [contactID, setContactID] = useState<string|null>(null);
   
     const cDefaultCoordinaten = [52.1326, 5.2913].join(","); // center of NL by default 
   
     const [initialData, setInitialData] = useState<CurrentState>({
-      organisatie: '',
-      alternatieveNaam: null,
-      urlVriendelijkeNaam: null,
-      zipID: null,
-      emailHelpdesk: null,
-      dagstart: null,
-      coordinaten: cDefaultCoordinaten,
-      initialzoom: 13,
-      bankRekeningnummer: null,
-      bankPlaats: null,
-      bankTnv: null,
-      notitie: null,
-      registratiedatum: null,
+      CompanyName: '',
+      AlternativeCompanyName: null,
+      UrlName: null,
+      ZipID: null,
+      Helpdesk: null,
+      DayBeginsAt: null,
+      Coordinaten: cDefaultCoordinaten,
+      Zoom: 13,
+      Bankrekeningnr: null,
+      PlaatsBank: null,
+      Tnv: null,
+      Notes: null,
+      DateRegistration: null,
     });
   
     useEffect(() => {
+  
         if (isNew) {
             // Use default values for new record
             const initial = {
-                organisatie: DEFAULTGEMEENTE.CompanyName,
-                alternatieveNaam: DEFAULTGEMEENTE.AlternativeCompanyName,
-                urlVriendelijkeNaam: DEFAULTGEMEENTE.UrlName,
-                zipID: DEFAULTGEMEENTE.ZipID,
-                emailHelpdesk: DEFAULTGEMEENTE.Helpdesk,
-                dagstart: DEFAULTGEMEENTE.DayBeginsAt,
-                coordinaten: DEFAULTGEMEENTE.Coordinaten,
-                initialzoom: DEFAULTGEMEENTE.Zoom,
-                bankRekeningnummer: DEFAULTGEMEENTE.Bankrekeningnr,
-                bankPlaats: DEFAULTGEMEENTE.PlaatsBank,
-                bankTnv: DEFAULTGEMEENTE.Tnv,
-                notitie: DEFAULTGEMEENTE.Notes,
-                registratiedatum: DEFAULTGEMEENTE.DateRegistration,
+                CompanyName: DEFAULTGEMEENTE.CompanyName,
+                AlternativeCompanyName: DEFAULTGEMEENTE.AlternativeCompanyName,
+                UrlName: DEFAULTGEMEENTE.UrlName,
+                ZipID: DEFAULTGEMEENTE.ZipID,
+                Helpdesk: DEFAULTGEMEENTE.Helpdesk,
+                DayBeginsAt: DEFAULTGEMEENTE.DayBeginsAt,
+                Coordinaten: DEFAULTGEMEENTE.Coordinaten,
+                Zoom: DEFAULTGEMEENTE.Zoom,
+                Bankrekeningnr: DEFAULTGEMEENTE.Bankrekeningnr,
+                PlaatsBank: DEFAULTGEMEENTE.PlaatsBank,
+                Tnv: DEFAULTGEMEENTE.Tnv,
+                Notes: DEFAULTGEMEENTE.Notes,
+                DateRegistration: DEFAULTGEMEENTE.DateRegistration,
             };
 
-            setOrganisatie(initial.organisatie);
-            setAlternatieveNaam(initial.alternatieveNaam);
-            setUrlVriendelijkeNaam(initial.urlVriendelijkeNaam);
-            setZipID(initial.zipID);
-            setEmailHelpdesk(initial.emailHelpdesk);
-            setDagstart(initial.dagstart);
-            setCoordinaten(initial.coordinaten);
-            setInitialzoom(initial.initialzoom);
-            setBankRekeningnummer(initial.bankRekeningnummer);
-            setBankPlaats(initial.bankPlaats);
-            setBankTnv(initial.bankTnv);
-            setNotitie(initial.notitie);
-            setRegistratiedatum(initial.registratiedatum);
+            setCompanyName(initial.CompanyName);
+            setAlternativeCompanyName(initial.AlternativeCompanyName);
+            setUrlName(initial.UrlName);
+            setZipID(initial.ZipID);
+            setHelpdesk(initial.Helpdesk);
+            setDayBeginsAt(initial.DayBeginsAt);
+            setCoordinaten(initial.Coordinaten);
+            setZoom(initial.Zoom);
+            setBankrekeningnr(initial.Bankrekeningnr);
+            setPlaatsBank(initial.PlaatsBank);
+            setTnv(initial.Tnv);
+            setNotes(initial.Notes);
+            setDateRegistration(initial.DateRegistration);
 
             setInitialData(initial);
         } else {
-            if (!isNew) {
-                const thecontact = props.gemeenten.find(c => c.ID === props.id);
-                if (thecontact) {
-                    const initial = {
-                        organisatie: thecontact.CompanyName || initialData.organisatie,
-                        alternatieveNaam: thecontact.AlternativeCompanyName || initialData.alternatieveNaam,
-                        urlVriendelijkeNaam: thecontact.UrlName || initialData.urlVriendelijkeNaam,
-                        zipID: thecontact.ZipID || initialData.zipID,
-                        emailHelpdesk: thecontact.Helpdesk || initialData.emailHelpdesk,
-                        dagstart: thecontact.DayBeginsAt || initialData.dagstart,
-                        coordinaten: thecontact.Coordinaten || initialData.coordinaten,
-                        initialzoom: thecontact.Zoom || initialData.initialzoom,
-                        bankRekeningnummer: thecontact.Bankrekeningnr || initialData.bankRekeningnummer,
-                        bankPlaats: thecontact.PlaatsBank || initialData.bankPlaats,
-                        bankTnv: thecontact.Tnv || initialData.bankTnv,
-                        notitie: thecontact.Notes || initialData.notitie,
-                        registratiedatum: thecontact.DateRegistration || initialData.registratiedatum,
-                    };
-            
-                    setOrganisatie(initial.organisatie);
-                    setAlternatieveNaam(initial.alternatieveNaam);
-                    setUrlVriendelijkeNaam(initial.urlVriendelijkeNaam);
-                    setZipID(initial.zipID);
-                    setEmailHelpdesk(initial.emailHelpdesk);
-                    setDagstart(initial.dagstart);
-                    setCoordinaten(initial.coordinaten);
-                    setInitialzoom(initial.initialzoom);
-                    setBankRekeningnummer(initial.bankRekeningnummer);
-                    setBankPlaats(initial.bankPlaats);
-                    setBankTnv(initial.bankTnv);
-                    setNotitie(initial.notitie);
-                    setRegistratiedatum(initial.registratiedatum);
-            
-                    setInitialData(initial);
-                }
+            const activecontact = props.gemeenten.find(c => c.ID === props.id);
+
+            if (activecontact) {
+                const initial = {
+                    CompanyName: activecontact.CompanyName || initialData.CompanyName,
+                    AlternativeCompanyName: activecontact.AlternativeCompanyName || initialData.AlternativeCompanyName,
+                    UrlName: activecontact.UrlName || initialData.UrlName,
+                    ZipID: activecontact.ZipID || initialData.ZipID,
+                    Helpdesk: activecontact.Helpdesk || initialData.Helpdesk,
+                    DayBeginsAt: activecontact.DayBeginsAt || initialData.DayBeginsAt,
+                    Coordinaten: activecontact.Coordinaten || initialData.Coordinaten,
+                    Zoom: activecontact.Zoom || initialData.Zoom,
+                    Bankrekeningnr: activecontact.Bankrekeningnr || initialData.Bankrekeningnr,
+                    PlaatsBank: activecontact.PlaatsBank || initialData.PlaatsBank,
+                    Tnv: activecontact.Tnv || initialData.Tnv,
+                    Notes: activecontact.Notes || initialData.Notes,
+                    DateRegistration: activecontact.DateRegistration || initialData.DateRegistration,
+                };
+        
+                setCompanyName(initial.CompanyName);
+                setAlternativeCompanyName(initial.AlternativeCompanyName);
+                setUrlName(initial.UrlName);
+                setZipID(initial.ZipID);
+                setHelpdesk(initial.Helpdesk);
+                setDayBeginsAt(initial.DayBeginsAt);
+                setCoordinaten(initial.Coordinaten);
+                setZoom(initial.Zoom);
+                setBankrekeningnr(initial.Bankrekeningnr);
+                setPlaatsBank(initial.PlaatsBank);
+                setTnv(initial.Tnv);
+                setNotes(initial.Notes);
+                setDateRegistration(initial.DateRegistration);
+        
+                setInitialData(initial);
             }
         }
     }, [props.id, props.gemeenten, isNew]);
 
     const isDataChanged = () => {
         if (isNew) {
-          return organisatie || zipID || dagstart || coordinaten || initialzoom;
+          return !!CompanyName || !!ZipID || !!DayBeginsAt || !!Coordinaten || !!Zoom;
         }
+
         return (
-            organisatie !== initialData.organisatie ||
-            alternatieveNaam !== initialData.alternatieveNaam ||
-            urlVriendelijkeNaam !== initialData.urlVriendelijkeNaam ||
-            zipID !== initialData.zipID ||
-            emailHelpdesk !== initialData.emailHelpdesk ||
-            dagstart !== initialData.dagstart ||
-            coordinaten !== initialData.coordinaten ||
-            initialzoom !== initialData.initialzoom ||
-            bankRekeningnummer !== initialData.bankRekeningnummer ||
-            bankPlaats !== initialData.bankPlaats ||
-            bankTnv !== initialData.bankTnv ||
-            notitie !== initialData.notitie ||
-            registratiedatum !== initialData.registratiedatum
+            CompanyName !== initialData.CompanyName ||
+            AlternativeCompanyName !== initialData.AlternativeCompanyName ||
+            UrlName !== initialData.UrlName ||
+            ZipID !== initialData.ZipID ||
+            Helpdesk !== initialData.Helpdesk ||
+            DayBeginsAt !== initialData.DayBeginsAt ||
+            Coordinaten !== initialData.Coordinaten ||
+            Zoom !== initialData.Zoom ||
+            Bankrekeningnr !== initialData.Bankrekeningnr ||
+            PlaatsBank !== initialData.PlaatsBank ||
+            Tnv !== initialData.Tnv ||
+            Notes !== initialData.Notes ||
+            DateRegistration !== initialData.DateRegistration
         );
       };
     
-      const handleUpdateParking = async () => {
-        if (!organisatie || !zipID || !dagstart || !coordinaten) {
+      const handleUpdate = async () => {
+        if (!CompanyName || !ZipID || !DayBeginsAt || !Coordinaten) {
           alert("Organisatie, Postcode ID, Dagstart en Coordinaten mogen niet leeg zijn.");
           return;
         }
     
         try {
+
+          const data = {
+            ItemType: "organization",
+            CompanyName: CompanyName || '',
+            AlternativeCompanyName: AlternativeCompanyName || '',
+            UrlName: UrlName || '',
+            ZipID: ZipID || '',
+            Helpdesk: Helpdesk || '',
+            DayBeginsAt: DayBeginsAt,
+            Coordinaten: Coordinaten || '',
+            Zoom: Zoom,
+            Bankrekeningnr: Bankrekeningnr || '',
+            PlaatsBank: PlaatsBank || '',
+            Tnv: Tnv || '',
+            Notes: Notes || '',
+            DateRegistration: DateRegistration,
+          }
+
           const method = isNew ? 'POST' : 'PUT';
-          const url = isNew ? '/api/protected/gemeenten' : `/api/protected/gemeenten/${props.id}`;
+          const url = `/api/protected/gemeenten/${false===isNew?props.id:''}`;
           const response = await fetch(url, {
             method,
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              organisatie: organisatie || '',
-              alternatieveNaam: alternatieveNaam || '',
-              urlVriendelijkeNaam: urlVriendelijkeNaam || '',
-              zipID: zipID || '',
-              emailHelpdesk: emailHelpdesk || '',
-              dagstart,
-              coordinaten: coordinaten || '',
-              initialzoom,
-              bankRekeningnummer: bankRekeningnummer || '',
-              bankPlaats: bankPlaats || '',
-              bankTnv: bankTnv || '',
-              notitie: notitie || '',
-              registratiedatum,
-            }),
+            body: JSON.stringify(data),
           });
     
           if (response.ok) {
-            props.onClose();
+            props.onClose && props.onClose(false);
           } else {
             console.error('Failed to update contact');
           }
@@ -245,39 +276,39 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     
       const handleReset = () => {
         if (isNew) {
-          setOrganisatie(null);
-          setAlternatieveNaam(null);
-          setUrlVriendelijkeNaam(null);
+          setCompanyName(null);
+          setAlternativeCompanyName(null);
+          setUrlName(null);
           setZipID(null);
-          setEmailHelpdesk(null);
-          setDagstart(null);
+          setHelpdesk(null);
+          setDayBeginsAt(null);
           setCoordinaten(null);
-          setInitialzoom(13);
-          setBankRekeningnummer(null);
-          setBankPlaats(null);
-          setBankTnv(null);
-          setNotitie(null);
-          setRegistratiedatum(null);
+          setZoom(13);
+          setBankrekeningnr(null);
+          setPlaatsBank(null);
+          setTnv(null);
+          setNotes(null);
+          setDateRegistration(null);
         } else {
-          setOrganisatie(initialData.organisatie);
-          setAlternatieveNaam(initialData.alternatieveNaam);
-          setUrlVriendelijkeNaam(initialData.urlVriendelijkeNaam);
-          setZipID(initialData.zipID);
-          setEmailHelpdesk(initialData.emailHelpdesk);
-          setDagstart(initialData.dagstart);
-          setCoordinaten(initialData.coordinaten);
-          setInitialzoom(initialData.initialzoom);
-          setBankRekeningnummer(initialData.bankRekeningnummer);
-          setBankPlaats(initialData.bankPlaats);
-          setBankTnv(initialData.bankTnv);
-          setNotitie(initialData.notitie);
-          setRegistratiedatum(initialData.registratiedatum);
+          setCompanyName(initialData.CompanyName);
+          setAlternativeCompanyName(initialData.AlternativeCompanyName);
+          setUrlName(initialData.UrlName);
+          setZipID(initialData.ZipID);
+          setHelpdesk(initialData.Helpdesk);
+          setDayBeginsAt(initialData.DayBeginsAt);
+          setCoordinaten(initialData.Coordinaten);
+          setZoom(initialData.Zoom);
+          setBankrekeningnr(initialData.Bankrekeningnr);
+          setPlaatsBank(initialData.PlaatsBank);
+          setTnv(initialData.Tnv);
+          setNotes(initialData.Notes);
+          setDateRegistration(initialData.DateRegistration);
         }
       };
     
       const updateCoordinatesFromMap = (lat: number, lng: number) => {
         const latlngstring = `${lat},${lng}`;
-        if (latlngstring !== coordinaten) {
+        if (latlngstring !== Coordinaten) {
           setCoordinaten(latlngstring);
         } else {
           setCoordinaten(null);
@@ -287,27 +318,25 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     
       const updateCoordinatesFromForm = (isLat: boolean) => (e: { target: { value: string; }; }) => {
         try {
-          const latlng = initialData.coordinaten?.split(",")||cDefaultCoordinaten.split(",");
+          const latlng = initialData.Coordinaten?.split(",")||cDefaultCoordinaten.split(",");
           if (isLat) {
             latlng[0] = e.target.value;
           } else {
             latlng[1] = e.target.value;
           }
-          setCoordinaten(latlng.join(","));
-          setCenterCoords(latlng.join(","));
-        } catch (ex: any) {
-          if (ex.message) {
-            console.warn('GemeenteEdit - unable to set coordinates from form: ', ex.message());
-          } else {
-            console.warn('GemeenteEdit - unable to set coordinates from form');
+          const latlngstring = latlng.join(",");
+          if (latlngstring !== Coordinaten) {
+            setCoordinaten(latlngstring);
           }
+        } catch (e) {
+          console.error(e);
         }
-      }
+      };
     
       const getCoordinate = (isLat: boolean): string => {
-        let coords = initialData.coordinaten;
-        if (coordinaten !== null) {
-          coords = coordinaten;
+        let coords = initialData.Coordinaten;
+        if (Coordinaten !== null) {
+          coords = Coordinaten;
         }
         if (coords === null || coords === "") return "";
     
@@ -333,79 +362,99 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
 
       const renderTopBar = (currentContact: VSContactGemeente | undefined) => {
         const contact = isNew ? DEFAULTGEMEENTE : currentContact;
-        const parkingTitle: string = isNew ? "Nieuwe gemeente" : ("Gemeente " + contact?.CompanyName);
-        const showUpdateButtons: boolean = true;
-        const allowSave: boolean = true;
+        const title: string = "Instellingen " + (contact?.CompanyName || "") + (isNew ? " (Nieuw)" : "");
+        const showUpdateButtons: boolean = isEditing;
+        const allowSave: boolean = isDataChanged();
         return (
             <PageTitle className="flex w-full justify-center sm:justify-start">
-              <div className="mr-4 hidden sm:block">
-                {parkingTitle}
-              </div>
-              {showUpdateButtons === true && allowSave && (
-                <Button
-                  key="b-1"
-                  className="mt-3 sm:mt-0"
-                  onClick={(e: any) => {
-                    if (e) e.preventDefault();
-                    handleUpdateParking();
-                  }}
-                >
-                  Opslaan
-                </Button>
-              )}
-              <Button
-                key="b-2"
-                className="ml-6 mt-3 sm:mt-0"
-                onClick={(e: any) => {
-                  if (e) e.preventDefault();
-                  handleRemoveParking(
-                    "Weet u zeker dat u deze gemeente wilt verbergen?",
-                  );
-                }}
-              >
-                Verberg
-              </Button>
-              {showUpdateButtons === true && (
-                <Button
-                  key="b-3"
-                  className="ml-2 mt-3 sm:mt-0"
-                  onClick={(e: any) => {
-                    if (e) e.preventDefault();
-    
-                    props.onClose();
-                  }}
-                >
-                  Annuleer
-                </Button>
-              )}
-              {showUpdateButtons === false && (
-                <Button
-                  key="b-4"
-                  className="ml-2 mt-3 sm:mt-0"
-                  onClick={(e: any) => {
-                    if (e) e.preventDefault();
-                    props.onClose();
-                  }}
-                >
-                  Terug
-                </Button>
-              )}
+                <div className="mr-4 hidden sm:block">
+                    {title}
+                </div>
+                {!isNew && props.allowEdit && !props.onClose && !isEditing && (
+                    <Button
+                        key="b-edit"
+                        className="mt-3 sm:mt-0"
+                        onClick={() => setIsEditing(true)}
+                    >
+                        Bewerken
+                    </Button>
+                )}
+                {showUpdateButtons && (
+                    <>
+                        <Button
+                            key="b-1"
+                            className="mt-3 sm:mt-0"
+                            onClick={handleUpdate}
+                            disabled={!allowSave}
+                        >
+                            Opslaan
+                        </Button>
+                        <Button
+                            key="b-3"
+                            className="ml-2 mt-3 sm:mt-0"
+                            onClick={() => {
+                                handleReset();
+                                if (props.onClose) {
+                                    props.onClose(isDataChanged());
+                                } else {
+                                    setIsEditing(false);
+                                }
+                            }}
+                        >
+                            {props.onClose ? "Annuleer" : "Herstel"}
+                        </Button>
+                    </>
+                )}
+                {!isEditing && props.onClose && (
+                    <Button
+                        key="b-4"
+                        className="ml-2 mt-3 sm:mt-0"
+                        onClick={() => props.onClose && props.onClose(isDataChanged())}
+                    >
+                        Terug
+                    </Button>
+                )}
             </PageTitle>
         );
-      };
+    };
 
-      const thecontact: VSContactGemeente | undefined = props.gemeenten.find(c => c.ID === props.id);
-      // console.log("#### thecontact", thecontact);
-      // console.log("#### thecontact", thecontact?.DayBeginsAt, dagstart);
+    const activecontact: VSContactGemeente | undefined = props.gemeenten.find(c => c.ID === props.id);
+    // console.log("#### activecontact", activecontact);
+    // console.log("#### activecontact", activecontact?.DayBeginsAt, dagstart);
 
-      // Find the current user
-      const contactPerson = props.users.find(user => user.security_users_sites.some(site => site.SiteID === props.id && site.IsContact === true));
-      const userlist: { label: string, value: string | undefined }[] = [
+    // Find the current user and create filtered user list
+    const relatedUsers = getRelatedUsersForGemeente(props.users, props.id);
+    const relatedUsersByGroup = groupUsersByGroupID(relatedUsers);
+
+    console.log("#### relatedUsersByGroup", relatedUsersByGroup);
+    
+    const gemeenteUsers = relatedUsersByGroup['extern'] || [];
+    console.log("***", gemeenteUsers);
+
+    const exploitantUsers = relatedUsersByGroup['exploitant'] || [];
+    const veiligstallenUsers = relatedUsersByGroup['intern'] || [];
+    
+    const userlist: { label: string, value: string | undefined }[] = [
         { label: "Geen", value: undefined },
-        ...props.users.map(user => ({ label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", value: user.UserID || "" }))
-      ];
-      /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
-
+        ...props.users
+            .filter(user => {
+                // Include if user is in gemeente users or externe users
+                const isGemeenteUser = gemeenteUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID);
+                const isExterneUser = 
+                  exploitantUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID)
+                const isVeiligstallenUser = 
+                  veiligstallenUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID);
+                
+                // Or if user is the current contactpersoon
+                const isCurrentContact = false && user.UserID === contactID;
+                return isGemeenteUser || isExterneUser || isVeiligstallenUser || isCurrentContact;
+            })
+            .map(user => ({ 
+                label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", 
+                value: user.UserID || "" 
+            }))
+    ];
+    /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
     return (
       <div className={`${props.hidden ? "hidden" : ""}`} style={{ minHeight: "65vh" }}>
       <div
@@ -414,80 +463,77 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
           sm:mr-8
         "
       >        
-        { renderTopBar(thecontact) }
+        { renderTopBar(activecontact) }
         </div>
             <Tabs value={selectedTab} onChange={handleChange} aria-label="Edit contact">
               <Tab label="Algemeen" value="tab-algemeen" />
               <Tab label="Logos" value="tab-logos" />
               <Tab label="Coordinaten" value="tab-coordinaten" />
-              <Tab label="Fietsenstallingen" value="tab-fietsenstallingen" />
               <Tab label="Gebruikers" value="tab-gebruikers" />
+              <Tab label="Externe Gebruikers" value="tab-externe-gebruikers" />
             </Tabs>
             {selectedTab === "tab-algemeen" && (
               <div className="mt-4 w-full">
                   <FormInput 
                     label="Naam"
-                    value={organisatie || ''} 
-                    onChange={(e) => setOrganisatie(e.target.value || null)} 
+                    value={CompanyName || ''} 
+                    onChange={(e) => setCompanyName(e.target.value || null)} 
                     required 
+                    disabled={!isEditing}
                   />
                   <br />
                   { props.users.length > 0 ?
                       <FormSelect 
                         label="Contactpersoon"
-                        value={contactPerson?.UserID || null} 
-                        onChange={(e) => setContactID(e.target.value || null)} 
+                        value={contactID || ''} 
+                        onChange={(e) => { console.log("onChange", e.target.value); setContactID(e.target.value || null)} } 
                         required
                         options={userlist}
+                        disabled={!isEditing}
                       /> 
                       : 
                       <FormInput label="Contactpersoon" value="Voor deze gemeente zijn geen gebruikers geregistreerd" disabled />}
                   <br />
                   <FormInput 
                     label="Alternatieve naam"
-                    value={alternatieveNaam || ''} 
-                    onChange={(e) => setAlternatieveNaam(e.target.value || null)} 
+                    value={AlternativeCompanyName || ''} 
+                    onChange={(e) => setAlternativeCompanyName(e.target.value || null)} 
+                    disabled={!isEditing}
                   />
                   <br />
                   <FormInput 
                     label="URL vriendelijke naam"
-                    value={urlVriendelijkeNaam || ''} 
-                    onChange={(e) => setUrlVriendelijkeNaam(e.target.value || null)} 
+                    value={UrlName || ''} 
+                    onChange={(e) => setUrlName(e.target.value || null)} 
+                    disabled={!isEditing}
                   />
                   <br />
                   <FormInput 
                     label="Postcode ID"
-                    value={zipID || ''} 
+                    value={ZipID || ''} 
                     onChange={(e) => setZipID(e.target.value || null)} 
                     required
+                    disabled={!isEditing}
                   />
                   <br />
                   <FormInput 
                     label="Email helpdesk"
-                    value={emailHelpdesk || ''} 
-                    onChange={(e) => setEmailHelpdesk(e.target.value || null)} 
+                    value={Helpdesk || ''} 
+                    onChange={(e) => setHelpdesk(e.target.value || null)} 
+                    disabled={!isEditing}
                   />
                   <br />
                   <FormTimeInput 
                     label="Dagstart (tbv. rapportages)"
-                    value={dagstart} 
-                    onChange={(newDate: Date|null) => setDagstart(newDate)} 
+                    value={DayBeginsAt} 
+                    onChange={(newDate: Date|null) => setDayBeginsAt(newDate)} 
+                    disabled={!isEditing}
                   />
               </div>
             )}
             {selectedTab === "tab-coordinaten" && (
               <div className="border px-4 py-2">
-                <ParkingEditLocation parkingCoords={coordinaten !== null ? coordinaten : initialData.coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} initialZoom={8} />
-              </div>
-            )}
-            {selectedTab === "tab-fietsenstallingen" && (
-              <div className="border px-4 py-2">
-                <ContactFietsenstallingen contact={thecontact} fietsenstallingtypen={props.fietsenstallingtypen} onEditStalling={props.onEditStalling} />
-              </div>
-            )}
-            {selectedTab === "tab-gebruikers" && (
-              <div className="border px-4 py-2">
-                <ContactUsers contact={thecontact} users={props.users} onEditUser={props.onEditUser} onSendPassword={props.onSendPassword} />
+                <ParkingEditLocation parkingCoords={Coordinaten !== null ? Coordinaten : initialData.Coordinaten} centerCoords={centerCoords} onPan={updateCoordinatesFromMap} initialZoom={8} />
               </div>
             )}
             {selectedTab === "tab-logos" && (
@@ -495,8 +541,8 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                 <SectionBlockEdit heading="Logo">
                 { isNew ? (
                     <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={false} />
-                ) : thecontact ? (
-                    <ContactEditLogo contactdata={thecontact} isLogo2={false} />
+                ) : activecontact ? (
+                    <ContactEditLogo contactdata={activecontact} isLogo2={false} />
                 ) : (
                     <div>
                         <p>Geen contact geselecteerd</p>
@@ -507,8 +553,8 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                 <SectionBlockEdit heading="Logo 2 (optioneel)">
                 { isNew ? (
                     <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={true} />
-                ) : thecontact ? (
-                    <ContactEditLogo contactdata={thecontact} isLogo2={true} />
+                ) : activecontact ? (
+                    <ContactEditLogo contactdata={activecontact} isLogo2={true} />
                 ) : (
                     <div>
                         <p>Geen contact geselecteerd</p>
@@ -520,7 +566,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         {/* <div className="mt-4">
           <button 
             className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={handleUpdateParking}
+            onClick={handleUpdate}
             disabled={!isDataChanged()}
           >
             Opslaan

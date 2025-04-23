@@ -30,6 +30,11 @@ const include = {
 const FietsenstallingenService: ICrudService<fietsenstallingen> = {
   getAll: async () => {
     return await prisma.fietsenstallingen.findMany({
+      // where: {
+      //   Title: {
+      //     not: 'Systeemstalling'
+      //   }
+      // },
       include: {
         fietsenstalling_secties: true,
       }

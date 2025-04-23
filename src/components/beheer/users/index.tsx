@@ -1,24 +1,52 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { security_roles } from '@prisma/client';
-import { VSUserWithRoles } from '~/types/users';
+import { VSUserGroupValues, VSUserWithRoles } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
-import { type UserType } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
+import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
+import { ConfirmPopover } from '~/components/ConfirmPopover';
+import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
 
 type UserComponentProps = { 
-  type: UserType, 
-  filterGemeente?: string | false,
-  users: VSUserWithRoles[],
+  groupid: VSUserGroupValues,
   roles: security_roles[],
 };
 
 const UsersComponent: React.FC<UserComponentProps> = (props) => {
-  const router = useRouter();
-
-  const { type, filterGemeente, users, roles } = props;
-
+  const { groupid, roles } = props;
   const [id, setId] = useState<string | undefined>(undefined);
+  const [users, setUsers] = useState<VSUserWithRoles[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updateCounter, setUpdateCounter] = useState(0);
+  const [deleteAnchorEl, setDeleteAnchorEl] = useState<HTMLElement | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/protected/security_users');
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        const responseData = await response.json() as SecurityUsersResponse;
+        if(!responseData.error) {
+          setUsers(responseData.data || []);
+        } else {
+          console.error('Error fetching users:', responseData.error);
+          setUsers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [updateCounter]);
 
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
@@ -29,36 +57,86 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     setId(userId);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    // Placeholder for delete user logic
-    console.log(`Delete user: ${userId}`);
+  const handleDeleteClick = (event: React.MouseEvent<HTMLElement>, userId: string) => {
+    setDeleteAnchorEl(event.currentTarget);
+    setUserToDelete(userId);
   };
 
-  const filteredusers = users && users.filter((user) => {
-    console.log("USER GROUP", user.DisplayName, user.GroupID);
-    switch(type) {
-      case "gemeente":
-        return user.GroupID === "extern";
-      case "exploitant":
-        return user.GroupID === "exploitant";
-      case "beheerder":
-        return user.GroupID === "beheerder";
-      case "interne-gebruiker":
-        return user.GroupID === "intern";
-      default:
-        return false;
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const response = await fetch(`/api/protected/security_users/${userToDelete}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      // Refresh the user list
+      setUpdateCounter(prev => prev + 1);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Er is een fout opgetreden bij het verwijderen van de gebruiker');
     }
-  }).sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteAnchorEl(null);
+    setUserToDelete(null);
+  };
+
+  const filteredusers = 
+    users && 
+    users.filter((user) => (user.GroupID === groupid))
+      .sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
+
+  let title = "";
+  switch (groupid) {
+    case VSUserGroupValues.Intern:
+      title = "Interne Gebruikers";
+      break;
+    case VSUserGroupValues.Extern:
+      title = "Externe Gebruikers";
+      break;
+    case VSUserGroupValues.Exploitant:
+      title = "Exploitanten";
+      break;
+    case VSUserGroupValues.Beheerder:
+      title = "Beheerders";
+      break;
+    default:
+      title = "Overige Gebruikers";
+      break;
+  }
+
+  const handleUserEditClose = (userChanged: boolean) => {
+    if (userChanged) {
+      setUpdateCounter(prev => prev + 1);
+    }
+    setId(undefined);
+  }
 
   const renderOverview = () => {
+    if (isLoading) {
+      return <LoadingSpinner message="Gebruikers laden..." />;
+    }
+
     return (
       <>
       { id && (
-        displayInOverlay(<UserEditComponent id={id} type={type} users={users} roles={roles} onClose={() => setId(undefined)} />, false, "Gebruiker bewerken", () => setId(undefined))
+        displayInOverlay(
+          <UserEditComponent 
+            id={id} 
+            groupid={groupid} 
+            users={users} 
+            onClose={handleUserEditClose} 
+            showBackButton={false}/>, false, "Gebruiker bewerken", () => setId(undefined))
       )}
-    <div className={`${id!==undefined ? "hidden" : ""}`}>
+      <div className={`${id!==undefined ? "hidden" : ""}`}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Gebruikers{id ? ` - EDITMODE ${id}` : ""}</h1>
+          <h1 className="text-2xl font-bold">{title}</h1>
           <button 
             onClick={() => setId('nieuw')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
@@ -94,7 +172,13 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
                   <td className="border px-4 py-2">
                     <button onClick={() => handleResetPassword(user.UserID)} className="text-blue-500 mx-1 disabled:opacity-40" disabled={true}>🔑</button>
                     <button onClick={() => handleEditUser(user.UserID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button onClick={() => handleDeleteUser(user.UserID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
+                    <button 
+                      onClick={(e) => handleDeleteClick(e, user.UserID)} 
+                      className="text-red-500 mx-1 disabled:opacity-40" 
+                      disabled={false}
+                    >
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               );
@@ -102,13 +186,22 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmPopover
+        open={Boolean(deleteAnchorEl)}
+        anchorEl={deleteAnchorEl}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Gebruiker verwijderen"
+        message="Weet je zeker dat je deze gebruiker wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+        confirmText="Verwijderen"
+        cancelText="Annuleren"
+      />
       </>
     );
   };
 
-  return (
-    renderOverview()
-  );
+  return renderOverview();
 };
 
 export default UsersComponent;

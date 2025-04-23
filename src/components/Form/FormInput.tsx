@@ -13,7 +13,8 @@ function FormInput({
   size,
   style,
   defaultValue,
-  disabled
+  disabled,
+  autoComplete
 }: {
   innerRef?: React.LegacyRef<HTMLInputElement>,
   type?: string,
@@ -27,6 +28,7 @@ function FormInput({
   size?: number
   style?: object
   disabled?: boolean
+  autoComplete?: string
 }) {
   return (
     <>
@@ -54,6 +56,7 @@ function FormInput({
             ${className}
           `}
           disabled={disabled === true}
+          autoComplete={autoComplete}
         />
       </label>
     </>

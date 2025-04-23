@@ -36,7 +36,7 @@ const allowReadUpdate: VSCRUDRight = {
 // };
 
 // Role definitions with CRUD rights per topic
-export type RoleRights = {
+export type VSUserRoleRights = {
     [key in VSSecurityTopic]?: VSCRUDRight;
 };
 
@@ -99,7 +99,7 @@ export const hasModuleAccess = (profile: VSUserSecurityProfile | null, module: V
 
 export const getRoleRights = (
     roleID: VSUserRoleValuesNew | null, 
-): RoleRights => {
+): VSUserRoleRights => {
     const noRights = initAllTopics(allowNone);
     const allrights = initAllTopics(allowCRUD);
 

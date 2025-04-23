@@ -32,15 +32,19 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                 gemeente.CompanyName?.toLowerCase().includes(nameFilter.toLowerCase())
             )
             .filter((gemeente) => {
-                const numStallingen = gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.length || 0;
+                const numNietSysteemStallingen = 
+                    (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
+                    filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
                 const hasUsers = users.some((user) => 
                     user.security_users_sites.some((site) => site.SiteID === gemeente.ID)
                 );
                 const hasExploitanten = gemeente.isManagedByContacts?.length || 0 > 0;
 
+                console.log("*** ", showGemeentenWithoutStallingen, showGemeentenWithoutUsers, showGemeentenWithoutExploitanten);
+
                 return (
-                    (numStallingen === 0 && showGemeentenWithoutStallingen !== "no" || 
-                    numStallingen > 0 && showGemeentenWithoutStallingen !== "only") &&
+                    (numNietSysteemStallingen === 0 && showGemeentenWithoutStallingen !== "no" || 
+                     numNietSysteemStallingen > 0 && showGemeentenWithoutStallingen !== "only") &&
                     (!hasUsers && showGemeentenWithoutUsers !== "no" || 
                     hasUsers && showGemeentenWithoutUsers !== "only") &&
                     (!hasExploitanten && showGemeentenWithoutExploitanten !== "no" ||
@@ -56,6 +60,13 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
 
     const selectGemeenteHandler = (gemeenteID: string) => {
         setSelectedGemeenteID(gemeenteID);
+
+        if(gemeenteID) {
+            const selectedGemeente = gemeenten.find((gemeente) => gemeente.ID === gemeenteID);
+            if(selectedGemeente) {
+                console.log(selectedGemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts);
+            }
+        }
     }
 
     const resetFilters = () => {
@@ -102,7 +113,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                 </div>
                 <form className="space-y-4">
                     <div className="flex flex-col">
-                        <label htmlFor="gemeenteName" className="text-sm font-medium text-gray-700">Gemeente Name:</label>
+                        <label htmlFor="gemeenteName" className="text-sm font-medium text-gray-700">Gemeente Naam:</label>
                         <input 
                             type="text" 
                             id="gemeenteName" 
@@ -114,7 +125,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Show Gemeenten Without Stallingen:</label>
+                        <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Stallingen:</label>
                         <select 
                             id="showGemeentenWithoutStallingen" 
                             name="showGemeentenWithoutStallingen" 
@@ -122,13 +133,13 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutStallingen(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="Yes">Ja</option>
-                            <option value="No">Nee</option>
+                            <option value="yes">Ja</option>
+                            <option value="no">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>
                     <div className="flex items-center">
-                        <label htmlFor="showGemeentenWithoutUsers" className="text-sm font-medium text-gray-700">Show Gemeenten Without Users:</label>
+                        <label htmlFor="showGemeentenWithoutUsers" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Gemeentegebruikers:</label>
                         <select 
                             id="showGemeentenWithoutUsers" 
                             name="showGemeentenWithoutUsers" 
@@ -136,13 +147,13 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutUsers(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="Yes">Ja</option>
-                            <option value="No">Nee</option>
+                            <option value="yes">Ja</option>
+                            <option value="no">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>
                     <div className="flex items-center">
-                        <label htmlFor="showGemeentenWithoutExploitanten" className="text-sm font-medium text-gray-700">Show Gemeenten Without Exploitanten:</label>
+                        <label htmlFor="showGemeentenWithoutExploitanten" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Exploitanten:</label>
                         <select 
                             id="showGemeentenWithoutExploitanten" 
                             name="showGemeentenWithoutExploitanten" 
@@ -150,23 +161,22 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                             onChange={(e) => setShowGemeentenWithoutExploitanten(e.target.value as "yes"|"no"|"only")}
                             className="ml-2 p-2 border border-gray-300 rounded-md"
                         >
-                            <option value="Yes">Ja</option>
-                            <option value="No">Nee</option>
+                            <option value="yes">Ja</option>
+                            <option value="no">Nee</option>
                             <option value="only">Only</option>
                         </select>
                     </div>
                     <div>
-                        <h2 className="text-xl font-semibold mt-6">List of Gemeenten</h2>
+                        <h2 className="text-xl font-semibold mt-6">Lijst van Gemeenten</h2>
                         <ul className="list-disc list-inside max-h-fit overflow-y-auto">
                             {filteredGemeenten.map((gemeente) => (
-                                <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/?gemeenteID=${gemeente.ID}`} target="_blank">
                                     <li 
                                         key={gemeente.ID} 
                                         className={`cursor-pointer p-2 ${selectedGemeenteID === gemeente.ID ? 'bg-blue-100' : ''}`} 
                                         onClick={() => selectGemeenteHandler(gemeente.ID)}
                                     >
                                     {gemeente.CompanyName}
-                                </li></Link>
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -262,14 +272,17 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         ))}
                     </ul>
 
-                    {renderUserSection(relatedUsersByGroup['intern'], 'Veiligstallen gebruikers')}
                     {renderUserSection(relatedUsersByGroup['extern'], 'Gemeentegebruikers')}
                     {renderUserSection(relatedUsersByGroup['exploitant'], 'Exploitant gebruikers')}
+                    {renderUserSection(relatedUsersByGroup['intern'], 'Veiligstallen gebruikers')}
                     {renderUserSection(relatedUsersByGroup['dataprovider'], 'Dataprovider Users')}
 
                     <div className="text-xl font-bold mb-4">Fietsenstallingen</div>
                     <ul className="list-disc list-inside">
-                        {selectedGemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.map((stalling) => (
+                        {selectedGemeente
+                            .fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
+                            filter((stalling) => stalling.Title !== 'Systeemstalling')
+                            .map((stalling) => (
                             <li key={stalling.ID}>{stalling.Title} [{stalling.Type}]</li>
                         ))}
                     </ul> 

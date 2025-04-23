@@ -1,0 +1,139 @@
+test_rule:
+  name: "Database API Test Suite"
+  description: "Each database API endpoint must have a corresponding test endpoint that performs CRUD operations"
+  
+  requirements:
+    - endpoint: "/api/{resource}/test"
+      method: "GET"
+      description: "Test endpoint for database operations"
+      
+    - test_flow:
+        - create: "Create a new record via API"
+        - read_all: "Retrieve all records via API"
+        - read_single: "Retrieve the newly created record via API"
+        - update: "Update the newly created record via API"
+        - delete: "Delete the newly created record via API"
+        
+    - response_format:
+        type: "application/json"
+        structure:
+          success: "boolean"
+          tests:
+            - name: "string"
+              status: "boolean"
+              message: "string"
+              details: "object"
+        requirements:
+          - delete_success: "DELETE operations must return 204 on success"
+          - put_response: "PUT operations must return the updated record"
+          - error_details: "Error responses must include detailed error information"
+            
+    - cleanup:
+        description: "All test records must be cleaned up after test completion"
+        required: true
+        properties:
+          - ignore_404: "Cleanup should not log errors for 404 responses"
+          - error_handling: "Cleanup errors should be logged but not affect test results"
+          - always_attempt: "Cleanup should be attempted even if tests fail"
+        
+    - authentication:
+        description: "Tests must run in the context of the authenticated user"
+        required: true
+        
+    - isolation:
+        description: "Test operations must not affect production data"
+        required: true
+
+    - utility_functions:
+        description: "Common database operations and utilities must be kept in shared utility files"
+        required: true
+        properties:
+          - location: "Utility functions must be placed in /src/utils/server/database-tools.ts"
+          - scope: "Functions should be generic and reusable across different API endpoints"
+          - documentation: "Each utility function must have clear documentation of its purpose and parameters"
+          - examples:
+              - id_generation: "Functions for generating unique IDs"
+              - session_validation: "Functions for validating user sessions"
+              - data_validation: "Common data validation functions"
+              - error_handling: "Standard error handling utilities"
+
+    - ui_requirements:
+        description: "Test results must be displayed in the database API test page"
+        requirements:
+          - section:
+              description: "Each API must have its own section in the test page"
+              properties:
+                name: "string"
+                endpoint: "string"
+                expanded: "boolean"
+                results: "object"
+                error: "string"
+          - display:
+              description: "Test results must be displayed in a collapsible section"
+              properties:
+                color: "green/red based on success"
+                status: "visible in header"
+                details: "collapsible"
+                default_expanded: "true for failed tests"
+          - actions:
+              description: "Must support running all tests at once"
+              properties:
+                run_all: "boolean"
+                individual_run: "boolean"
+
+    - test_data_validation:
+        description: "Test data must be validated against Prisma model constraints"
+        requirements:
+          - schema_validation:
+              description: "Test data must be validated using the same Zod schema as the API"
+              properties:
+                pre_test_validation: "boolean"
+                post_test_validation: "boolean"
+                error_reporting: "boolean"
+          - constraint_checking:
+              description: "Test data must respect all database constraints"
+              properties:
+                field_types: "Must match Prisma types"
+                field_lengths: "Must respect VARCHAR/CHAR limits"
+                required_fields: "Must include all required fields"
+                default_values: "Must use correct default values"
+                enum_values: "Must use valid enum values"
+          - data_generation:
+              description: "Test data generation must be deterministic and valid"
+              properties:
+                random_data: "Must generate valid random data"
+                edge_cases: "Must test boundary conditions"
+                invalid_data: "Must test validation with invalid data"
+          - cleanup_validation:
+              description: "Test cleanup must be verified"
+              properties:
+                record_count: "Must verify record deletion"
+                data_integrity: "Must verify no test data remains"
+                rollback: "Must handle cleanup failures"
+
+    - api_testing:
+        description: "Tests must be executed through the API layer"
+        requirements:
+          - endpoint_usage:
+              description: "All database operations must be performed through API endpoints"
+              properties:
+                create: "Must use POST /api/{resource}"
+                read: "Must use GET /api/{resource} or /api/{resource}/{id}"
+                update: "Must use PUT /api/{resource}/{id}"
+                delete: "Must use DELETE /api/{resource}/{id}"
+          - validation:
+              description: "API responses must be validated"
+              properties:
+                status_codes: "Must check HTTP status codes"
+                response_format: "Must validate response structure"
+                error_handling: "Must test error responses"
+          - authentication:
+              description: "Tests must include authentication"
+              properties:
+                headers: "Must include auth headers"
+                session: "Must maintain session context"
+          - isolation:
+              description: "Tests must be isolated"
+              properties:
+                cleanup: "Must clean up test data"
+                rollback: "Must handle failures gracefully"

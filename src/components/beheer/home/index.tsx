@@ -1,12 +1,19 @@
 import React from 'react';
+import { VSContactGemeente } from '~/types/contacts';
 
-const HomeComponent: React.FC = () => {
+interface HomeInfoComponentProps {
+   gemeente: VSContactGemeente | undefined;
+}
+
+const HomeInfoComponent: React.FC<HomeInfoComponentProps> = ({ gemeente }) => {
+  console.log("*** contact", gemeente?.CompanyName);
+
   return (
     <div className="p-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-xl font-semibold mb-4">Welkom</h2>
         <p className="text-gray-600 mb-4">
-          Welkom in de beheersomgeving van Veiligstallen. Via deze omgeving kunt u de volgende onderdelen beheren:
+          Welkom in de beheersomgeving van Veiligstallen {gemeente ? `(${gemeente.CompanyName})` : ""}. Via deze omgeving kunt u de volgende onderdelen beheren:
         </p>
         
         <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
@@ -26,4 +33,4 @@ const HomeComponent: React.FC = () => {
   );
 };
 
-export default HomeComponent;
+export default HomeInfoComponent;

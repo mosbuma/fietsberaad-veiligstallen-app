@@ -8,32 +8,46 @@ import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
 import type { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import type { VSUserWithRoles } from "~/types/users";
+import { type VSUserWithRoles, VSUserGroupValues } from "~/types/users";
 import type { ParkingDetailsType } from "~/types/parking";
 
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
+import { makeClientApiCall } from '~/utils/client/api-tools';
 
 type ExploitantComponentProps = { 
-  exploitanten: VSContactExploitant[]
   gemeenten: VSContactGemeente[]
   users: VSUserWithRoles[]
   roles: security_roles[],
-  fietsenstallingtypen: fietsenstallingtypen[]  
+  fietsenstallingtypen: fietsenstallingtypen[],  
+  isAdmin: boolean,
 };
 
 const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
 
-  const { exploitanten, gemeenten, fietsenstallingtypen, users, roles} = props;
+  const { gemeenten, fietsenstallingtypen, users, roles} = props;
 
+  const [exploitanten, setExploitanten] = useState<VSContactExploitant[]>([]);
   const [currentContact, setCurrentContact] = useState<VSContactExploitant | undefined>(undefined);
-
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
-  
   const [filterText, setFilterText] = useState("");
+
+  // Fetch exploitanten on component mount
+  useEffect(() => {
+    fetchExploitanten();
+  }, []);
+
+  const fetchExploitanten = async () => {
+    const response = await makeClientApiCall<VSContactExploitant[]>('/api/protected/exploitant');
+    if (response.success && response.result) {
+      setExploitanten(response.result);
+    } else {
+      console.error('Failed to fetch exploitanten:', response.error);
+    }
+  };
 
   const filteredContacts = exploitanten.filter(contact => 
     contact.CompanyName?.toLowerCase().includes(filterText.toLowerCase())
@@ -56,13 +70,9 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         setCurrentStalling(undefined);
       } 
     }
-  }, [
-    currentStallingId,
-    currentRevision
-  ]);
+  }, [currentStallingId, currentRevision]);
 
   useEffect(() => {
-    // get the id from the url
     if("id" in router.query) {
       const id = router.query.id;
       if(id) {
@@ -71,18 +81,25 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     }   
   }, [router.query.id, exploitanten]);
 
-  const handleNewContact = () => {
-    // Placeholder for the new contact logic
+  const handleNew = () => {
     setCurrentContact(undefined);
   }
 
-  const handleEditContact = (id: string) => {
+  const handleEdit = (id: string) => {
     setCurrentContact(exploitanten.find((contact) => contact.ID === id));
   };
 
-  const handleDeleteContact = (id: string) => {
-    // Placeholder for the delete contact logic
-    console.log(`Delete thecontact: ${id}`);
+  const handleDelete = async(id: string) => {
+    if(confirm("Weet je zeker dat je deze exploitant wilt verwijderen?")) {
+      const response = await makeClientApiCall<VSContactExploitant>(`/api/protected/exploitant/${id}`, "DELETE");
+      if(response.success) {
+        alert("Exploitant verwijderd");
+        fetchExploitanten(); // Refresh the list after deletion
+      } else {
+        alert("Er is een fout opgetreden bij het verwijderen van de exploitant.");
+        console.error("Unable to delete contact:", response.error);
+      }
+    }
   };
 
   const getGemeenten = (contact: VSContactExploitant) => {
@@ -93,6 +110,8 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     });
     return selected.sort().map(g=><>{g}<br/></>);
   }
+
+  const isAdmin = true; // TODO: check if the user is an admin
 
   const renderOverview = () => {
     return (
@@ -111,7 +130,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
             )}
           </div>
           <button 
-            onClick={() => handleNewContact()}
+            onClick={() => handleNew()}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe Exploitant
@@ -140,8 +159,8 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
                     }
                   </td>
                   <td className="border px-4 py-2">
-                    <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
+                    <button onClick={() => handleEdit(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
+                    <button onClick={() => handleDelete(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!isAdmin}>🗑️</button>
                   </td>
                 </tr>
               );
@@ -188,14 +207,23 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
           />
         )}
         { currentUserId && showUserEdit && (
-            <UserEditComponent id={currentUserId} type="exploitant" users={users} roles={roles} onClose={()=>setCurrentUserId(undefined)}/>) }
+            <UserEditComponent 
+              id={currentUserId} 
+              groupid={VSUserGroupValues.Exploitant} 
+              users={users} 
+              roles={roles} 
+              onClose={()=>setCurrentUserId(undefined)} 
+              showBackButton={false} />)}
         { currentContact && (
           <ExploitantEdit 
             exploitanten={exploitanten} 
-            users={filteredUsers}
+            users={users}
             fietsenstallingtypen={fietsenstallingtypen}
             id={currentContact.ID} 
-            onClose={() => setCurrentContact(undefined)} 
+            onClose={() => { 
+              setCurrentContact(undefined); 
+              fetchExploitanten(); // Refresh the list after edit
+            }} 
             onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
             onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
             onSendPassword={(userID: string | undefined) => alert("send password to user " + userID) }

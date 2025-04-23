@@ -1,0 +1,179 @@
+version: 1.0
+name: Fietsenstallingen API
+
+basePath: /api/fietsenstallingen
+
+routes:
+  - name: List Fietsenstallingen
+    method: GET
+    path: /
+    description: Get a list of all fietsenstallingen
+    parameters:
+      - $ref: ../general.yaml#/rules/2/parameters
+      - $ref: ../general.yaml#/rules/3/parameters
+      - $ref: ../general.yaml#/rules/4/parameters
+    responses:
+      200:
+        description: List of fietsenstallingen
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/definitions/Fietsenstalling'
+            meta:
+              $ref: ../general.yaml#/rules/5/schema/properties/meta
+
+  - name: Get Fietsenstalling
+    method: GET
+    path: /{id}
+    description: Get a single fietsenstalling by ID
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Fietsenstalling ID
+    responses:
+      200:
+        description: Fietsenstalling details
+        schema:
+          $ref: '#/definitions/Fietsenstalling'
+      404:
+        description: Fietsenstalling not found
+
+  - name: Create Fietsenstalling
+    method: POST
+    path: /
+    description: Create a new fietsenstalling
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/FietsenstallingInput'
+    responses:
+      201:
+        description: Fietsenstalling created
+        schema:
+          $ref: '#/definitions/Fietsenstalling'
+      400:
+        description: Invalid input
+
+  - name: Update Fietsenstalling
+    method: PUT
+    path: /{id}
+    description: Update an existing fietsenstalling
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Fietsenstalling ID
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/FietsenstallingInput'
+    responses:
+      200:
+        description: Fietsenstalling updated
+        schema:
+          $ref: '#/definitions/Fietsenstalling'
+      400:
+        description: Invalid input
+      404:
+        description: Fietsenstalling not found
+
+  - name: Delete Fietsenstalling
+    method: DELETE
+    path: /{id}
+    description: Delete a fietsenstalling
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Fietsenstalling ID
+    responses:
+      204:
+        description: Fietsenstalling deleted
+      404:
+        description: Fietsenstalling not found
+
+definitions:
+  Fietsenstalling:
+    type: object
+    properties:
+      ID:
+        type: string
+        description: Unique identifier
+      StallingsID:
+        type: string
+        description: External stallings ID
+      SiteID:
+        type: string
+        description: Associated site ID
+      Title:
+        type: string
+        description: Title of the fietsenstalling
+      Description:
+        type: string
+        description: Detailed description
+      Location:
+        type: string
+        description: Physical location
+      Postcode:
+        type: string
+        description: Postal code
+      Plaats:
+        type: string
+        description: City
+      Capacity:
+        type: integer
+        description: Total capacity
+      Status:
+        type: string
+        description: Current status
+      Type:
+        type: string
+        description: Type of fietsenstalling
+      ExploitantID:
+        type: string
+        description: ID of the exploitant
+
+  FietsenstallingInput:
+    type: object
+    required:
+      - StallingsID
+      - Title
+      - Location
+    properties:
+      StallingsID:
+        type: string
+        description: External stallings ID
+      Title:
+        type: string
+        description: Title of the fietsenstalling
+      Description:
+        type: string
+        description: Detailed description
+      Location:
+        type: string
+        description: Physical location
+      Postcode:
+        type: string
+        description: Postal code
+      Plaats:
+        type: string
+        description: City
+      Capacity:
+        type: integer
+        description: Total capacity
+      Type:
+        type: string
+        description: Type of fietsenstalling
+      ExploitantID:
+        type: string
+        description: ID of the exploitant 

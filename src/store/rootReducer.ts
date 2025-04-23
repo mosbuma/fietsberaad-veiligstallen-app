@@ -5,6 +5,8 @@ import { filterArticlesSlice } from "./filterArticlesSlice";
 import { mapSlice } from "./mapSlice";
 import { geoSlice } from "./geoSlice";
 import { appSlice } from "./appSlice";
+import gemeenteFiltersReducer from './gemeenteFiltersSlice';
+import reportsFiltersReducer from './reportsFiltersSlice';
 
 const rootReducer = combineReducers({
   [authSlice.name]: authSlice.reducer,
@@ -13,6 +15,8 @@ const rootReducer = combineReducers({
   [mapSlice.name]: mapSlice.reducer,
   [appSlice.name]: appSlice.reducer,
   [geoSlice.name]: geoSlice.reducer,
+  gemeenteFilters: gemeenteFiltersReducer,
+  reportsFilters: reportsFiltersReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

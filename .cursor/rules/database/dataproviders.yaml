@@ -1,0 +1,152 @@
+version: 1.0
+name: Data Providers API
+
+basePath: /api/dataproviders
+
+routes:
+  - name: List Data Providers
+    method: GET
+    path: /
+    description: Get a list of all data providers
+    parameters:
+      - $ref: ../general.yaml#/rules/2/parameters
+      - $ref: ../general.yaml#/rules/3/parameters
+      - $ref: ../general.yaml#/rules/4/parameters
+    responses:
+      200:
+        description: List of data providers
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/definitions/DataProvider'
+            meta:
+              $ref: ../general.yaml#/rules/5/schema/properties/meta
+
+  - name: Get Data Provider
+    method: GET
+    path: /{id}
+    description: Get a single data provider by ID
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Data Provider ID
+    responses:
+      200:
+        description: Data Provider details
+        schema:
+          $ref: '#/definitions/DataProvider'
+      404:
+        description: Data Provider not found
+
+  - name: Create Data Provider
+    method: POST
+    path: /
+    description: Create a new data provider
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/DataProviderInput'
+    responses:
+      201:
+        description: Data Provider created
+        schema:
+          $ref: '#/definitions/DataProvider'
+      400:
+        description: Invalid input
+
+  - name: Update Data Provider
+    method: PUT
+    path: /{id}
+    description: Update an existing data provider
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Data Provider ID
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/DataProviderInput'
+    responses:
+      200:
+        description: Data Provider updated
+        schema:
+          $ref: '#/definitions/DataProvider'
+      400:
+        description: Invalid input
+      404:
+        description: Data Provider not found
+
+  - name: Delete Data Provider
+    method: DELETE
+    path: /{id}
+    description: Delete a data provider
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: Data Provider ID
+    responses:
+      204:
+        description: Data Provider deleted
+      404:
+        description: Data Provider not found
+
+definitions:
+  DataProvider:
+    allOf:
+      - $ref: ../contacts.yaml#/definitions/BaseContact
+      - type: object
+        properties:
+          Paslezer:
+            type: string
+            description: Card reader type
+          PassRange_validate:
+            type: string
+            description: Pass validation range
+          PassRange_start:
+            type: integer
+            description: Start of pass range
+          PassRange_end:
+            type: integer
+            description: End of pass range
+          LockNGo:
+            type: string
+            description: Lock and Go functionality
+          URL:
+            type: string
+            description: API endpoint URL
+
+  DataProviderInput:
+    allOf:
+      - $ref: ../contacts.yaml#/definitions/BaseContactInput
+      - type: object
+        properties:
+          Paslezer:
+            type: string
+            description: Card reader type
+          PassRange_validate:
+            type: string
+            description: Pass validation range
+          PassRange_start:
+            type: integer
+            description: Start of pass range
+          PassRange_end:
+            type: integer
+            description: End of pass range
+          LockNGo:
+            type: string
+            description: Lock and Go functionality
+          URL:
+            type: string
+            description: API endpoint URL 

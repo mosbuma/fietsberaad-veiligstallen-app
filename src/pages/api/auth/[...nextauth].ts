@@ -129,7 +129,6 @@ export const authOptions: NextAuthOptions = {
         token.activeContactId = user.activeContactId;
       }
 
-      // Update the token when the session is updated
       if (trigger === "update" && session?.user?.activeContactId) {
         token.activeContactId = session.user.activeContactId;
       }
@@ -146,7 +145,6 @@ export const authOptions: NextAuthOptions = {
         }) as VSUserWithRoles;
 
         if (account) {
-          // Use token's activeContactId if it exists, otherwise use the main contact
           const securityProfile = await createSecurityProfile(
             account,
             token.activeContactId
@@ -157,8 +155,6 @@ export const authOptions: NextAuthOptions = {
           session.user.activeContactId = token.activeContactId;
           session.user.securityProfile = securityProfile;
         }
-      } else {
-        console.log(">>> SESSION NO USER");
       }
 
       return session;

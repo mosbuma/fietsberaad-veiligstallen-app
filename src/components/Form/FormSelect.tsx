@@ -44,8 +44,8 @@ function FormSelect({
           disabled={disabled === true}
         >
           {placeholder && <option value="">{placeholder}</option>}
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
+          {options.map((option, idx) => (
+            <option key={'fs-' + idx} value={option.value}>
               {option.label || option.value}
             </option>
           ))}

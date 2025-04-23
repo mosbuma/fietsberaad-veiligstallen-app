@@ -1,36 +1,53 @@
-import React, { useEffect, useState } from 'react';
-import { VSUserWithRoles } from '~/types/users';
+import React, { useEffect, useState, useRef } from 'react';
+import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRoles } from '~/types/users';
 import { security_roles } from '@prisma/client';
+import PageTitle from "~/components/PageTitle";
+import Button from '@mui/material/Button';
+import FormInput from "~/components/Form/FormInput";
+import FormSelect from "~/components/Form/FormSelect";
+import { UserAccessRight } from './UserAccessRight';
+import { getNewRoleLabel } from '~/types/utils';
+import { convertRoleToNewRole } from '~/utils/securitycontext';
 
 const bcrypt = require('bcryptjs');
 
-export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker";
+// export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker" | "dataprovider";
 export type UserStatus = "actief" | "inactief";
 
 export interface UserEditComponentProps {
     id: string,
-    type: UserType,
+    groupid: VSUserGroupValues,
     users: VSUserWithRoles[],
-    roles: security_roles[],
-    onClose: () => void
+    onClose: (userChanged: boolean) => void,
+    showBackButton?: boolean
 }
 
 export const UserEditComponent = (props: UserEditComponentProps) => {
     const isNewUser = props.id === "nieuw";
     const [displayName, setDisplayName] = useState<string>('');
-    const [roleID, setRoleID] = useState<number>(-1);
+    const [roleID, setRoleID] = useState<VSUserRoleValuesNew>(VSUserRoleValuesNew.None);
     const [userName, setUserName] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [status, setStatus] = useState<boolean>(false);
+    const [confirmPassword, setConfirmPassword] = useState<string>('');
+    const [status, setStatus] = useState<boolean>(true);
+    const [isEditing, setIsEditing] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [showPasswordFields, setShowPasswordFields] = useState(isNewUser);
+    const nameInputRef = useRef<HTMLInputElement>(null);
+
+    const roleOptions = Object.values(VSUserRoleValuesNew).map(role => ({
+      label: getNewRoleLabel(role),
+      value: role.toString()
+    }));
 
     const [initialData, setInitialData] = useState({
       displayName: '',
-      roleID: 1,
+      roleID: VSUserRoleValuesNew.None,
       userName: '',
-      status: false,
+      status: true,
     });
 
-    const { id, users, roles } = props; // type, 
+    const { id, users } = props;
 
     let availableRoles = []; // TODO: limit user roles based on type
     // switch(type) {
@@ -77,12 +94,15 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       if (!isNewUser) {
         const user = users.find(u => u.UserID === id);
         if (user) {
+          const newRoleID = convertRoleToNewRole(user.RoleID, user.security_users_sites.some(site => site.SiteID === props.groupid));
+
           const initial = {
             displayName: user.DisplayName || '',
-            roleID: user.RoleID || -1 ,
+            roleID: newRoleID,
             userName: user.UserName || '',
             status: user.Status === "1",
           };
+
           setDisplayName(initial.displayName);
           setRoleID(initial.roleID);
           setUserName(initial.userName);
@@ -92,9 +112,16 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       }
     }, [id, users, isNewUser]);
 
+    useEffect(() => {
+      // Focus the name field when the component mounts
+      if (nameInputRef.current) {
+        nameInputRef.current.focus();
+      }
+    }, []);
+
     const isDataChanged = () => {
       if (isNewUser) {
-        return displayName || roleID || userName || password || status;
+        return displayName || userName || password || status !== true;
       }
       return (
         displayName !== initialData.displayName ||
@@ -105,25 +132,74 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       );
     };
 
+    const isDataValid = () => {
+      if (!displayName || !userName) {
+        return false;
+      }
+
+      // Validate passwords
+      if (showPasswordFields) {
+        if (!password) {
+          return false;
+        }
+        if (password !== confirmPassword) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    const validateData = () => {
+      if (!displayName || !userName) {
+        setError("Vul alle verplichte velden in");
+        return false;
+      }
+
+      // Check if email already exists for this gemeente
+      if (isNewUser) {
+        const existingUser = users.find(u => 
+          u.UserName?.toLowerCase() === userName.toLowerCase() && 
+          u.security_users_sites.some(site => site.SiteID === props.groupid)
+        );
+        if (existingUser) {
+          setError("Een gebruiker met dit e-mailadres bestaat al voor deze gemeente");
+          return false;
+        }
+      }
+
+      // Validate passwords
+      if (showPasswordFields) {
+        if (!password) {
+          setError("Vul een wachtwoord in");
+          return false;
+        }
+        if (password !== confirmPassword) {
+          setError("Wachtwoorden komen niet overeen");
+          return false;
+        }
+      }
+
+      setError(null);
+      return true;
+    };
+
     const hashPassword = (password: string) => {
       const salt = bcrypt.genSaltSync(13); // 13 salt rounds used in the coldfusion code
       return bcrypt.hashSync(password, salt); 
     }
 
     const handleSave = async () => {
-      if (!displayName || !userName) {
-        alert("Naam and Gebruikersnaam / e-mail cannot be empty.");
+      if (!validateData()) {
         return;
       }
 
       try {
         const method = isNewUser ? 'POST' : 'PUT';
         const url = isNewUser ? '/api/security_users' : `/api/security_users/${id}`;
-        const selectedRole = roles.find(r => r.RoleID === roleID);
-        if(!selectedRole) {
-          alert("Selecteer een rol" + roleID);
-          return;
-        }
+
+        // const oldRoleID = convertNewRoleToOldRole(roleID, false);
+
         const response = await fetch(url, {
           method,
           headers: {
@@ -131,149 +207,204 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           },
           body: JSON.stringify({
             DisplayName: displayName,
-            RoleID: selectedRole.RoleID,
+            // RoleID: oldRoleID,
             UserName: userName,
             EncryptedPassword: password ? hashPassword(password) : undefined,
             EncryptedPassword2: password ? hashPassword(password) : undefined,
             Status: status ? "1" : "0",
-            security_roles: {
-              create: {
-                RoleID: selectedRole?.RoleID || -1,
-                Role: selectedRole?.Role || "",
-                Description: selectedRole?.Description || "",
-              }
-            },
+            // security_roles: {
+            //   create: {
+            //     RoleID: selectedRole?.RoleID || -1,
+            //     Role: selectedRole?.Role || "",
+            //     Description: selectedRole?.Description || "",
+            //   }
+            // },
           }),
         });
 
         if (response.ok) {
-          props.onClose();
+          props.onClose(true);
         } else {
-          console.error('Failed to update user');
+          setError('Failed to update user');
         }
       } catch (error) {
-        console.error('Error:', error);
+        setError('Error: ' + error);
       }
     };
 
     const handleReset = () => {
       if (isNewUser) {
         setDisplayName('');
-        setRoleID(-1);
+        setRoleID(VSUserRoleValuesNew.None);
         setUserName('');
         setPassword('');
-        setStatus(false);
+        setConfirmPassword('');
+        setStatus(true);
+        setShowPasswordFields(true);
       } else {
         setDisplayName(initialData.displayName);
         setRoleID(initialData.roleID);
         setUserName(initialData.userName);
         setPassword('');
+        setConfirmPassword('');
         setStatus(initialData.status);
+        setShowPasswordFields(false);
+      }
+      setError(null);
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPassword(e.target.value);
+      if (!isNewUser) {
+        setShowPasswordFields(true);
       }
     };
 
-    const rolesWithGeenRol = [
-      { RoleID: -1, Description: "Selecteer een rol" },
-      ...roles
-    ];
+    const renderTopBar = () => {
+      const title = isNewUser ? "Nieuwe gebruiker" : "Bewerk gebruiker";
+      const allowSave = isDataChanged() && isDataValid();
 
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-4">{id==="nieuw" ? "Nieuwe gebruiker" : "Bewerk gebruiker"}</h1>
-        <table className="min-w-full bg-white border-2">
-          <tbody>
-            <tr>
-              <td className="border px-4 py-2 w-1/4">Naam:</td>
-              <td className="border px-4 py-2 w-3/4">
-                <input 
-                  type="text" 
-                  value={displayName} 
-                  onChange={(e) => setDisplayName(e.target.value)} 
-                  required 
-                  className="w-full"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">Rol:</td>
-              <td className="border px-4 py-2">
-                <select 
-                  value={roleID} 
-                  onChange={(e) => setRoleID(parseInt(e.target.value))}
-                >
-                  {rolesWithGeenRol.map(role => (
-                    <option key={role.RoleID} value={role.RoleID}>
-                      {role.Description}
-                    </option>
-                  ))}
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">Gebruikersnaam / e-mail:</td>
-              <td className="border px-4 py-2">
-                <input 
-                  type="email" 
-                  value={userName} 
-                  onChange={(e) => setUserName(e.target.value)} 
-                  required 
-                  className="w-full"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">Wachtwoord:</td>
-              <td className="border px-4 py-2">
-                <input 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">Status:</td>
-              <td className="border px-4 py-2">
-                <label>
-                  <input 
-                    type="radio" 
-                    name="status" 
-                    value="1" 
-                    checked={status} 
-                    onChange={() => setStatus(true)} 
-                  />
-                  Actief
-                </label>
-                <label className="ml-4">
-                  <input 
-                    type="radio" 
-                    name="status" 
-                    value="0" 
-                    checked={!status} 
-                    onChange={() => setStatus(false)} 
-                  />
-                  Niet Actief
-                </label>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div className="mt-4">
-          <button 
-            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
+      return (
+        <PageTitle className="flex w-full justify-center sm:justify-start">
+          <div className="mr-4 hidden sm:block">
+            {title}
+          </div>
+          <Button
+            key="b-1"
+            className="mt-3 sm:mt-0"
             onClick={handleSave}
-            disabled={!isDataChanged()}
+            disabled={!allowSave}
           >
             Opslaan
-          </button>
-          <button 
-            className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2 ${!isDataChanged() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={handleReset}
-            disabled={!isDataChanged()}
-          >
-            Herstel
-          </button>
+          </Button>
+          {!isNewUser && (
+            <Button
+              key="b-3"
+              className="ml-2 mt-3 sm:mt-0"
+              onClick={handleReset}
+              disabled={!isDataChanged()}
+            >
+              Herstel
+            </Button>
+          )}
+          {props.showBackButton !== false && (
+            <Button
+              key="b-4"
+              className="ml-2 mt-3 sm:mt-0"
+              onClick={() => props.onClose(false)}
+            >
+              Terug
+            </Button>
+          )}
+        </PageTitle>
+      );
+    };
+
+    return (
+      <div style={{ minHeight: "65vh" }}>
+        {renderTopBar()}
+        
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
+        <div className="mt-4 w-full">
+          <FormInput 
+            label="Naam"
+            value={displayName} 
+            onChange={(e) => setDisplayName(e.target.value)} 
+            required 
+            disabled={!isEditing}
+            autoComplete="off"
+            innerRef={nameInputRef}
+          />
+          <br />
+          <FormSelect 
+            label="Rol"
+            value={roleID} 
+            onChange={(e) => setRoleID(e.target.value as VSUserRoleValuesNew)}
+            required
+            options={roleOptions}
+            disabled={!isEditing}
+          />
+          <br />
+          <FormInput 
+            label="Gebruikersnaam / e-mail"
+            value={userName} 
+            onChange={(e) => setUserName(e.target.value)} 
+            required 
+            type="email"
+            disabled={!isEditing}
+            autoComplete="new-email"
+          />
+          <br />
+          {showPasswordFields ? (
+            <>
+              <FormInput 
+                label="Wachtwoord"
+                value={password} 
+                onChange={handlePasswordChange}
+                type="password"
+                disabled={!isEditing}
+                autoComplete="new-password"
+              />
+              <br />
+              <FormInput 
+                label="Bevestig wachtwoord"
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                disabled={!isEditing}
+                autoComplete="new-password"
+              />
+              <br />
+            </>
+          ) : (
+            <FormInput 
+              label="Wachtwoord"
+              value="********" 
+              onChange={() => {}}
+              type="password"
+              disabled={true}
+              autoComplete="new-password"
+            />
+          )}
+          <br />
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center">
+              <input 
+                type="radio" 
+                name="status" 
+                value="1" 
+                checked={status} 
+                onChange={() => setStatus(true)} 
+                disabled={!isEditing}
+                className="mr-2"
+              />
+              Actief
+            </label>
+            <label className="flex items-center">
+              <input 
+                type="radio" 
+                name="status" 
+                value="0" 
+                checked={!status} 
+                onChange={() => setStatus(false)} 
+                disabled={!isEditing}
+                className="mr-2"
+              />
+              Niet Actief
+            </label>
+          </div>
         </div>
+
+        {!isNewUser && (
+          <div className="mt-6 w-full h-full">
+            <UserAccessRight newRoleID={roleID} />
+          </div>
+        )}
       </div>
     );
   };

@@ -4,14 +4,16 @@ import { ReportData } from "~/backend/services/reports/ReportFunctions";
 import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 import { getStartEndDT } from "./ReportsDateFunctions";
 import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
+import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
 
 import type { VSUserSecurityProfile } from "~/types/";
+import type { VSContactGemeente } from "~/types/contacts";
+import type { VSUserWithRoles } from "~/types/users";
 
 import LineChart from './LineChart';
 import { AppState } from "~/store/store";
 import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
-import { gemeenteSelect, VSContactGemeente } from "~/types/contacts";
 import { prisma } from "~/server/db";
 import BikeparkDataSourceSelect, { BikeparkWithDataSource } from './BikeparkDataSourceSelect';
 
@@ -22,6 +24,8 @@ interface ReportComponentProps {
   bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
+  gemeenten: VSContactGemeente[];
+  users: VSUserWithRoles[];
 }
 
 const ReportComponent: React.FC<ReportComponentProps> = ({
@@ -31,6 +35,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   bikeparks,
   error,
   warning,
+  gemeenten,
+  users,
 }) => {
   const { data: session } = useSession()
 
@@ -38,12 +44,11 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const [warningState, setWarningState] = useState(warning);
 
   const [gemeenteInfo, setGemeenteInfo] = useState<VSContactGemeente | undefined>(undefined);
+  const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>(gemeenten);
 
-  // const [reportParams, setReportParams] = useState<ReportParams | undefined>(undefined);
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
 
   const [bikeparksWithData, setBikeparksWithData] = useState<ReportBikepark[]>([]);
-  // const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [filterState, setFilterState] = useState<ReportState | undefined>(undefined);
@@ -131,8 +136,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         return;
       }
 
-      // setLoading(true);
-
       try {
         const apiEndpoint = "/api/database/availableDataPerBikepark";
         const response = await fetch(apiEndpoint, {
@@ -219,58 +222,22 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     );
   }
 
-  // const renderTable = (reportData: ReportData) => {
-  //   try {
-  //     if (!reportData.options?.xaxis?.categories) {
-  //       throw new Error("No categories found in xaxis");
-  //     }
-
-  //     return (
-  //       <div className="w-full">
-  //         {/* <h2 className="text-xl font-bold text-center mb-2">{reportData.title}</h2> */}
-  //         <div className="overflow-x-auto flex flex-col justify-center">
-  //           <table className="border-2 border-gray-300 rounded-md">
-  //             <thead className="bg-gray-50">
-  //               <tr>
-  //                 <th className="sticky left-0 bg-white text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-
-  //                 </th>
-  //                 {reportData.options.xaxis.categories!.map((category) => (
-  //                   <th key={category} className="text-left border-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-  //                     {category}
-  //                   </th>
-  //                 ))}
-  //               </tr>
-  //             </thead>
-  //             <tbody>
-  //               {reportData.series.map((serie, serieIndex) => (
-  //                 <tr key={serieIndex} className="bg-gray-100 even:bg-gray-100">
-  //                   <td className="sticky left-0 bg-white border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap">
-  //                     {serie.name}
-  //                   </td>
-  //                   {serie.data!.map((value, valueIndex) => (
-  //                     <td key={`v-${serieIndex}-${valueIndex}`} className="border-r-2 border-gray-300 px-4 py-2 whitespace-nowrap text-right">
-  //                       {value}
-  //                     </td>
-  //                   ))}
-  //                 </tr>
-  //               ))}
-  //             </tbody>
-  //           </table>
-  //         </div>
-  //       </div>
-  //     );
-  //   } catch (error) {
-  //     console.error(error);
-  //     return <div>Error loading table</div>;
-  //   }
-  // }
-
   const showReportParams = false; // used for debugging / testing
 
   return (
     <div className="noPrint w-full h-full" id="ReportComponent">
       <div className="flex flex-col space-y-4 p-4 h-full">
+        <div className="flex-none">
+          <GemeenteFilter
+            gemeenten={gemeenten}
+            users={users}
+            onFilterChange={setFilteredGemeenten}
+            showStallingenFilter={true}
+            showUsersFilter={true}
+            showExploitantenFilter={true}
+          />
+        </div>
+
         <div className="flex-none">
           <CollapsibleContent buttonText="Filteropties">
             <ReportsFilterComponent
@@ -317,14 +284,12 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                       breakpoint: undefined,
                       options: {},
                     }],
-                    // colors: ['#77B6EA', '#545454'],
                     dataLabels: {
                       enabled: false,
                     },
                     stroke: {
                       curve: 'straight',
                       width: 3,
-                      // width: reportData.series.some(s => s.data.length === 1) ? 0 : 2, // Disable line for single data point
                     },
                     title: {
                       text: reportData.title || '',
@@ -333,12 +298,11 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                     grid: {
                       borderColor: '#e7e7e7',
                       row: {
-                        colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                        colors: ['#f3f3f3', 'transparent'],
                         opacity: 0.5
                       },
                     },
                     markers: {
-                      // size: reportData.series.some(s => s.data.length === 1) ? 5 : undefined,
                     },
                     xaxis: reportData.options?.xaxis || {
                       type: 'category',
@@ -352,19 +316,16 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                       title: {
                         text: 'Aantal afgeronde transacties'
                       },
-                      // min: 5,
-                      // max: 40
                     },
                     legend: {
                       position: 'right',
                       horizontalAlign: 'center',
                       floating: false,
                       offsetY: 25,
-                      // offsetX: -5
                     },
                     tooltip: {
                       enabled: true,
-                      shared: false//filterState?.reportType === 'stallingsduur' ? false : true,
+                      shared: false
                     }
                   }}
                   series={reportData.series}
@@ -378,7 +339,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           </div>
         )}
       </div>
-    </div >
+    </div>
   );
 };
 

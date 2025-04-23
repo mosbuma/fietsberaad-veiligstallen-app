@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
 import type { User, Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
@@ -20,7 +20,7 @@ import DataproviderComponent from '~/components/beheer/contacts/dataprovider';
 import DocumentsComponent from '~/components/beheer/documenten';
 import ExportComponent from '~/components/beheer/exports';
 import FaqComponent from '~/components/beheer/faq';
-import HomeComponent from '~/components/beheer/home';
+import HomeInfoComponent from '~/components/beheer/home';
 import LogboekComponent from '~/components/beheer/logboek';
 import FietsenstallingenComponent from '~/components/beheer/fietsenstallingen';
 // import PresentationsComponent from '~/components/beheer/presentations';
@@ -38,7 +38,7 @@ import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
 import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
 import { gemeenteSelect, exploitantSelect, dataproviderSelect } from "~/types/contacts";
-import { securityUserSelect, VSUserRoleValuesNew, type VSUserWithRoles } from "~/types/users";
+import { securityUserSelect, VSUserGroupValues, VSUserRoleValuesNew, type VSUserWithRoles } from "~/types/users";
 import type { VSModule } from "~/types/modules";
 import { VSMenuTopic } from "~/types/index";
 
@@ -46,7 +46,8 @@ import { VSMenuTopic } from "~/types/index";
 import { useSession } from "next-auth/react";
 import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
 import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
-
+import GemeenteEdit from '~/components/contact/GemeenteEdit';
+import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
 //     font-weight: bold;
@@ -79,15 +80,13 @@ import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
 export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<BeheerPageProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions) as Session;
 
-  console.log(">>> SERVERSESSION ACID", session?.user?.activeContactId);
-  // console.log(">>> SERVERSESSION USER", session?.user);
-
   // Check if there is no session (user not logged in)
   if (!session) {
     return { redirect: { destination: "/login?redirect=/beheer", permanent: false } };
   }
 
   const currentUser = session?.user || false;
+
   const roles = await prisma.security_roles.findMany({});
 
   const fietsenstallingtypen = await prisma.fietsenstallingtypen.findMany({
@@ -112,7 +111,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     select: gemeenteSelect,
   });
 
-  console.log(">>> gemeenten size:", gemeenten?.length);
+  // console.log(">>> gemeenten size:", gemeenten?.length);
 
   const exploitanten: VSContactExploitant[] | undefined = await prisma.contacts.findMany({
     where: { ItemType: 'exploitant', ...whereCondition },
@@ -173,7 +172,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
       currentUser.image = "/images/user.png";
     }
   } else {
-    console.log("no current user");
+    console.warn("no current user");
   }
   return { props: { currentUser, gemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
 };
@@ -236,7 +235,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
   const handleSelectComponent = (componentKey: VSMenuTopic) => {
     try {
-      router.push(`/beheer/${componentKey}`); // this returns a promise!
+      router.push(`/beheer/${componentKey}`);
     } catch (error) {
       console.error("Error in handleSelectComponent:", error);
     }
@@ -261,7 +260,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
       const { user } = await response.json();
 
-      console.log(">>> new user activeContactId", user.activeContactId);
+      // console.log(">>> new user activeContactId", user.activeContactId);
 
       // Update the session with new user data
       const newSession = await updateSession({
@@ -269,7 +268,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         user
       });
 
-      console.log(">>> new session activeContactId", newSession);
+      // console.log(">>> new session activeContactId", newSession);
     } catch (error) {
       console.error("Error switching contact:", error);
     } finally {
@@ -280,6 +279,19 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   const selectedGemeenteID = session?.user?.activeContactId || "";
   const filteredBikeparks = bikeparks?.filter((bikepark) => (selectedGemeenteID !== "") && (bikepark.gemeenteID === selectedGemeenteID));
 
+
+  // useEffect(() => {
+  //   // Skip redirect if we're in the middle of a hot reload
+  //   if (typeof window !== 'undefined' && window.__NEXT_DATA__?.props?.pageProps?.isHotReload) {
+  //     return;
+  //   }
+
+  //   // Only redirect if we have no selected gemeente and we're not already on the home page
+  //   if (!selectedGemeenteID && router.query.activecomponent !== VSMenuTopic.Home) {
+  //     router.push(`/beheer/${VSMenuTopic.Home}`);
+  //   }
+  // }, [selectedGemeenteID]);
+
   // const filteredUsers = users?.filter((user) => (selectedGemeenteID !== "") && (user.security_users_sites.some(site => site.SiteID === selectedGemeenteID)));
 
   const renderComponent = () => {
@@ -287,7 +299,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
       let selectedComponent = undefined;
       switch (activecomponent) {
         case VSMenuTopic.Home:
-          selectedComponent = <HomeComponent />;
+          selectedComponent = <HomeInfoComponent gemeente={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)} />;
           break;
         case VSMenuTopic.Report:
           {
@@ -297,6 +309,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
                 firstDate={firstDate}
                 lastDate={lastDate}
                 bikeparks={filteredBikeparks || []}
+                gemeenten={gemeenten || []}
+                users={users || []}
               />
             ) : (
               selectedComponent = <div className="text-center text-gray-500 mt-10 text-xl" >Selecteer een gemeente om rapportages te bekijken</div>
@@ -327,7 +341,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.ContactsGemeenten:
           selectedComponent = (
             <GemeenteComponent
-              gemeenten={gemeenten || []}
               users={users || []}
               roles={roles || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
@@ -338,9 +351,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <ExploitantComponent
             users={users || []}
             roles={roles || []}
-            exploitanten={exploitanten || []}
             gemeenten={gemeenten || []}
             fietsenstallingtypen={fietsenstallingtypen || []}
+            isAdmin={currentUser?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin}
           />;
           break;
         case VSMenuTopic.ContactsDataproviders:
@@ -366,8 +379,17 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.Logboek:
           selectedComponent = <LogboekComponent />;
           break;
-        case VSMenuTopic.UsersGebruikersbeheer:
-          selectedComponent = <UsersComponent type="interne-gebruiker" users={users || []} roles={roles || []} />;
+        case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} users={users || []} roles={roles || []} />;
+          break;
+        case VSMenuTopic.UsersGebruikersbeheerGemeente:
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} users={users || []} roles={roles || []} />;
+          break;
+        case VSMenuTopic.UsersGebruikersbeheerExploitant:
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} users={users || []} roles={roles || []} />;
+          break;
+        case VSMenuTopic.UsersGebruikersbeheerBeheerder:
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} users={users || []} roles={roles || []} />;
           break;
         // case VSMenuTopic.users-beheerders:
         //   selectedComponent = <GemeenteComponent type="admins" users={users || []} roles={roles || []} contacts={dataproviders || []} modules={modules || []} fietsenstallingtypen={fietsenstallingtypen || []} />;
@@ -396,7 +418,22 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.Settings:
           selectedComponent = <SettingsComponent />;
           break;
-        // case VSMenuTopic.Abonnementen:
+        case VSMenuTopic.SettingsGemeente:
+          selectedComponent =           
+            <GemeenteEdit 
+              gemeenten={gemeenten || []} 
+              users={users || []}
+              fietsenstallingtypen={fietsenstallingtypen || []}
+              id={selectedGemeenteID} 
+              onClose={undefined} 
+              onEditStalling={(stallingID: string | undefined) => {}}
+              onEditUser={(userID: string | undefined) => {}}
+              onSendPassword={(userID: string | undefined) => {}}
+              hidden={false}
+              allowEdit={true}
+            />
+          break;
+          // case VSMenuTopic.Abonnementen:
         //   selectedComponent = <AbonnementenComponent type="abonnementen" />;
         //   break;
         // case VSMenuTopic.Abonnementsvormen:
@@ -426,6 +463,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         // case VSMenuTopic.StallingInfo:
         //   selectedComponent = <StallingInfoComponent />;
         //   break;
+        case VSMenuTopic.TestDatabaseApi:
+          selectedComponent = <DatabaseApiTest />;
+          break;
         default:
           console.warn("unknown component", activecomponent);
           selectedComponent = undefined;

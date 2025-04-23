@@ -90,7 +90,8 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const hasDevelopmentRight = userHasRight(profile, VSSecurityTopic.Development);
 
     const hasDatabaseRight = hasSystemRight;
-    const hasInstellingenRight = hasSystemRight;
+
+    const hasInstellingenRight = isAdmin;
 
     {/* TODO: Later terugzetten, nu niet nodig
       // const hasFietskluizenRight = userHasRight(profile, VSSecurityTopic.Fietskluizen);
@@ -134,7 +135,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        {formatLiDevelopment(VSMenuTopic.Home, 'Home')}
+        {formatLi(VSMenuTopic.Home, 'Home')}
+
+        {hasInstellingenRight && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
+
+        {hasUsersRight && formatLi(VSMenuTopic.UsersGebruikersbeheerFietsberaad, `Gebruikers`, true)}
 
         { formatLi(false, 'Organisaties', false,
           <ul className="ml-4 mt-1">
@@ -149,15 +154,6 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {/* {hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
         {hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')} */}
 
-        {hasUsersRight && (
-            formatLi(false, 'Gebruikersbeheer', false,
-              <ul className="ml-4 mt-1">
-                {userHasRole(profile, VSUserRoleValuesNew.Admin) && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {formatLi(VSMenuTopic.ContactsExploitanten, `Gebruikers ${activecontact?.CompanyName}`, true)}
-                {/* {formatLi(VSMenuTopic.UsersBeheerders, 'Beheerders', true)} */}
-              </ul>
-            )
-        )}
   
         {hasRapportagesRight && 
           formatLi(false, 'Rapportages', false,
@@ -187,8 +183,6 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
           )
         }
 
-        {hasInstellingenRight && formatLiDevelopment(VSMenuTopic.Settings, 'Instellingen')}
-
         {hasDatabaseRight && formatLi(VSMenuTopic.Database, 'Database')}
 
         { hasDevelopmentRight && (
@@ -198,6 +192,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
                 {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
                 {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
                 {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
+                {formatLi(VSMenuTopic.TestDatabaseApi, 'Test Database API', true)}
               </ul>)
             )
         }

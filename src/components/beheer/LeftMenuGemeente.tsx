@@ -90,7 +90,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const hasDevelopmentRight = userHasRight(profile, VSSecurityTopic.Development);
 
     const hasDatabaseRight = hasSystemRight;
-    const hasInstellingenRight = hasSystemRight;
+    // const hasInstellingenRight = hasSystemRight;
 
     {/* TODO: Later terugzetten, nu niet nodig
       // const hasFietskluizenRight = userHasRight(profile, VSSecurityTopic.Fietskluizen);
@@ -136,9 +136,9 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       <>
         {formatLiDevelopment(VSMenuTopic.Home, 'Home')}
 
-        {hasInstellingenRight && formatLiDevelopment(VSMenuTopic.Settings, 'Instellingen')}
+        { isAdmin && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
 
-        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers`, true)}
+        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers`)}
         { isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
         { isAdmin && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
   
