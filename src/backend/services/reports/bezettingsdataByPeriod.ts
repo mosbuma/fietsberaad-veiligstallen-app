@@ -17,7 +17,7 @@ const filter_bikeparks_sql = (params: {
 
   if (params.reportType === 'bezetting') {
     const sql_string = params.bikeparkIDs.map(id => {
-      return `(bikeparkID = '${id}' AND source = 'FMS')`;
+      return `CONCAT(bikeparkID, source) = '${id}FMS'`;
     }).join(' OR ');
 
     return `(${sql_string})`;
@@ -43,7 +43,10 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     return false;
   }
 
-  // useCache = false;
+  // Don't use cache for bezetting report
+  if (reportType === "bezetting") {
+    useCache = false;
+  }
 
   const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
   if (adjustedStartDate === undefined || adjustedEndDate === undefined) {
