@@ -153,7 +153,6 @@ export const getSingleWeekRange = (year: number | "lastPeriod", week: number | "
     endDT = lastDayOfWeek(now.getFullYear(), theWeek);
   } else {
     startDT = getDateOfIsoWeek(year, theWeek);
-    console.log('startDT', startDT, year, theWeek);
     endDT = lastDayOfWeek(year, theWeek);
   }
 

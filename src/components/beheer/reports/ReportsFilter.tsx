@@ -41,6 +41,8 @@ export interface ReportParams {
   source?: string;
 
   dayBeginsAt?: string;
+
+  bikeparkDataSources: BikeparkWithDataSource[];
 }
 
 export const defaultReportState: ReportState = {
@@ -52,7 +54,8 @@ export const defaultReportState: ReportState = {
   reportRangeYear: 2024,
   reportRangeValue: 1,
   fillups: false,
-  grouped: "0"
+  grouped: "0",
+  bikeparkDataSources: []
 }
 
 interface ReportsFilterComponentProps {
@@ -103,7 +106,10 @@ export type ReportState = {
   reportRangeValue: number | "lastPeriod";
   fillups: boolean;
   grouped: string;
+  bikeparkDataSources: BikeparkWithDataSource[];
 };
+
+const STORAGE_KEY = 'VS_reports_filterState';
 
 const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   showAbonnementenRapporten,
@@ -115,17 +121,44 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 }) => {
   const selectClasses = "min-w-56 h-10 p-2 border-2 border-gray-300 rounded-md";
 
-  const [reportType, setReportType] = useState<ReportType>("transacties_voltooid");
-  const [reportGrouping, setReportGrouping] = useState<ReportGrouping>("per_year");
-  const [reportCategories, setReportCategories] = useState<ReportCategories>("per_stalling");
-  const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>("range_year");
-  const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>([]);
-  const [selectedBikeparkDataSources, setSelectedBikeparkDataSources] = useState<BikeparkWithDataSource[]>([]);
+  // Load initial state from localStorage or use defaults
+  const loadInitialState = () => {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        return {
+          reportType: parsed.reportType || "transacties_voltooid",
+          reportGrouping: parsed.reportGrouping || "per_year",
+          reportCategories: parsed.reportCategories || "per_stalling",
+          reportRangeUnit: parsed.reportRangeUnit || "range_year",
+          reportRangeYear: parsed.reportRangeYear || 2024,
+          reportRangeValue: parsed.reportRangeValue || 2024,
+          fillups: parsed.fillups || false,
+          grouped: parsed.grouped || "0",
+          selectedBikeparkIDs: parsed.selectedBikeparkIDs || [],
+          selectedBikeparkDataSources: parsed.selectedBikeparkDataSources || []
+        };
+      } catch (e) {
+        console.warn('Failed to parse saved filter state:', e);
+      }
+    }
+    return null;
+  };
+
+  const initialState = loadInitialState();
+
+  const [reportType, setReportType] = useState<ReportType>(initialState?.reportType || "transacties_voltooid");
+  const [reportGrouping, setReportGrouping] = useState<ReportGrouping>(initialState?.reportGrouping || "per_year");
+  const [reportCategories, setReportCategories] = useState<ReportCategories>(initialState?.reportCategories || "per_stalling");
+  const [reportRangeUnit, setReportRangeUnit] = useState<ReportRangeUnit>(initialState?.reportRangeUnit || "range_year");
+  const [selectedBikeparkIDs, setSelectedBikeparkIDs] = useState<string[]>(initialState?.selectedBikeparkIDs || []);
+  const [selectedBikeparkDataSources, setSelectedBikeparkDataSources] = useState<BikeparkWithDataSource[]>(initialState?.selectedBikeparkDataSources || []);
   const [datatype, setDatatype] = useState<ReportDatatype | undefined>(undefined);
-  const [reportRangeYear, setReportRangeYear] = useState<number | "lastPeriod">(2024);
-  const [reportRangeValue, setReportRangeValue] = useState<number | "lastPeriod">(2024);
-  const [fillups, setFillups] = useState(false);
-  const [grouped, setGrouped] = useState("0");
+  const [reportRangeYear, setReportRangeYear] = useState<number | "lastPeriod">(initialState?.reportRangeYear || new Date().getFullYear());
+  const [reportRangeValue, setReportRangeValue] = useState<number | "lastPeriod">(initialState?.reportRangeValue || new Date().getFullYear());
+  const [fillups, setFillups] = useState(initialState?.fillups || false);
+  const [grouped, setGrouped] = useState(initialState?.grouped || "0");
   const [percBusy, setPercBusy] = useState("");
   const [percQuiet, setPercQuiet] = useState("");
   const [errorState, setErrorState] = useState<string | undefined>(undefined);
@@ -149,7 +182,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       reportRangeYear,
       reportRangeValue,
       fillups,
-      grouped
+      grouped,
+      bikeparkDataSources: selectedBikeparkDataSources
     };
 
     // If state has changed:
@@ -158,9 +192,17 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       // Auto set defaults for 'bezetting' report type
       if (newState.reportType !== previousStateRef.current?.reportType) {
         switch (newState.reportType) {
+          case "transacties_voltooid":
+            setReportGrouping("per_day");
+            setReportCategories("per_stalling");
+            break;
           case "bezetting":
             setReportGrouping("per_hour");
             setReportCategories("per_weekday");
+            break;
+          case "stallingsduur":
+            setReportGrouping("per_bucket");
+            setReportCategories("per_type_klant");
             break;
           default:
             setReportGrouping("per_day");
@@ -222,6 +264,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     reportRangeValue,
     fillups,
     grouped,
+    selectedBikeparkDataSources,
     onStateChange,
     bikeparks
   ]);
@@ -339,8 +382,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
         onChange={(e) => {
           const value = e.target.value === "lastPeriod" ? "lastPeriod" : parseInt(e.target.value);
           setReportRangeYear(value)
-        }
-        }
+        }}
         name="year"
         id="year"
         className={selectClasses}
@@ -589,12 +631,37 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    const stateToSave = {
+      reportType,
+      reportGrouping,
+      reportCategories,
+      reportRangeUnit,
+      selectedBikeparkIDs,
+      reportRangeYear,
+      reportRangeValue,
+      fillups,
+      grouped
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [
+    reportType,
+    reportGrouping,
+    reportCategories,
+    reportRangeUnit,
+    selectedBikeparkIDs,
+    reportRangeYear,
+    reportRangeValue,
+    fillups,
+    grouped
+  ]);
+
   return (
     <div className="noPrint" id="ReportComponent">
       <div className="flex flex-col space-y-4">
         <div>
           {renderUnitSelect()}
-
 
           {reportType === "abonnementen" && (
             <div>

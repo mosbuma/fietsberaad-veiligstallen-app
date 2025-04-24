@@ -23,7 +23,7 @@ export const getLabelMapForXAxis = (reportGrouping: ReportGrouping, startDate: D
     case 'per_hour': {
       const labelMap: XAxisLabelMap = {};
       Array.from({ length: 24 }, (_, i) => (labelMap[i.toString()] = i.toString() + ":00"));
-      console.log(labelMap);
+      // console.log(labelMap);
       return labelMap;
     }
     case 'per_weekday': {

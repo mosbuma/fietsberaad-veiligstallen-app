@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from "react";
 
-const Chart = dynamic(() => import('react-apexcharts'), {
+const ApexChart = dynamic(() => import('react-apexcharts'), {
   ssr: false,  // This will disable server-side rendering for this component
 });
 // https://stackoverflow.com/a/68844119
@@ -13,7 +13,7 @@ const Chart = dynamic(() => import('react-apexcharts'), {
 // After state change of parent component, the graph data is gone.
 // I tried: https://github.com/apexcharts/react-apexcharts/issues/180
 
-const LineChart = ({
+const Chart = ({
   options,
   series,
   type,
@@ -24,42 +24,44 @@ const LineChart = ({
   type: 'line' | 'bar',
   style?: object
 }) => {
-  const [chartData, setChartData] = useState<{
-    options?: object,
-    series?: Array<any>
-  }>({})
+  // const [chartData, setChartData] = useState<{
+  //   options?: object,
+  //   series?: Array<any>
+  // }>({})
 
-  useEffect(() => {
-    if (!options || !options.xaxis.categories) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!options || !options.xaxis.categories) {
+  //     return;
+  //   }
 
-    setChartData({
-      options: {
-        ...options,
-        xaxis: {
-          categories: options.xaxis.categories
-        }
-      },
-      series: series
-    });
-  }, [
-    // If you uncomment this, problems on the x-axis will occur.
-    // options,
-    // series
-  ]);
+  //   setChartData({
+  //     options: {
+  //       ...options,
+  //       xaxis: {
+  //         categories: options.xaxis.categories
+  //       }
+  //     },
+  //     series: series
+  //   });
+  // }, [
+  //   // If you uncomment this, problems on the x-axis will occur.
+  //   // options,
+  //   // series
+  // ]);
 
-  if (!chartData.options || !chartData.series) {
-    return <>Loading..</>
-  }
+  // if (!chartData.options || !chartData.series) {
+  //   return <>Loading..</>
+  // }
+
+  console.log('Chart component');
 
   return (
     <>
       <div style={{ width: '100%', height: '100%' }}>
-        {typeof window !== 'undefined' && chartData.options && (
-          <Chart
-            options={chartData.options}
-            series={chartData.series}
+        {options && series && (
+          <ApexChart
+            options={options}
+            series={series}
             type={type}
             height="100%"
             style={{ minHeight: "400px", ...style }}
@@ -70,4 +72,4 @@ const LineChart = ({
   )
 }
 
-export default LineChart;
+export default Chart;

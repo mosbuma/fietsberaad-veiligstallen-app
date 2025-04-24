@@ -6,6 +6,17 @@ import {
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 import moment from "moment";
 
+const filter_locations_sql = (params: {
+  bikeparkIDs: string[],
+}) => {
+  if (!params.bikeparkIDs || params.bikeparkIDs.length === 0) {
+    return 'locationID IN ("")';
+  }
+
+  const bikeparkIDs_string = params.bikeparkIDs.length > 0 ? params.bikeparkIDs.map(bp => `'${bp}'`).join(',') : '""';
+  return `locationID IN (${bikeparkIDs_string})`;
+}
+
 export const getSQL = (params: ReportParams, useCache: boolean = true): string | false => {
   const {
     reportType,
@@ -56,7 +67,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   statementItems.push(`FROM stallingsduur_cache`)
   statementItems.push(`LEFT JOIN fietsenstallingen ON stallingsId = locationid`)
   // statementItems.push(`  LEFT JOIN contacts ON contacts.ID = fietsenstallingen.SiteID`)
-  statementItems.push(`WHERE locationID IN ( ? )`)
+  statementItems.push(`WHERE ${filter_locations_sql({ bikeparkIDs })}`)
   // statementItems.push(`-- ${bikeParkId ? `AND locationid IN (?)` : `AND sectionid LIKE ?`}`)
   // statementItems.push(`-- ${selectType === 'BIKETYPE' || selectType === 'CLIENTTYPE' ? `AND sectionid = ?` : ''}`)
   statementItems.push(`AND checkoutdate BETWEEN ? AND ?`)
@@ -78,5 +89,6 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   ];
 
   const sqlfilledin = interpolateSQL(sql, queryParams);
+  console.log('sqlfilledin', sqlfilledin);
   return sqlfilledin;
 }

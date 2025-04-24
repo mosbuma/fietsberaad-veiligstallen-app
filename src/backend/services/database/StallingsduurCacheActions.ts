@@ -153,6 +153,21 @@ export const createStallingsduurCacheTable = async (params: CacheParams) => {
     return false;
   }
 
+  const sqlCreateIndexes = [
+    `CREATE INDEX idx_locationId ON stallingsduur_cache(locationId);`,
+    `CREATE INDEX idx_checkoutdate ON stallingsduur_cache(checkoutdate);`,
+    `CREATE INDEX idx_clienttypeid ON stallingsduur_cache(clienttypeid);`,
+    `CREATE INDEX idx_bucket ON stallingsduur_cache(bucket);`
+  ];
+
+  for (const sqlCreateIndex of sqlCreateIndexes) {
+    const result = await prisma.$queryRawUnsafe(sqlCreateIndex);
+    if (!result) {
+      console.error("Unable to create index on stallingsduur_cache table", result);
+      return false;
+    }
+  }
+
   // const result2 = await prisma.$queryRawUnsafe(sqlCreateIndex);
   // if(!result2) {
   //     console.error("Unable to create location/date index on transactions_cache table",result2);

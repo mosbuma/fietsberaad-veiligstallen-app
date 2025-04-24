@@ -10,7 +10,7 @@ import type { VSUserSecurityProfile } from "~/types/";
 import type { VSContactGemeente } from "~/types/contacts";
 import type { VSUserWithRoles } from "~/types/users";
 
-import LineChart from './LineChart';
+import Chart from './Chart';
 import { AppState } from "~/store/store";
 import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
@@ -53,14 +53,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
 
   const [filterState, setFilterState] = useState<ReportState | undefined>(undefined);
 
-  const [bikeparkDataSources, setBikeparkDataSources] = useState<BikeparkWithDataSource[]>([]);
-
   const handleFilterChange = (newState: ReportState) => {
     setFilterState(newState);
-  };
-
-  const handleBikeparkDataSourcesChange = (selectedSources: BikeparkWithDataSource[]) => {
-    setBikeparkDataSources(selectedSources);
   };
 
   useEffect(() => {
@@ -88,7 +82,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
               reportGrouping: filterState.reportGrouping,
               reportRangeUnit: filterState.reportRangeUnit,
               bikeparkIDs: filterState.selectedBikeparkIDs,
-              bikeparkDataSources: bikeparkDataSources,
+              bikeparkDataSources: filterState.bikeparkDataSources,
               startDT,
               endDT,
               fillups: filterState.fillups,
@@ -102,6 +96,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           throw new Error(`Error: ${response.statusText}`);
         }
         const data = await response.json();
+        console.log('data', data, 'reportData.series', data.series);
         setReportData(data);
         setErrorState("");
       } catch (error) {
@@ -124,15 +119,25 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     };
   }, [
     filterState,
-    gemeenteInfo?.DayBeginsAt,
-    bikeparkDataSources
+    gemeenteInfo?.DayBeginsAt
   ]);
 
   useEffect(() => {
+    // Only check waht bikeparks have data if a start and end time are set
+    if (!filterState) return;
+
+    // Get start date and end date from filterState
+    const { startDT, endDT } = getStartEndDT(filterState, firstDate, lastDate);
+
     const abortController = new AbortController();
 
     const fetchBikeparksWithData = async () => {
       if (undefined === filterState) {
+        return;
+      }
+
+      // Only fetch bikeparks with data if the report type is 'bezetting'
+      if (filterState.reportType !== 'bezetting') {
         return;
       }
 
@@ -146,8 +151,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           body: JSON.stringify({
             reportType: filterState.reportType,
             bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
-            startDT: firstDate,
-            endDT: lastDate
+            startDT: startDT,
+            endDT: endDT
           }),
           signal: abortController.signal
         });
@@ -169,7 +174,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         }
       } finally {
         if (!abortController.signal.aborted) {
-          setLoading(false);
+          // setLoading(false);
         }
       }
     };
@@ -227,7 +232,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   return (
     <div className="noPrint w-full h-full" id="ReportComponent">
       <div className="flex flex-col space-y-4 p-4 h-full">
-        <div className="flex-none">
+
+        {/* <div className="flex-none">
           <GemeenteFilter
             gemeenten={gemeenten}
             users={users}
@@ -236,7 +242,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
             showUsersFilter={true}
             showExploitantenFilter={true}
           />
-        </div>
+        </div> */}
 
         <div className="flex-none">
           <CollapsibleContent buttonText="Filteropties">
@@ -265,11 +271,12 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           <div className="flex-grow min-h-0">
             {reportData ? (
               <div className="w-full h-full">
-                <LineChart
+                <Chart
                   type={filterState?.reportType === 'stallingsduur' ? 'bar' : "line"}
                   options={{
                     chart: {
                       id: `line-chart-${Math.random()}`,//https://github.com/apexcharts/react-apexcharts/issues/349#issuecomment-966461811
+                      stacked: filterState?.reportType === 'stallingsduur' ? true : false,
                       zoom: {
                         enabled: false
                       },
