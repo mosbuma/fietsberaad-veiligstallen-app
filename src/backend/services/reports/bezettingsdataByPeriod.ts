@@ -14,7 +14,7 @@ const filter_bikeparks_sql = (params: {
   bikeparkDataSources: BikeparkWithDataSource[]
 }) => {
   if (!params.bikeparkIDs || params.bikeparkIDs.length === 0) {
-    return '1=1';
+    return '0=1';
   }
 
   if (params.reportType === 'bezetting') {
@@ -124,7 +124,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     );
   }
   else {
-    statementItems.push(` 1=1`)
+    statementItems.push(` 1=0`)
   }
 
   statementItems.push(`AND b.timestamp BETWEEN ? AND ?`)

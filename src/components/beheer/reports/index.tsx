@@ -141,6 +141,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         return;
       }
 
+      console.log('fetchBikeparksWithData', filterState.reportType, bikeparks, firstDate, lastDate);
+
       try {
         const apiEndpoint = "/api/database/availableDataPerBikepark";
         const response = await fetch(apiEndpoint, {
@@ -184,7 +186,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
     return () => {
       abortController.abort();
     };
-  }, [filterState?.reportType, bikeparks, firstDate, lastDate]);
+  }, [filterState?.reportType, bikeparks.length]);
 
   const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
   const selectedGemeenteID = session?.user?.activeContactId || "";

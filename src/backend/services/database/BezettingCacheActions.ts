@@ -173,6 +173,7 @@ export const createBezettingCacheTable = async (params: CacheParams) => {
     `CREATE INDEX idx_bikeparkID ON bezettingsdata_day_hour_cache(bikeparkID);`,
     `CREATE INDEX idx_sectionID ON bezettingsdata_day_hour_cache(sectionID);`,
     `CREATE INDEX idx_source ON bezettingsdata_day_hour_cache(source);`,
+    'CREATE INDEX idx_interval ON bezettingsdata_day_hour_cache(`interval`);',
     `CREATE INDEX idx_bikeparkID_source ON bezettingsdata_day_hour_cache(source, bikeparkID);`
   ];
 
