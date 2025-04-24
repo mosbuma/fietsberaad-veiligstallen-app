@@ -8,25 +8,25 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     // one of 
 
     switch (req.query.reportType) {
-      case "transacties_voltooid": 
+      case "transacties_voltooid":
       case "inkomsten": {
-          let reportParams = req.body.reportParams;
-    
+        let reportParams = req.body.reportParams;
+
         if (undefined === reportParams) {
           res.status(405).end() // Method Not Allowed
         }
 
         data = await ReportService.getTransactionsPerPeriodData(reportParams);
-        if(false !== data) {
-            res.json(data);
+        if (false !== data) {
+          res.json(data);
         } else {
-            res.status(500).end();
+          res.status(500).end();
         }
         break;
       }
       case "bezetting": {
         let reportParams = req.body.reportParams;
-    
+
         if (undefined === reportParams) {
           res.status(405).end() // Method Not Allowed
         }
@@ -37,7 +37,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       }
       case "stallingsduur": {
         let reportParams = req.body.reportParams;
-    
+
         if (undefined === reportParams) {
           res.status(405).end() // Method Not Allowed
         }
@@ -46,13 +46,13 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         break;
       }
       case "abonnementen":
-      case "abonnementen_lopend" :
-      case "volmeldingen" :
+      case "abonnementen_lopend":
+      case "volmeldingen":
       case "gelijktijdig_vol":
       case "downloads":
       default: {
         res.status(405).end() // Method Not Allowed
-      }      
+      }
     }
   } else {
     res.status(405).end() // Method Not Allowed

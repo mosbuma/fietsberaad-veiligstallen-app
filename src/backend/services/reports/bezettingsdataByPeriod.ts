@@ -6,18 +6,27 @@ import {
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
 
 import moment from 'moment';
+import { BikeparkWithDataSource } from "~/components/beheer/reports/BikeparkDataSourceSelect";
 
 const filter_bikeparks_sql = (params: {
   bikeparkIDs: string[],
-  reportType: string
+  reportType: string,
+  bikeparkDataSources: BikeparkWithDataSource[]
 }) => {
   if (!params.bikeparkIDs || params.bikeparkIDs.length === 0) {
     return '1=1';
   }
 
   if (params.reportType === 'bezetting') {
+    const getSourceForBikepark = (bikeparkID: string): string => {
+      if (!params.bikeparkDataSources) return 'FMS';
+      const bikepark = params.bikeparkDataSources.find(x => x.stallingsID === bikeparkID);
+      return bikepark?.source || 'FMS';
+    }
+
     const sql_string = params.bikeparkIDs.map(id => {
-      return `CONCAT(bikeparkID, source) = '${id}FMS'`;
+
+      return `CONCAT(bikeparkID, source) = '${id}${getSourceForBikepark(id)}'`;
     }).join(' OR ');
 
     return `(${sql_string})`;
@@ -34,6 +43,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
     reportGrouping,
     reportCategories,
     bikeparkIDs,
+    bikeparkDataSources,
     startDT: startDate,
     endDT: endDate
   } = params;
@@ -44,9 +54,9 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   }
 
   // Don't use cache for bezetting report
-  if (reportType === "bezetting") {
-    useCache = false;
-  }
+  // if (reportType === "bezetting") {
+  //   useCache = false;
+  // }
 
   const { timeIntervalInMinutes, adjustedStartDate, adjustedEndDate } = getAdjustedStartEndDates(startDate, endDate);
   if (adjustedStartDate === undefined || adjustedEndDate === undefined) {
@@ -90,7 +100,6 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   // Selects from cache table
   else {
     if (reportType === "bezetting") {
-      console.log('bezetting');
       // statementItems.push(`SUM(b.totalCheckins) AS totalCheckins,`);
       // statementItems.push(`SUM(b.totalCheckouts) AS totalCheckouts,`);
       // statementItems.push(`SUM(b.totalCapacity) as capacity,`);
@@ -110,8 +119,12 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
       filter_bikeparks_sql({
         bikeparkIDs: bikeparkIDs,
         reportType: reportType,
+        bikeparkDataSources: bikeparkDataSources
       })
     );
+  }
+  else {
+    statementItems.push(` 1=1`)
   }
 
   statementItems.push(`AND b.timestamp BETWEEN ? AND ?`)
