@@ -41,9 +41,9 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
     } else if (selectedBikeparkIDs.length === 1) {
       return bikeparks.find(park => park.stallingsID === selectedBikeparkIDs[0])?.title.trim();
     } else if (selectedBikeparkIDs.length < bikeparks.length) {
-      return "Meerdere stallingen";
+      return `${selectedBikeparkIDs.length} Stallingen`;
     } else {
-      return "Alle stallingen";
+      return `Alle stallingen`;
     }
   };
 

@@ -193,7 +193,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       if (newState.reportType !== previousStateRef.current?.reportType) {
         switch (newState.reportType) {
           case "transacties_voltooid":
-            setReportGrouping("per_day");
+            setReportGrouping("per_week");
             setReportCategories("per_stalling");
             break;
           case "bezetting":
@@ -205,7 +205,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
             setReportCategories("per_type_klant");
             break;
           default:
-            setReportGrouping("per_day");
+            setReportGrouping("per_week");
             setReportCategories("per_stalling");
             break;
         }

@@ -73,6 +73,15 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
     );
   };
 
+  const getButtonText = () => {
+    const sources = selectedBikeparks.map(p => p.source);
+    const uniqueSources = [...new Set(sources)];
+    console.log('uniqueSources', uniqueSources)
+    if (uniqueSources.length === 1) return `Databron: ${uniqueSources[0]}`;
+
+    return `Databronnen: ${uniqueSources.join(', ')}`;
+  }
+
   return (
     <>
       <div
@@ -81,7 +90,7 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
         style={{ userSelect: 'none', backgroundColor: 'rgb(239, 239, 239)' }}
         onClick={() => setIsDropdownOpen((prev) => !prev)}
       >
-        Kies databron
+        {getButtonText()}
         <button
           className={buttonClasses}
           style={{

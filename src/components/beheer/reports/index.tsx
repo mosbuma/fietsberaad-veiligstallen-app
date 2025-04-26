@@ -5,6 +5,7 @@ import { AvailableDataDetailedResult } from "~/backend/services/reports/availabl
 import { getStartEndDT } from "./ReportsDateFunctions";
 import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
 import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
+import moment from 'moment';
 
 import type { VSUserSecurityProfile } from "~/types/";
 import type { VSContactGemeente } from "~/types/contacts";
@@ -137,9 +138,9 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       }
 
       // Only fetch bikeparks with data if the report type is 'bezetting'
-      if (filterState.reportType !== 'bezetting') {
-        return;
-      }
+      // if (filterState.reportType !== 'bezetting') {
+      //   return;
+      // }
 
       console.log('fetchBikeparksWithData', filterState.reportType, bikeparks, firstDate, lastDate);
 
@@ -282,8 +283,33 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                       zoom: {
                         enabled: false
                       },
+                      // toolbar: {
+                      //   show: true
+                      // },
                       toolbar: {
-                        show: true
+                        show: true,
+                        tools: {
+                          download: '<img src="https://dashboarddeelmobiliteit.nl/components/StatsPage/icon-download-to-csv.svg" class="ico-download" width="20">',
+                          selection: true,
+                          zoom: true,
+                          zoomin: true,
+                          zoomout: true,
+                          pan: true,
+                          reset: true | '<img src="/static/icons/reset.png" width="20">',
+                          customIcons: []
+                        },
+                        export: {
+                          csv: {
+                            filename: `${moment().format('YYYY-MM-DD HH_mm')} VeiligStallen ${filterState?.reportType}`,
+                          },
+                          svg: {
+                            filename: `${moment().format('YYYY-MM-DD HH_mm')} VeiligStallen ${filterState?.reportType}`,
+                          },
+                          png: {
+                            filename: `${moment().format('YYYY-MM-DD HH_mm')} VeiligStallen ${filterState?.reportType}`,
+                          }
+                        },
+                        autoSelected: 'zoom'
                       },
                       animations: {
                         enabled: false

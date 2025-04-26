@@ -128,6 +128,7 @@ export const getSQLPerBikepark = (reportType: ReportType, bikeparkIDs: string[],
       ];
 
       const sqlfilledin = interpolateSQL(sql, queryParams);
+      console.log('getSQLPerBikepark :: sqlfilledin', sqlfilledin);
       return sqlfilledin;
     }
     case "abonnementen":

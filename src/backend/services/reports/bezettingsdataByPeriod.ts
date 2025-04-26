@@ -25,8 +25,7 @@ const filter_bikeparks_sql = (params: {
     }
 
     const sql_string = params.bikeparkIDs.map(id => {
-
-      return `CONCAT(bikeparkID, source) = '${id}${getSourceForBikepark(id)}'`;
+      return `(bikeparkID = '${id}' AND source = '${getSourceForBikepark(id)}')`;
     }).join(' OR ');
 
     return `(${sql_string})`;
@@ -140,6 +139,7 @@ export const getSQL = (params: ReportParams, useCache: boolean = true): string |
   statementItems.push(`  CATEGORY, TIMEGROUP`); // f.Title, 
 
   statementItems.push(`ORDER BY timestamp ASC`);
+  // statementItems.push(`ORDER BY CATEGORY, TIMEGROUP`);
 
   // ORDER BY ${reportUnit === 'reportUnit_stalling' ? 'locationid' : ''}
   // ${selectType === 'SECTIE' ? ', sectionid' : ''}

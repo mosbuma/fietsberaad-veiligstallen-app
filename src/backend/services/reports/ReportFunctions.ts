@@ -105,7 +105,7 @@ export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeInterva
 export const getReportTitle = (reportType: ReportType) => {
   if (reportType === "transacties_voltooid") return "Transacties per periode";
   if (reportType === "inkomsten") return "Inkomsten per periode";
-  if (reportType === "bezetting") return "Bezetting per periode";
+  if (reportType === "bezetting") return "Gemiddelde procentuele bezetting";
   return "";
 }
 
