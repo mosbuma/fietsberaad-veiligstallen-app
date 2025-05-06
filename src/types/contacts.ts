@@ -4,10 +4,10 @@ import type { VSModule } from "~/types/modules";
 
 export interface VSContactExploitant {
     ID: string;
-    Helpdesk: string | null;
     CompanyName: string | null;
     ItemType: string | null;
-    UrlName: string | null;
+    Helpdesk: string | null;
+    Password: string | null;
     Status: string | null;
     ParentID: string | null;
     isManagingContacts: {
@@ -15,31 +15,31 @@ export interface VSContactExploitant {
       childSiteID: string;
       admin: boolean;
     }[];
-    isManagedByContacts: {
-      ID: number;
-      parentSiteID: string;
-      admin: boolean;
-    }[];
-    modules_contacts: {
-      module: VSModule;
-    }[];
+    // isManagedByContacts: {
+    //   ID: number;
+    //   parentSiteID: string;
+    //   admin: boolean;
+    // }[];
+    // modules_contacts: {
+    //   module: VSModule;
+    // }[];
   }
   
   export const exploitantSelect = {
       ID: true,
       CompanyName: true,
       ItemType: true,
-      UrlName: true,
-      Status: true,
       Helpdesk: true,
+      Password: true,
+      Status: true,
       ParentID: true,
-      isManagedByContacts: {
-          select: {
-              ID: true,
-              parentSiteID: true,
-              admin: true
-          }
-      },
+    //   isManagedByContacts: {
+    //       select: {
+    //           ID: true,
+    //           parentSiteID: true,
+    //           admin: true
+    //       }
+    //   },
       isManagingContacts: {
           select: {
               ID: true,
@@ -47,17 +47,22 @@ export interface VSContactExploitant {
               admin: true
           }
       },
-      modules_contacts: {
-          select: {
-              module: {
-                  select: {
-                      ID: true,
-                      Name: true
-                  }
-              }
-          }
-      }
+    //   modules_contacts: {
+    //       select: {
+    //           module: {
+    //               select: {
+    //                   ID: true,
+    //                   Name: true
+    //               }
+    //           }
+    //       }
+    //   }
   }
+
+  export type VSContactGemeenteInLijst = Pick<contacts, 
+  "ID" | 
+  "CompanyName" 
+  >
   
   export type VSContactGemeente = Pick<contacts, 
       "ID" | 
@@ -96,8 +101,13 @@ export interface VSContactExploitant {
               admin: boolean;
           }[];
       };
-  
-  export const gemeenteSelect = {
+
+    export const gemeenteLijstSelect = {
+        ID: true,
+        CompanyName: true,
+    };
+    
+    export const gemeenteSelect = {
       ID: true, 
       CompanyName: true, 
       ItemType: true,
@@ -151,23 +161,29 @@ export interface VSContactExploitant {
       }
     }
   
-  export type VSContactDataprovider = Pick<contacts,
+export type VSContactDataprovider = Pick<contacts,
   "ID" |
   "CompanyName" |
   "ItemType" |
   "UrlName" | 
   "Password" |
-  "Status"
+  "Status" |
+  "DateRegistration" |
+  "DateConfirmed" |
+  "DateRejected"
   >
   
-  export const dataproviderSelect = {
+export const dataproviderSelect = {
   ID: true,
   CompanyName: true,
   ItemType: true,
   UrlName: true,
   Password: true,
-  Status: true
-  }
-  
-  export type VSContact = VSContactGemeente | VSContactDataprovider | VSContactExploitant;
+  Status: true,
+  DateRegistration: true,
+  DateConfirmed: true,
+  DateRejected: true
+}
+
+export type VSContact = VSContactGemeente | VSContactDataprovider | VSContactExploitant;
     

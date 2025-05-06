@@ -4,13 +4,13 @@ import Link from "next/link";
 
 import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
 import { VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types/contacts";
-import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
+import { VSUserWithRolesNew, VSUserRole, VSUserGroupValues } from "~/types/users";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 import LeftMenu from "./beheer/LeftMenu";
 import { convertRoleToNewRole } from "~/utils/securitycontext";
 
 interface ExploreLeftMenuComponentProps {
-    users: VSUserWithRoles[]
+    users: VSUserWithRolesNew[]
     roles: VSUserRole[]
     gemeenten: VSContactGemeente[]
     exploitanten: VSContactExploitant[]
@@ -24,7 +24,7 @@ const ExploreLeftMenuComponent = (props: ExploreLeftMenuComponentProps) => {
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
     const { roles, users, gemeenten, exploitanten, dataproviders } = props;
-    const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
+    const [filteredUsers, setFilteredUsers] = useState<VSUserWithRolesNew[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
 
     const [emailFilter, setEmailFilter] = useState<string>("");
@@ -175,7 +175,7 @@ const ExploreLeftMenuComponent = (props: ExploreLeftMenuComponentProps) => {
 
     const checkAssumptions = () => {
         let assumptionsfailed = false;
-        const userlabel = (user: VSUserWithRoles) => {
+        const userlabel = (user: VSUserWithRolesNew) => {
             return `${user.DisplayName} [${user.UserName}/${user.UserID}]`;
         }
         switch(selectedUser?.GroupID) {

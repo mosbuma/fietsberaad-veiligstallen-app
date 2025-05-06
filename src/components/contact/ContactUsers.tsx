@@ -1,10 +1,10 @@
 import React from 'react';
 import type { VSContact } from "~/types/contacts";
-import type { VSUserWithRoles } from "~/types/users";
+import type { VSUserWithRolesNew } from "~/types/users";
 
 interface ContactuserenProps {
   contact: VSContact | undefined;
-  users: VSUserWithRoles[] | undefined;
+  users: VSUserWithRolesNew[] | undefined;
   onEditUser: (stallingID: string | undefined) => void;
   onSendPassword?: (userID: string | undefined) => void;
 }
@@ -27,7 +27,7 @@ const ContactUsers: React.FC<ContactuserenProps> = ({ users, onEditUser, onSendP
             </tr>
           </thead>
           <tbody>
-            {users?.map((user: VSUserWithRoles) => (
+            {users?.map((user: VSUserWithRolesNew) => (
               <tr key={'user-' + user.UserID}>
                 <td className="border px-4 py-2">{user.DisplayName}</td>
                 <td className="border px-4 py-2">{user.UserName}</td>

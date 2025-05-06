@@ -1,8 +1,0 @@
-rules:
-  - rules/database/general.yaml
-  - rules/database/contacts.yaml
-  - rules/database/organizations.yaml
-  - rules/database/exploitants.yaml
-  - rules/database/dataproviders.yaml
-  - rules/database/security_users.yaml
-  - rules/database/fietsenstallingen.yaml

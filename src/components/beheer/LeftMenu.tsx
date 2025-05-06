@@ -10,14 +10,12 @@ import { VSUserRoleValuesNew } from '~/types/users';
 import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
 interface LeftMenuProps {
   securityProfile?: VSUserSecurityProfile;
-  activecontact: VSContactGemeente | VSContactExploitant | VSContactDataprovider | undefined;
   activecomponent: VSMenuTopic | undefined;
   onSelect: (component: VSMenuTopic) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
   securityProfile,
-  activecontact,
   activecomponent,
   onSelect,
 }) => {

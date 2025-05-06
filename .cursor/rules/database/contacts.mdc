@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Contacts Base API
+
+Version: 1.0
+
+## Definitions
+
+### BaseContact
+
+Type: object
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| ID | string | Unique identifier |
+| ItemType | string | Type of contact |
+| CompanyName | string | Name of the company/organization |
+| Address1 | string | Primary address |
+| Zip1 | string | Primary postal code |
+| City1 | string | Primary city |
+| Phone1 | string | Primary phone number |
+| Email1 | string | Primary email address |
+| Status | string | Current status |
+
+### BaseContactInput
+
+Type: object
+
+#### Required Fields
+- ItemType
+- CompanyName
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| ItemType | string | Type of contact |
+| CompanyName | string | Name of the company/organization |
+| Address1 | string | Primary address |
+| Zip1 | string | Primary postal code |
+| City1 | string | Primary city |
+| Phone1 | string | Primary phone number |
+| Email1 | string | Primary email address |
+| Status | string | Current status |

@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
-import { displayInOverlay } from '~/components/Overlay';
 import DataproviderEdit from "~/components/contact/DataproviderEdit";
 
-import type { VSContactDataprovider } from "~/types/contacts";
+import { useDataproviders } from '~/hooks/useDataproviders';
 
 type DataproviderComponentProps = { 
-  dataproviders: VSContactDataprovider[]
 };
 
 const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
   const router = useRouter();
 
-  const { dataproviders } = props;
+  const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
 
-  console.log("#### DATAPROVIDERS", dataproviders);
-
-  const [currentContact, setCurrentContact] = useState<VSContactDataprovider | undefined>(undefined);
+  const {dataproviders, isLoading, error, reloadDataproviders } = useDataproviders();
   
   const [filterText, setFilterText] = useState("");
 
@@ -30,26 +26,36 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
     if("id" in router.query) {
       const id = router.query.id;
       if(id) {
-        setCurrentContact(dataproviders.find((contact) => contact.ID === id));
+        setCurrentContactID(id as string);
       }
     }   
   }, [router.query.id, dataproviders]);
 
-  const handleNewContact = () => {
-    // Placeholder for the new contact logic
-    setCurrentContact(undefined);
-  }
-
   const handleEditContact = (id: string) => {
-    setCurrentContact(dataproviders.find((contact) => contact.ID === id));
+    setCurrentContactID(id);
   };
 
-  const handleDeleteContact = (id: string) => {
-    // Placeholder for the delete contact logic
-    console.log(`Delete thecontact: ${id}`);
+  const handleDeleteContact = async (id: string) => {
+    try {
+      const response = await fetch(`/api/protected/dataproviders/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete gemeente');
+      }
+
+      reloadDataproviders();
+      setCurrentContactID(undefined);
+    } catch (error) {
+      console.error('Error deleting dataprovider:', error);
+    }
   };
 
   const renderOverview = () => {
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+
     return (
       <div>
         <div className="flex justify-between items-center mb-4">
@@ -66,7 +72,7 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
             )}
           </div>
           <button 
-            onClick={() => handleNewContact()}
+            onClick={() => handleEditContact('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe Dataprovider
@@ -102,44 +108,40 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
   };
 
   const renderEdit = (isSm: boolean = false) => {
-    const showContactEdit = currentContact?.ID !== undefined;
-    console.log("#### RENDER EDIT DATAPROVIDER", currentContact, showContactEdit);
+    const showDataproviderEdit = currentContactID !== undefined;
 
-
-    if(!showContactEdit) {
-      console.log("#### RENDER EDIT DATAPROVIDER -> return null");
+    if(!showDataproviderEdit) {
       return null;
     }
 
-    const handleOnClose = (verbose: boolean = false) => {
-      if (verbose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
+    const handleOnClose = async (confirmClose: boolean = false) => {
+      if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }
         
-      setCurrentContact(undefined);
+      if(showDataproviderEdit) {
+        reloadDataproviders();
+        setCurrentContactID(undefined);
+      } 
     }
 
-    let content: React.ReactNode = (
-      <>
-        { currentContact && (
+    if(currentContactID !== undefined) {
+      if(showDataproviderEdit) {
+        return (
           <DataproviderEdit 
-            id={currentContact.ID} 
-            dataproviders={dataproviders} 
-            onClose={() => setCurrentContact(undefined)} 
+            id={currentContactID} 
+            onClose={handleOnClose} 
           />
-        )}
-      </>
-    );
+        );
+      }
+    }
+  };
 
-    return displayInOverlay(content, isSm, currentContact?.CompanyName || "", () => handleOnClose());
-  }
-  
-  const isSm = false;
-  if(currentContact !== undefined) {
-    return renderEdit(isSm);
-  } else {
-    return renderOverview();
-  }
+  return (
+    <div>
+      {currentContactID === undefined ? renderOverview() : renderEdit()}
+    </div>
+  );
 };
 
 export default DataproviderComponent;

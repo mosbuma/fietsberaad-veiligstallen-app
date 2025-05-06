@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import CollapsibleContent from './CollapsibleContent';
 import type { VSContactGemeente } from "~/types/contacts";
-import type { VSUserWithRoles } from "~/types/users";
+import type { VSUserWithRolesNew } from "~/types/users";
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '~/store/store';
+
 import { 
   setNameFilter,
   setShowGemeentenWithoutStallingen,
@@ -15,7 +15,7 @@ import {
 
 interface GemeenteFilterProps {
   gemeenten: VSContactGemeente[];
-  users: VSUserWithRoles[];
+  users: VSUserWithRolesNew[];
   onFilterChange: (filteredGemeenten: VSContactGemeente[]) => void;
   showStallingenFilter?: boolean;
   showUsersFilter?: boolean;
@@ -70,7 +70,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
           (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
           filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
         const hasUsers = users.some((user) => 
-          user.security_users_sites.some((site) => site.SiteID === gemeente.ID)
+          user.sites.some((site) => site.SiteID === gemeente.ID)
         );
         const hasExploitanten = gemeente.isManagedByContacts?.length || 0 > 0;
 

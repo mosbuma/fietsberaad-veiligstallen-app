@@ -3,16 +3,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import type { TestResult, TestResponse } from "~/types/test";
-import { TestStatus } from "~/types/test";
+import { TestError, TestStatus } from "~/types/test";
 import { SecurityUsersResponse } from ".";
 import { SecurityUserResponse } from "./[id]";
+import { VSUserRoleValuesNew, VSUserWithRolesNew } from "~/types/users";
+import type { VSContactGemeente } from "~/types/contacts";
+import { testRecordCreateGemeente } from "../gemeenten/test";
 
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse<TestResponse>
 ) {
   const session = await getServerSession(req, res, authOptions);
-  const validationResult = await validateUserSession(session);
+  const validationResult = await validateUserSession(session, "any");
   
   if ('error' in validationResult) {
     res.status(validationResult.status).json({
@@ -63,7 +66,7 @@ export default async function handle(
     const createTest = await testCreateSecurityUser(req);
     testResults[0] = createTest;
     if (createTest.status === TestStatus.Failed) {
-      throw new Error("Create test failed");
+      throw new TestError("Create test failed", createTest);
     }
     createdRecordId = (createTest.details as { UserID: string })?.UserID || null;
 
@@ -71,7 +74,7 @@ export default async function handle(
     const readAllTest = await testReadAllSecurityUsers(req);
     testResults[1] = readAllTest;
     if (readAllTest.status === TestStatus.Failed) {
-      throw new Error("Read all test failed");
+      throw new TestError("Read all test failed", readAllTest);
     }
 
     // Test 3: Retrieve the new record
@@ -79,7 +82,7 @@ export default async function handle(
       const readSingleTest = await testReadSingleSecurityUser(req, createdRecordId);
       testResults[2] = readSingleTest;
       if (readSingleTest.status === TestStatus.Failed) {
-        throw new Error("Read single test failed");
+        throw new TestError("Read single test failed", readSingleTest);
       }
     }
 
@@ -88,7 +91,7 @@ export default async function handle(
       const updateTest = await testUpdateSecurityUser(req, createdRecordId);
       testResults[3] = updateTest;
       if (updateTest.status === TestStatus.Failed) {
-        throw new Error("Update test failed");
+        throw new TestError("Update test failed", updateTest);
       }
     }
 
@@ -97,7 +100,7 @@ export default async function handle(
       const deleteTest = await testDeleteSecurityUser(req, createdRecordId);
       testResults[4] = deleteTest;
       if (deleteTest.status === TestStatus.Failed) {
-        throw new Error("Delete test failed");
+        throw new TestError("Delete test failed", deleteTest);
       } else {
         createdRecordId = null;
       }
@@ -108,7 +111,11 @@ export default async function handle(
       tests: testResults
     });
   } catch (error) {
-    console.error("Test error:", error);
+    if(error instanceof TestError) {
+      console.error(`Test failed: ${error.message} ${JSON.stringify(error.testResult,null,2)}`);
+    } else {
+      console.error("Unexpected error:", error);
+    }
     res.status(500).json({
       success: false,
       tests: testResults
@@ -129,15 +136,62 @@ export default async function handle(
   }
 }
 
+const createTestContactGemeente = async (req: NextApiRequest): Promise<VSContactGemeente | false> => {
+  try { 
+    // First try to find the existing gemeente
+    const { success: readSuccess, result: readResult } = await makeApiCall<{ data?: VSContactGemeente[], error?: string }>(req, '/api/protected/gemeenten', 'GET');
+    if (!readSuccess || readResult?.error) {
+      return false;
+    }
+
+    // Look for the test gemeente
+    const testGemeente = readResult?.data?.find((g: VSContactGemeente) => g.CompanyName === "Testgemeente tbv usertests");
+    if (testGemeente) {
+      return false;
+    }
+
+    // If not found, create it
+    const testRecord = JSON.parse(JSON.stringify(testRecordCreateGemeente));
+    testRecord.CompanyName = "Testgemeente tbv usertests";
+    testRecord.ZipID = "T001";
+
+    const { success: createSuccess, result: createResult } = await makeApiCall<{ data?: VSContactGemeente[], error?: string }>(req, '/api/protected/gemeenten', 'POST', testRecord);
+    if (!createSuccess || !createResult?.data) {
+      return false;
+    }
+
+    return createResult.data[0] ?? false;
+  } catch (error) {
+    return false;
+  }
+}
+
 async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> {
   try {
-    const testRecord = {
+    const testGemeente = await createTestContactGemeente(req);
+    if (!testGemeente) {
+      return {
+        name: "Create Record",
+        status: TestStatus.Failed,
+        message: "Failed to create test gemeente",
+      };
+    }
+
+    const testRecord: VSUserWithRolesNew = {
+      UserID: `testuser${Date.now()}`,
       UserName: `testuser${Date.now()}@example.com`,
       DisplayName: `Test User ${Date.now()}`,
-      RoleID: 2, // Assuming 2 is a valid role ID
-      GroupID: "intern",
       Status: "1",
-      Password: "testpassword123"
+      Password: "testpassword123",
+      sites: [{
+        SiteID: testGemeente.ID,
+        IsContact: false,
+        IsOwnOrganization: true,
+        newRoleId: VSUserRoleValuesNew.Admin
+      }],
+      ParentID: null,
+      SiteID: null,
+      LastLogin: null
     };
 
     const { success, result } = await makeApiCall<SecurityUsersResponse>(req, '/api/protected/security_users', 'POST', testRecord);
@@ -150,12 +204,46 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
       };
     }
 
+    if (!result.data?.[0]) {
+      return {
+        name: "Create Record",
+        status: TestStatus.Failed,
+        message: "Failed to create record - no data returned",
+        details: result.data
+      };
+    }
+
     const createdRecordId = result.data?.[0]?.UserID;
     if (!createdRecordId) {
       return {
         name: "Create Record",
         status: TestStatus.Failed,
         message: "Failed to get ID from created record",
+        details: result.data
+      };
+    }
+
+    // check that the created record data matches the test record data
+    if (result.data?.[0]?.UserID !== testRecord.UserID ||
+      result.data?.[0]?.UserName !== testRecord.UserName ||
+      result.data?.[0]?.DisplayName !== testRecord.DisplayName ||
+      result.data?.[0]?.Status !== testRecord.Status ||
+      result.data?.[0]?.Password !== testRecord.Password) { 
+      return {
+        name: "Create Record",
+        status: TestStatus.Failed,
+        message: "Created record data does not match test record data",
+        details: result.data
+      };
+    }
+
+    // check that the created record has the correct role and site info
+    if (result.data?.[0]?.sites?.[0]?.newRoleId !== VSUserRoleValuesNew.Admin ||
+      result.data?.[0]?.sites?.[0]?.SiteID !== testGemeente.ID) {
+      return {
+        name: "Create Record",
+        status: TestStatus.Failed,
+        message: "Created record has incorrect role or site info",
         details: result.data
       };
     }

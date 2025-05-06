@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { security_roles } from '@prisma/client';
-import { VSUserGroupValues, VSUserWithRoles } from '~/types/users';
+import { VSUserGroupValues, VSUserWithRolesNew } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
 import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
@@ -16,7 +16,7 @@ type UserComponentProps = {
 const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const { groupid, roles } = props;
   const [id, setId] = useState<string | undefined>(undefined);
-  const [users, setUsers] = useState<VSUserWithRoles[]>([]);
+  const [users, setUsers] = useState<VSUserWithRolesNew[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updateCounter, setUpdateCounter] = useState(0);
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<HTMLElement | null>(null);

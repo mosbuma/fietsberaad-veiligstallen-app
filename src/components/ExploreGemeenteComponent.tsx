@@ -1,24 +1,29 @@
 import { useEffect, useState } from "react";
 import { VSMenuTopic } from "~/types";
 import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import type { VSUserWithRoles } from "~/types/users";
-import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter'; 
+import type { VSUserWithRolesNew } from "~/types/users";
 import Link from "next/link";
-import { getRelatedUsersForGemeente, groupUsersByGroupID } from "~/utils/contactfilters";
+import { getRelatedUsersForGemeente } from "~/utils/contactfilters";
+import { useFietsenstallingen } from "~/hooks/useFietsenstallingen";
+import { useGemeenten } from "~/hooks/useGemeenten";
+import { useUsers } from "~/hooks/useUsers";
+import { useExploitanten } from "~/hooks/useExploitanten";
+import { useDataproviders } from "~/hooks/useDataproviders";
 // import moment from "moment";
-interface ExploreGemeenteComponentProps {
-    users: VSUserWithRoles[];
-    gemeenten: VSContactGemeente[];
-    exploitanten: VSContactExploitant[];
-    dataproviders: VSContactDataprovider[];
-    stallingen: ReportBikepark[];
-}
+interface ExploreGemeenteComponentProps {}
 
 const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {   
+    const { gemeenten, isLoading: gemeentenLoading, error: gemeentenError } = useGemeenten();
 
-    const { gemeenten, exploitanten, dataproviders, users } = props;
+    const { users, isLoading: usersLoading, error: usersError } = useUsers();
+    const { exploitanten, isLoading: exploitantenLoading, error: exploitantenError } = useExploitanten();
+    const { dataproviders, isLoading: dataprovidersLoading, error: dataprovidersError } = useDataproviders();
+
     const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>(gemeenten);
     const [selectedGemeenteID, setSelectedGemeenteID] = useState<string | null>("E1991A95-08EF-F11D-FF946CE1AA0578FB");
+
+    const { fietsenstallingen, isLoading: fietsenstallingenLoading, error: fietsenstallingenError, reloadFietsenstallingen } = useFietsenstallingen(selectedGemeenteID ?? "");
+
 
     const [nameFilter, setNameFilter] = useState<string>("");
     const [showGemeentenWithoutStallingen, setShowGemeentenWithoutStallingen] = useState<"yes"|"no"|"only">("no");
@@ -33,14 +38,12 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
             )
             .filter((gemeente) => {
                 const numNietSysteemStallingen = 
-                    (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
+                    (fietsenstallingen?.
                     filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
                 const hasUsers = users.some((user) => 
-                    user.security_users_sites.some((site) => site.SiteID === gemeente.ID)
+                    user.sites.some((site) => site.SiteID === gemeente.ID)
                 );
                 const hasExploitanten = gemeente.isManagedByContacts?.length || 0 > 0;
-
-                console.log("*** ", showGemeentenWithoutStallingen, showGemeentenWithoutUsers, showGemeentenWithoutExploitanten);
 
                 return (
                     (numNietSysteemStallingen === 0 && showGemeentenWithoutStallingen !== "no" || 
@@ -77,26 +80,26 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         setSelectedGemeenteID(null);
     };
 
-    const getDubiousUserIDs = (users: VSUserWithRoles[]) => {  
-        const dubiousUserIDs: {UserID: string, Reasons: string[]}[] = [];
+    // const getDubiousUserIDs = (users: VSUserWithRolesNew[]) => {  
+    //     const dubiousUserIDs: {UserID: string, Reasons: string[]}[] = [];
 
-        const addReason = (user: VSUserWithRoles, reason: string) => {
-            const dubiousUser = dubiousUserIDs.find((user) => user.UserID === user.UserID);
-            if(dubiousUser) {
-                dubiousUser.Reasons.push(reason);
-            } else {
-                dubiousUserIDs.push({UserID: user.UserID, Reasons: [reason]});
-            }
-        }
-        // add all users that have a mismatch between GroupID in security_users and GroupID in security_roles
-        const mismatchUsers = users.filter((user) => user.GroupID !== user.security_roles?.GroupID);
-        mismatchUsers.forEach((user) => {
-            addReason(user, `GroupID mismatch: ${user.GroupID} !== ${user.security_roles?.GroupID}`);
-        });
+    //     const addReason = (user: VSUserWithRolesNew, reason: string) => {
+    //         const dubiousUser = dubiousUserIDs.find((user) => user.UserID === user.UserID);
+    //         if(dubiousUser) {
+    //             dubiousUser.Reasons.push(reason);
+    //         } else {
+    //             dubiousUserIDs.push({UserID: user.UserID, Reasons: [reason]});
+    //         }
+    //     }
+    //     // add all users that have a mismatch between GroupID in security_users and GroupID in security_roles
+    //     const mismatchUsers = users.filter((user) => user.GroupID !== user.security_roles?.GroupID);
+    //     mismatchUsers.forEach((user) => {
+    //         addReason(user, `GroupID mismatch: ${user.GroupID} !== ${user.security_roles?.GroupID}`);
+    //     });
 
 
-        return dubiousUserIDs;
-    }
+    //     return dubiousUserIDs;
+    // }
 
 
     const renderFilterSection = () => {
@@ -185,7 +188,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     }
 
-    const renderUserSection = (users: VSUserWithRoles[] | undefined, title: string) => {
+    const renderUserSection = (users: VSUserWithRolesNew[] | undefined, title: string) => {
         if (users === undefined || users.length === 0) return null;
 
         return (
@@ -195,7 +198,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                 {users.map((user) => {
                     return (
                         <li key={user.UserID}>
-                            <span className="text-gray-900">{user.UserName} / {user.security_roles?.GroupID}</span>
+                            <span className="text-gray-900">{user.UserName}</span>
                         </li>
                     );
                 })}
@@ -204,7 +207,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     };
 
-    const renderGemeenteDetailsSection = (relatedUsersByGroup: Record<string, VSUserWithRoles[]>) => {
+    const renderGemeenteDetailsSection = (relatedUsers: VSUserWithRolesNew[]) => {
         const selectedGemeente = gemeenten.find(gemeente => gemeente.ID === selectedGemeenteID);
         if (!selectedGemeente) return null;
 
@@ -272,10 +275,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         ))}
                     </ul>
 
-                    {renderUserSection(relatedUsersByGroup['extern'], 'Gemeentegebruikers')}
-                    {renderUserSection(relatedUsersByGroup['exploitant'], 'Exploitant gebruikers')}
-                    {renderUserSection(relatedUsersByGroup['intern'], 'Veiligstallen gebruikers')}
-                    {renderUserSection(relatedUsersByGroup['dataprovider'], 'Dataprovider Users')}
+                    {renderUserSection(relatedUsers, 'Gebruikers')}
 
                     <div className="text-xl font-bold mb-4">Fietsenstallingen</div>
                     <ul className="list-disc list-inside">
@@ -291,8 +291,26 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         );
     }
 
-    const relatedUsers = getRelatedUsersForGemeente(props.users, selectedGemeenteID);
-    const relatedUsersByGroup = groupUsersByGroupID(relatedUsers);
+    const loading = gemeentenLoading || fietsenstallingenLoading || usersLoading || exploitantenLoading || dataprovidersLoading;
+    if(loading) {
+        const whatIsLoading = [
+            gemeentenLoading && "gemeenten",
+            fietsenstallingenLoading && "fietsenstallingen",
+            usersLoading && "users",
+            exploitantenLoading && "exploitanten",
+            dataprovidersLoading && "dataproviders"
+        ].filter(Boolean).join("+");
+        return <div>Loading: {whatIsLoading}</div>;
+    }
+
+    if(gemeentenError || fietsenstallingenError) {
+        return <div>Error: {gemeentenError || fietsenstallingenError}</div>;
+    }
+
+    const relatedUsers = getRelatedUsersForGemeente(users, selectedGemeenteID);
+
+    console.log("*** users", users.map((user) => user.UserName));
+    console.log("*** relatedUsers", relatedUsers.map((user) => user.UserName));
 
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -300,7 +318,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                 {renderFilterSection()}
             </div>
             <div>
-                {renderGemeenteDetailsSection(relatedUsersByGroup)}
+                {renderGemeenteDetailsSection(relatedUsers)}
             </div>
         </div>
     );

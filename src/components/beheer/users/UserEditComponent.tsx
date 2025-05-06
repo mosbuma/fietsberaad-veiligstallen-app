@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRoles } from '~/types/users';
-import { security_roles } from '@prisma/client';
+import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 import FormInput from "~/components/Form/FormInput";
@@ -16,8 +15,8 @@ export type UserStatus = "actief" | "inactief";
 
 export interface UserEditComponentProps {
     id: string,
-    groupid: VSUserGroupValues,
-    users: VSUserWithRoles[],
+    currentContactID: string,
+    users: VSUserWithRolesNew[],
     onClose: (userChanged: boolean) => void,
     showBackButton?: boolean
 }
@@ -49,52 +48,12 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
 
     const { id, users } = props;
 
-    let availableRoles = []; // TODO: limit user roles based on type
-    // switch(type) {
-    //   case "gemeente": // extern
-    //     availableRoles = ['extern_admin', 'extern_editor', 'data_analyst'];
-    //     break;
-    //   case "exploitant": // intern
-    //     availableRoles = ['exploitant', 'data_analyst'];
-    //     break;
-    //   case "": // beheerder
-    //     availableRoles = ['beheerder'];
-    //     break;
-    //   default:
-    //     availableRoles = ['intern_admin', 'intern_editor', 'data_analyst', 'exploitant', 'data_analyst', 'beheerder'];
-    //     break;
-    // }
-
-    // switch(data.RoleID) {
-    //   case 1: // root
-    //   case 2: // intern_admin
-    //   case 3: // intern_editor
-    //   case 9: // data_analyst (intern)
-    //     data.GroupID = "intern";
-    //     break;
-    //   case 4: // extern_admin
-    //   case 5: // extern_editor
-    //   case 10: // data_analyst (extern)
-    //     data.GroupID = "extern";
-    //     break;
-    //   case 6: // exploitant
-    //   case 8: // data_analyst (exploitant)
-    //     data.GroupID = "exploitant";
-    //     break;
-    //   case 7: //beheerder
-    //     data.GroupID = "beheerder";
-    //     break;
-    //   default:
-    //     console.error("### create error - invalid RoleID");
-    //     throw new Error("Create failed");
-    //     break;
-    // }
-
     useEffect(() => {
       if (!isNewUser) {
         const user = users.find(u => u.UserID === id);
         if (user) {
-          const newRoleID = convertRoleToNewRole(user.RoleID, user.security_users_sites.some(site => site.SiteID === props.groupid));
+          const site = user.sites.find(site => site.SiteID === props.currentContactID);
+          const newRoleID = site?.newRoleId || VSUserRoleValuesNew.None;
 
           const initial = {
             displayName: user.DisplayName || '',
@@ -160,8 +119,9 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       if (isNewUser) {
         const existingUser = users.find(u => 
           u.UserName?.toLowerCase() === userName.toLowerCase() && 
-          u.security_users_sites.some(site => site.SiteID === props.groupid)
+          u.sites.some(site => site.SiteID === props.currentContactID)
         );
+        
         if (existingUser) {
           setError("Een gebruiker met dit e-mailadres bestaat al voor deze gemeente");
           return false;

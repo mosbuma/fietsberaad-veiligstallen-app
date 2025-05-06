@@ -7,15 +7,13 @@ import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
 import type { VSUserSecurityProfile } from "~/types/";
 import type { Session } from "next-auth";
-import type { VSContactGemeente } from "~/types/contacts";
+import type { VSContactGemeenteInLijst } from "~/types/contacts";
 import { userHasRight, logSession } from '~/types/utils';
-
-
 interface TopBarProps {
   title: string;
   currentComponent: string;
   user: User | undefined;
-  gemeenten: VSContactGemeente[] | undefined;
+  gemeenten: VSContactGemeenteInLijst[] | undefined;
   selectedGemeenteID: string | undefined;
   onGemeenteSelect: (gemeenteID: string) => void;
 }

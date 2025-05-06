@@ -1,62 +1,36 @@
 import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
-import GemeenteEdit, { DEFAULTGEMEENTE } from "~/components/contact/GemeenteEdit";
-import type { fietsenstallingtypen, security_roles } from '@prisma/client';
+import GemeenteEdit from "~/components/contact/GemeenteEdit";
+import type { fietsenstallingtypen } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
-
 import { getParkingDetails } from "~/utils/parkings";
 import type { VSContactGemeente } from "~/types/contacts";
-import { type VSUserWithRoles, VSUserGroupValues } from "~/types/users";
+import { type VSUserWithRolesNew } from "~/types/users";
 import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
-import { makeClientApiCall } from '~/utils/client/api-tools';
-
-import moment from "moment";
-import { GemeentenResponse } from '~/pages/api/protected/gemeenten';
+import { useGemeentenInLijst } from '~/hooks/useGemeenten';
+import { useUsers } from '~/hooks/useUsers';
 
 type GemeenteComponentProps = { 
-  users: VSUserWithRoles[]
-  roles: security_roles[],
+  users: VSUserWithRolesNew[]
   fietsenstallingtypen: fietsenstallingtypen[]  
 };
 
 const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   const router = useRouter();
-  const { fietsenstallingtypen, users, roles } = props;
+  const { fietsenstallingtypen } = props;
 
-  const [gemeenten, setGemeenten] = useState<VSContactGemeente[]>([]);
   const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>([]);
-  const [updateCounter, setUpdateCounter] = useState(0);
-  const [currentContact, setCurrentContact] = useState<VSContactGemeente | undefined>(undefined);
+  const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchGemeenten = async () => {
-    try {
-      const response = await makeClientApiCall<GemeentenResponse>('/api/protected/gemeenten');
-      if (!response.success) {
-        throw new Error('Failed to fetch gemeenten');
-      }
-      const data = response.result?.data;
-      if(data) {
-        setGemeenten(data);
-        setFilteredGemeenten(data);
-      }
-    } catch (error) {
-      console.error('Error fetching gemeenten:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchGemeenten();
-  }, [updateCounter]);
+  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
+  const { gemeenten, reloadGemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
 
   useEffect(() => {
     if (currentStallingId !== undefined) {
@@ -81,18 +55,13 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     if("id" in router.query) {
       const id = router.query.id;
       if(id) {
-        setCurrentContact(gemeenten.find((contact) => contact.ID === id));
+        setCurrentContactID(id as string);
       }
     }   
-  }, [router.query.id, gemeenten]);
+  }, [router.query.id]);
 
   const handleEditContact = (id: string) => {
-    if(id === "nieuw") {
-      const newContact = DEFAULTGEMEENTE;
-      setCurrentContact(newContact);
-    } else {
-      setCurrentContact(gemeenten.find((contact) => contact.ID === id))
-    }
+    setCurrentContactID(id);
   };
 
   const handleDeleteContact = async (id: string) => {
@@ -103,16 +72,20 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
       if (!response.ok) {
         throw new Error('Failed to delete gemeente');
       }
-      setUpdateCounter(prev => prev + 1);
+
+      reloadGemeenten();
+      setCurrentContactID(undefined);
     } catch (error) {
       console.error('Error deleting gemeente:', error);
     }
   };
 
   const getContactPerson = (contact: VSContactGemeente): string => {
-    const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
-    return contactpersons.length > 0 && contactpersons[0]!==undefined ? 
-      contactpersons[0].DisplayName + " (" + contactpersons[0].UserName + ")" : "";
+    // const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
+    console.log("users", users);
+    const contactperson = users.find(user => user.sites.some(site => site.SiteID === contact.ID && site.IsContact === true));
+    return contactperson!==undefined ? 
+      contactperson.DisplayName + " (" + contactperson.UserName + ")" : "";
   }
 
   const getModules = (contact: VSContactGemeente): string => {
@@ -121,16 +94,12 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   } 
 
   const renderOverview = () => {
-    if (isLoading) {
-      return <div>Loading...</div>;
-    }
-
     return (
       <div>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Gemeenten</h1>
           <button 
-            onClick={() => handleEditContact('nieuw')}
+            onClick={() => handleEditContact('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe Gemeente
@@ -138,7 +107,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         </div>
 
         <GemeenteFilter
-          gemeenten={gemeenten}
+          gemeenten={gemeenten as VSContactGemeente[]}
           users={users}
           onFilterChange={setFilteredGemeenten}
           showStallingenFilter={true}
@@ -178,15 +147,15 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   const renderEdit = (isSm: boolean = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
-    const showGemeenteEdit = showStallingEdit || showUserEdit || currentContact?.ID !== undefined;
+    const showGemeenteEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
 
-    const filteredUsers = users.filter(user => user.security_users_sites?.some(site => site.SiteID === currentContact?.ID && (["extern"].includes(user.GroupID || "") === true)));
+    const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
 
     if(!showStallingEdit && !showGemeenteEdit && !showUserEdit) {
       return null;
     }
 
-    const handleOnClose = (confirmClose: boolean = false) => {
+    const handleOnClose = async (confirmClose: boolean = false) => {
       if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }
@@ -196,51 +165,60 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
       } else if(showStallingEdit) {
         setCurrentStallingId(undefined);
       } else if(showGemeenteEdit) {
-        setCurrentContact(undefined);
-        setUpdateCounter(prev => prev + 1);
+        reloadGemeenten();
+        setCurrentContactID(undefined);
       } 
     }
 
-    if(showUserEdit) {
-      return (
-        <UserEditComponent 
-          id={currentUserId} 
-          users={filteredUsers} 
-          roles={roles} 
-          onClose={() => handleOnClose(true)}
-          groupid={VSUserGroupValues.Extern}
-          showBackButton={true}
-        />
-      );
-    } else if(showStallingEdit) {
-      return (
-        <ParkingEdit 
-          parkingdata={currentStalling} 
-          onClose={() => handleOnClose(true)} 
-          onChange={() => setCurrentRevision(prev => prev + 1)}
-        />
-      );
-    } else if(showGemeenteEdit) {
-      return (
-        <GemeenteEdit 
-          id={currentContact?.ID || "nieuw"} 
-          gemeenten={gemeenten} 
-          users={users} 
-          fietsenstallingtypen={fietsenstallingtypen} 
-          onClose={() => handleOnClose(true)} 
-          onEditStalling={(stallingID) => setCurrentStallingId(stallingID)}
-          onEditUser={(userID) => setCurrentUserId(userID)}
-          onSendPassword={(userID) => alert("send password to user " + userID)}
-          hidden={false} 
-          allowEdit={true}
-        />
-      );
+    if(currentContactID !== undefined) {
+      if(showUserEdit) {
+        return (
+          <UserEditComponent 
+            id={currentUserId} 
+            currentContactID={currentContactID}
+            users={filteredUsers} 
+            onClose={() => handleOnClose(true)}
+            showBackButton={true}
+          />
+        );
+      } else if(showStallingEdit) {
+        return (
+          <ParkingEdit 
+            parkingdata={currentStalling} 
+            onClose={() => handleOnClose(true)} 
+            onChange={() => setCurrentRevision(prev => prev + 1)}
+          />
+        );
+      } else if(showGemeenteEdit) {
+        return (
+          <GemeenteEdit 
+            id={currentContactID} 
+            fietsenstallingtypen={fietsenstallingtypen} 
+            onClose={handleOnClose} 
+            onEditStalling={(stallingID) => setCurrentStallingId(stallingID)}
+            onEditUser={(userID) => setCurrentUserId(userID)}
+            onSendPassword={(userID) => alert("send password to user " + userID)}
+          />
+        );
+      }
     }
   };
 
+  if(isLoadingUsers || isLoadingGemeenten) {
+    const whatIsLoading = [
+        isLoadingUsers && "users",
+        isLoadingGemeenten && "gemeenten",
+    ].filter(Boolean).join("+");
+    return <div>Loading {whatIsLoading}...</div>;
+  }
+
+  if(errorUsers || errorGemeenten) {
+    return <div>Error: {errorUsers || errorGemeenten}</div>;
+  }
+
   return (
     <div>
-      {currentContact === undefined && currentStalling === undefined && currentUserId === undefined ? renderOverview() : renderEdit()}
+      {currentContactID === undefined && currentStalling === undefined && currentUserId === undefined ? renderOverview() : renderEdit()}
     </div>
   );
 };

@@ -10,14 +10,12 @@ import { VSUserRoleValuesNew } from '~/types/users';
 import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
 interface LeftMenuProps {
   securityProfile?: VSUserSecurityProfile;
-  activecontact: VSContactGemeente | VSContactExploitant | VSContactDataprovider | undefined;
   activecomponent: VSMenuTopic | undefined;
   onSelect: (component: VSMenuTopic) => void;
 }
 
 const LeftMenu: React.FC<LeftMenuProps> = ({
   securityProfile,
-  activecontact,
   activecomponent,
   onSelect,
 }) => {
@@ -138,7 +136,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
         { isAdmin && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
 
-        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheer, `Gebruikers`)}
+        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheerGemeente, `Gebruikers`)}
         { isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
         { isAdmin && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
   

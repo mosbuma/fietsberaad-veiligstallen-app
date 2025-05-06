@@ -7,7 +7,7 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { useRouter } from "next/router";
 import LeftMenu from "~/components/beheer/LeftMenu";
 import TopBar from "~/components/beheer/TopBar";
-import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
+// import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
 
 // import AbonnementenComponent from '~/components/beheer/abonnementen';
 import AccountsComponent from '~/components/beheer/accounts';
@@ -36,10 +36,7 @@ import ExploreArticlesComponent from '~/components/ExploreArticlesComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import { gemeenteSelect, exploitantSelect, dataproviderSelect } from "~/types/contacts";
-import { securityUserSelect, VSUserGroupValues, VSUserRoleValuesNew, type VSUserWithRoles } from "~/types/users";
-import type { VSModule } from "~/types/modules";
+import { VSUserGroupValues, VSUserRoleValuesNew } from "~/types/users";
 import { VSMenuTopic } from "~/types/index";
 
 // import Styles from "~/pages/content.module.css";
@@ -48,6 +45,12 @@ import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
 import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
 import GemeenteEdit from '~/components/contact/GemeenteEdit';
 import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
+import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
+import { useUsers } from '~/hooks/useUsers';
+import { useGemeenten } from '~/hooks/useGemeenten';
+import { useExploitanten } from '~/hooks/useExploitanten';
+import { useFietsenstallingen } from '~/hooks/useFietsenstallingen';
+import { useDataproviders } from '~/hooks/useDataproviders';
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
 //     font-weight: bold;
@@ -97,76 +100,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     }
   });
 
-  // const userIsAdmin = session?.user?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin ||  ? "-1" : session?.user?.securityProfile?.roleId || "-1"));
-  // console.log("**** USER IS ADMIN", userIsAdmin);
-  const validContactIDs = currentUser?.securityProfile?.managingContactIDs || [];
-  const whereCondition = { ID: { in: validContactIDs } };
-  // console.log("**** WHERE CONDITION", userIsAdmin, whereCondition);
-
-  const gemeenten: VSContactGemeente[] | undefined = await prisma.contacts.findMany({
-    where: {
-      ItemType: { in: ['organizations', 'admin'] },
-      ...whereCondition
-    },
-    select: gemeenteSelect,
-  });
-
-  // console.log(">>> gemeenten size:", gemeenten?.length);
-
-  const exploitanten: VSContactExploitant[] | undefined = await prisma.contacts.findMany({
-    where: { ItemType: 'exploitant', ...whereCondition },
-    select: exploitantSelect,
-  });
-
-  const dataproviders: VSContactDataprovider[] | undefined = await prisma.contacts.findMany({
-    where: { ItemType: 'dataprovider' },
-    select: dataproviderSelect,
-  });
-
-  let condition: { security_users_sites: { some: { SiteID: { in: string[] } } } } | undefined = {
-    security_users_sites: { some: { SiteID: { in: validContactIDs } } }
-  };
-
-  if (currentUser?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin) {
-    condition = undefined;
-  }
-  const users: VSUserWithRoles[] | undefined = await prisma.security_users.findMany({
-    where: condition,
-    select: securityUserSelect,
-  });
-
-  const modules: VSModule[] | undefined = await prisma.modules.findMany({
-    select: {
-      ID: true,
-      Name: true
-    }
-  });
-
-  if (users !== undefined && users[0] !== undefined) {
-    users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
-  }
-
-  const bikeparks: ReportBikepark[] = []; // merge the ids and names for the stallingen in the gemeenten using map reduce
-  if (gemeenten !== undefined && gemeenten[0] !== undefined) {
-    gemeenten.forEach(gemeente => {
-      if (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts !== undefined) {
-        gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts
-          .filter(stalling => stalling.StallingsID !== null)
-          .forEach(stalling => {
-            bikeparks.push({
-              id: stalling.ID,
-              stallingsID: stalling.StallingsID || "---",
-              title: stalling.Title || `Stalling ${stalling.ID}`,
-              gemeenteID: gemeente.ID,
-              hasData: true,
-            });
-          });
-      }
-    });
-  }
-
-  bikeparks.sort((a, b) => a.title.localeCompare(b.title));
-
   if (currentUser) {
     if (currentUser.image === undefined) {
       currentUser.image = "/images/user.png";
@@ -174,36 +107,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   } else {
     console.warn("no current user");
   }
-  return { props: { currentUser, gemeenten, exploitanten, dataproviders, bikeparks, users, roles, modules, fietsenstallingtypen } };
+  return { props: { currentUser, roles, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
   currentUser?: User;
-  gemeenten?: VSContactGemeente[];
-  exploitanten?: VSContactExploitant[];
-  dataproviders?: VSContactDataprovider[];
-  bikeparks?: ReportBikepark[];
   selectedGemeenteID?: string;
-  users?: VSUserWithRoles[];
   roles?: security_roles[];
-  modules?: VSModule[];
   fietsenstallingtypen?: fietsenstallingtypen[];
 };
 
 const BeheerPage: React.FC<BeheerPageProps> = ({
   currentUser,
-  gemeenten,
-  exploitanten,
-  dataproviders,
-  bikeparks,
-  users,
   roles,
-  modules,
   fietsenstallingtypen }) => {
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const selectedGemeenteID = session?.user?.activeContactId || "";
+
+  const { users, isLoading: usersLoading, error: usersError, reloadUsers } = useUsers();
+  const { gemeenten, isLoading: gemeentenLoading, error: gemeentenError, reloadGemeenten } = useGemeenten();
+  const { fietsenstallingen: bikeparks, isLoading: bikeparksLoading, error: bikeparksError, reloadFietsenstallingen } = useFietsenstallingen(selectedGemeenteID);
+  const [isSwitchingGemeente, setIsSwitchingGemeente] = useState(false);
 
   const showAbonnementenRapporten = true;
 
@@ -214,12 +140,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
   let activecomponent: VSMenuTopic | undefined = VSMenuTopic.Home;
 
-  // useEffect(() => {
-  //   if (selectedGemeenteID === "" && gemeenten && gemeenten.length > 0 && gemeenten[0] !== undefined) {
-  //     setSelectedGemeenteID(gemeenten[0].ID);
-  //   }
-  // }, [gemeenten, selectedGemeenteID]);
-
   const validTopics = Object.values(VSMenuTopic) as String[];
   const activeComponentQuery = Array.isArray(router.query.activecomponent) ? router.query.activecomponent[0] : router.query.activecomponent;
   if (
@@ -229,9 +149,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   ) {
     activecomponent = activeComponentQuery as VSMenuTopic;
   }
-
-  // const activeIDQuery = router.query.id;
-  // const activeId = typeof activeIDQuery === 'string' ? router.query.id as string : undefined;
 
   const handleSelectComponent = (componentKey: VSMenuTopic) => {
     try {
@@ -245,7 +162,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     try {
       if (!session) return;
 
-      setIsLoading(true);
+      setIsSwitchingGemeente(true);
       const response = await fetch('/api/security/switch-contact', {
         method: 'POST',
         headers: {
@@ -260,46 +177,27 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
       const { user } = await response.json();
 
-      // console.log(">>> new user activeContactId", user.activeContactId);
-
       // Update the session with new user data
       const newSession = await updateSession({
         ...session,
         user
       });
 
-      // console.log(">>> new session activeContactId", newSession);
     } catch (error) {
       console.error("Error switching contact:", error);
     } finally {
-      setIsLoading(false);
+      setIsSwitchingGemeente(false);
     }
   };
 
-  const selectedGemeenteID = session?.user?.activeContactId || "";
-  const filteredBikeparks = bikeparks?.filter((bikepark) => (selectedGemeenteID !== "") && (bikepark.gemeenteID === selectedGemeenteID));
-
-
-  // useEffect(() => {
-  //   // Skip redirect if we're in the middle of a hot reload
-  //   if (typeof window !== 'undefined' && window.__NEXT_DATA__?.props?.pageProps?.isHotReload) {
-  //     return;
-  //   }
-
-  //   // Only redirect if we have no selected gemeente and we're not already on the home page
-  //   if (!selectedGemeenteID && router.query.activecomponent !== VSMenuTopic.Home) {
-  //     router.push(`/beheer/${VSMenuTopic.Home}`);
-  //   }
-  // }, [selectedGemeenteID]);
-
-  // const filteredUsers = users?.filter((user) => (selectedGemeenteID !== "") && (user.security_users_sites.some(site => site.SiteID === selectedGemeenteID)));
+  const gemeentenaam = gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.CompanyName || "";
 
   const renderComponent = () => {
     try {
       let selectedComponent = undefined;
       switch (activecomponent) {
         case VSMenuTopic.Home:
-          selectedComponent = <HomeInfoComponent gemeente={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)} />;
+          selectedComponent = <HomeInfoComponent gemeentenaam={gemeentenaam} />;
           break;
         case VSMenuTopic.Report:
           {
@@ -308,9 +206,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
                 showAbonnementenRapporten={showAbonnementenRapporten}
                 firstDate={firstDate}
                 lastDate={lastDate}
-                bikeparks={filteredBikeparks || []}
-                gemeenten={gemeenten || []}
-                users={users || []}
+                bikeparks={bikeparks || []}
+                // gemeenten={gemeenten || []}
+                // users={users || []}
               />
             ) : (
               selectedComponent = <div className="text-center text-gray-500 mt-10 text-xl" >Selecteer een gemeente om rapportages te bekijken</div>
@@ -329,10 +227,10 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.Export:
           selectedComponent = <ExportComponent
             gemeenteID={selectedGemeenteID}
-            gemeenteName={gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.CompanyName || ""}
+            gemeenteName={gemeentenaam}
             firstDate={firstDate}
             lastDate={lastDate}
-            bikeparks={filteredBikeparks || []}
+            bikeparks={bikeparks || []}
           />;
           break;
         case VSMenuTopic.Documents:
@@ -342,58 +240,44 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = (
             <GemeenteComponent
               users={users || []}
-              roles={roles || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
             />
           );
           break;
         case VSMenuTopic.ContactsExploitanten:
-          selectedComponent = <ExploitantComponent
-            users={users || []}
-            roles={roles || []}
-            gemeenten={gemeenten || []}
-            fietsenstallingtypen={fietsenstallingtypen || []}
-            isAdmin={currentUser?.securityProfile?.roleId === VSUserRoleValuesNew.RootAdmin}
-          />;
+          selectedComponent = <ExploitantComponent/>;
           break;
         case VSMenuTopic.ContactsDataproviders:
-          selectedComponent = <DataproviderComponent dataproviders={dataproviders || []} />;
+          selectedComponent = <DataproviderComponent />;
           break;
         case VSMenuTopic.ExploreUsers:
-          selectedComponent = <ExploreUsersComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []}
-            gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
+          selectedComponent = <ExploreUsersComponent roles={roles || []} />;
           break;
         case VSMenuTopic.ExploreGemeenten:
-          selectedComponent = <ExploreGemeenteComponent gemeenten={gemeenten || []} exploitanten={exploitanten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
+          selectedComponent = <ExploreGemeenteComponent />;
           break;
         case VSMenuTopic.ExploreExploitanten:
-          selectedComponent = <ExploreExploitant exploitanten={exploitanten || []} gemeenten={gemeenten || []} dataproviders={dataproviders || []} stallingen={bikeparks || []} users={users || []} />;
+          selectedComponent = <ExploreExploitant />;
           break;
         case VSMenuTopic.ExploreLeftMenu:
-          selectedComponent = <ExploreLeftMenuComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []}
-            gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
+          // selectedComponent = <ExploreLeftMenuComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []}
+          //   gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
           break;
-        // case VSMenuTopic.Products:
-        //   selectedComponent = <ProductsComponent />;
-        //   break;
         case VSMenuTopic.Logboek:
           selectedComponent = <LogboekComponent />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} users={users || []} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} roles={roles || []} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} users={users || []} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} roles={roles || []} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerExploitant:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} users={users || []} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} roles={roles || []} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerBeheerder:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} users={users || []} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} roles={roles || []} />;
           break;
-        // case VSMenuTopic.users-beheerders:
-        //   selectedComponent = <GemeenteComponent type="admins" users={users || []} roles={roles || []} contacts={dataproviders || []} modules={modules || []} fietsenstallingtypen={fietsenstallingtypen || []} />;
-        //   break;
         case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
           break;
@@ -421,16 +305,12 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.SettingsGemeente:
           selectedComponent =           
             <GemeenteEdit 
-              gemeenten={gemeenten || []} 
-              users={users || []}
               fietsenstallingtypen={fietsenstallingtypen || []}
               id={selectedGemeenteID} 
               onClose={undefined} 
               onEditStalling={(stallingID: string | undefined) => {}}
               onEditUser={(userID: string | undefined) => {}}
               onSendPassword={(userID: string | undefined) => {}}
-              hidden={false}
-              allowEdit={true}
             />
           break;
           // case VSMenuTopic.Abonnementen:
@@ -479,14 +359,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     }
   }
 
-  const getActiveContact = () => {
-    return (
-      gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID) ||
-      exploitanten?.find(exploitant => exploitant.ID === selectedGemeenteID) ||
-      dataproviders?.find(dataprovider => dataprovider.ID === selectedGemeenteID)
-    );
-  }
-
   const sortedGemeenten = gemeenten?.sort((a, b) => {
     // If a is the main contact, it should come first
     if (a.ID === currentUser?.securityProfile?.mainContactId) return -1;
@@ -501,7 +373,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
       <TopBar
         title="Veiligstallen Beheer Dashboard"
         currentComponent={activecomponent}
-        user={currentUser} gemeenten={sortedGemeenten}
+        user={currentUser} 
+        gemeenten={sortedGemeenten}
         selectedGemeenteID={selectedGemeenteID}
         onGemeenteSelect={handleSelectGemeente}
       />
@@ -509,14 +382,12 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         {selectedGemeenteID !== "1" ? (
           <LeftMenuGemeente
             securityProfile={currentUser?.securityProfile}
-            activecontact={getActiveContact()}
             activecomponent={activecomponent}
             onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
           />
         ) : (
           <LeftMenu
             securityProfile={currentUser?.securityProfile}
-            activecontact={getActiveContact()}
             activecomponent={activecomponent}
             onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
           />)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { type VSArticle } from "~/types/articles";
-import { type VSContactGemeente } from "~/types/contacts";
+import { type VSContactGemeenteInLijst } from "~/types/contacts";
 
 import { 
     getArticlesForMunicipality,
@@ -14,7 +14,7 @@ import { hasContent } from "~/utils/articles";
 import Modal from './Modal';
 
 interface ExploreMenuComponent {
-    gemeenten: VSContactGemeente[];
+    gemeenten: VSContactGemeenteInLijst[];
 }
 
 const ExploreArticlesComponent = (props: ExploreMenuComponent) => {   

@@ -1,29 +1,17 @@
-import type { VSUserWithRoles } from "~/types/users";
+import type { VSUserWithRolesNew } from "~/types/users";
 
-export const getRelatedUsersForGemeente = (allUsers: VSUserWithRoles[], gemeenteID: string | null) => {
+export const getRelatedUsersForGemeente = (allUsers: VSUserWithRolesNew[], gemeenteID: string | null) => {
     if(gemeenteID===null) {
         return [];
     }
 
     return allUsers.filter((user) => { 
         return (
-            user.security_users_sites.some((site) => {
+            user.sites.some((site) => {
                 const isLinkedUser = site.SiteID === gemeenteID
-                const isSysteemGebruiker = user.GroupID === "intern" && site.SiteID === "0"    
-                return ( isLinkedUser || isSysteemGebruiker )
+                // const isSysteemGebruiker = user.GroupID === "intern" && site.SiteID === "0"    
+                return ( isLinkedUser ) // 
             })
         )
     })
-}
-
-export const groupUsersByGroupID = (users: VSUserWithRoles[]) => {
-    const initialAcc: Record<string, VSUserWithRoles[]> = {};
-    return users.reduce((acc, user) => {
-        const key = user.GroupID || "unknown";
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key]!.push(user);
-        return acc;
-    }, initialAcc);
 }

@@ -34,9 +34,9 @@ export default async function handle(
     return;
   }
 
-  const validationResult = await validateUserSession(session);
-  if ('error' in validationResult) {
-    res.status(401).json({error: validationResult.error});
+  const validateUserSessionResult = await validateUserSession(session, "any");
+  if ('error' in validateUserSessionResult) {
+    res.status(401).json({error: validateUserSessionResult.error});
     return;
   }
 
@@ -58,14 +58,14 @@ export default async function handle(
     }
     case "PUT": {
       try {
-        const validationResult = securityUserUpdateSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          console.error("Validation error:", validationResult.error);
-          res.status(400).json({error: "Validation error"});
+        const parseResult = securityUserUpdateSchema.safeParse(req.body);
+        if (!parseResult.success) {
+          console.error("Unexpected/missing data error:", parseResult.error);
+          res.status(400).json({error: "Unexpected/missing data error:"});
           return;
         }
 
-        const parsed = validationResult.data;
+        const parsed = parseResult.data;
         const updateData: any = {
           UserName: parsed.UserName,
           DisplayName: parsed.DisplayName,

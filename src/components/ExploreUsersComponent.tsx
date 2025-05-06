@@ -4,16 +4,16 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 
 import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
-import { VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types/contacts";
+import { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
 import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
+import { useGemeenten } from "~/hooks/useGemeenten";
+import { useUsersColdfusion } from "~/hooks/useUsersColdfusion";
+import { useExploitanten } from "~/hooks/useExploitanten";
+import { useDataproviders } from "~/hooks/useDataproviders";
 
 interface ExploreUsersComponentProps {
-    users: VSUserWithRoles[]
     roles: VSUserRole[]
-    gemeenten: VSContactGemeente[]
-    exploitanten: VSContactExploitant[]
-    dataproviders: VSContactDataprovider[]
 }
 
 // returns an array of user IDs for users that have a mismatch between GroupID in security_users and GroupID in security_roles together with the reason
@@ -63,7 +63,13 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
-    const { roles, users, gemeenten, exploitanten, dataproviders } = props;
+    const { roles } = props;
+    const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers: reloadUsers } = useUsersColdfusion();
+    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten();
+    const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
+
+    const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten, reloadGemeenten: reloadGemeenten } = useGemeenten();
+
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
 
@@ -133,6 +139,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
 
     useEffect(() => {
+        console.debug("***EXPLOREUSERSCOMPONENT - USEEFFECT FILTEREDUSERS");
         const filteredUsers = users
             .filter((user) => (
                 emailFilter === "" || 
@@ -180,7 +187,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             });
 
         setFilteredUsers(filteredUsers);
-    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
+    }, [users, emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
 
     useEffect(() => {
         async function loadSecurityProfile() {
@@ -747,6 +754,20 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
     // limit list size to 20
     const displayedContacts = showAllContacts ? managedContacts : managedContacts.slice(0, 16);
+
+    if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten || isLoadingDataproviders) {
+        const whatIsLoading = [
+            isLoadingUsers && "users",
+            isLoadingExploitanten && "exploitanten",
+            isLoadingGemeenten && "gemeenten",
+            isLoadingDataproviders && "dataproviders"
+        ].filter(Boolean).join("+");
+        return <div>Loading {whatIsLoading}...</div>;
+    }
+
+    if(errorUsers || errorExploitanten || errorGemeenten || errorDataproviders) {
+        return <div>Error: {errorUsers || errorExploitanten || errorGemeenten || errorDataproviders }</div>;
+    }
 
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">

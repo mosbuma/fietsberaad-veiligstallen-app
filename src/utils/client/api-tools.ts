@@ -1,8 +1,14 @@
-type ApiResponse<T> = {
-    success: boolean;
-    result?: T;
-    error?: string;
+type ApiSuccess<T> = {
+    success: true;
+    result: T;
 };
+
+type ApiError = {
+    success: false;
+    error: string;
+};
+
+type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 // Helper function to make client-side API calls
 export async function makeClientApiCall<T>(

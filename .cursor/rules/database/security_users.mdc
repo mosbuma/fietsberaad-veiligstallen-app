@@ -1,0 +1,191 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Security Users API
+
+Version: 1.0
+
+Base Path: `/api/security/users`
+
+## Routes
+
+### 1. List Users
+
+**Method**: GET  
+**Path**: `/`  
+**Description**: Get a list of all security users
+
+#### Parameters
+- References general.yaml pagination parameters
+- References general.yaml sorting parameters
+- References general.yaml filtering parameters
+
+#### Responses
+
+##### 200 OK
+**Description**: List of security users
+
+**Schema**:
+```json
+{
+  "data": [SecurityUser],
+  "meta": {
+    // References general.yaml meta schema
+  }
+}
+```
+
+### 2. Get User
+
+**Method**: GET  
+**Path**: `/{id}`  
+**Description**: Get a single security user by ID
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | User ID |
+
+#### Responses
+
+##### 200 OK
+**Description**: User details  
+**Schema**: SecurityUser
+
+##### 404 Not Found
+**Description**: User not found
+
+### 3. Create User
+
+**Method**: POST  
+**Path**: `/`  
+**Description**: Create a new security user
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| body | body | true | object | SecurityUserInput |
+
+#### Responses
+
+##### 201 Created
+**Description**: User created  
+**Schema**: SecurityUser
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+### 4. Update User
+
+**Method**: PUT  
+**Path**: `/{id}`  
+**Description**: Update an existing security user
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | User ID |
+| body | body | true | object | SecurityUserInput |
+
+#### Responses
+
+##### 200 OK
+**Description**: User updated  
+**Schema**: SecurityUser
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+##### 404 Not Found
+**Description**: User not found
+
+### 5. Delete User
+
+**Method**: DELETE  
+**Path**: `/{id}`  
+**Description**: Delete a security user
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | User ID |
+
+#### Responses
+
+##### 204 No Content
+**Description**: User deleted
+
+##### 404 Not Found
+**Description**: User not found
+
+### 6. Get User Sites
+
+**Method**: GET  
+**Path**: `/{id}/sites`  
+**Description**: Get all sites associated with a user
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | User ID |
+
+#### Responses
+
+##### 200 OK
+**Description**: List of user sites
+
+**Schema**:
+```json
+{
+  "data": [SecurityUserSite]
+}
+```
+
+##### 404 Not Found
+**Description**: User not found
+
+## Definitions
+
+### SecurityUser
+
+| Property | Type | Description |
+|----------|------|-------------|
+| UserID | string | Unique identifier |
+| UserName | string | Username |
+| DisplayName | string | Display name |
+| Email | string | Email address |
+| RoleID | integer | Security role ID |
+| GroupID | string | Security group ID |
+| Status | string | User status |
+| LastLogin | string (date-time) | Last login timestamp |
+| Theme | string | UI theme preference |
+
+### SecurityUserInput
+
+#### Required Fields
+- UserName
+- DisplayName
+- Email
+- RoleID
+
+#### Properties
+| Property | Type | Description |
+|----------|------|-------------|
+| UserName | string | Username |
+| DisplayName | string | Display name |
+| Email | string | Email address |
+| RoleID | integer | Security role ID |
+| GroupID | string | Security group ID |
+| Status | string | User status |
+| Theme | string | UI theme preference |
+
+### SecurityUserSite
+
+| Property | Type | Description |
+|----------|------|-------------|
+| ID | integer | Unique identifier |
+| UserID | string | User ID |
+| SiteID | string | Site ID |
+| IsContact | boolean | Whether user is a contact for this site |

@@ -25,8 +25,8 @@ interface ReportComponentProps {
   bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
-  gemeenten: VSContactGemeente[];
-  users: VSUserWithRoles[];
+  // gemeenten: VSContactGemeenteInLijst[];
+  // users: VSUserWithRolesNew[];
 }
 
 const ReportComponent: React.FC<ReportComponentProps> = ({
@@ -36,8 +36,8 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   bikeparks,
   error,
   warning,
-  gemeenten,
-  users,
+  // gemeenten,
+  // users,
 }) => {
   const { data: session } = useSession()
 
@@ -45,7 +45,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const [warningState, setWarningState] = useState(warning);
 
   const [gemeenteInfo, setGemeenteInfo] = useState<VSContactGemeente | undefined>(undefined);
-  const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>(gemeenten);
+  // const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeenteInLijst[]>(gemeenten);
 
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
 
@@ -295,7 +295,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                           zoomin: true,
                           zoomout: true,
                           pan: true,
-                          reset: true | '<img src="/static/icons/reset.png" width="20">',
+                          reset: '<img src="/static/icons/reset.png" width="20">',
                           customIcons: []
                         },
                         export: {

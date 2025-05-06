@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "~/server/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
@@ -6,14 +7,15 @@ import type { TestResult, TestResponse } from "~/types/test";
 import { TestStatus } from "~/types/test";
 import { GemeentenResponse } from ".";
 import { GemeenteResponse } from "./[id]";
-
+import { TestError } from "~/types/test";
+import moment from "moment";
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse<TestResponse>
 ) {
   const session = await getServerSession(req, res, authOptions);
-  const validationResult = await validateUserSession(session);
-  
+  const validationResult = await validateUserSession(session, "organizations");
+
   if ('error' in validationResult) {
     res.status(validationResult.status).json({
       success: false,
@@ -23,6 +25,20 @@ export default async function handle(
         message: "User not authenticated"
       }]
     });
+    return;
+  }
+
+  const cleanupResult = await cleanupTestdata(req);
+  if (cleanupResult.status === TestStatus.Failed) {
+    res.status(500).json({
+      success: false,
+      tests: [{
+        name: "Cleanup Testdata",
+        status: TestStatus.Failed,
+        message: "Failed to cleanup test data",
+        details: cleanupResult.details
+      }]
+    });    
     return;
   }
 
@@ -61,10 +77,9 @@ export default async function handle(
   try {
     // Test 1: Create a new record
     const createTest = await testCreateGemeente(req);
-    console.log("createTest", createTest);
     testResults[0] = createTest;
     if (createTest.status === TestStatus.Failed) {
-      throw new Error("Create test failed");
+      throw new TestError("Create test failed", createTest);
     }
     createdRecordId = (createTest.details as { ID: string })?.ID || null;
     console.log("createdRecordId", createdRecordId);
@@ -72,15 +87,16 @@ export default async function handle(
     const readAllTest = await testReadAllGemeenten(req);
     testResults[1] = readAllTest;
     if (readAllTest.status === TestStatus.Failed) {
-      throw new Error("Read all test failed");
+      throw new TestError("Read all test failed", readAllTest);
     }
 
     // Test 3: Retrieve the new record
     if (createdRecordId) {
       const readSingleTest = await testReadSingleGemeente(req, createdRecordId);
+      console.log("readSingleTest", readSingleTest);
       testResults[2] = readSingleTest;
       if (readSingleTest.status === TestStatus.Failed) {
-        throw new Error("Read single test failed");
+        throw new TestError("Read single test failed", readSingleTest);
       }
     }
 
@@ -89,7 +105,7 @@ export default async function handle(
       const updateTest = await testUpdateGemeente(req, createdRecordId);
       testResults[3] = updateTest;
       if (updateTest.status === TestStatus.Failed) {
-        throw new Error("Update test failed");
+        throw new TestError("Update test failed", updateTest);
       }
     }
 
@@ -98,7 +114,7 @@ export default async function handle(
       const deleteTest = await testDeleteGemeente(req, createdRecordId);
       testResults[4] = deleteTest;
       if (deleteTest.status === TestStatus.Failed) {
-        throw new Error("Delete test failed");
+        throw new TestError("Delete test failed", deleteTest);
       } else {
         createdRecordId = null;
       }
@@ -109,7 +125,11 @@ export default async function handle(
       tests: testResults
     });
   } catch (error) {
-    console.error("Test error:", error);
+    if(error instanceof TestError) {
+      console.error(`Test failed: ${error.message} ${JSON.stringify(error.testResult,null,2)}`);
+    } else {
+      console.error("Unexpected error:", error);
+    }
     res.status(500).json({
       success: false,
       tests: testResults
@@ -129,21 +149,23 @@ export default async function handle(
   }
 }
 
+export const testRecordCreateGemeente = {
+  CompanyName: `Test Gemeente ${Date.now()}`,
+  ItemType: "organizations",
+  ZipID: "T000",
+  ThemeColor1: "1f99d2",
+  ThemeColor2: "96c11f",
+  DayBeginsAt: moment().startOf('day').toDate(),
+  Coordinaten: "52.1326,5.2913",
+  Zoom: 12,
+  Status: "1"
+};
+
+
 async function testCreateGemeente(req: NextApiRequest): Promise<TestResult> {
   try {
-    const testRecord = {
-      CompanyName: `Test Gemeente ${Date.now()}`,
-      ItemType: "organizations",
-      ZipID: "T000",
-      ThemeColor1: "1f99d2",
-      ThemeColor2: "96c11f",
-      DayBeginsAt: new Date(),
-      Coordinaten: "52.1326,5.2913",
-      Zoom: 12,
-      Status: "1"
-    };
-
-    const { success, result }  = await makeApiCall<GemeentenResponse>(req, '/api/protected/gemeenten', 'POST', testRecord);
+    const { success, result, error }  = await makeApiCall<GemeentenResponse>(req, '/api/protected/gemeenten/new', 'POST', testRecordCreateGemeente);
+    console.log("testCreateGemeente", result, error);
     if (!success || !result?.data) {
       return {
         name: "Create Record",
@@ -211,6 +233,7 @@ async function testReadSingleGemeente(req: NextApiRequest, id: string): Promise<
   try {
     const { success, result }  = await makeApiCall<GemeenteResponse>(req, `/api/protected/gemeenten/${id}`);
     if (!success || result?.error) {
+      console.error("testReadSingleGemeente", result?.error);
       return {
         name: "Retrieve Single Record",
         status: TestStatus.Failed,
@@ -286,7 +309,7 @@ async function testDeleteGemeente(req: NextApiRequest, id: string): Promise<Test
       return {
         name: "Delete Record",
         status: TestStatus.Failed,
-        message: `Failed to delete record: ${result?.error || 'Unknown error'}`,
+        message: `Failed to delete record: ${result || 'Unknown error'}`,
         details: { id, error: result?.error }
       };
     }
@@ -301,8 +324,31 @@ async function testDeleteGemeente(req: NextApiRequest, id: string): Promise<Test
     return {
       name: "Delete Record",
       status: TestStatus.Failed,
-      message: "Failed to delete record",
+      message: `Failed to delete record - error ${error}`,
       details: error
     };
   }
 } 
+
+async function cleanupTestdata(req: NextApiRequest): Promise<TestResult> {
+    try {
+      await prisma.contacts.deleteMany({
+        where: { ZipID: testRecordCreateGemeente.ZipID }
+      });
+
+      return {
+        name: "Cleanup Testdata",
+        status: TestStatus.Success,
+        message: "Successfully cleaned up test data"
+      };
+    } catch (e) {
+      console.error("Error cleaning up test data:", e);
+      return {
+        name: "Delete Record",
+        status: TestStatus.Failed,
+        message: "Failed to delete record",
+        details: e
+      };
+    }
+}
+

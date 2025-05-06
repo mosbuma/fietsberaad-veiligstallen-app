@@ -23,8 +23,8 @@ export const reportRangeUnitValues = ["range_all", "range_year", "range_month", 
 export type ReportBikepark = {
   id: string;
   stallingsID: string;
-  title: string;
-  gemeenteID: string;
+  Title: string;
+  GemeenteID: string;
   hasData: boolean;
 };
 

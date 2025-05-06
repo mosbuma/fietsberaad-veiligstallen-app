@@ -24,3 +24,21 @@ export interface ApiTestSection {
   error: string | null;
   isLoading: boolean;
 }
+
+export class TestError extends Error {
+  public readonly testResult: TestResult;
+
+  constructor(message: string, testResult: TestResult) {
+    super(message);
+    this.name = 'TestError';
+    this.testResult = testResult;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      testResult: this.testResult,
+    };
+  }
+}

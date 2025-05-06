@@ -22,8 +22,8 @@ const loadInitialState = (): GemeenteFiltersState => {
   }
   return {
     nameFilter: "",
-    showGemeentenWithoutStallingen: "no",
-    showGemeentenWithoutUsers: "no",
+    showGemeentenWithoutStallingen: "yes",
+    showGemeentenWithoutUsers: "yes",
     showGemeentenWithoutExploitanten: "yes",
   };
 };

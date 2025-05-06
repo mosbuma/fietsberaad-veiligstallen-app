@@ -1,0 +1,147 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+scope:
+  path: /src/pages/api/protected
+  file_types: [ts]
+---
+
+# Database API Test Suite
+
+**Description**: Each database API endpoint must have a corresponding test endpoint that performs CRUD operations
+
+## Test Endpoint
+- **Path**: `/api/{resource}/test`
+- **Method**: GET
+- **Description**: Test endpoint for database operations
+
+## Test Flow
+1. Create a new record via API
+2. Retrieve all records via API
+3. Retrieve the newly created record via API
+4. Update the newly created record via API
+5. Delete the newly created record via API
+
+## Response Format
+**Type**: application/json
+
+### Structure
+```json
+{
+  "success": boolean,
+  "tests": [
+    {
+      "name": string,
+      "status": boolean,
+      "message": string,
+      "details": object
+    }
+  ]
+}
+```
+
+### Requirements
+- DELETE operations must return 204 on success
+- PUT operations must return the updated record
+- Error responses must include detailed error information
+
+## Cleanup
+**Description**: All test records must be cleaned up after test completion
+
+### Properties
+- **Ignore 404**: Cleanup should not log errors for 404 responses
+- **Error Handling**: Cleanup errors should be logged but not affect test results
+- **Always Attempt**: Cleanup should be attempted even if tests fail
+
+## Authentication
+**Description**: Tests must run in the context of the authenticated user  
+**Required**: true
+
+## Isolation
+**Description**: Test operations must not affect production data  
+**Required**: true
+
+## Utility Functions
+**Description**: Common database operations and utilities must be kept in shared utility files  
+**Required**: true
+
+### Properties
+- **Location**: Utility functions must be placed in `/src/utils/server/database-tools.ts`
+- **Scope**: Functions should be generic and reusable across different API endpoints
+- **Documentation**: Each utility function must have clear documentation of its purpose and parameters
+
+### Examples
+- ID generation: Functions for generating unique IDs
+- Session validation: Functions for validating user sessions
+- Data validation: Common data validation functions
+- Error handling: Standard error handling utilities
+
+## UI Requirements
+**Description**: Test results must be displayed in the database API test page
+
+### Section Requirements
+- **Name**: string
+- **Endpoint**: string
+- **Expanded**: boolean
+- **Results**: object
+- **Error**: string
+
+### Display Requirements
+- **Color**: green/red based on success
+- **Status**: visible in header
+- **Details**: collapsible
+- **Default Expanded**: true for failed tests
+
+### Action Requirements
+- **Run All**: boolean
+- **Individual Run**: boolean
+
+## Test Data Validation
+**Description**: Test data must be validated against Prisma model constraints
+
+### Schema Validation
+- **Pre-test Validation**: boolean
+- **Post-test Validation**: boolean
+- **Error Reporting**: boolean
+
+### Constraint Checking
+- **Field Types**: Must match Prisma types
+- **Field Lengths**: Must respect VARCHAR/CHAR limits
+- **Required Fields**: Must include all required fields
+- **Default Values**: Must use correct default values
+- **Enum Values**: Must use valid enum values
+
+### Data Generation
+- **Random Data**: Must generate valid random data
+- **Edge Cases**: Must test boundary conditions
+- **Invalid Data**: Must test validation with invalid data
+
+### Cleanup Validation
+- **Record Count**: Must verify record deletion
+- **Data Integrity**: Must verify no test data remains
+- **Rollback**: Must handle cleanup failures
+
+## API Testing
+**Description**: Tests must be executed through the API layer
+
+### Endpoint Usage
+- **Create**: Must use POST /api/{resource}
+- **Read**: Must use GET /api/{resource} or /api/{resource}/{id}
+- **Update**: Must use PUT /api/{resource}/{id}
+- **Delete**: Must use DELETE /api/{resource}/{id}
+
+### Validation
+- **Status Codes**: Must check HTTP status codes
+- **Response Format**: Must validate response structure
+- **Error Handling**: Must test error responses
+
+### Authentication
+- **Headers**: Must include auth headers
+- **Session**: Must maintain session context
+
+### Isolation
+- **Cleanup**: Must clean up test data
+- **Rollback**: Must handle failures gracefully

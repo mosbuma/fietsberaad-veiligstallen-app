@@ -11,76 +11,34 @@ import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 
 import type { VSContactGemeente } from '~/types/contacts';
-import type { VSUserWithRoles } from '~/types/users';
+import type { GemeenteValidateResponse } from '~/pages/api/protected/gemeenten/validate';
 
 // import ContactUsers from './ContactUsers';
 import FormSelect from '../Form/FormSelect';
-import moment from 'moment';
-import { getRelatedUsersForGemeente, groupUsersByGroupID } from "~/utils/contactfilters";
+import { useGemeente } from '~/hooks/useGemeente';
+import { useUsers } from '~/hooks/useUsers';
+import { getDefaultNewGemeente } from '~/types/database';
+import { makeClientApiCall } from '~/utils/client/api-tools';
+import { GemeenteResponse } from '~/pages/api/protected/gemeenten/[id]';
 
 type GemeenteEditProps = {
     id: string;
-    gemeenten: VSContactGemeente[];
-    users: VSUserWithRoles[];
     fietsenstallingtypen: fietsenstallingtypen[]; 
     onClose?: (confirmClose: boolean) => void;
     onEditStalling: (stallingID: string | undefined) => void;
     onEditUser: (userID: string | undefined) => void;
     onSendPassword: (userID: string | undefined) => void;
-    hidden: boolean;
-    allowEdit?: boolean;
 }
 
-// export const DEFAULTGEMEENTE: VSContactGemeente = {
-//   ID: 'nieuw',
-//   CompanyName: "Nieuwe gemeente",
-//   ItemType: "organizations",
-//   AlternativeCompanyName: "",
-//   UrlName: "",
-//   ZipID: "",
-//   Helpdesk: "",
-//   DayBeginsAt: moment().utc().startOf('day').toDate(),
-//   Coordinaten: "52.09295124616021, 5.108314829064904",
-//   Zoom: 12,
-//   Bankrekeningnr: "",
-//   PlaatsBank: "",
-//   Tnv: "",
-//   Notes: "",
-//   DateRegistration: moment().toDate(),
-//   CompanyLogo: "",
-//   CompanyLogo2: "",
-//   ThemeColor1: "#1f99d2",
-//   ThemeColor2: "#96c11f",
-//   modules_contacts: [],
-// };
-
-export const DEFAULTGEMEENTE: VSContactGemeente = {
-  ID: 'nieuw',
-  CompanyName: "Testgemeente Marc",
-  ItemType: "organizations",
-  AlternativeCompanyName: "Testgemeente Marc",
-  UrlName: "",
-  ZipID: "mb",
-  Helpdesk: "",
-  DayBeginsAt: moment().utc().startOf('day').toDate(),
-  Coordinaten: "52.09295124616021, 5.108314829064904",
-  Zoom: 12,
-  Bankrekeningnr: "",
-  PlaatsBank: "",
-  Tnv: "",
-  Notes: "",
-  DateRegistration: moment().toDate(),
-  CompanyLogo: "",
-  CompanyLogo2: "",
-  ThemeColor1: "#1f99d2",
-  ThemeColor2: "#96c11f",
-  modules_contacts: [],
-};
+const DEFAULTGEMEENTE: VSContactGemeente = getDefaultNewGemeente("Testgemeente " + new Date().toISOString());
 
 const GemeenteEdit = (props: GemeenteEditProps) => {
     const [selectedTab, setSelectedTab] = useState<string>("tab-algemeen");
     const [centerCoords, setCenterCoords] = React.useState<string | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(!!props.onClose);
+
+    const { gemeente: activecontact, isLoading: isLoading, error: error } = useGemeente(props.id);
+    const { users } = useUsers();
 
     type CurrentState = {
       CompanyName: string|null,
@@ -98,7 +56,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
       DateRegistration: Date|null,
     }
   
-    const isNew = props.id === "nieuw";
+    const isNew = props.id === "new";
 
     const [CompanyName, setCompanyName] = useState<string|null>(null);
     const [AlternativeCompanyName, setAlternativeCompanyName] = useState<string|null>(null);
@@ -114,6 +72,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     const [Notes, setNotes] = useState<string|null>(null);
     const [DateRegistration, setDateRegistration] = useState<Date|null>(null);
     const [contactID, setContactID] = useState<string|null>(null);
+    const [errorMessage, setErrorMessage] = useState<string|null>(null);
   
     const cDefaultCoordinaten = [52.1326, 5.2913].join(","); // center of NL by default 
   
@@ -169,8 +128,6 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
 
             setInitialData(initial);
         } else {
-            const activecontact = props.gemeenten.find(c => c.ID === props.id);
-
             if (activecontact) {
                 const initial = {
                     CompanyName: activecontact.CompanyName || initialData.CompanyName,
@@ -205,7 +162,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                 setInitialData(initial);
             }
         }
-    }, [props.id, props.gemeenten, isNew]);
+    }, [props.id, activecontact, isNew]);
 
     const isDataChanged = () => {
         if (isNew) {
@@ -234,11 +191,13 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
           alert("Organisatie, Postcode ID, Dagstart en Coordinaten mogen niet leeg zijn.");
           return;
         }
+
+        const id = false===isNew ? props.id : 'new';
     
         try {
-
-          const data = {
-            ItemType: "organization",
+          const data: Partial<VSContactGemeente> = {
+            ID:id,
+            ItemType: "organizations",
             CompanyName: CompanyName || '',
             AlternativeCompanyName: AlternativeCompanyName || '',
             UrlName: UrlName || '',
@@ -254,23 +213,36 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
             DateRegistration: DateRegistration,
           }
 
+          const urlValidate = `/api/protected/gemeenten/validate/`;
+          const responseValidate = await makeClientApiCall<GemeenteValidateResponse>(urlValidate, 'POST', data);
+          if(!responseValidate.success) {
+            setErrorMessage(`Kan gemeentedata niet valideren: (${responseValidate.error})`);
+            return;
+          }
+
+          if (!responseValidate.result.valid) {
+            setErrorMessage(responseValidate.result.message);
+            return;
+          }
+
           const method = isNew ? 'POST' : 'PUT';
-          const url = `/api/protected/gemeenten/${false===isNew?props.id:''}`;
-          const response = await fetch(url, {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-          });
+          const url = `/api/protected/gemeenten/${id}`;
+          const response = await makeClientApiCall<GemeenteResponse>(url, method, data);
+          if(!response.success) {
+            setErrorMessage(`Kan gemeentedata niet opslaan: (${response.error})`);
+            return;
+          }
     
-          if (response.ok) {
-            props.onClose && props.onClose(false);
+          if (!response.result?.error) {
+            if (props.onClose) {
+              props.onClose(false);
+            }
           } else {
-            console.error('Failed to update contact');
+            console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gemeente');
+            setErrorMessage('Fout bij het opslaan van de gemeente');
           }
         } catch (error) {
-          console.error('Error:', error);
+          setErrorMessage('Fout: ' + (error instanceof Error ? error.message : String(error)));
         }
       };
     
@@ -352,25 +324,18 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         setSelectedTab(newValue);
       };
 
-      const handleClose = (close: boolean) => {
-        console.log("handleClose", close);
-      };
-
-      const handleRemoveParking = (message: string) => {
-        console.log("handleRemoveParking", message);
-      };
-
       const renderTopBar = (currentContact: VSContactGemeente | undefined) => {
         const contact = isNew ? DEFAULTGEMEENTE : currentContact;
         const title: string = "Instellingen " + (contact?.CompanyName || "") + (isNew ? " (Nieuw)" : "");
         const showUpdateButtons: boolean = isEditing;
         const allowSave: boolean = isDataChanged();
+
         return (
             <PageTitle className="flex w-full justify-center sm:justify-start">
                 <div className="mr-4 hidden sm:block">
                     {title}
                 </div>
-                {!isNew && props.allowEdit && !props.onClose && !isEditing && (
+                {!isNew && !props.onClose && !isEditing && (
                     <Button
                         key="b-edit"
                         className="mt-3 sm:mt-0"
@@ -418,45 +383,18 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         );
     };
 
-    const activecontact: VSContactGemeente | undefined = props.gemeenten.find(c => c.ID === props.id);
-    // console.log("#### activecontact", activecontact);
-    // console.log("#### activecontact", activecontact?.DayBeginsAt, dagstart);
-
-    // Find the current user and create filtered user list
-    const relatedUsers = getRelatedUsersForGemeente(props.users, props.id);
-    const relatedUsersByGroup = groupUsersByGroupID(relatedUsers);
-
-    console.log("#### relatedUsersByGroup", relatedUsersByGroup);
-    
-    const gemeenteUsers = relatedUsersByGroup['extern'] || [];
-    console.log("***", gemeenteUsers);
-
-    const exploitantUsers = relatedUsersByGroup['exploitant'] || [];
-    const veiligstallenUsers = relatedUsersByGroup['intern'] || [];
-    
     const userlist: { label: string, value: string | undefined }[] = [
         { label: "Geen", value: undefined },
-        ...props.users
-            .filter(user => {
-                // Include if user is in gemeente users or externe users
-                const isGemeenteUser = gemeenteUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID);
-                const isExterneUser = 
-                  exploitantUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID)
-                const isVeiligstallenUser = 
-                  veiligstallenUsers.some((u: VSUserWithRoles) => u.UserID === user.UserID);
-                
-                // Or if user is the current contactpersoon
-                const isCurrentContact = false && user.UserID === contactID;
-                return isGemeenteUser || isExterneUser || isVeiligstallenUser || isCurrentContact;
-            })
-            .map(user => ({ 
-                label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", 
-                value: user.UserID || "" 
-            }))
+        ...users
+          .filter(user => user.sites.some((site) => site.SiteID === activecontact?.ID))
+          .map(user => ({ 
+              label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", 
+              value: user.UserID || "" 
+          }))
     ];
-    /* <div data-name="content-left" className={`sm:mr-12 ${props.hidden ? "hidden" : ""}`} style={{ minHeight: '87vh' }}> */
+
     return (
-      <div className={`${props.hidden ? "hidden" : ""}`} style={{ minHeight: "65vh" }}>
+      <div style={{ minHeight: "65vh" }}>
       <div
         className="
           flex justify-between
@@ -474,6 +412,11 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
             </Tabs>
             {selectedTab === "tab-algemeen" && (
               <div className="mt-4 w-full">
+                  {errorMessage && (
+                    <div className="text-red-600 font-bold mb-4">
+                      {errorMessage}
+                    </div>
+                  )}
                   <FormInput 
                     label="Naam"
                     value={CompanyName || ''} 
@@ -482,11 +425,11 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                     disabled={!isEditing}
                   />
                   <br />
-                  { props.users.length > 0 ?
+                  { users.length > 0 ?
                       <FormSelect 
                         label="Contactpersoon"
                         value={contactID || ''} 
-                        onChange={(e) => { console.log("onChange", e.target.value); setContactID(e.target.value || null)} } 
+                        onChange={(e) => setContactID(e.target.value || null)} 
                         required
                         options={userlist}
                         disabled={!isEditing}

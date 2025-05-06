@@ -1,16 +1,34 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { validateUserSession, generateID } from "~/utils/server/database-tools";
 import bcrypt from "bcrypt";
+import { createSecurityProfile } from "~/utils/server/securitycontext";
 
 // TODO: implement filtering on accessible security_users
 
+const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
+  return user.security_users_sites.map((site) => ({
+    SiteID: site.SiteID,
+    IsContact: site.IsContact,
+    IsOwnOrganization: user.SiteID === site.SiteID,
+    newRoleId: VSUserRoleValuesNew.None
+  }))
+}
+
+export const convertToNewUser = async (user: VSUserWithRoles): Promise<VSUserWithRolesNew> => {
+  return {
+    ...user,
+    sites: getSitesForUser(user),
+    securityProfile: await createSecurityProfile(user)
+  }
+}
+
 export type SecurityUsersResponse = {
-  data?: VSUserWithRoles[];
+  data?: VSUserWithRolesNew[];
   error?: string;
 };
 
@@ -28,46 +46,53 @@ export default async function handle(
   res: NextApiResponse<SecurityUsersResponse>
 ) {
   const session = await getServerSession(req, res, authOptions);
-  const validationResult = await validateUserSession(session);
+  const validateUserSessionResult = await validateUserSession(session, "any");
   
-  if ('error' in validationResult) {
-    res.status(validationResult.status).json({error: validationResult.error});
+  if ('error' in validateUserSessionResult) {
+    res.status(validateUserSessionResult.status).json({error: `validate user session error:${validateUserSessionResult.status} - ${validateUserSessionResult.error}`});
     return;
   }
 
-  const { sites, userId } = validationResult;
+  const { sites, userId } = validateUserSessionResult;
 
   switch (req.method) {
     case "GET": {
       // GET all security users
       const users = await prisma.security_users.findMany({
-        // where: {
-        //   SiteID: { in: sites }
-        // },
+        where: {
+          OR: [
+            { SiteID: { in: sites } },
+            { GroupID: { in: sites } }
+          ]
+        },
         select: securityUserSelect
       }) as VSUserWithRoles[];
-      res.status(200).json({data: users});
+
+      const newUsers = await Promise.all(users.map(async (user) => ({
+        ...user,
+        sites: getSitesForUser(user),
+        securityProfile: await createSecurityProfile(user)
+      })));
+
+      res.status(200).json({data: newUsers});
       break;
     }
     case "POST": {
       try {
-        const validationResult = securityUserCreateSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          console.error("Validation error:", validationResult.error);
-          res.status(400).json({ error: "Validation error" });
+        const parseResult = securityUserCreateSchema.safeParse(req.body);
+        if (!parseResult.success) {
+          console.error("Unexpected/missing data error:", parseResult.error);
+          res.status(400).json({ error: "Unexpected/missing data error:" });
           return;
         }
-        const parsed = validationResult.data;
-        console.log(">>> security_user data parsed", parsed);
-        
-        // Generate a new UserID
+        const parsed = parseResult.data;
+
         const newUserID = generateID();
-        console.log(">>> security_user data parsed", parsed);
         
         // Hash the password
         const hashedPassword = await bcrypt.hash(parsed.Password, 10);
         
-        const newUser = await prisma.security_users.create({
+        const createdUser = await prisma.security_users.create({
           data: {
             UserID: newUserID,
             UserName: parsed.UserName,
@@ -76,10 +101,12 @@ export default async function handle(
             GroupID: parsed.GroupID,
             Status: parsed.Status ?? "1",
             EncryptedPassword: hashedPassword,
-            SiteID: sites[0] // Use the first site as default
+            SiteID: session.user.SiteID 
           },
           select: securityUserSelect
         }) as VSUserWithRoles;
+
+        const newUser = await convertToNewUser(createdUser);
 
         res.status(201).json({ data: [newUser] });
       } catch (e) {

@@ -3,51 +3,34 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { displayInOverlay } from '~/components/Overlay';
 import ExploitantEdit from "~/components/contact/ExploitantEdit";
-import type { fietsenstallingtypen, security_roles } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 
 import { getParkingDetails } from "~/utils/parkings";
-import type { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import { type VSUserWithRoles, VSUserGroupValues } from "~/types/users";
+import type { VSContactExploitant} from "~/types/contacts";
 import type { ParkingDetailsType } from "~/types/parking";
 
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { makeClientApiCall } from '~/utils/client/api-tools';
+import { useUsers } from '~/hooks/useUsers';
+import { useExploitanten } from '~/hooks/useExploitanten';
+import { useGemeenten } from '~/hooks/useGemeenten';
 
 type ExploitantComponentProps = { 
-  gemeenten: VSContactGemeente[]
-  users: VSUserWithRoles[]
-  roles: security_roles[],
-  fietsenstallingtypen: fietsenstallingtypen[],  
-  isAdmin: boolean,
 };
 
 const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
 
-  const { gemeenten, fietsenstallingtypen, users, roles} = props;
+  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
+  const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten();
+  const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
 
-  const [exploitanten, setExploitanten] = useState<VSContactExploitant[]>([]);
-  const [currentContact, setCurrentContact] = useState<VSContactExploitant | undefined>(undefined);
+  const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
   const [filterText, setFilterText] = useState("");
-
-  // Fetch exploitanten on component mount
-  useEffect(() => {
-    fetchExploitanten();
-  }, []);
-
-  const fetchExploitanten = async () => {
-    const response = await makeClientApiCall<VSContactExploitant[]>('/api/protected/exploitant');
-    if (response.success && response.result) {
-      setExploitanten(response.result);
-    } else {
-      console.error('Failed to fetch exploitanten:', response.error);
-    }
-  };
 
   const filteredContacts = exploitanten.filter(contact => 
     contact.CompanyName?.toLowerCase().includes(filterText.toLowerCase())
@@ -76,17 +59,13 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     if("id" in router.query) {
       const id = router.query.id;
       if(id) {
-        setCurrentContact(exploitanten.find((contact) => contact.ID === id));
+        setCurrentContactID(id as string);
       }
     }   
   }, [router.query.id, exploitanten]);
 
-  const handleNew = () => {
-    setCurrentContact(undefined);
-  }
-
   const handleEdit = (id: string) => {
-    setCurrentContact(exploitanten.find((contact) => contact.ID === id));
+    setCurrentContactID(id);
   };
 
   const handleDelete = async(id: string) => {
@@ -94,7 +73,8 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
       const response = await makeClientApiCall<VSContactExploitant>(`/api/protected/exploitant/${id}`, "DELETE");
       if(response.success) {
         alert("Exploitant verwijderd");
-        fetchExploitanten(); // Refresh the list after deletion
+
+        reloadExploitanten(); // Refresh the list after deletion
       } else {
         alert("Er is een fout opgetreden bij het verwijderen van de exploitant.");
         console.error("Unable to delete contact:", response.error);
@@ -130,7 +110,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
             )}
           </div>
           <button 
-            onClick={() => handleNew()}
+            onClick={() => handleEdit('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe Exploitant
@@ -174,16 +154,15 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const renderEdit = (isSm: boolean = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
-    const showContactEdit = showStallingEdit || showUserEdit || currentContact?.ID !== undefined;
+    const showExploitantEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
 
-    // filter users based on the security_users_sites.SiteID
-    const filteredUsers = users.filter(user => user.security_users_sites?.some(site => site.SiteID === currentContact?.ID && (["extern"].includes(user.GroupID || "") === true)));
+    const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
 
-    if(!showStallingEdit && !showContactEdit && !showUserEdit) {
+    if(!showStallingEdit && !showExploitantEdit && !showUserEdit) {
       return null;
     }
 
-    const handleOnClose = (verbose: boolean = false) => {
+    const handleOnClose = async (verbose: boolean = false) => {
       if (verbose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }
@@ -192,56 +171,66 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         setCurrentUserId(undefined);
       } else if(showStallingEdit) {
         setCurrentStallingId(undefined);
-      } else if(showContactEdit) {
-        setCurrentContact(undefined);
+      } else if(showExploitantEdit) {
+        reloadExploitanten();
+        setCurrentContactID(undefined);
       } 
     }
 
-    let content: React.ReactNode = (
-      <>
-        { currentStalling && showStallingEdit && (
+    if(currentContactID !== undefined) {
+      if(showUserEdit) {
+        return (
+          <UserEditComponent 
+            id={currentUserId} 
+            currentContactID={currentContactID}
+            users={filteredUsers} 
+            onClose={()=>setCurrentUserId(undefined)} 
+            showBackButton={false} />
+        );
+      } else if(showStallingEdit) {
+        return (
           <ParkingEdit 
             parkingdata={currentStalling} 
             onClose={() => setCurrentStallingId(undefined)} 
             onChange={() => { setCurrentRevision(currentRevision + 1); }} 
           />
-        )}
-        { currentUserId && showUserEdit && (
-            <UserEditComponent 
-              id={currentUserId} 
-              groupid={VSUserGroupValues.Exploitant} 
-              users={users} 
-              roles={roles} 
-              onClose={()=>setCurrentUserId(undefined)} 
-              showBackButton={false} />)}
-        { currentContact && (
+        )} else if(showExploitantEdit) {
+          return (
           <ExploitantEdit 
-            exploitanten={exploitanten} 
-            users={users}
-            fietsenstallingtypen={fietsenstallingtypen}
-            id={currentContact.ID} 
+            id={currentContactID} 
+            gemeenten={gemeenten}
             onClose={() => { 
-              setCurrentContact(undefined); 
-              fetchExploitanten(); // Refresh the list after edit
+              setCurrentContactID(undefined); 
+
+              reloadExploitanten(); // Refresh the list after edit
             }} 
             onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
             onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
             onSendPassword={(userID: string | undefined) => alert("send password to user " + userID) }
-            hidden={showStallingEdit || showUserEdit}
           />
-        )}
-      </>
-    );
+        );
+      }
+    }
+  };
 
-    return displayInOverlay(content, isSm, currentStalling?.Title || currentContact?.CompanyName || "", () => handleOnClose());
+  if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten) {
+    const whatIsLoading = [
+        isLoadingUsers && "users",
+        isLoadingExploitanten && "exploitanten",
+        isLoadingGemeenten && "gemeenten",
+    ].filter(Boolean).join("+");
+    return <div>Loading {whatIsLoading}...</div>;
+  }
+
+  if(errorUsers || errorExploitanten || errorGemeenten) {
+    return <div>Error: {errorUsers || errorExploitanten || errorGemeenten}</div>;
   }
   
-  const isSm = false;
-  if(currentStalling !== undefined || currentContact !== undefined || currentUserId !== undefined) {
-    return renderEdit(isSm);
-  } else {
-    return renderOverview();
-  }
+  return (
+    <div>
+      {currentContactID === undefined && currentStalling === undefined && currentUserId === undefined ? renderOverview() : renderEdit()}
+    </div>
+  );
 };
 
 export default ExploitantComponent;

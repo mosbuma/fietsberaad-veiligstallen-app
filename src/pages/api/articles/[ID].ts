@@ -93,7 +93,7 @@ async function handleGet(articleId: string, res: NextApiResponse) {
 //     return res.json(updatedArticle);
 //   } catch (error) {
 //     if (error instanceof z.ZodError) {
-//       return res.status(400).json({ error: "Validation error", details: error.errors });
+//       return res.status(400).json({ error: "Unexpected/missing data error:", details: error.errors });
 //     }
 //     throw error;
 //   }
@@ -115,7 +115,7 @@ async function handleGet(articleId: string, res: NextApiResponse) {
 //     return res.json(updatedArticle);
 //   } catch (error) {
 //     if (error instanceof z.ZodError) {
-//       return res.status(400).json({ error: "Validation error", details: error.errors });
+//       return res.status(400).json({ error: "Unexpected/missing data error:", details: error.errors });
 //     }
 //     throw error;
 //   }
