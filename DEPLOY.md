@@ -1,0 +1,364 @@
+# Deployment Guide for Veiligstallen App
+
+This guide explains how to deploy the Veiligstallen application on a Digital Ocean VPS using GitHub Actions for continuous deployment.
+
+## Prerequisites
+
+1. A Digital Ocean account
+2. A GitHub repository with the application code
+3. Docker installed on your local machine (for testing)
+4. SSH access to your Digital Ocean droplet
+
+## Initial Server Setup
+
+1. Create a new Digital Ocean Droplet:
+   - Choose Ubuntu 22.04 LTS
+   - Select a plan that meets your needs (recommended: Basic plan with 2GB RAM)
+   - Choose a datacenter region close to your target users
+   - Add your SSH key
+   - Create the droplet
+
+2. Initial server configuration:
+   ```bash
+   # Update system packages
+   sudo apt update && sudo apt upgrade -y
+
+   # Install Docker
+   sudo apt install -y docker.io docker-compose
+
+   # Add your user to the docker group
+   sudo usermod -aG docker $USER
+
+   # Install Nginx
+   sudo apt install -y nginx
+
+   # Configure firewall
+   sudo ufw allow ssh
+   sudo ufw allow 22/tcp
+   sudo ufw allow 'Nginx Full'
+   sudo ufw enable
+   ```
+
+## GitHub Actions Setup
+
+1. Create a new GitHub Actions workflow file at `.github/workflows/deploy-veiligstallen-work.yaml`:
+
+```yaml
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches:
+      - veiligstallen-v2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Digital Ocean
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /var/www/veiligstallen
+            git pull origin veiligstallen-v2
+            docker-compose build
+            docker-compose down
+            docker-compose up -d
+```
+
+2. Add the following secrets to your GitHub repository:
+   - `DROPLET_HOST`: Your Digital Ocean droplet IP
+   - `DROPLET_USERNAME`: SSH username for the droplet
+   - `DROPLET_SSH_KEY`: Private SSH key for accessing the droplet
+
+## Server Configuration
+
+1. Create the application directory and clone the repository:
+   ```bash
+   sudo mkdir -p /var/www/veiligstallen
+   sudo chown $USER:$USER /var/www/veiligstallen
+   cd /var/www/veiligstallen
+   git clone https://github.com/your-username/veiligstallen.git .
+   git checkout veiligstallen-v2
+   ```
+
+2. Create a `.env` file in `/var/www/veiligstallen`:
+   ```bash
+   sudo nano /var/www/veiligstallen/.env
+   ```
+   
+   Add the following configuration (adjust values as needed):
+   ```env
+   # Database configuration
+   DATABASE_URL=mysql://username:password@localhost:3306/veiligstallen
+   
+   # Other environment variables from your local .env file
+   # Make sure to update any URLs to use the production domain
+   ```
+
+3. Create a `docker-compose.yml` file in `/var/www/veiligstallen`:
+   ```yaml
+   version: '3'
+   services:
+     app:
+       image: your-dockerhub-username/veiligstallen:latest
+       restart: always
+       ports:
+         - "3000:3000"
+       environment:
+         - NODE_ENV=production
+       env_file:
+         - .env
+       # Add network configuration to connect to host's localhost
+       network_mode: "host"
+   ```
+
+3. Configure Nginx as a reverse proxy:
+   ```bash
+   sudo nano /etc/nginx/sites-available/veiligstallen
+   ```
+
+   Add the following configuration:
+   ```nginx
+   server {
+       listen 80;
+       server_name veiligstallen.work www.veiligstallen.work;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+   Enable the site:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/veiligstallen /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+## SSL Configuration
+
+1. Install Certbot and Nginx plugin:
+   ```bash
+   sudo apt install -y certbot python3-certbot-nginx
+   ```
+
+2. Update Nginx configuration to include both domains:
+   ```bash
+   sudo nano /etc/nginx/sites-available/veiligstallen
+   ```
+
+   Add the following configuration:
+   ```nginx
+   server {
+       listen 80;
+       server_name veiligstallen.work www.veiligstallen.work;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+3. Obtain and configure SSL certificate:
+   ```bash
+   # Get SSL certificate for both domains
+   sudo certbot --nginx -d veiligstallen.work -d www.veiligstallen.work
+
+   # Verify the certificate auto-renewal is set up
+   sudo certbot renew --dry-run
+   ```
+
+4. Set up automatic renewal (Certbot creates a systemd timer by default, but verify it's active):
+   ```bash
+   sudo systemctl status certbot.timer
+   ```
+
+The SSL certificate will automatically renew when it's close to expiration (Let's Encrypt certificates are valid for 90 days).
+
+## Deployment Process
+
+1. Push changes to the `veiligstallen-v2` branch
+2. GitHub Actions will automatically:
+   - Build the Docker image
+   - Push it to Docker Hub
+   - Deploy it to your Digital Ocean droplet
+
+## Monitoring and Maintenance
+
+1. View application logs:
+   ```bash
+   docker-compose logs -f
+   ```
+
+2. Monitor system resources:
+   ```bash
+   htop
+   ```
+
+3. Update the application:
+   - Simply push changes to the `veiligstallen-v2` branch
+   - GitHub Actions will handle the deployment
+
+## Troubleshooting
+
+1. If the application fails to start:
+   ```bash
+   docker-compose logs
+   ```
+
+2. If Nginx is not serving the application:
+   ```bash
+   sudo nginx -t
+   sudo systemctl status nginx
+   ```
+
+3. Check system resources:
+   ```bash
+   df -h
+   free -m
+   ```
+
+## Backup Strategy
+
+1. Regular database backups (if applicable)
+2. Configuration file backups
+3. Docker volume backups
+
+## Security Considerations
+
+1. Keep the system updated:
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+2. Regularly rotate SSH keys and Docker Hub tokens
+3. Monitor system logs for suspicious activity
+4. Keep Docker images updated with security patches
+
+For any issues or questions, please contact the development team.
+
+## Database Setup
+
+1. Install MySQL on the droplet:
+   ```bash
+   sudo apt install -y mysql-server
+   sudo mysql_secure_installation
+   ```
+
+2. Create the database and user:
+   ```bash
+   sudo mysql
+   ```
+   ```sql
+   CREATE DATABASE veiligstallen;
+   CREATE USER 'username'@'localhost' IDENTIFIED BY 'your_password';
+   GRANT ALL PRIVILEGES ON veiligstallen.* TO 'username'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+
+3. Verify MySQL is configured for local-only connections:
+   ```bash
+   sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+   ```
+   
+   Ensure the `bind-address` line is set to:
+   ```
+   bind-address = 127.0.0.1
+   ```
+   
+   Restart MySQL:
+   ```bash
+   sudo systemctl restart mysql
+   ```
+
+Note: The database is configured to only accept local connections. To access the database remotely, you'll need to SSH into the server first. This is a security best practice that prevents direct remote access to the database.
+
+4. Allow MySQL through the firewall:
+   ```bash
+   sudo ufw allow 3306/tcp
+   ```
+
+## Alternative Deployment Method (Local Build)
+
+If you don't have access to GitHub repository secrets, you can deploy directly from your local machine. This method involves building the Docker image locally and transferring it to the VPS.
+
+1. Build the Docker image locally:
+   ```bash
+   # From your local project directory
+   docker build -t veiligstallen:latest .
+   ```
+
+2. Save the Docker image to a file:
+   ```bash
+   docker save veiligstallen:latest > veiligstallen.tar
+   ```
+
+3. Transfer the image to the VPS:
+   ```bash
+   scp veiligstallen.tar user@your-droplet-ip:/var/www/veiligstallen/
+   ```
+
+4. SSH into the VPS and load the image:
+   ```bash
+   ssh user@your-droplet-ip
+   cd /var/www/veiligstallen
+   docker load < veiligstallen.tar
+   ```
+
+5. Update the docker-compose.yml file if needed:
+   ```bash
+   # Edit the image name in docker-compose.yml to use the local image
+   nano docker-compose.yml
+   ```
+   ```yaml
+   version: '3'
+   services:
+     app:
+       image: veiligstallen:latest  # Use the local image name
+       restart: always
+       ports:
+         - "3000:3000"
+       environment:
+         - NODE_ENV=production
+       env_file:
+         - .env
+       network_mode: "host"
+   ```
+
+6. Restart the containers:
+   ```bash
+   docker-compose down
+   docker-compose up -d
+   ```
+
+7. Clean up the transferred image file:
+   ```bash
+   rm veiligstallen.tar
+   ```
+
+To deploy updates:
+1. Make your changes locally
+2. Build a new image
+3. Repeat steps 2-6 above
+
+Note: This method requires:
+- Docker installed on your local machine
+- SSH access to the VPS
+- Sufficient disk space on both local machine and VPS for the Docker image
+- Manual execution of deployment steps 
