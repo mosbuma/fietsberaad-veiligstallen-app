@@ -359,22 +359,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     }
   }
 
-  const sortedGemeenten = gemeenten?.sort((a, b) => {
-    // If a is the main contact, it should come first
-    if (a.ID === currentUser?.securityProfile?.mainContactId) return -1;
-    // If b is the main contact, it should come first
-    if (b.ID === currentUser?.securityProfile?.mainContactId) return 1;
-    // Otherwise sort alphabetically
-    return (a.CompanyName || '').localeCompare(b.CompanyName || '');
-  });
-
   return (
     <div className="flex flex-col h-screen overflow-y-hidden">
       <TopBar
         title="Veiligstallen Beheer Dashboard"
         currentComponent={activecomponent}
         user={currentUser} 
-        gemeenten={sortedGemeenten}
+        gemeenten={gemeenten}
         selectedGemeenteID={selectedGemeenteID}
         onGemeenteSelect={handleSelectGemeente}
       />

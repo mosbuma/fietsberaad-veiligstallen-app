@@ -33,14 +33,13 @@ const TopBar: React.FC<TopBarProps> = ({
     (state: AppState) => state.map.activeMunicipalityInfo
   );
 
-
   const themeColor1 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
-  ? `#${activeMunicipalityInfo.ThemeColor1}`
-  : '#15aeef';
+    ? `#${activeMunicipalityInfo.ThemeColor1}`
+    : '#15aeef';
 
-const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
-  ? `#${activeMunicipalityInfo.ThemeColor2}`
-  : '#15aeef';
+  const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor2
+    ? `#${activeMunicipalityInfo.ThemeColor2}`
+    : '#15aeef';
 
   const handleGemeenteChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -65,8 +64,15 @@ const themeColor2 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
   };
 
   const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
+  const showFietsberaadInList = profile?.mainContactId === "1";
+  const fietsberaad = {
+    ID: "1",
+    CompanyName: "Fietsberaad",
+    CompanyShortName: "Fietsberaad"
+  }
 
-  const visibleContacts = gemeenten?.sort((a, b) => {
+  const organisaties = showFietsberaadInList ? [fietsberaad, ...(gemeenten || [])] : gemeenten;
+  const visibleContacts = organisaties?.sort((a, b) => {
     // If a is the main contact, it should come first
     if (a.ID === (profile?.mainContactId || "")) return -1;
     // If b is the main contact, it should come first

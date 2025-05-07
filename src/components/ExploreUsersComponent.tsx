@@ -11,6 +11,7 @@ import { useGemeenten } from "~/hooks/useGemeenten";
 import { useUsersColdfusion } from "~/hooks/useUsersColdfusion";
 import { useExploitanten } from "~/hooks/useExploitanten";
 import { useDataproviders } from "~/hooks/useDataproviders";
+import { LoadingSpinner } from "./beheer/common/LoadingSpinner";
 
 interface ExploreUsersComponentProps {
     roles: VSUserRole[]
@@ -757,12 +758,12 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
     if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten || isLoadingDataproviders) {
         const whatIsLoading = [
-            isLoadingUsers && "users",
-            isLoadingExploitanten && "exploitanten",
-            isLoadingGemeenten && "gemeenten",
-            isLoadingDataproviders && "dataproviders"
-        ].filter(Boolean).join("+");
-        return <div>Loading {whatIsLoading}...</div>;
+            isLoadingUsers && "Gebruikers",
+            isLoadingExploitanten && "Exploitanten",
+            isLoadingGemeenten && "Gemeenten",
+            isLoadingDataproviders && "Dataproviders"
+        ].filter(Boolean).join(" + ");
+        return <LoadingSpinner message={whatIsLoading + ' laden'} />;
     }
 
     if(errorUsers || errorExploitanten || errorGemeenten || errorDataproviders) {

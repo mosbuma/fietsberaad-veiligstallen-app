@@ -14,6 +14,7 @@ import { makeClientApiCall } from '~/utils/client/api-tools';
 import { useUsers } from '~/hooks/useUsers';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import { useGemeenten } from '~/hooks/useGemeenten';
+import { LoadingSpinner } from '../../common/LoadingSpinner';
 
 type ExploitantComponentProps = { 
 };
@@ -215,11 +216,12 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
 
   if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten) {
     const whatIsLoading = [
-        isLoadingUsers && "users",
-        isLoadingExploitanten && "exploitanten",
-        isLoadingGemeenten && "gemeenten",
-    ].filter(Boolean).join("+");
-    return <div>Loading {whatIsLoading}...</div>;
+        isLoadingUsers && "Gebruikers",
+        isLoadingExploitanten && "Exploitanten",
+        isLoadingGemeenten && "Gemeenten",
+    ].filter(Boolean).join(" + ");
+    
+    return <LoadingSpinner message={whatIsLoading + ' laden'} />;
   }
 
   if(errorUsers || errorExploitanten || errorGemeenten) {

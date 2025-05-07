@@ -12,6 +12,7 @@ import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { useUsers } from '~/hooks/useUsers';
+import { LoadingSpinner } from '../../common/LoadingSpinner';
 
 type GemeenteComponentProps = { 
   users: VSUserWithRolesNew[]
@@ -82,7 +83,6 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
 
   const getContactPerson = (contact: VSContactGemeente): string => {
     // const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
-    console.log("users", users);
     const contactperson = users.find(user => user.sites.some(site => site.SiteID === contact.ID && site.IsContact === true));
     return contactperson!==undefined ? 
       contactperson.DisplayName + " (" + contactperson.UserName + ")" : "";
@@ -206,10 +206,10 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
 
   if(isLoadingUsers || isLoadingGemeenten) {
     const whatIsLoading = [
-        isLoadingUsers && "users",
-        isLoadingGemeenten && "gemeenten",
-    ].filter(Boolean).join("+");
-    return <div>Loading {whatIsLoading}...</div>;
+        isLoadingUsers && "Gebruikers",
+        isLoadingGemeenten && "Gemeenten",
+    ].filter(Boolean).join(" + ");
+    return <LoadingSpinner message={whatIsLoading + ' laden'} />;
   }
 
   if(errorUsers || errorGemeenten) {
