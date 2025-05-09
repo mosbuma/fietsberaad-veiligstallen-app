@@ -5,7 +5,7 @@ import { createWrapper } from "next-redux-wrapper";
 const makeStore = () =>
   configureStore({
     reducer: rootReducer,
-    devTools: true,
+    devTools: process.env.NODE_ENV !== "production",
   });
 
 // @ts-ignore
@@ -19,4 +19,6 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   Action<string>
 >;
 
-export const wrapper = createWrapper<AppStore>(makeStore);
+export const wrapper = createWrapper<AppStore>(makeStore, {
+  debug: process.env.NODE_ENV !== "production",
+});
