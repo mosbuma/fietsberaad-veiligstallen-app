@@ -43,69 +43,33 @@ This guide explains how to deploy the Veiligstallen application on a Digital Oce
 
 ## GitHub Actions Setup
 
-1. Create a new GitHub Actions workflow file at `.github/workflows/deploy-veiligstallen-work.yaml`:
+1. The github action workflow is checked in with the project: see the .github/deploy-veiligstallen-work.yaml file
 
-```yaml
-name: Deploy to Digital Ocean
+2. Go to your GitHub repository
+3. Navigate to Settings → Secrets and variables → Actions
 
-on:
-  push:
-    branches:
-      - veiligstallen-v2
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Digital Ocean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            cd /var/www/veiligstallen
-            git pull origin veiligstallen-v2
-            docker-compose build
-            docker-compose down
-            docker-compose up -d
-```
-
-2. Add the following secrets to your GitHub repository:
-   - `DROPLET_HOST`: Your Digital Ocean droplet IP
-   - `DROPLET_USERNAME`: SSH username for the droplet
-   - `DROPLET_SSH_KEY`: Private SSH key for accessing the droplet
-
-## GitHub Actions Variables and Secrets Setup
-
-1. Go to your GitHub repository
-2. Navigate to Settings → Secrets and variables → Actions
-3. Set up the following Variables (not secrets):
-
-   - `DO_NEXT_PUBLIC_API_BASE_URL`: Your API base URL (e.g., https://api.veiligstallen.work)
-   - `DO_NEXT_PUBLIC_WEB_BASE_URL`: Your web base URL (e.g., https://veiligstallen.work)
-   - `DO_DATABASE_URL`: Your MySQL database URL (e.g., mysql://username:password@localhost:3306/veiligstallen)
-   - `DO_NEXTAUTH_URL`: Your NextAuth URL (e.g., https://veiligstallen.work)
-   - `DROPLET_HOST`: Your Digital Ocean droplet IP address
+4. Set up the following Repository Variables (not secrets):
+   - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL (e.g., https://veiligstallen.work)
+   - `NEXT_PUBLIC_WEB_BASE_URL`: Your web base URL (e.g., https://veiligstallen.work)
+   - `NEXTAUTH_URL`: Your NextAuth URL (e.g., https://veiligstallen.work)
+   - `DROPLET_HOST`: Your Digital Ocean droplet IP address or base URL
    - `DROPLET_USERNAME`: SSH username for the droplet
 
-4. Set up the following Secrets:
-   - `DO_NEXTAUTH_SECRET`: A secure random string for NextAuth (you can generate one using `openssl rand -base64 32`)
-   - `DO_NEXT_PUBLIC_MAPBOX_TOKEN`: Your Mapbox API token
-   - `DO_LOGINTOKEN_SIGNER_PRIVATE_KEY`: Your private key for signing login tokens
+5. Set up the following Repository Secrets:
+   - `DATABASE_URL`: MySQL database URL (e.g., mysql://user:pass@127.0.0.1:5555/veiligstallen)
    - `DROPLET_SSH_KEY`: Your SSH private key for deployment
+   - `NEXTAUTH_SECRET`: A secure random string for NextAuth (generate with: openssl rand -base64 32)
+   - `NEXT_PUBLIC_MAPBOX_TOKEN`: Your Mapbox API token
+   - `LOGINTOKEN_SIGNER_PRIVATE_KEY`: Private key for signing login tokens (generate with: openssl rand -hex 32)
 
 To generate a secure NEXTAUTH_SECRET:
-
 ```bash
 openssl rand -base64 32
 ```
 
 To generate a LOGINTOKEN_SIGNER_PRIVATE_KEY:
-
 ```bash
-openssl genrsa -out private.pem 2048
-cat private.pem
+openssl rand -hex 32
 ```
 
 See section **Creating the SSH Key for Deployment** below for setting up the DROPLET_SSH_KEY
