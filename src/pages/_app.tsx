@@ -58,5 +58,5 @@ const MyApp: AppType = ({
   );
 };
 
-// Use the new wrapper pattern
-export default wrapper.useWrappedStore(api.withTRPC(MyApp));
+// Use the wrapper pattern that works with Next.js 13+
+export default wrapper.withRedux(api.withTRPC(MyApp));

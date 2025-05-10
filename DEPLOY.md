@@ -76,6 +76,42 @@ jobs:
    - `DROPLET_USERNAME`: SSH username for the droplet
    - `DROPLET_SSH_KEY`: Private SSH key for accessing the droplet
 
+## GitHub Actions Variables and Secrets Setup
+
+1. Go to your GitHub repository
+2. Navigate to Settings → Secrets and variables → Actions
+3. Set up the following Variables (not secrets):
+
+   - `DO_NEXT_PUBLIC_API_BASE_URL`: Your API base URL (e.g., https://api.veiligstallen.work)
+   - `DO_NEXT_PUBLIC_WEB_BASE_URL`: Your web base URL (e.g., https://veiligstallen.work)
+   - `DO_DATABASE_URL`: Your MySQL database URL (e.g., mysql://username:password@localhost:3306/veiligstallen)
+   - `DO_NEXTAUTH_URL`: Your NextAuth URL (e.g., https://veiligstallen.work)
+   - `DROPLET_HOST`: Your Digital Ocean droplet IP address
+   - `DROPLET_USERNAME`: SSH username for the droplet
+
+4. Set up the following Secrets:
+   - `DO_NEXTAUTH_SECRET`: A secure random string for NextAuth (you can generate one using `openssl rand -base64 32`)
+   - `DO_NEXT_PUBLIC_MAPBOX_TOKEN`: Your Mapbox API token
+   - `DO_LOGINTOKEN_SIGNER_PRIVATE_KEY`: Your private key for signing login tokens
+   - `DROPLET_SSH_KEY`: Your SSH private key for deployment
+
+To generate a secure NEXTAUTH_SECRET:
+
+```bash
+openssl rand -base64 32
+```
+
+To generate a LOGINTOKEN_SIGNER_PRIVATE_KEY:
+
+```bash
+openssl genrsa -out private.pem 2048
+cat private.pem
+```
+
+See section **Creating the SSH Key for Deployment** below for setting up the DROPLET_SSH_KEY
+
+Note: Keep your secrets secure and never commit them to the repository. The variables are less sensitive and can be viewed by repository collaborators, while secrets are encrypted and only visible during workflow execution.
+
 ## Server Configuration
 
 1. Create the application directory and clone the repository:
@@ -326,7 +362,40 @@ If you don't have access to GitHub repository secrets, you can deploy directly f
 
    ```bash
    # From your local project directory
-   docker build -t veiligstallen:latest .
+   docker build \
+     --build-arg NEXT_PUBLIC_API_BASE_URL="$(grep NEXT_PUBLIC_API_BASE_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXT_PUBLIC_WEB_BASE_URL="$(grep NEXT_PUBLIC_WEB_BASE_URL .env | cut -d '=' -f2)" \
+     --build-arg DATABASE_URL="$(grep DATABASE_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXTAUTH_SECRET="$(grep NEXTAUTH_SECRET .env | cut -d '=' -f2)" \
+     --build-arg NEXTAUTH_URL="$(grep NEXTAUTH_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="$(grep NEXT_PUBLIC_MAPBOX_TOKEN .env | cut -d '=' -f2)" \
+     --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="$(grep LOGINTOKEN_SIGNER_PRIVATE_KEY .env | cut -d '=' -f2)" \
+     -t veiligstallen:latest .
+   ```
+
+   Or, if you prefer to read directly from your .env file:
+
+   ```bash
+   # Create a script to read .env and build
+   cat > build.sh << 'EOL'
+   #!/bin/bash
+   set -a
+   source .env
+   set +a
+
+   docker build \
+     --build-arg NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" \
+     --build-arg NEXT_PUBLIC_WEB_BASE_URL="$NEXT_PUBLIC_WEB_BASE_URL" \
+     --build-arg DATABASE_URL="$DATABASE_URL" \
+     --build-arg NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
+     --build-arg NEXTAUTH_URL="$NEXTAUTH_URL" \
+     --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="$NEXT_PUBLIC_MAPBOX_TOKEN" \
+     --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="$LOGINTOKEN_SIGNER_PRIVATE_KEY" \
+     -t veiligstallen:latest .
+   EOL
+
+   chmod +x build.sh
+   ./build.sh
    ```
 
 2. Save the Docker image to a file:
@@ -396,9 +465,7 @@ Note: This method requires:
 - Sufficient disk space on both local machine and VPS for the Docker image
 - Manual execution of deployment steps
 
-5. creating the SSH private key
-
-## Creating SSH Key for Deployment
+## Creating the SSH Key for Deployment
 
 1. Generate a new SSH key pair on your local machine:
 
