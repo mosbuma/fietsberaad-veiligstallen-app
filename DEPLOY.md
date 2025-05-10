@@ -434,7 +434,7 @@ Note: This method requires:
 1. Generate a new SSH key pair on your local machine:
 
    ```bash
-   ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/veiligstallen_deploy
+   ssh-keygen -t ed25519 -C "info@veiligstallen.work" -f ~/.ssh/veiligstallen_deploy
    ```
 
    - When prompted for a passphrase, you can leave it empty for automated deployments
