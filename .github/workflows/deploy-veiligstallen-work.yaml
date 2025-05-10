@@ -20,32 +20,6 @@ jobs:
             cd /var/www/veiligstallen
             git pull origin veiligstallen-v2
 
-            # Create docker-compose.yml if it doesn't exist
-            cat > docker-compose.yml << 'EOL'
-            version: "3"
-
-            services:
-              app:
-                build:
-                  context: .
-                  args:
-                    NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
-                    NEXT_PUBLIC_WEB_BASE_URL: ${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}
-                    DATABASE_URL: ${{ secrets.DATABASE_URL }}
-                    NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-                    NEXTAUTH_URL: ${{ vars.NEXTAUTH_URL }}
-                    NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-                    LOGINTOKEN_SIGNER_PRIVATE_KEY: ${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
-                restart: always
-                ports:
-                  - "3000:3000"
-                environment:
-                  - NODE_ENV=production
-                extra_hosts:
-                  - "host.docker.internal:host-gateway"
-                network_mode: "host"
-            EOL
-
             # Create .env file for build
             cat > .env << EOL
             NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
@@ -57,6 +31,24 @@ jobs:
             LOGINTOKEN_SIGNER_PRIVATE_KEY=${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
             EOL
 
-            docker-compose build
-            docker-compose down
-            docker-compose up -d
+            # Stop and remove existing container if it exists
+            docker stop veiligstallen || true
+            docker rm veiligstallen || true
+
+            # Build and run the new container
+            docker build \
+              --build-arg NEXT_PUBLIC_API_BASE_URL="${{ vars.NEXT_PUBLIC_API_BASE_URL }}" \
+              --build-arg NEXT_PUBLIC_WEB_BASE_URL="${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}" \
+              --build-arg DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              --build-arg NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+              --build-arg NEXTAUTH_URL="${{ vars.NEXTAUTH_URL }}" \
+              --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}" \
+              --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}" \
+              -t veiligstallen .
+
+            docker run -d \
+              --name veiligstallen \
+              --restart always \
+              --network host \
+              --add-host=host.docker.internal:host-gateway \
+              veiligstallen
