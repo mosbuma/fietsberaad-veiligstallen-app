@@ -108,5 +108,3 @@ FLUSH PRIVILEGES;
 ```
 
 nieuw wachtwoord aanmaken bv met openssl rand -base64 32
-
-
