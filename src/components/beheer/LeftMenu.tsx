@@ -199,22 +199,18 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   }
   
   // for now, only show the temporary production menu in production
-  const isProduction = process.env.NODE_ENV === 'production';
-  if(isProduction) {
-    return (
-      <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
-        {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
-      </ul>
-    )
-  }
-  
+  // const isProduction = process.env.NODE_ENV === 'production';
+  // if(isProduction) {
+  //   return (
+  //     <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
+  //       {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
+  //     </ul>
+  //   )
+  // }
+
   return (
     <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
-      {isProduction ? (
-        formatLi(VSMenuTopic.Report, 'Rapportages', true)
-      ) : (
-        renderUnifiedMenu()
-      )}
+      {renderUnifiedMenu()}
     </ul>
   );
 }

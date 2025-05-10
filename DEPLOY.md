@@ -43,38 +43,38 @@ This guide explains how to deploy the Veiligstallen application on a Digital Oce
 
 ## GitHub Actions Setup
 
-1. Create a new GitHub Actions workflow file at `.github/workflows/deploy-veiligstallen-work.yaml`:
+1. The github action workflow is checked in with the project: see the .github/deploy-veiligstallen-work.yaml file
 
-```yaml
-name: Deploy to Digital Ocean
+2. Go to your GitHub repository
+3. Navigate to Settings → Secrets and variables → Actions
 
-on:
-  push:
-    branches:
-      - veiligstallen-v2
+4. Set up the following Repository Variables (not secrets):
+   - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL (e.g., https://veiligstallen.work)
+   - `NEXT_PUBLIC_WEB_BASE_URL`: Your web base URL (e.g., https://veiligstallen.work)
+   - `NEXTAUTH_URL`: Your NextAuth URL (e.g., https://veiligstallen.work)
+   - `DROPLET_HOST`: Your Digital Ocean droplet IP address (e.g., 123.456.789.0) or hostname (e.g., droplet-123.nyc3.digitalocean.com)
+   - `DROPLET_USERNAME`: SSH username for the droplet
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Digital Ocean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            cd /var/www/veiligstallen
-            git pull origin veiligstallen-v2
-            docker-compose build
-            docker-compose down
-            docker-compose up -d
+5. Set up the following Repository Secrets:
+   - `DATABASE_URL`: MySQL database URL (e.g., mysql://user:pass@127.0.0.1:5555/veiligstallen)
+   - `DROPLET_SSH_KEY`: Your SSH private key for deployment
+   - `NEXTAUTH_SECRET`: A secure random string for NextAuth (generate with: openssl rand -base64 32)
+   - `NEXT_PUBLIC_MAPBOX_TOKEN`: Your Mapbox API token
+   - `LOGINTOKEN_SIGNER_PRIVATE_KEY`: Private key for signing login tokens (generate with: openssl rand -hex 32)
+
+To generate a secure NEXTAUTH_SECRET:
+```bash
+openssl rand -base64 32
 ```
 
-2. Add the following secrets to your GitHub repository:
-   - `DROPLET_HOST`: Your Digital Ocean droplet IP
-   - `DROPLET_USERNAME`: SSH username for the droplet
-   - `DROPLET_SSH_KEY`: Private SSH key for accessing the droplet
+To generate a LOGINTOKEN_SIGNER_PRIVATE_KEY:
+```bash
+openssl rand -hex 32
+```
+
+See section **Creating the SSH Key for Deployment** below for setting up the DROPLET_SSH_KEY
+
+Note: Keep your secrets secure and never commit them to the repository. The variables are less sensitive and can be viewed by repository collaborators, while secrets are encrypted and only visible during workflow execution.
 
 ## Server Configuration
 
@@ -326,7 +326,40 @@ If you don't have access to GitHub repository secrets, you can deploy directly f
 
    ```bash
    # From your local project directory
-   docker build -t veiligstallen:latest .
+   docker build \
+     --build-arg NEXT_PUBLIC_API_BASE_URL="$(grep NEXT_PUBLIC_API_BASE_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXT_PUBLIC_WEB_BASE_URL="$(grep NEXT_PUBLIC_WEB_BASE_URL .env | cut -d '=' -f2)" \
+     --build-arg DATABASE_URL="$(grep DATABASE_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXTAUTH_SECRET="$(grep NEXTAUTH_SECRET .env | cut -d '=' -f2)" \
+     --build-arg NEXTAUTH_URL="$(grep NEXTAUTH_URL .env | cut -d '=' -f2)" \
+     --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="$(grep NEXT_PUBLIC_MAPBOX_TOKEN .env | cut -d '=' -f2)" \
+     --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="$(grep LOGINTOKEN_SIGNER_PRIVATE_KEY .env | cut -d '=' -f2)" \
+     -t veiligstallen:latest .
+   ```
+
+   Or, if you prefer to read directly from your .env file:
+
+   ```bash
+   # Create a script to read .env and build
+   cat > build.sh << 'EOL'
+   #!/bin/bash
+   set -a
+   source .env
+   set +a
+
+   docker build \
+     --build-arg NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" \
+     --build-arg NEXT_PUBLIC_WEB_BASE_URL="$NEXT_PUBLIC_WEB_BASE_URL" \
+     --build-arg DATABASE_URL="$DATABASE_URL" \
+     --build-arg NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
+     --build-arg NEXTAUTH_URL="$NEXTAUTH_URL" \
+     --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="$NEXT_PUBLIC_MAPBOX_TOKEN" \
+     --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="$LOGINTOKEN_SIGNER_PRIVATE_KEY" \
+     -t veiligstallen:latest .
+   EOL
+
+   chmod +x build.sh
+   ./build.sh
    ```
 
 2. Save the Docker image to a file:
@@ -396,14 +429,12 @@ Note: This method requires:
 - Sufficient disk space on both local machine and VPS for the Docker image
 - Manual execution of deployment steps
 
-5. creating the SSH private key
-
-## Creating SSH Key for Deployment
+## Creating the SSH Key for Deployment
 
 1. Generate a new SSH key pair on your local machine:
 
    ```bash
-   ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/veiligstallen_deploy
+   ssh-keygen -t ed25519 -C "info@veiligstallen.work" -f ~/.ssh/veiligstallen_deploy
    ```
 
    - When prompted for a passphrase, you can leave it empty for automated deployments

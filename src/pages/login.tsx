@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import Head from "next/head";
-import { useRouter, useSearchParams } from 'next/navigation';
-import useQueryParam from '../hooks/useQueryParam';
+import { useRouter, useSearchParams } from "next/navigation";
+import useQueryParam from "../hooks/useQueryParam";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
@@ -21,98 +21,114 @@ const Login: NextPage = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect');
+  const redirect = searchParams.get("redirect");
   const error = useQueryParam("error")[0];
 
   const onSignIn = async (e: any) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
 
-    if (
-      emailRef.current && emailRef.current.value !== '' &&
-      passwordRef.current && passwordRef.current.value !== ''
-    ) {
-      const result = await signIn("credentials", {
-        email: emailRef.current.value.trim(),
-        password: passwordRef.current.value,
-        redirect: false,
-      });
+      if (
+        emailRef.current &&
+        emailRef.current.value !== "" &&
+        passwordRef.current &&
+        passwordRef.current.value !== ""
+      ) {
+        console.log("*** Signing in");
+        const result = await signIn("credentials", {
+          email: emailRef.current.value.trim(),
+          password: passwordRef.current.value,
+          redirect: false,
+        });
 
-      if (result?.ok) {
-        router.push(redirect || "/");
+        if (result?.ok) {
+          router.push(redirect || "/");
+        } else {
+          alert("Login failed");
+        }
       } else {
-        alert('Login failed');
+        alert("no email or password given");
       }
-    } else {
-      alert('no email or password given');
+    } catch (error) {
+      console.error("Error in onSignIn:", error);
+      alert("Login failed");
     }
   };
 
-  const allowLogin = emailRef.current?.value !== '' && passwordRef.current?.value !== '';
+  const allowLogin =
+    emailRef.current?.value !== "" && passwordRef.current?.value !== "";
 
   return (
     <>
       <Head>
-        <title>
-          Login - VeiligStallen
-        </title>
+        <title>Login - VeiligStallen</title>
       </Head>
-      <div className="flex flex-col justify-between" style={{ height: '100dvh' }}>
-
+      <div
+        className="flex flex-col justify-between"
+        style={{ height: "100dvh" }}
+      >
         <AppHeader />
 
         <div className={`${Styles.LoginPage} flex-1`}>
-          <div className={`
+          <div
+            className={`
 					${Styles.LoginBox}
-					bg-white
-					rounded-xl
 					mx-auto
-					px-4
-					sm:px-12
-					py-8
-					shadow-md
-
 					flex
 					flex-wrap
+					rounded-xl
+					bg-white
+					px-4
+					py-8
+
+					shadow-md
+					sm:px-12
 				`}
             style={{
-              width: '1000px',
-              maxWidth: '90%'
-            }}>
+              width: "1000px",
+              maxWidth: "90%",
+            }}
+          >
             <div
               data-name="bicycle-image"
               className="
 							px-12
-							sm:px-12
-							sm:pr-24
-
 							py-2
+							sm:px-12
+
 							sm:py-10
+							sm:pr-24
 						"
             >
-              <img src="/images/bike-blue-green.png"
+              <img
+                src="/images/bike-blue-green.png"
                 width="100%"
-                style={{ maxWidth: '350px' }}
+                style={{ maxWidth: "350px" }}
               />
             </div>
             <div
               data-name="login-form"
               className="
-							flex-1
-
 							flex
+
+							flex-1
 							flex-col
 							justify-around
 						"
             >
-              <div data-name="Some spacing" className="h-2">
-
-              </div>
-              <form onSubmit={onSignIn} data-name="Title and login form" className="mb-8">
-                <PageTitle className="flex flex-col justify-center hidden sm:block">
+              <div data-name="Some spacing" className="h-2"></div>
+              <form
+                onSubmit={onSignIn}
+                data-name="Title and login form"
+                className="mb-8"
+              >
+                <PageTitle className="flex hidden flex-col justify-center sm:block">
                   <div>
-                    <img src="/images/logo-without-text.png" alt="VeiligStallen logo"
-                      className="inline-block mr-6"
-                      style={{ height: '60px' }}
+                    <img
+                      src="/images/logo-without-text.png"
+                      alt="VeiligStallen logo"
+                      className="mr-6 inline-block"
+                      style={{ height: "60px" }}
                     />
                     <b>Log in met je account</b>
                   </div>
@@ -145,14 +161,18 @@ const Login: NextPage = () => {
 									</FormCheckbox> */}
                   </div>
                   <div className="flex flex-col justify-center">
-                    <Button style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }} onClick={onSignIn}>
+                    <Button
+                      style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}
+                      onClick={onSignIn}
+                    >
                       Inloggen
                     </Button>
                   </div>
                 </div>
 
-                <div className="text-center sm:text-right my-2 text-sm hidden">
-                  Nog geen account? <a href="/register" className="underline">
+                <div className="my-2 hidden text-center text-sm sm:text-right">
+                  Nog geen account?{" "}
+                  <a href="/register" className="underline">
                     Registreren
                   </a>
                 </div>
@@ -160,21 +180,27 @@ const Login: NextPage = () => {
 
               <div data-name="Footer: Password forgotten & Contact helpdesk">
                 <div className="text-center">
-                  <a href="/reset-password" className="underline text-sm mr-5">
+                  <a href="/reset-password" className="mr-5 text-sm underline">
                     Wachtwoord vergeten?
-                  </a><br />
-                  <a href="https://www.veiligstallen.nl/fietsberaad/login" target="_blank" className="underline text-sm mr-5">
+                  </a>
+                  <br />
+                  <a
+                    href="https://www.veiligstallen.nl/fietsberaad/login"
+                    target="_blank"
+                    className="mr-5 text-sm underline"
+                  >
                     Stallingstegoed opwaarderen
                   </a>
-                  <a href="mailto:fietsberaad@crow.nl" className="underline text-sm">
+                  <a
+                    href="mailto:fietsberaad@crow.nl"
+                    className="text-sm underline"
+                  >
                     Contact helpdesk
                   </a>
                 </div>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </>
