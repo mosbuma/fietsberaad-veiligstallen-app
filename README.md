@@ -98,3 +98,13 @@ Deze paginas kunnen worden gebruikt voor het bekijken van gebruiksdata/organisat
 
 # various
 - in development mode: klik op de gebruikersnaam om de sessie info te tonen in het console log
+
+# wijzigen database password voor gebruiker veiligstallen_readwrite
+- verbind via ssh met veiligstallen@veiligstallen.work
+- sudo mysql
+```
+ALTER USER 'veiligstallen_readwrite'@'127.0.0.1' IDENTIFIED BY 'new password';
+FLUSH PRIVILEGES;
+```
+
+nieuw wachtwoord aanmaken bv met openssl rand -base64 32
