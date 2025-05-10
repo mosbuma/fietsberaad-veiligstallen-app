@@ -10,26 +10,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Create .env file
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_WEB_BASE_URL: ${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ vars.NEXTAUTH_URL }}
-          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-          LOGINTOKEN_SIGNER_PRIVATE_KEY: ${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
-        run: |
-          touch .env
-          echo "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL" >> .env
-          echo "NEXT_PUBLIC_WEB_BASE_URL=$NEXT_PUBLIC_WEB_BASE_URL" >> .env
-          echo "NODE_ENV=production" >> .env
-          echo "DATABASE_URL=$DATABASE_URL" >> .env
-          echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env
-          echo "NEXTAUTH_URL=$NEXTAUTH_URL" >> .env
-          echo "NEXT_PUBLIC_MAPBOX_TOKEN=$NEXT_PUBLIC_MAPBOX_TOKEN" >> .env
-          echo "LOGINTOKEN_SIGNER_PRIVATE_KEY=$LOGINTOKEN_SIGNER_PRIVATE_KEY" >> .env
-
       - name: Deploy to Digital Ocean
         uses: appleboy/ssh-action@master
         with:
@@ -46,14 +26,21 @@ jobs:
 
             services:
               app:
-                build: .
+                build:
+                  context: .
+                  args:
+                    - NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+                    - NEXT_PUBLIC_WEB_BASE_URL=${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}
+                    - DATABASE_URL=${{ secrets.DATABASE_URL }}
+                    - NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+                    - NEXTAUTH_URL=${{ vars.NEXTAUTH_URL }}
+                    - NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
+                    - LOGINTOKEN_SIGNER_PRIVATE_KEY=${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
                 restart: always
                 ports:
                   - "3000:3000"
                 environment:
                   - NODE_ENV=production
-                env_file:
-                  - .env
                 extra_hosts:
                   - "host.docker.internal:host-gateway"
                 network_mode: "host"
