@@ -1,10 +1,10 @@
 name: Deploy to Digital Ocean
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - veiligstallen-v2
-  workflow_dispatch:
 
 jobs:
   deploy:

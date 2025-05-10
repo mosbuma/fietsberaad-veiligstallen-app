@@ -52,7 +52,7 @@ This guide explains how to deploy the Veiligstallen application on a Digital Oce
    - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL (e.g., https://veiligstallen.work)
    - `NEXT_PUBLIC_WEB_BASE_URL`: Your web base URL (e.g., https://veiligstallen.work)
    - `NEXTAUTH_URL`: Your NextAuth URL (e.g., https://veiligstallen.work)
-   - `DROPLET_HOST`: Your Digital Ocean droplet IP address or base URL
+   - `DROPLET_HOST`: Your Digital Ocean droplet IP address (e.g., 123.456.789.0) or hostname (e.g., droplet-123.nyc3.digitalocean.com)
    - `DROPLET_USERNAME`: SSH username for the droplet
 
 5. Set up the following Repository Secrets:
