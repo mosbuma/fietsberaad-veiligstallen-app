@@ -121,7 +121,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   currentUser,
   roles,
   fietsenstallingtypen }) => {
-  const router = useRouter();
+  const queryRouter = useRouter();
   const { data: session, update: updateSession } = useSession();
 
   const selectedGemeenteID = session?.user?.activeContactId || "";
@@ -141,7 +141,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   let activecomponent: VSMenuTopic | undefined = VSMenuTopic.Home;
 
   const validTopics = Object.values(VSMenuTopic) as String[];
-  const activeComponentQuery = Array.isArray(router.query.activecomponent) ? router.query.activecomponent[0] : router.query.activecomponent;
+  const activeComponentQuery = Array.isArray(queryRouter.query.activecomponent) ? queryRouter.query.activecomponent[0] : queryRouter.query.activecomponent;
   if (
     activeComponentQuery &&
     typeof activeComponentQuery === 'string' &&
@@ -152,7 +152,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
   const handleSelectComponent = (componentKey: VSMenuTopic) => {
     try {
-      router.push(`/beheer/${componentKey}`);
+      queryRouter.push(`/beheer/${componentKey}`);
     } catch (error) {
       console.error("Error in handleSelectComponent:", error);
     }
@@ -182,6 +182,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         ...session,
         user
       });
+
+      // Replace current page with home page, which will trigger a full reload
+      queryRouter.replace('/beheer/home');
 
     } catch (error) {
       console.error("Error switching contact:", error);
@@ -267,16 +270,16 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerExploitant:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerBeheerder:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} roles={roles || []} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} />;
           break;
         case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;

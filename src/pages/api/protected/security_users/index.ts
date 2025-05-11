@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect, VSUserGroupValues } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
@@ -61,18 +61,28 @@ export default async function handle(
     return;
   }
 
-  const { sites, userId } = validateUserSessionResult;
+  const { sites, userId, activeContactId } = validateUserSessionResult;
+
+  let wherefilter = undefined;
+  if(activeContactId === "1") {
+    // intern users
+    wherefilter = { GroupID: VSUserGroupValues.Intern };
+  } else {
+    // extern users
+    wherefilter = { 
+      security_users_sites: {
+        some: {
+          SiteID: activeContactId
+        }
+      }, 
+      GroupID: VSUserGroupValues.Extern };
+  }
 
   switch (req.method) {
     case "GET": {
       // GET all security users
       const users = await prisma.security_users.findMany({
-        where: {
-          OR: [
-            { SiteID: { in: sites } },
-            { GroupID: { in: sites } }
-          ]
-        },
+        where: wherefilter,
         select: securityUserSelect
       }) as VSUserWithRoles[];
 

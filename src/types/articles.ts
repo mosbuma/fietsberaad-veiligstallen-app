@@ -1,3 +1,5 @@
+import type { articles } from "@prisma/client";
+
 export type ArticleType = {
   ID: string;
   SiteID: string | null;
@@ -50,5 +52,10 @@ export const articlesSelect = {
   EditorModified: true,
   DateModified: true,
   ModuleID: true
+}
+
+export type VSArticle = Pick<articles, "ID"|"SiteID"|"Language"|"ParentID"|"Title"|"DisplayTitle"|"Abstract"|"Article"|"CustomField1_Title"|"CustomField1"|"Banner"|"Keywords"|"SortOrder"|"PublishStartDate"|"PublishEndDate"|"Status"|"Navigation"|"ShowInNav"|"System"|"EditorCreated"|"DateCreated"|"EditorModified"|"DateModified"|"ModuleID">& {
+  parent: VSArticle | null;
+  children: VSArticle[];
 }
 
