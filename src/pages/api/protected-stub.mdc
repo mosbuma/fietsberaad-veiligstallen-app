@@ -1,0 +1,167 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Protected API Endpoint Template
+
+This template provides a standardized structure for protected API endpoints in the application.
+
+## Basic Structure
+
+```typescript
+import type { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "~/server/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from '~/pages/api/auth/[...nextauth]'
+import { validateUserSession } from "~/utils/server/database-tools";
+import { z } from "zod";
+
+// Define response type
+export type ResourceResponse = {
+  data?: ResourceType | ResourceType[];
+  error?: string;
+};
+
+// Define validation schemas
+const resourceSchema = z.object({
+  // Define your schema fields here
+});
+
+const resourceCreateSchema = z.object({
+  // Define required fields for creation
+});
+
+export default async function handle(
+  req: NextApiRequest,
+  res: NextApiResponse<ResourceResponse>
+) {
+  // 1. Authentication check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user) {
+    console.error("Unauthorized - no session found");
+    res.status(401).json({error: "Niet ingelogd - geen sessie gevonden"});
+    return;
+  }
+
+  // 2. Session validation
+  const validateUserSessionResult = await validateUserSession(session, "required_permission");
+  if ('error' in validateUserSessionResult) {
+    console.error("Unauthorized - invalid session", validateUserSessionResult.error);
+    res.status(401).json({error: validateUserSessionResult.error});
+    return;
+  }
+
+  const { sites, userId } = validateUserSessionResult;
+
+  // 3. Resource access check (for [id] endpoints)
+  const id = req.query.id as string;
+  if (!sites.includes(id) && id !== "new") {
+    console.error("Unauthorized - no access to this resource", id);
+    res.status(403).json({ error: "Geen toegang tot deze resource" });
+    return;
+  }
+
+  // 4. Request handling
+  switch (req.method) {
+    case "GET": {
+      // Handle GET request
+      break;
+    }
+    case "POST": {
+      try {
+        // Validate request data
+        const parseResult = resourceCreateSchema.safeParse(req.body);
+        if (!parseResult.success) {
+          console.error("Invalid or missing data:", parseResult.error);
+          res.status(400).json({ error: parseResult.error.errors });
+          return;
+        }
+
+        // Process request
+        // ...
+
+        res.status(201).json({ data: result });
+      } catch (e) {
+        console.error("Error processing request:", e);
+        res.status(500).json({error: "Error message"});
+      }
+      break;
+    }
+    case "PUT": {
+      try {
+        // Validate request data
+        const parseResult = resourceSchema.partial().safeParse(req.body);
+        if (!parseResult.success) {
+          console.error("Invalid or missing data:", parseResult.error);
+          res.status(400).json({error: "Invalid or missing data"});
+          return;
+        }
+
+        // Process request
+        // ...
+
+        res.status(200).json({data: result});
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          console.error("Invalid or missing data:", e.errors);
+          res.status(400).json({ error: e.errors });
+        } else {
+          res.status(500).json({error: "Error message"});
+        }
+      }
+      break;
+    }
+    case "DELETE": {
+      try {
+        // Process delete request
+        // ...
+        res.status(200).json({});
+      } catch (e) {
+        console.error("Error deleting resource:", e);
+        res.status(500).json({error: "Error message"});
+      }
+      break;
+    }
+    default: {
+      res.status(405).json({error: "Method Not Allowed"});
+    }
+  }
+}
+```
+
+## Key Components
+
+1. **Authentication & Authorization**
+   - Session validation using `getServerSession`
+   - User session validation using `validateUserSession`
+   - Resource access control
+
+2. **Request Validation**
+   - Zod schemas for request validation
+   - Separate schemas for create and update operations
+   - Proper error handling for validation failures
+
+3. **Response Structure**
+   - Consistent response format with `data` and `error` fields
+   - Appropriate HTTP status codes
+   - Error messages in Dutch
+
+4. **Error Handling**
+   - Detailed error logging
+   - User-friendly error messages
+   - Proper error status codes
+
+5. **Database Operations**
+   - Prisma client usage
+   - Proper type definitions
+   - Transaction handling where needed
+
+## Usage Notes
+
+- Replace `ResourceType` with your actual resource type
+- Define appropriate validation schemas
+- Implement proper error handling
+- Use appropriate permission checks
+- Follow the established response format
+- Use Dutch error messages for consistency

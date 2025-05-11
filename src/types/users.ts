@@ -38,11 +38,24 @@ export interface VSUserSitesNew {
     newRoleId: VSUserRoleValuesNew;
 }
 
-export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin"> & {
-    Password?: string;
+export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
     sites: VSUserSitesNew[];
     securityProfile: VSUserSecurityProfile;
 }
+// "EncryptedPassword" | "EncryptedPassword2"
+
+export const securityUserSelectNew = {
+    UserID: true,
+    UserName: true,
+    DisplayName: true,
+    Status: true,
+    SiteID: true,
+    ParentID: true,
+    LastLogin: true,
+    // EncryptedPassword: true,
+    // EncryptedPassword2: true,
+}
+
 
 export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID" | "ParentID" | "LastLogin"> & 
     {

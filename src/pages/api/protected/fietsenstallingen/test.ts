@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "~/server/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
@@ -7,6 +8,8 @@ import { TestStatus } from "~/types/test";
 import { FietsenstallingenResponse } from ".";
 import { FietsenstallingResponse } from "./[id]";
 import { TestError } from "~/types/test";
+import type { FietsenstallingValidateResponse } from "./validate";
+import { createTestContactGemeente } from "../test-tools";
 
 export default async function handle(
   req: NextApiRequest,
@@ -24,6 +27,30 @@ export default async function handle(
         message: "User not authenticated"
       }]
     });
+    return;
+  }
+
+  // Do test preparations
+  const testGemeente = await createTestContactGemeente(req);
+  if (!testGemeente) {
+    return {
+      name: "Create Record",
+      status: TestStatus.Failed,
+      message: "Failed to create test gemeente",
+    };
+  }
+
+  const cleanupResult = await cleanupTestdata(req);
+  if (cleanupResult.status === TestStatus.Failed) {
+    res.status(500).json({
+      success: false,
+      tests: [{
+        name: "Cleanup Testdata",
+        status: TestStatus.Failed,
+        message: "Failed to cleanup test data",
+        details: cleanupResult.details
+      }]
+    });    
     return;
   }
 
@@ -46,7 +73,12 @@ export default async function handle(
       name: "Retrieve Single Record",
       status: TestStatus.NotExecuted,
       message: "Not executed"
-    }, 
+    },
+    {
+      name: "Validate Record",
+      status: TestStatus.NotExecuted,
+      message: "Not executed"
+    },
     {
       name: "Update Record",
       status: TestStatus.NotExecuted,
@@ -61,14 +93,12 @@ export default async function handle(
 
   try {
     // Test 1: Create a new record
-    const createTest = await testCreateFietsenstalling(req);
-    console.log("createTest", createTest);
+    const createTest = await testCreateFietsenstalling(req, testGemeente.ID);
     testResults[0] = createTest;
     if (createTest.status === TestStatus.Failed) {
       throw new TestError("Create test failed", createTest);
     }
     createdRecordId = (createTest.details as { ID: string })?.ID || null;
-    console.log("createdRecordId", createdRecordId);
     // Test 2: Retrieve all records
     const readAllTest = await testReadAllFietsenstallingen(req);
     testResults[1] = readAllTest;
@@ -85,19 +115,28 @@ export default async function handle(
       }
     }
 
-    // Test 4: Update the record
+    // Test 4: Validate the record
+    if (createdRecordId) {
+      const validateTest = await testValidateFietsenstalling(req, createdRecordId);
+      testResults[3] = validateTest;
+      if (validateTest.status === TestStatus.Failed) {
+        throw new TestError("Validate test failed", validateTest);
+      }
+    }
+
+    // Test 5: Update the record
     if (createdRecordId) {
       const updateTest = await testUpdateFietsenstalling(req, createdRecordId);
-      testResults[3] = updateTest;
+      testResults[4] = updateTest;
       if (updateTest.status === TestStatus.Failed) {
         throw new TestError("Update test failed", updateTest);
       }
     }
 
-    // // Test 5: Delete the record
+    // Test 6: Delete the record
     if (createdRecordId) {
       const deleteTest = await testDeleteFietsenstalling(req, createdRecordId);
-      testResults[4] = deleteTest;
+      testResults[5] = deleteTest;
       if (deleteTest.status === TestStatus.Failed) {
         throw new TestError("Delete test failed", deleteTest);
       } else {
@@ -131,11 +170,19 @@ export default async function handle(
         console.error("Error during cleanup:", cleanupError);
       }
     }
+
+    if (testGemeente) {
+      try {
+        const { success, result } = await makeApiCall<FietsenstallingResponse>(req, `/api/protected/gemeenten/${testGemeente.ID}`, 'DELETE');
+      } catch (cleanupError) {
+        console.error("Error during cleanup:", cleanupError);
+      }
+    }
   }
 }
 
 export const testRecordCreateFietsenstalling = {
-  StallingsID: `TEST${Date.now()}`,
+  StallingsID: `TEST0001`,
   Title: `Test Fietsenstalling ${Date.now()}`,
   Location: "Test Location",
   Plaats: "Test City",
@@ -155,9 +202,10 @@ export const testRecordCreateFietsenstalling = {
   BronBezettingsdata: "FMS"
 };
 
-async function testCreateFietsenstalling(req: NextApiRequest): Promise<TestResult> {
+async function testCreateFietsenstalling(req: NextApiRequest, gemeenteID: string): Promise<TestResult> {
+  const data = { ...testRecordCreateFietsenstalling, SiteID: gemeenteID };
   try {
-    const { success, result }  = await makeApiCall<FietsenstallingenResponse>(req, '/api/protected/fietsenstallingen', 'POST', testRecordCreateFietsenstalling);
+    const { success, result }  = await makeApiCall<FietsenstallingenResponse>(req, '/api/protected/fietsenstallingen/new', 'POST', data);
     if (!success || !result?.data) {
       return {
         name: "Create Record",
@@ -176,7 +224,6 @@ async function testCreateFietsenstalling(req: NextApiRequest): Promise<TestResul
         details: result.data
       };
     }
-
     return {
       name: "Create Record",
       status: TestStatus.Success,
@@ -319,4 +366,120 @@ async function testDeleteFietsenstalling(req: NextApiRequest, id: string): Promi
       details: error
     };
   }
+}
+
+async function testValidateFietsenstalling(req: NextApiRequest, id: string): Promise<TestResult> {
+  try {
+    // First get the current record to use as base for our tests
+    const { success: getSuccess, result: getResult } = await makeApiCall<FietsenstallingResponse>(req, `/api/protected/fietsenstallingen/${id}`);
+    if (!getSuccess || !getResult?.data) {
+      return {
+        name: "Validate Record",
+        status: TestStatus.Failed,
+        message: "Failed to get record for validation testing",
+        details: getResult?.error
+      };
+    }
+
+    const baseRecord = getResult.data;
+    const testCases = [
+      {
+        name: "Valid Record",
+        data: baseRecord,
+        expectedValid: true
+      },
+      // TODO: Add tests for missing fields
+      // {
+      //   name: "Missing Title",
+      //   data: { ...baseRecord, Title: "" },
+      //   expectedValid: false
+      // },
+      // {
+      //   name: "Missing StallingsID",
+      //   data: { ...baseRecord, StallingsID: "" },
+      //   expectedValid: false
+      // },
+      // {
+      //   name: "Invalid Coordinates",
+      //   data: { ...baseRecord, Coordinaten: "invalid" },
+      //   expectedValid: false
+      // },
+      // {
+      //   name: "Invalid Capacity",
+      //   data: { ...baseRecord, Capacity: -1 },
+      //   expectedValid: false
+      // }
+    ];
+
+    const results = [];
+    for (const testCase of testCases) {
+      const { success, result } = await makeApiCall<FietsenstallingValidateResponse>(
+        req,
+        `/api/protected/fietsenstallingen/validate`,
+        'POST',
+        testCase.data
+      );
+      if (!success) {
+        return {
+          name: "Validate Record",
+          status: TestStatus.Failed,
+          message: `Failed to validate record: ${result?.message || 'Unknown error'}`,
+          details: { testCase: testCase.name, message: result?.message }
+        };
+      }
+
+      const isValid = result?.valid === testCase.expectedValid;
+      results.push({
+        testCase: testCase.name,
+        expected: testCase.expectedValid,
+        actual: result?.valid,
+        message: result?.message
+      });
+
+      if (!isValid) {
+        return {
+          name: "Validate Record",
+          status: TestStatus.Failed,
+          message: `Validation test failed for ${testCase.name}`,
+          details: { testCase: testCase.name, expected: testCase.expectedValid, actual: result?.valid, message: result?.message }
+        };
+      }
+    }
+
+    return {
+      name: "Validate Record",
+      status: TestStatus.Success,
+      message: "Successfully validated record with all test cases",
+      details: { results }
+    };
+  } catch (error) {
+    return {
+      name: "Validate Record",
+      status: TestStatus.Failed,
+      message: "Failed to validate record",
+      details: error
+    };
+  }
 } 
+
+async function cleanupTestdata(req: NextApiRequest): Promise<TestResult> {
+  try {
+    await prisma.fietsenstallingen.deleteMany({
+      where: { StallingsID: testRecordCreateFietsenstalling.StallingsID }
+    });
+
+    return {
+      name: "Cleanup Testdata",
+      status: TestStatus.Success,
+      message: "Successfully cleaned up test data"
+    };
+  } catch (e) {
+    console.error("Error cleaning up test data:", e);
+    return {
+      name: "Delete Record",
+      status: TestStatus.Failed,
+      message: "Failed to delete record",
+      details: e
+    };
+  }
+}

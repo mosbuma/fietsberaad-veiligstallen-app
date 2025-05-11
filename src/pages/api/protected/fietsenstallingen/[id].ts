@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSFietsenstalling, fietsenstallingSelect } from "~/types/fietsenstallingen";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
-import { validateUserSession } from "~/utils/server/database-tools";
-import { fietsenstallingSchema } from "~/types/fietsenstallingen";
+import { generateID, validateUserSession, updateSecurityProfile } from "~/utils/server/database-tools";
+import { fietsenstallingSchema, getDefaultNewFietsenstalling } from "~/types/fietsenstallingen";
+import { type VSFietsenstalling, fietsenstallingSelect, fietsenstallingCreateSchema } from "~/types/fietsenstallingen";
 
 export type FietsenstallingResponse = {
   data?: VSFietsenstalling;
@@ -18,30 +18,44 @@ export default async function handle(
 ) {
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
+    console.error("Unauthorized - no session found");
     res.status(401).json({error: "Unauthorized - no session found"}); // Unauthorized
     return;
   }
 
   const validateUserSessionResult = await validateUserSession(session, "any");
   if ('error' in validateUserSessionResult) {
+    console.error("Unauthorized - invalid session", validateUserSessionResult.error);
     res.status(401).json({error: validateUserSessionResult.error}); // Unauthorized
     return;
   }
 
+  const { sites, userId } = validateUserSessionResult;
+
   const id = req.query.id as string;
-  if (!validateUserSessionResult.sites.includes(id)) {
-    res.status(403).json({ error: "No access to this organization" });
-    return;
+  // user has access to this stalling if the SiteID for this site is 
+  // in the sites array 
+  if(id!=='new') {
+    const tmpstalling = await prisma.fietsenstallingen.findFirst({
+      where: {
+        ID: id
+      }
+    });
+
+    if(!tmpstalling || !tmpstalling.SiteID || !sites.includes(tmpstalling.SiteID)) {
+      console.error("Unauthorized - no access to this organization", id);
+      res.status(403).json({ error: "No access to this organization" });
+      return;
+    }
   }
 
   switch (req.method) {
     case "GET": {
       if (id === "new") {
-        // Return a template for a new fietsenstalling
-        res.status(200).json({data: {
-          ...fietsenstallingSchema.shape,
-          ItemType: "fietsenstallingen"
-        }});
+        // add timestamp to the name
+        const defaultRecord = getDefaultNewFietsenstalling('Test Fietsenstalling ' + new Date().toISOString());
+        res.status(200).json({data: defaultRecord});
+        return;
       }
 
       const fietsenstalling = (await prisma.fietsenstallingen.findFirst({
@@ -51,6 +65,124 @@ export default async function handle(
         select: fietsenstallingSelect
       })) as unknown as VSFietsenstalling;
       res.status(200).json({data: fietsenstalling});
+      break;
+    }
+    case "POST": {
+      try {
+        const newID = generateID();
+        const data = { ...req.body, ID: newID };
+
+        const parseResult = fietsenstallingCreateSchema.safeParse(data);
+        if (!parseResult.success) {
+          console.error("Unexpected/missing data error:", JSON.stringify(parseResult.error.errors,null,2));
+          res.status(400).json({ error: parseResult.error.errors });
+          return;
+        }
+        const parsed = parseResult.data;
+
+        const newData = {
+          ID: newID,
+          // Required fields
+          StallingsID: parsed.StallingsID,
+          Title: parsed.Title,
+          Status: "1", // Default status
+            
+          // Optional fields with defaults
+          SiteID: parsed.SiteID ?? undefined,
+          StallingsIDExtern: parsed.StallingsIDExtern ?? undefined,
+          Description: parsed.Description ?? undefined,
+          Image: parsed.Image ?? undefined,
+          Location: parsed.Location ?? undefined,
+          Postcode: parsed.Postcode ?? undefined,
+          Plaats: parsed.Plaats ?? undefined,
+          Capacity: parsed.Capacity ?? undefined,
+          Openingstijden: parsed.Openingstijden ?? undefined,
+          EditorCreated: parsed.EditorCreated ?? undefined,
+          DateCreated: parsed.DateCreated ?? new Date(),
+          EditorModified: parsed.EditorModified ?? undefined,
+          DateModified: parsed.DateModified ?? new Date(),
+          Ip: parsed.Ip ?? undefined,
+          Coordinaten: parsed.Coordinaten ?? undefined,
+          Type: parsed.Type ?? undefined,
+          Verwijssysteem: parsed.Verwijssysteem ?? false,
+          VerwijssysteemOverzichten: parsed.VerwijssysteemOverzichten ?? false,
+          FMS: parsed.FMS ?? false,
+          Open_ma: parsed.Open_ma ?? undefined,
+          Dicht_ma: parsed.Dicht_ma ?? undefined,
+          Open_di: parsed.Open_di ?? undefined,
+          Dicht_di: parsed.Dicht_di ?? undefined,
+          Open_wo: parsed.Open_wo ?? undefined,
+          Dicht_wo: parsed.Dicht_wo ?? undefined,
+          Open_do: parsed.Open_do ?? undefined,
+          Dicht_do: parsed.Dicht_do ?? undefined,
+          Open_vr: parsed.Open_vr ?? undefined,
+          Dicht_vr: parsed.Dicht_vr ?? undefined,
+          Open_za: parsed.Open_za ?? undefined,
+          Dicht_za: parsed.Dicht_za ?? undefined,
+          Open_zo: parsed.Open_zo ?? undefined,
+          Dicht_zo: parsed.Dicht_zo ?? undefined,
+          OmschrijvingTarieven: parsed.OmschrijvingTarieven ?? undefined,
+          IsStationsstalling: parsed.IsStationsstalling ?? false,
+          IsPopup: parsed.IsPopup ?? false,
+          NotaVerwijssysteem: parsed.NotaVerwijssysteem ?? undefined,
+          Tariefcode: parsed.Tariefcode ?? undefined,
+          Toegangscontrole: parsed.Toegangscontrole ?? undefined,
+          Beheerder: parsed.Beheerder ?? undefined,
+          BeheerderContact: parsed.BeheerderContact ?? undefined,
+          Url: parsed.Url ?? undefined,
+          ExtraServices: parsed.ExtraServices ?? undefined,
+          dia: parsed.dia ?? undefined,
+          BerekentStallingskosten: parsed.BerekentStallingskosten ?? false,
+          AantalReserveerbareKluizen: parsed.AantalReserveerbareKluizen ?? 0,
+          MaxStallingsduur: parsed.MaxStallingsduur ?? 0,
+          HeeftExterneBezettingsdata: parsed.HeeftExterneBezettingsdata ?? false,
+          ExploitantID: parsed.ExploitantID ?? undefined,
+          hasUniSectionPrices: parsed.hasUniSectionPrices ?? true,
+          hasUniBikeTypePrices: parsed.hasUniBikeTypePrices ?? false,
+          shadowBikeparkID: parsed.shadowBikeparkID ?? undefined,
+          BronBezettingsdata: parsed.BronBezettingsdata ?? "FMS",
+          reservationCostPerDay: parsed.reservationCostPerDay ?? undefined,
+          wachtlijst_Id: parsed.wachtlijst_Id ?? undefined,
+          freeHoursReservation: parsed.freeHoursReservation ?? undefined,
+          thirdPartyReservationsUrl: parsed.thirdPartyReservationsUrl ?? undefined,
+        }
+
+        const newFietsenstalling = await prisma.fietsenstallingen.create({data: newData, select: fietsenstallingSelect}) as unknown as VSFietsenstalling;
+        if(!newFietsenstalling) {
+          console.error("Error creating new fietsenstalling:", newData);
+          res.status(500).json({error: "Error creating new fietsenstalling"});
+          return;
+        }
+
+        // add a record to the security_users_sites table that links the new fietsenstalling to the user's sites
+        const newLink = await prisma.security_users_sites.create({
+          data: {
+            UserID: userId,
+            SiteID: newFietsenstalling.ID
+          }
+        });
+        if(!newLink) {
+          console.error("Error creating link to new fietsenstalling:", newFietsenstalling.ID);
+          res.status(500).json({error: "Error creating link to new fietsenstalling"});
+          return;
+        }
+
+        // Update security profile
+        const { session: updatedSession, error: profileError } = await updateSecurityProfile(session, userId);
+        if (profileError) {
+          console.error("Error updating security profile:", profileError);
+          res.status(500).json({error: profileError});
+          return;
+        }
+
+        res.status(201).json({ 
+          data: [newFietsenstalling],
+          session: updatedSession
+        });
+      } catch (e) {
+        console.error("Error creating fietsenstalling:", e);
+        res.status(500).json({error: "Error creating fietsenstalling"});
+      }
       break;
     }
     case "PUT": {

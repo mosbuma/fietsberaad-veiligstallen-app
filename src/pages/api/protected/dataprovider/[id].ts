@@ -35,7 +35,7 @@ export default async function handle(
   const { sites, userId } = validateUserSessionResult;
 
   const id = req.query.id as string;
-  if (!sites.includes(id)) {
+  if (!sites.includes(id) && id !== "new") {
     console.error("Unauthorized - no access to this organization", id);
     res.status(403).json({ error: "Geen toegang tot deze organisatie" });
     return;
@@ -72,15 +72,17 @@ export default async function handle(
           return;
         }
         const parsed = parseResult.data;
-        
-        const newData = {
+
+        const newData: VSContactDataprovider = {
           ID: newID,
-          Helpdesk: parsed.Helpdesk ?? undefined,
-          ItemType: "dataprovider",
           CompanyName: parsed.CompanyName,
+          ItemType: "dataprovider",
+          UrlName: parsed.UrlName ?? null,
+          Password: parsed.Password ?? null,
           Status: "1", // Default: Enabled
-          UrlName: parsed.UrlName ?? undefined,
-          ParentID: parsed.ParentID ?? undefined,
+          DateRegistration: new Date(),
+          DateConfirmed: null,
+          DateRejected: null
         }
 
         const newOrg = await prisma.contacts.create({data: newData, select: dataproviderSelect}) as unknown as VSContactDataprovider;

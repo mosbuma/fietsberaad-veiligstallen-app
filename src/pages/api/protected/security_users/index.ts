@@ -21,7 +21,15 @@ const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
 
 export const convertToNewUser = async (user: VSUserWithRoles): Promise<VSUserWithRolesNew> => {
   return {
-    ...user,
+    UserID: user.UserID, 
+    UserName: user.UserName, 
+    DisplayName: user.DisplayName, 
+    Status: user.Status, 
+    SiteID: user.SiteID, 
+    ParentID: user.ParentID, 
+    LastLogin: user.LastLogin, 
+    // EncryptedPassword: user.EncryptedPassword, 
+    // EncryptedPassword2: user.EncryptedPassword2,
     sites: getSitesForUser(user),
     securityProfile: await createSecurityProfile(user)
   }
@@ -32,7 +40,7 @@ export type SecurityUsersResponse = {
   error?: string;
 };
 
-const securityUserCreateSchema = z.object({
+export const securityUserCreateSchema = z.object({
   UserName: z.string().min(1),
   DisplayName: z.string().min(1),
   RoleID: z.number(),
@@ -75,44 +83,6 @@ export default async function handle(
       })));
 
       res.status(200).json({data: newUsers});
-      break;
-    }
-    case "POST": {
-      try {
-        const parseResult = securityUserCreateSchema.safeParse(req.body);
-        if (!parseResult.success) {
-          console.error("Unexpected/missing data error:", parseResult.error);
-          res.status(400).json({ error: "Unexpected/missing data error:" });
-          return;
-        }
-        const parsed = parseResult.data;
-
-        const newUserID = generateID();
-        
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(parsed.Password, 10);
-        
-        const createdUser = await prisma.security_users.create({
-          data: {
-            UserID: newUserID,
-            UserName: parsed.UserName,
-            DisplayName: parsed.DisplayName,
-            RoleID: parsed.RoleID,
-            GroupID: parsed.GroupID,
-            Status: parsed.Status ?? "1",
-            EncryptedPassword: hashedPassword,
-            SiteID: session.user.SiteID 
-          },
-          select: securityUserSelect
-        }) as VSUserWithRoles;
-
-        const newUser = await convertToNewUser(createdUser);
-
-        res.status(201).json({ data: [newUser] });
-      } catch (e) {
-        console.error("Error creating security user:", e);
-        res.status(500).json({error: "Error creating security user"});
-      }
       break;
     }
     default: {

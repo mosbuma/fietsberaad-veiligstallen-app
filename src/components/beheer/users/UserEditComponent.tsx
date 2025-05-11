@@ -1,75 +1,116 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
+import { VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 import FormInput from "~/components/Form/FormInput";
 import FormSelect from "~/components/Form/FormSelect";
 import { UserAccessRight } from './UserAccessRight';
 import { getNewRoleLabel } from '~/types/utils';
-import { convertRoleToNewRole } from '~/utils/securitycontext';
+//import { convertRoleToNewRole } from '~/utils/securitycontext';
+import { useUser } from '~/hooks/useUser';
+import { makeClientApiCall } from '~/utils/client/api-tools';
 
-const bcrypt = require('bcryptjs');
+import type { SecurityUserValidateResponse } from '~/pages/api/protected/security_users/validate';
+import { SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
+
+// const bcrypt = require('bcryptjs');
 
 // export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker" | "dataprovider";
 export type UserStatus = "actief" | "inactief";
 
 export interface UserEditComponentProps {
     id: string,
-    currentContactID: string,
-    users: VSUserWithRolesNew[],
-    onClose: (userChanged: boolean) => void,
-    showBackButton?: boolean
+    onClose: (userChanged: boolean, confirmClose: boolean) => void,
 }
 
 export const UserEditComponent = (props: UserEditComponentProps) => {
-    const isNewUser = props.id === "nieuw";
+    const { id } = props;
+    const [ isEditing, setIsEditing ] = useState<boolean>(true);
+
+    type CurrentState = {
+      displayName: string,
+      newRoleID: VSUserRoleValuesNew,
+      userName: string,
+      status: boolean,
+      password: string,
+      confirmPassword: string,
+    }
+
+    const isNew = props.id === "new";
+
     const [displayName, setDisplayName] = useState<string>('');
-    const [roleID, setRoleID] = useState<VSUserRoleValuesNew>(VSUserRoleValuesNew.None);
+    const [newRoleID, setNewRoleID] = useState<VSUserRoleValuesNew>(VSUserRoleValuesNew.None);
     const [userName, setUserName] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
+    const [password, setPassword] = useState<string>(''); 
     const [confirmPassword, setConfirmPassword] = useState<string>('');
+
     const [status, setStatus] = useState<boolean>(true);
-    const [isEditing, setIsEditing] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showPasswordFields, setShowPasswordFields] = useState(isNewUser);
+    
+    const [showPasswordFields, setShowPasswordFields] = useState(isNew);
     const nameInputRef = useRef<HTMLInputElement>(null);
+
+    const [errorMessage, setErrorMessage] = useState<string|null>(null);
 
     const roleOptions = Object.values(VSUserRoleValuesNew).map(role => ({
       label: getNewRoleLabel(role),
       value: role.toString()
     }));
 
-    const [initialData, setInitialData] = useState({
+    const [initialData, setInitialData] = useState<CurrentState>({
       displayName: '',
-      roleID: VSUserRoleValuesNew.None,
+      newRoleID: VSUserRoleValuesNew.None,
       userName: '',
       status: true,
+      password: '',
+      confirmPassword: '',
     });
 
-    const { id, users } = props;
+
+    const { user: activeuser, isLoading: isLoadingUser, error: errorUser, reloadUser } = useUser(id);
 
     useEffect(() => {
-      if (!isNewUser) {
-        const user = users.find(u => u.UserID === id);
-        if (user) {
-          const site = user.sites.find(site => site.SiteID === props.currentContactID);
-          const newRoleID = site?.newRoleId || VSUserRoleValuesNew.None;
+      if (isNew) {
+        const initial: CurrentState = {
+          displayName: '',
+          newRoleID: VSUserRoleValuesNew.None,
+          userName: '',
+          status: true,
+          password: '',
+          confirmPassword: '',
+        };
+
+        setDisplayName(initial.displayName);
+        setNewRoleID(initial.newRoleID);
+        setUserName(initial.userName);
+        setStatus(initial.status);
+        setPassword(initial.password);
+        setConfirmPassword(initial.confirmPassword);
+
+        setInitialData(initial);
+      } else {
+        if (activeuser) {
+          // const site = user.sites.find(site => site.SiteID === props.currentContactID);
+          // const newRoleID = site?.newRoleId || VSUserRoleValuesNew.None;
 
           const initial = {
-            displayName: user.DisplayName || '',
-            roleID: newRoleID,
-            userName: user.UserName || '',
-            status: user.Status === "1",
+            displayName: activeuser.DisplayName || '',
+            newRoleID: activeuser.security_profile?.RoleID || VSUserRoleValuesNew.None,
+            userName: activeuser.UserName || '',
+            status: activeuser.Status === "1",
+            password: '',
+            confirmPassword: '',
           };
 
           setDisplayName(initial.displayName);
-          setRoleID(initial.roleID);
+          setNewRoleID(initial.newRoleID);
           setUserName(initial.userName);
           setStatus(initial.status);
+
           setInitialData(initial);
         }
       }
-    }, [id, users, isNewUser]);
+    }, [id, activeuser, isNew]);
 
     useEffect(() => {
       // Focus the name field when the component mounts
@@ -78,124 +119,84 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       }
     }, []);
 
-    const isDataChanged = () => {
-      if (isNewUser) {
-        return displayName || userName || password || status !== true;
+    const isDataChanged = (): boolean => {
+      if (isNew) {
+        return displayName !== "" || userName !== "" || password !== "";
       }
       return (
         displayName !== initialData.displayName ||
-        roleID !== initialData.roleID ||
+        newRoleID !== initialData.newRoleID ||
         userName !== initialData.userName ||
         status !== initialData.status ||
-        password !== ''
+        password !== undefined
       );
     };
 
-    const isDataValid = () => {
-      if (!displayName || !userName) {
-        return false;
-      }
+    // const hashPassword = (password: string) => {
+    //   const salt = bcrypt.genSaltSync(13); // 13 salt rounds used in the coldfusion code
+    //   return bcrypt.hashSync(password, salt); 
+    // }
 
-      // Validate passwords
-      if (showPasswordFields) {
-        if (!password) {
-          return false;
-        }
-        if (password !== confirmPassword) {
-          return false;
-        }
-      }
-
-      return true;
-    };
-
-    const validateData = () => {
-      if (!displayName || !userName) {
-        setError("Vul alle verplichte velden in");
-        return false;
-      }
-
-      // Check if email already exists for this gemeente
-      if (isNewUser) {
-        const existingUser = users.find(u => 
-          u.UserName?.toLowerCase() === userName.toLowerCase() && 
-          u.sites.some(site => site.SiteID === props.currentContactID)
-        );
-        
-        if (existingUser) {
-          setError("Een gebruiker met dit e-mailadres bestaat al voor deze gemeente");
-          return false;
-        }
-      }
-
-      // Validate passwords
-      if (showPasswordFields) {
-        if (!password) {
-          setError("Vul een wachtwoord in");
-          return false;
-        }
-        if (password !== confirmPassword) {
-          setError("Wachtwoorden komen niet overeen");
-          return false;
-        }
-      }
-
-      setError(null);
-      return true;
-    };
-
-    const hashPassword = (password: string) => {
-      const salt = bcrypt.genSaltSync(13); // 13 salt rounds used in the coldfusion code
-      return bcrypt.hashSync(password, salt); 
-    }
-
-    const handleSave = async () => {
-      if (!validateData()) {
+    const handleUpdate = async () => {
+      if (!displayName || !userName || !newRoleID || !status ) {
+        alert("Vul alle verplichte velden in");
         return;
       }
+      // if (!validateData()) {
+      //   return;
+      // }
 
       try {
-        const method = isNewUser ? 'POST' : 'PUT';
-        const url = isNewUser ? '/api/security_users' : `/api/security_users/${id}`;
-
-        // const oldRoleID = convertNewRoleToOldRole(roleID, false);
-
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            DisplayName: displayName,
-            // RoleID: oldRoleID,
-            UserName: userName,
-            EncryptedPassword: password ? hashPassword(password) : undefined,
-            EncryptedPassword2: password ? hashPassword(password) : undefined,
-            Status: status ? "1" : "0",
-            // security_roles: {
-            //   create: {
-            //     RoleID: selectedRole?.RoleID || -1,
-            //     Role: selectedRole?.Role || "",
-            //     Description: selectedRole?.Description || "",
-            //   }
-            // },
-          }),
-        });
-
-        if (response.ok) {
-          props.onClose(true);
-        } else {
-          setError('Failed to update user');
+        const data: Partial<VSUserWithRolesNew> = {
+          DisplayName: displayName,
+          RoleID: newRoleID,
+          UserName: userName,
+          // EncryptedPassword: password ? hashPassword(password) : undefined,
+          // EncryptedPassword2: password ? hashPassword(password) : undefined,
+          Status: status ? "1" : "0",
         }
+
+        const urlValidate = `/api/protected/security_users/validate/`;
+        const responseValidate = await makeClientApiCall<SecurityUserValidateResponse>(urlValidate, 'POST', data);
+        if(!responseValidate.success) {
+          setErrorMessage(`Kan gebruikersdata niet valideren: (${responseValidate.error})`);
+          return;
+        }
+
+        if (!responseValidate.result.valid) {
+          setErrorMessage(responseValidate.result.message);
+          return;
+        }
+
+        const method = isNew ? 'POST' : 'PUT';
+        const url = `/api/protected/security_users/${id}`;
+
+        const response = await makeClientApiCall<SecurityUserResponse>(url, method, data);
+        if(!response.success) {
+          setErrorMessage(`Kan gebruikersdata niet opslaan: (${response.error})`);
+          return;
+        }
+  
+        if (!response.result?.error) {
+          if (props.onClose) {
+            props.onClose(false, false);
+          }
+        } else {
+          console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+          setErrorMessage('Fout bij het opslaan van de gebruiker');
+        }
+
+
+        // const oldRoleID = convertNewRoleToOldRole(newRoleID, false);
       } catch (error) {
         setError('Error: ' + error);
       }
     };
 
     const handleReset = () => {
-      if (isNewUser) {
+      if (isNew) {
         setDisplayName('');
-        setRoleID(VSUserRoleValuesNew.None);
+        setNewRoleID(VSUserRoleValuesNew.None);
         setUserName('');
         setPassword('');
         setConfirmPassword('');
@@ -203,7 +204,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
         setShowPasswordFields(true);
       } else {
         setDisplayName(initialData.displayName);
-        setRoleID(initialData.roleID);
+        setNewRoleID(initialData.newRoleID);
         setUserName(initialData.userName);
         setPassword('');
         setConfirmPassword('');
@@ -215,14 +216,14 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPassword(e.target.value);
-      if (!isNewUser) {
+      if (!isNew) {
         setShowPasswordFields(true);
       }
     };
 
     const renderTopBar = () => {
-      const title = isNewUser ? "Nieuwe gebruiker" : "Bewerk gebruiker";
-      const allowSave = isDataChanged() && isDataValid();
+      const title = isNew ? "Nieuwe gebruiker" : "Bewerk gebruiker";
+      const allowSave = isDataChanged();
 
       return (
         <PageTitle className="flex w-full justify-center sm:justify-start">
@@ -232,12 +233,12 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           <Button
             key="b-1"
             className="mt-3 sm:mt-0"
-            onClick={handleSave}
+            onClick={handleUpdate}
             disabled={!allowSave}
           >
             Opslaan
           </Button>
-          {!isNewUser && (
+          {!isNew && (
             <Button
               key="b-3"
               className="ml-2 mt-3 sm:mt-0"
@@ -247,11 +248,11 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
               Herstel
             </Button>
           )}
-          {props.showBackButton !== false && (
+          {!isEditing && props.onClose && (
             <Button
               key="b-4"
               className="ml-2 mt-3 sm:mt-0"
-              onClick={() => props.onClose(false)}
+              onClick={() => props.onClose(false, false)}
             >
               Terug
             </Button>
@@ -271,6 +272,11 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
         )}
 
         <div className="mt-4 w-full">
+          {errorMessage && (
+            <div className="text-red-600 font-bold mb-4">
+              {errorMessage}
+            </div>
+          )}
           <FormInput 
             label="Naam"
             value={displayName} 
@@ -283,8 +289,8 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           <br />
           <FormSelect 
             label="Rol"
-            value={roleID} 
-            onChange={(e) => setRoleID(e.target.value as VSUserRoleValuesNew)}
+            value={newRoleID} 
+            onChange={(e) => setNewRoleID(e.target.value as VSUserRoleValuesNew)}
             required
             options={roleOptions}
             disabled={!isEditing}
@@ -360,9 +366,9 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           </div>
         </div>
 
-        {!isNewUser && (
+        {!isNew && (
           <div className="mt-6 w-full h-full">
-            <UserAccessRight newRoleID={roleID} />
+            <UserAccessRight newRoleID={newRoleID} />
           </div>
         )}
       </div>
