@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import type { VSArticle } from '~/types/articles';
+import RichTextEditor from '~/components/common/RichTextEditor';
 
 type ArticleEditProps = {
   id: string;
@@ -155,14 +156,10 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
           <label htmlFor="Article" className="block text-sm font-medium text-gray-700">
             Content
           </label>
-          <textarea
-            id="Article"
-            name="Article"
-            value={article.Article}
-            onChange={handleChange}
-            rows={10}
+          <RichTextEditor
+            value={article.Article || ''}
+            onChange={(value) => setArticle(prev => prev ? { ...prev, Article: value } : null)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            required
           />
         </div>
 
