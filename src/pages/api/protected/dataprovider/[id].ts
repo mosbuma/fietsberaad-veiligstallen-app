@@ -7,7 +7,6 @@ import { generateID, validateUserSession, updateSecurityProfile } from "~/utils/
 import { dataproviderSchema, dataproviderCreateSchema, getDefaultNewDataprovider } from "~/types/database";
 import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
 import { type VSContactDataprovider, dataproviderSelect } from "~/types/contacts";
-import { createSecurityProfile } from "~/utils/server/securitycontext";
 
 export type DataproviderResponse = {
   data?: VSContactDataprovider;

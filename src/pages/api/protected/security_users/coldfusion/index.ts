@@ -3,7 +3,7 @@ import { prisma } from "~/server/db";
 import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { validateUserSession, generateID } from "~/utils/server/database-tools";
+import { validateUserSession } from "~/utils/server/database-tools";
 
 export type SecurityUsersColdfusionResponse = {
   data?: VSUserWithRoles[];
