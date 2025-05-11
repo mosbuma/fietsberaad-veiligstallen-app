@@ -43,7 +43,7 @@ export default async function handle(
     case "GET": {
       if (id === "new") {
         // add timestamp to the title
-        const defaultRecord = getDefaultNewArticle('Test Article ' + new Date().toISOString());
+        const defaultRecord = getDefaultNewArticle('Testpagina ' + new Date().toISOString());
         res.status(200).json({data: defaultRecord});
         return;
       }

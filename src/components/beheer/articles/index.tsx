@@ -20,9 +20,13 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
   };
 
   const handleDeleteArticle = async (id: string) => {
+    if(! confirm('Weet je zeker dat je deze pagina wilt verwijderen?')) {
+      return;
+    }
+
     try {
       // TODO: Replace with actual API call
-      const response = await fetch(`/api/articles/${id}`, {
+      const response = await fetch(`/api/protected/articles/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -40,20 +44,7 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
     }
     setCurrentArticleId(undefined);
     // Refresh the articles list
-    // TODO: Replace with actual API call
-    const mockArticles: VSArticle[] = [
-      {
-        ID: '1',
-        Title: 'Sample Article 1',
-        Article: 'Content for article 1',
-        Navigation: 'article',
-        Status: 'published',
-        DateModified: new Date().toISOString(),
-        DateCreated: new Date().toISOString(),
-        ModuleID: 'veiligstallenprisma'
-      },
-    ];
-    setFilteredArticles(mockArticles);
+    reloadArticles();
   };
 
   const renderOverview = () => {
@@ -72,7 +63,7 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
         <div className="mb-4">
           <input
             type="text"
-            placeholder="Search articles..."
+            placeholder="Vind pagina..."
             className="w-full p-2 border rounded"
             onChange={(e) => {
               const searchTerm = e.target.value.toLowerCase();
@@ -89,19 +80,19 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
         <table className="min-w-full bg-white">
           <thead>
             <tr>
-              <th className="py-2">Title</th>
-              <th className="py-2">Type</th>
+              <th className="py-2">Titel</th>
+              {/* <th className="py-2">Type</th> */}
               <th className="py-2">Status</th>
-              <th className="py-2">Last Updated</th>
-              <th className="py-2">Actions</th>
+              <th className="py-2">Laatst gewijzigd</th>
+              <th className="py-2">Acties</th>
             </tr>
           </thead>
           <tbody>
             {filteredArticles.map((article) => (
               <tr key={article.ID}>
-                <td className="border px-4 py-2">{article.Title}</td>
-                <td className="border px-4 py-2">{article.Navigation}</td>
-                <td className="border px-4 py-2">{article.Status}</td>
+                <td className="border px-4 py-2">{article.DisplayTitle}</td>
+                {/* <td className="border px-4 py-2">{article.Navigation}</td> */}
+                <td className="border px-4 py-2">{article.Status === '1' ? 'Actief' : 'Inactief'}</td>
                 <td className="border px-4 py-2">{new Date(article.DateModified || '').toLocaleDateString()}</td>
                 <td className="border px-4 py-2">
                   <button 

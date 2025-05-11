@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-
-type Article = {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
-};
+import { useSession } from 'next-auth/react';
+import type { VSArticle } from '~/types/articles';
 
 type ArticleEditProps = {
   id: string;
@@ -18,7 +10,8 @@ type ArticleEditProps = {
 
 const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
   const router = useRouter();
-  const [article, setArticle] = useState<Article | null>(null);
+  const { data: session } = useSession();
+  const [article, setArticle] = useState<VSArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,13 +20,14 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
     const fetchArticle = async () => {
       if (id === 'new') {
         setArticle({
-          id: '',
-          title: '',
-          content: '',
-          type: 'article',
-          status: 'draft',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          ID: '',
+          Title: '',
+          Article: '',
+          Navigation: 'article',
+          Status: 'draft',
+          DateModified: new Date().toISOString(),
+          DateCreated: new Date().toISOString(),
+          ModuleID: 'veiligstallenprisma'
         });
         setIsLoading(false);
         return;
@@ -42,12 +36,12 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
       try {
         setIsLoading(true);
         // TODO: Replace with actual API call
-        const response = await fetch(`/api/articles/${id}`);
+        const response = await fetch(`/api/protected/articles/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch article');
         }
-        const data = await response.json();
-        setArticle(data);
+        const articleResponse = await response.json();
+        setArticle(articleResponse.data);
       } catch (err) {
         setError('Failed to load article');
         console.error('Error loading article:', err);
@@ -59,19 +53,35 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
     fetchArticle();
   }, [id]);
 
+  const addArticleFields = (article: VSArticle) => {
+    const activeContactID = session?.user?.activeContactId || '';
+
+    return {
+      ...article,
+      SiteID: activeContactID,
+      Title: (article.DisplayTitle || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .replace(/_+/g, '_') // Replace multiple underscores with single underscore
+        .trim(), // Remove leading/trailing spaces
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!article) return;
 
+    const articleObject = addArticleFields(article)
+
     try {
       setIsSaving(true);
-      // TODO: Replace with actual API call
-      const response = await fetch(`/api/articles${id === 'new' ? '' : `/${id}`}`, {
+      const response = await fetch(`/api/protected/articles${id === 'new' ? '/new' : `/${id}`}`, {
         method: id === 'new' ? 'POST' : 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(article),
+        body: JSON.stringify(articleObject),
       });
 
       if (!response.ok) {
@@ -90,12 +100,17 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!article) return;
 
-    const { name, value } = e.target;
-    setArticle(prev => prev ? { ...prev, [name]: value } : null);
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setArticle(prev => prev ? { ...prev, [name]: checked ? '1' : '0' } : null);
+    } else {
+      setArticle(prev => prev ? { ...prev, [name]: value } : null);
+    }
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Laden...</div>;
   }
 
   if (error) {
@@ -103,14 +118,14 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
   }
 
   if (!article) {
-    return <div>No article found</div>;
+    return <div>Pagina niet gevonden</div>;
   }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">
-          {id === 'new' ? 'New Article' : 'Edit Article'}
+          {id === 'new' ? 'Nieuwe pagina' : 'Bewerk pagina'}
         </h2>
         <button
           onClick={() => onClose(true)}
@@ -122,14 +137,14 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Title
+          <label htmlFor="DisplayTitle" className="block text-sm font-medium text-gray-700">
+            Titel
           </label>
           <input
             type="text"
-            id="title"
-            name="title"
-            value={article.title}
+            id="DisplayTitle"
+            name="DisplayTitle"
+            value={article.DisplayTitle || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
@@ -137,30 +152,13 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
         </div>
 
         <div>
-          <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-            Type
-          </label>
-          <select
-            id="type"
-            name="type"
-            value={article.type}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="article">Article</option>
-            <option value="page">Page</option>
-            <option value="news">News</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="Article" className="block text-sm font-medium text-gray-700">
             Content
           </label>
           <textarea
-            id="content"
-            name="content"
-            value={article.content}
+            id="Article"
+            name="Article"
+            value={article.Article}
             onChange={handleChange}
             rows={10}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -168,20 +166,19 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
           />
         </div>
 
+        {/* Status checkbox */}
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-            Status
+          <label htmlFor="Status" className="block text-sm font-medium text-gray-700">
+            <input 
+              type="checkbox" 
+              id="Status" 
+              name="Status" 
+              checked={article.Status === '1'} 
+              onChange={handleChange}
+              className="mr-2"
+            />
+            Toon deze pagina op de website
           </label>
-          <select
-            id="status"
-            name="status"
-            value={article.status}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
         </div>
 
         <div className="flex justify-end space-x-4 pt-4">
@@ -190,14 +187,14 @@ const ArticleEdit: React.FC<ArticleEditProps> = ({ id, onClose }) => {
             onClick={() => onClose(true)}
             className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            Annuleren
           </button>
           <button
             type="submit"
             disabled={isSaving}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
           >
-            {isSaving ? 'Saving...' : 'Save Article'}
+            {isSaving ? 'Pagina opslaan...' : 'Pagina opslaan'}
           </button>
         </div>
       </form>
