@@ -19,7 +19,7 @@ const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
   }))
 }
 
-export const convertToNewUser = async (user: VSUserWithRoles): Promise<VSUserWithRolesNew> => {
+export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: string): Promise<VSUserWithRolesNew> => {
   return {
     UserID: user.UserID, 
     UserName: user.UserName, 
@@ -31,7 +31,7 @@ export const convertToNewUser = async (user: VSUserWithRoles): Promise<VSUserWit
     // EncryptedPassword: user.EncryptedPassword, 
     // EncryptedPassword2: user.EncryptedPassword2,
     sites: getSitesForUser(user),
-    securityProfile: await createSecurityProfile(user)
+    securityProfile: await createSecurityProfile(user, activeContactId)
   }
 }
 
@@ -89,7 +89,7 @@ export default async function handle(
       const newUsers = await Promise.all(users.map(async (user) => ({
         ...user,
         sites: getSitesForUser(user),
-        securityProfile: await createSecurityProfile(user)
+        securityProfile: await createSecurityProfile(user, activeContactId)
       })));
 
       res.status(200).json({data: newUsers});

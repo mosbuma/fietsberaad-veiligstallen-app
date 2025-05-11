@@ -47,6 +47,7 @@ export default async function handle(
   }
 
   const id = req.query.id as string;
+  const activeContactId = session.user.activeContactId;
 
   console.log(">>> security_users/[id] id", id);
 
@@ -59,7 +60,7 @@ export default async function handle(
         },
         select: securityUserSelect
       }) as VSUserWithRoles;
-      const newUser = await convertToNewUser(user);
+      const newUser = await convertToNewUser(user, activeContactId);
       res.status(200).json({data: newUser});
       break;
     }
@@ -92,7 +93,7 @@ export default async function handle(
           select: securityUserSelect
         }) as VSUserWithRoles;
 
-        const newUser = await convertToNewUser(createdUser);
+        const newUser = await convertToNewUser(createdUser, activeContactId);
 
         res.status(201).json({ data: newUser });
       } catch (e) {
@@ -129,7 +130,7 @@ export default async function handle(
           data: updateData,
           select: securityUserSelect
         }) as VSUserWithRoles;
-        const newUser = await convertToNewUser(updatedUser);
+        const newUser = await convertToNewUser(updatedUser, activeContactId);
         res.status(200).json({data: newUser});
       } catch (e) {
         console.error("Error updating security user:", e);
