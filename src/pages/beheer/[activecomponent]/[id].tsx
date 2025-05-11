@@ -219,7 +219,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           }
           break;
         case VSMenuTopic.ArticlesPages:
-          selectedComponent = <ExploreArticlesComponent gemeenten={gemeenten || []} />;
+          selectedComponent = <ArticlesComponent
+            type="pages"
+          />
           break;
         case VSMenuTopic.Faq:
           selectedComponent = <FaqComponent />;
@@ -261,6 +263,9 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case VSMenuTopic.ExploreExploitanten:
           selectedComponent = <ExploreExploitant />;
+          break;
+        case VSMenuTopic.ExplorePages:
+          selectedComponent = <ExploreArticlesComponent gemeenten={gemeenten || []} />;
           break;
         case VSMenuTopic.ExploreLeftMenu:
           // selectedComponent = <ExploreLeftMenuComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []}

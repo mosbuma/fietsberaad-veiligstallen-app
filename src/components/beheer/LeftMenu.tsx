@@ -175,7 +175,6 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         {(hasWebsiteRight) && 
           formatLi(VSMenuTopic.Website, 'Website beheer', false,
             <ul className="ml-4 mt-1">
-              {formatLi(VSMenuTopic.ArticlesPages, 'Paginabeheer', true)}
               {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
             </ul>
           )
@@ -189,6 +188,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
                 {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeenten', true)}
                 {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
                 {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
+                {formatLi(VSMenuTopic.ExplorePages, `Pagina's`, true)}
                 {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
                 {formatLi(VSMenuTopic.TestDatabaseApi, 'Test Database API', true)}
               </ul>)

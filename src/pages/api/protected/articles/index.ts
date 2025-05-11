@@ -27,6 +27,7 @@ export default async function handle(
   }
 
   const { sites } = validateUserSessionResult;
+  const activeContactId = session?.user?.activeContactId;
 
   switch (req.method) {
     case "GET": {
@@ -36,7 +37,7 @@ export default async function handle(
       // GET all articles user can access
       const articles = (await prisma.articles.findMany({
         where: {
-          SiteID: { in: sites }
+          SiteID: { in: activeContactId ? [activeContactId] : sites }
         },
         select: compact ? articleLijstSelect : articleSelect
       })) as unknown as (VSArticle[] | VSArticleInLijst[]);

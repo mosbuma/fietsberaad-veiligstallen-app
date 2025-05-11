@@ -101,7 +101,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col">
-        <label htmlFor="gemeenteName" className="text-sm font-medium text-gray-700">Gemeente Naam:</label>
+        <label htmlFor="gemeenteName" className="text-sm font-medium text-gray-700">Gemeentenaam:</label>
         <input 
           ref={nameInputRef}
           type="text" 

@@ -254,6 +254,7 @@ function AppHeaderDesktop({
               font-bold
               text-white
               shadow-lg
+              whitespace-nowrap
             "
             style={{
               backgroundColor: themeColor2 || themeColor1,
