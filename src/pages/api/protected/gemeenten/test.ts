@@ -9,6 +9,8 @@ import { GemeentenResponse } from ".";
 import { GemeenteResponse } from "./[id]";
 import { TestError } from "~/types/test";
 import moment from "moment";
+import type { GemeenteValidateResponse } from "./validate";
+
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse<TestResponse>
@@ -62,6 +64,11 @@ export default async function handle(
       status: TestStatus.NotExecuted,
       message: "Not executed"
     }, 
+    { 
+      name: "Validate Record",
+      status: TestStatus.NotExecuted,
+      message: "Not executed"
+    },
     {
       name: "Update Record",
       status: TestStatus.NotExecuted,
@@ -71,7 +78,7 @@ export default async function handle(
       name: "Delete Record",
       status: TestStatus.NotExecuted,
       message: "Not executed"
-    }
+    },
   );
 
   try {
@@ -100,19 +107,28 @@ export default async function handle(
       }
     }
 
-    // Test 4: Update the record
+    // Test 4: use the Validate api to check if the record is valid
+    if (createdRecordId) {
+      const validateTest = await testValidateGemeente(req, createdRecordId);
+      testResults[3] = validateTest;
+      if (validateTest.status === TestStatus.Failed) {
+        throw new TestError("Validate test failed", validateTest);
+      }
+    }
+
+    // Test 5: Update the record
     if (createdRecordId) {
       const updateTest = await testUpdateGemeente(req, createdRecordId);
-      testResults[3] = updateTest;
+      testResults[4] = updateTest;
       if (updateTest.status === TestStatus.Failed) {
         throw new TestError("Update test failed", updateTest);
       }
     }
 
-    // // Test 5: Delete the record
+    // Test 6: Delete the record
     if (createdRecordId) {
       const deleteTest = await testDeleteGemeente(req, createdRecordId);
-      testResults[4] = deleteTest;
+      testResults[5] = deleteTest;
       if (deleteTest.status === TestStatus.Failed) {
         throw new TestError("Delete test failed", deleteTest);
       } else {
@@ -329,6 +345,111 @@ async function testDeleteGemeente(req: NextApiRequest, id: string): Promise<Test
     };
   }
 } 
+
+async function testValidateGemeente(req: NextApiRequest, id: string): Promise<TestResult> {
+  try {
+    // First get the current record to use as base for our tests
+    const { success: getSuccess, result: getResult } = await makeApiCall<GemeenteResponse>(req, `/api/protected/gemeenten/${id}`);
+    if (!getSuccess || !getResult?.data) {
+      return {
+        name: "Validate Record",
+        status: TestStatus.Failed,
+        message: "Failed to get record for validation testing",
+        details: getResult?.error
+      };
+    }
+
+    console.log("*** GOT BASERECORD", getResult.data);
+    const baseRecord = getResult.data;
+    const testCases = [
+      {
+        name: "Valid Record",
+        data: baseRecord,
+        expectedValid: true
+      },
+      {
+        name: "Missing CompanyName",
+        data: { ...baseRecord, CompanyName: "" },
+        expectedValid: false
+      },
+      {
+        name: "Invalid ZipID",
+        data: { ...baseRecord, ZipID: "" },
+        expectedValid: false
+      },
+      {
+        name: "Invalid ThemeColor1",
+        data: { ...baseRecord, ThemeColor1: "invalid" },
+        expectedValid: false
+      },
+      {
+        name: "Invalid ThemeColor2",
+        data: { ...baseRecord, ThemeColor2: "invalid" },
+        expectedValid: false
+      },
+      {
+        name: "Invalid Coordinates",
+        data: { ...baseRecord, Coordinaten: "invalid" },
+        expectedValid: false
+      },
+      {
+        name: "Invalid Zoom",
+        data: { ...baseRecord, Zoom: -1 },
+        expectedValid: false
+      }
+    ];
+
+    const results = [];
+    for (const testCase of testCases) {
+      const { success, result } = await makeApiCall<GemeenteValidateResponse>(
+        req,
+        `/api/protected/gemeenten/validate`,
+        'POST',
+        testCase.data
+      );
+
+      if (!success) {
+        return {
+          name: "Validate Record",
+          status: TestStatus.Failed,
+          message: `Failed to validate record: ${result?.message || 'Unknown error'}`,
+          details: { testCase: testCase.name, message: result?.message }
+        };
+      }
+
+      const isValid = result?.valid === testCase.expectedValid;
+      results.push({
+        testCase: testCase.name,
+        expected: testCase.expectedValid,
+        actual: result?.valid,
+        message: result?.message
+      });
+
+      if (!isValid) {
+        return {
+          name: "Validate Record",
+          status: TestStatus.Failed,
+          message: `Validation test failed for ${testCase.name}`,
+          details: { testCase: testCase.name, expected: testCase.expectedValid, actual: result?.valid, message: result?.message }
+        };
+      }
+    }
+
+    return {
+      name: "Validate Record",
+      status: TestStatus.Success,
+      message: "Successfully validated record with all test cases",
+      details: { results }
+    };
+  } catch (error) {
+    return {
+      name: "Validate Record",
+      status: TestStatus.Failed,
+      message: "Failed to validate record",
+      details: error
+    };
+  }
+}
 
 async function cleanupTestdata(req: NextApiRequest): Promise<TestResult> {
     try {

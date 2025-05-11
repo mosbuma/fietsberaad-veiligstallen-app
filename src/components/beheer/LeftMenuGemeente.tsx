@@ -144,12 +144,13 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   
         { hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
         { hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')}
-  
+
+        {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
+
         {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
         {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
         {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
 
-        {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Paginabeheer', true)}
         {hasWebsiteRight && formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
       </>
     )

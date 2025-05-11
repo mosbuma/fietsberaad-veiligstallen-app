@@ -7,8 +7,7 @@ import { TestError, TestStatus } from "~/types/test";
 import { SecurityUsersResponse } from ".";
 import { SecurityUserResponse } from "./[id]";
 import { VSUserRoleValuesNew, VSUserWithRolesNew } from "~/types/users";
-import type { VSContactGemeente } from "~/types/contacts";
-import { testRecordCreateGemeente } from "../gemeenten/test";
+import { createTestContactGemeente } from "../test-tools";
 
 export default async function handle(
   req: NextApiRequest,
@@ -136,36 +135,6 @@ export default async function handle(
   }
 }
 
-const createTestContactGemeente = async (req: NextApiRequest): Promise<VSContactGemeente | false> => {
-  try { 
-    // First try to find the existing gemeente
-    const { success: readSuccess, result: readResult } = await makeApiCall<{ data?: VSContactGemeente[], error?: string }>(req, '/api/protected/gemeenten', 'GET');
-    if (!readSuccess || readResult?.error) {
-      return false;
-    }
-
-    // Look for the test gemeente
-    const testGemeente = readResult?.data?.find((g: VSContactGemeente) => g.CompanyName === "Testgemeente tbv usertests");
-    if (testGemeente) {
-      return false;
-    }
-
-    // If not found, create it
-    const testRecord = JSON.parse(JSON.stringify(testRecordCreateGemeente));
-    testRecord.CompanyName = "Testgemeente tbv usertests";
-    testRecord.ZipID = "T001";
-
-    const { success: createSuccess, result: createResult } = await makeApiCall<{ data?: VSContactGemeente[], error?: string }>(req, '/api/protected/gemeenten', 'POST', testRecord);
-    if (!createSuccess || !createResult?.data) {
-      return false;
-    }
-
-    return createResult.data[0] ?? false;
-  } catch (error) {
-    return false;
-  }
-}
-
 async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> {
   try {
     const testGemeente = await createTestContactGemeente(req);
@@ -177,12 +146,14 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
       };
     }
 
+    // const testPassword = `testpassword123`;
     const testRecord: VSUserWithRolesNew = {
       UserID: `testuser${Date.now()}`,
       UserName: `testuser${Date.now()}@example.com`,
       DisplayName: `Test User ${Date.now()}`,
       Status: "1",
-      Password: "testpassword123",
+      // EncryptedPassword: await hash(testPassword, 10),
+      // EncryptedPassword2: await hash(testPassword, 10),
       sites: [{
         SiteID: testGemeente.ID,
         IsContact: false,
@@ -191,7 +162,14 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
       }],
       ParentID: null,
       SiteID: null,
-      LastLogin: null
+      LastLogin: null,
+      securityProfile: {
+        modules: [],
+        roleId: VSUserRoleValuesNew.Admin,
+        rights: {},
+        mainContactId: testGemeente.ID,
+        managingContactIDs: []
+      }
     };
 
     const { success, result } = await makeApiCall<SecurityUsersResponse>(req, '/api/protected/security_users', 'POST', testRecord);
@@ -227,8 +205,7 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
     if (result.data?.[0]?.UserID !== testRecord.UserID ||
       result.data?.[0]?.UserName !== testRecord.UserName ||
       result.data?.[0]?.DisplayName !== testRecord.DisplayName ||
-      result.data?.[0]?.Status !== testRecord.Status ||
-      result.data?.[0]?.Password !== testRecord.Password) { 
+      result.data?.[0]?.Status !== testRecord.Status) { 
       return {
         name: "Create Record",
         status: TestStatus.Failed,

@@ -77,6 +77,14 @@ const testSections: ApiTestSection[] = [
     results: null,
     error: null,
     isLoading: false
+  },
+  {
+    name: "Articles API",
+    endpoint: "/api/protected/articles/test",
+    expanded: false,
+    results: null,
+    error: null,
+    isLoading: false
   }
 ]
 

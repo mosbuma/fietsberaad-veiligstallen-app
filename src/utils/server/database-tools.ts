@@ -12,6 +12,7 @@ type ValidationError = {
 type ValidationSuccess = {
   sites: string[];
   userId: string;
+  activeContactId: string;
 };
 
 type ApiResponse<T> = {
@@ -59,6 +60,7 @@ export async function validateUserSession(session: any, itemType: string = "orga
 
   const data: ValidationSuccess = {
     userId: session.user.id,
+    activeContactId: session.user.activeContactId,
     sites: []
   }
 

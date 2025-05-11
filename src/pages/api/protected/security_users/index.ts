@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect, VSUserGroupValues } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
@@ -19,11 +19,19 @@ const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
   }))
 }
 
-export const convertToNewUser = async (user: VSUserWithRoles): Promise<VSUserWithRolesNew> => {
+export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: string): Promise<VSUserWithRolesNew> => {
   return {
-    ...user,
+    UserID: user.UserID, 
+    UserName: user.UserName, 
+    DisplayName: user.DisplayName, 
+    Status: user.Status, 
+    SiteID: user.SiteID, 
+    ParentID: user.ParentID, 
+    LastLogin: user.LastLogin, 
+    // EncryptedPassword: user.EncryptedPassword, 
+    // EncryptedPassword2: user.EncryptedPassword2,
     sites: getSitesForUser(user),
-    securityProfile: await createSecurityProfile(user)
+    securityProfile: await createSecurityProfile(user, activeContactId)
   }
 }
 
@@ -32,7 +40,7 @@ export type SecurityUsersResponse = {
   error?: string;
 };
 
-const securityUserCreateSchema = z.object({
+export const securityUserCreateSchema = z.object({
   UserName: z.string().min(1),
   DisplayName: z.string().min(1),
   RoleID: z.number(),
@@ -53,66 +61,38 @@ export default async function handle(
     return;
   }
 
-  const { sites, userId } = validateUserSessionResult;
+  const { sites, userId, activeContactId } = validateUserSessionResult;
+
+  let wherefilter = undefined;
+  if(activeContactId === "1") {
+    // intern users
+    wherefilter = { GroupID: VSUserGroupValues.Intern };
+  } else {
+    // extern users
+    wherefilter = { 
+      security_users_sites: {
+        some: {
+          SiteID: activeContactId
+        }
+      }, 
+      GroupID: VSUserGroupValues.Extern };
+  }
 
   switch (req.method) {
     case "GET": {
       // GET all security users
       const users = await prisma.security_users.findMany({
-        where: {
-          OR: [
-            { SiteID: { in: sites } },
-            { GroupID: { in: sites } }
-          ]
-        },
+        where: wherefilter,
         select: securityUserSelect
       }) as VSUserWithRoles[];
 
       const newUsers = await Promise.all(users.map(async (user) => ({
         ...user,
         sites: getSitesForUser(user),
-        securityProfile: await createSecurityProfile(user)
+        securityProfile: await createSecurityProfile(user, activeContactId)
       })));
 
       res.status(200).json({data: newUsers});
-      break;
-    }
-    case "POST": {
-      try {
-        const parseResult = securityUserCreateSchema.safeParse(req.body);
-        if (!parseResult.success) {
-          console.error("Unexpected/missing data error:", parseResult.error);
-          res.status(400).json({ error: "Unexpected/missing data error:" });
-          return;
-        }
-        const parsed = parseResult.data;
-
-        const newUserID = generateID();
-        
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(parsed.Password, 10);
-        
-        const createdUser = await prisma.security_users.create({
-          data: {
-            UserID: newUserID,
-            UserName: parsed.UserName,
-            DisplayName: parsed.DisplayName,
-            RoleID: parsed.RoleID,
-            GroupID: parsed.GroupID,
-            Status: parsed.Status ?? "1",
-            EncryptedPassword: hashedPassword,
-            SiteID: session.user.SiteID 
-          },
-          select: securityUserSelect
-        }) as VSUserWithRoles;
-
-        const newUser = await convertToNewUser(createdUser);
-
-        res.status(201).json({ data: [newUser] });
-      } catch (e) {
-        console.error("Error creating security user:", e);
-        res.status(500).json({error: "Error creating security user"});
-      }
       break;
     }
     default: {

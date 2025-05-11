@@ -4,27 +4,16 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import type { TestResult, TestResponse } from "~/types/test";
 import { TestStatus } from "~/types/test";
-import { DataprovidersResponse } from ".";
-import { DataproviderResponse } from "./[id]";
+import { ArticleResponse } from "./[id]";
 import { TestError } from "~/types/test";
-import type { DataproviderValidateResponse } from "./validate";
-
-const createTestProviderPassword = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 12; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
+import moment from "moment";
 
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse<TestResponse>
 ) {
   const session = await getServerSession(req, res, authOptions);
-  const validationResult = await validateUserSession(session, "dataprovider");
+  const validationResult = await validateUserSession(session, "any");
 
   if ('error' in validationResult) {
     res.status(validationResult.status).json({
@@ -46,20 +35,15 @@ export default async function handle(
     {
       name: "Create Record",
       status: TestStatus.NotExecuted,
-      message: "Not executed" 
-    }, 
+      message: "Not executed"
+    },
     {
       name: "Retrieve All Records",
       status: TestStatus.NotExecuted,
       message: "Not executed"
-    }, 
-    {
-      name: "Retrieve Single Record",
-      status: TestStatus.NotExecuted,
-      message: "Not executed"
     },
     {
-      name: "Validate Record",
+      name: "Retrieve Single Record",
       status: TestStatus.NotExecuted,
       message: "Not executed"
     },
@@ -67,7 +51,7 @@ export default async function handle(
       name: "Update Record",
       status: TestStatus.NotExecuted,
       message: "Not executed"
-    }, 
+    },
     {
       name: "Delete Record",
       status: TestStatus.NotExecuted,
@@ -77,15 +61,16 @@ export default async function handle(
 
   try {
     // Test 1: Create a new record
-    const createTest = await testCreateDataprovider(req);
+    const createTest = await testCreateArticle(req);
+    console.log("createTest", createTest);
     testResults[0] = createTest;
     if (createTest.status === TestStatus.Failed) {
       throw new TestError("Create test failed", createTest);
     }
     createdRecordId = (createTest.details as { ID: string })?.ID || null;
-
+    console.log("createdRecordId", createdRecordId);
     // Test 2: Retrieve all records
-    const readAllTest = await testReadAllDataproviders(req);
+    const readAllTest = await testReadAllArticles(req);
     testResults[1] = readAllTest;
     if (readAllTest.status === TestStatus.Failed) {
       throw new TestError("Read all test failed", readAllTest);
@@ -93,35 +78,26 @@ export default async function handle(
 
     // Test 3: Retrieve the new record
     if (createdRecordId) {
-      const readSingleTest = await testReadSingleDataprovider(req, createdRecordId);
+      const readSingleTest = await testReadSingleArticle(req, createdRecordId);
       testResults[2] = readSingleTest;
       if (readSingleTest.status === TestStatus.Failed) {
         throw new TestError("Read single test failed", readSingleTest);
       }
     }
 
-    // Test 4: Validate the record
+    // Test 4: Update the record
     if (createdRecordId) {
-      const validateTest = await testValidateDataprovider(req, createdRecordId);
-      testResults[3] = validateTest;
-      if (validateTest.status === TestStatus.Failed) {
-        throw new TestError("Validate test failed", validateTest);
-      }
-    }
-
-    // Test 5: Update the record
-    if (createdRecordId) {
-      const updateTest = await testUpdateDataprovider(req, createdRecordId);
-      testResults[4] = updateTest;
+      const updateTest = await testUpdateArticle(req, createdRecordId);
+      testResults[3] = updateTest;
       if (updateTest.status === TestStatus.Failed) {
         throw new TestError("Update test failed", updateTest);
       }
     }
 
-    // Test 6: Delete the record
+    // // Test 5: Delete the record
     if (createdRecordId) {
-      const deleteTest = await testDeleteDataprovider(req, createdRecordId);
-      testResults[5] = deleteTest;
+      const deleteTest = await testDeleteArticle(req, createdRecordId);
+      testResults[4] = deleteTest;
       if (deleteTest.status === TestStatus.Failed) {
         throw new TestError("Delete test failed", deleteTest);
       } else {
@@ -134,8 +110,8 @@ export default async function handle(
       tests: testResults
     });
   } catch (error) {
-    if(error instanceof TestError) {
-      console.error(`Test failed: ${error.message} ${JSON.stringify(error.testResult,null,2)}`);
+    if (error instanceof TestError) {
+      console.error(`Test failed: ${error.message} ${JSON.stringify(error.testResult, null, 2)}`);
     } else {
       console.error("Unexpected error:", error);
     }
@@ -147,7 +123,7 @@ export default async function handle(
     // Always attempt cleanup
     if (createdRecordId) {
       try {
-        const { success, result } = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${createdRecordId}`, 'DELETE');
+        const { success, result } = await makeApiCall<ArticleResponse>(req, `/api/protected/articles/${createdRecordId}`, 'DELETE');
         if (!success || result?.error) {
           console.error("Failed to clean up test record:", result?.error);
         }
@@ -158,17 +134,35 @@ export default async function handle(
   }
 }
 
-async function testCreateDataprovider(req: NextApiRequest): Promise<TestResult> {
-  try {
-    const testRecord = {
-      CompanyName: `Test Dataprovider ${Date.now()}`,
-      ItemType: "dataprovider",
-      UrlName: `test-dataprovider-${Date.now()}`,
-      Password: createTestProviderPassword()
-    };
+export const testRecordCreateArticle = {
+  SiteID: 'E1991A95-08EF-F11D-FF946CE1AA0578FB',// Utrecht
+  Language: null,
+  ParentID: '0',
+  Title: `MyPage ${Date.now()}`,
+  DisplayTitle: `MyPage ${Date.now()}`,
+  Abstract: null,
+  CustomField1_Title: null,
+  CustomField1: null,
+  Banner: null,
+  Keywords: null,
+  SortOrder: 1,
+  PublishStartDate: new Date('2025-01-01').toISOString(),
+  PublishEndDate: null,
+  Status: '1',
+  Navigation: 'main',
+  ShowInNav: '1',
+  System: '1',
+  EditorCreated: 'Systeem',
+  DateCreated: new Date().toISOString(),
+  EditorModified: 'Systeem',
+  DateModified: new Date().toISOString(),
+  Module: 'veiligstallen'
+};
 
-    const { success, result } = await makeApiCall<DataprovidersResponse>(req, '/api/protected/dataprovider/new', 'POST', testRecord);
-    if (!success || !result) {
+async function testCreateArticle(req: NextApiRequest): Promise<TestResult> {
+  try {
+    const { success, result } = await makeApiCall<ArticleResponse>(req, '/api/protected/articles/new', 'POST', testRecordCreateArticle);
+    if (!success || !result?.data) {
       return {
         name: "Create Record",
         status: TestStatus.Failed,
@@ -177,7 +171,7 @@ async function testCreateDataprovider(req: NextApiRequest): Promise<TestResult> 
       };
     }
 
-    const createdRecordId = result.data?.[0]?.ID;
+    const createdRecordId = result.data?.ID;
     if (!createdRecordId) {
       return {
         name: "Create Record",
@@ -203,9 +197,9 @@ async function testCreateDataprovider(req: NextApiRequest): Promise<TestResult> 
   }
 }
 
-async function testReadAllDataproviders(req: NextApiRequest): Promise<TestResult> {
+async function testReadAllArticles(req: NextApiRequest): Promise<TestResult> {
   try {
-    const { success, result } = await makeApiCall<DataprovidersResponse>(req, '/api/protected/dataprovider');
+    const { success, result } = await makeApiCall<ArticleResponse>(req, '/api/protected/articles');
     if (!success || result?.error) {
       return {
         name: "Retrieve All Records",
@@ -220,7 +214,7 @@ async function testReadAllDataproviders(req: NextApiRequest): Promise<TestResult
       status: TestStatus.Success,
       message: `Successfully retrieved ${result?.data?.length} records`,
       details: { count: result?.data?.length }
-    }; 
+    };
   } catch (error) {
     return {
       name: "Retrieve All Records",
@@ -231,11 +225,10 @@ async function testReadAllDataproviders(req: NextApiRequest): Promise<TestResult
   }
 }
 
-async function testReadSingleDataprovider(req: NextApiRequest, id: string): Promise<TestResult> {
+async function testReadSingleArticle(req: NextApiRequest, id: string): Promise<TestResult> {
   try {
-    const { success, result }  = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${id}`);
+    const { success, result } = await makeApiCall<ArticleResponse>(req, `/api/protected/articles/${id}`);
     if (!success || result?.error) {
-      console.error("testReadSingleDataprovider", result?.error);
       return {
         name: "Retrieve Single Record",
         status: TestStatus.Failed,
@@ -260,10 +253,10 @@ async function testReadSingleDataprovider(req: NextApiRequest, id: string): Prom
   }
 }
 
-async function testUpdateDataprovider(req: NextApiRequest, id: string): Promise<TestResult> {
+async function testUpdateArticle(req: NextApiRequest, id: string): Promise<TestResult> {
   try {
-    const { success, result } = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${id}`);
-    if (!success || !result) {
+    const { success, result } = await makeApiCall<ArticleResponse>(req, `/api/protected/articles/${id}`);
+    if (!success || !result?.data) {
       return {
         name: "Update Record",
         status: TestStatus.Failed,
@@ -274,13 +267,12 @@ async function testUpdateDataprovider(req: NextApiRequest, id: string): Promise<
 
     const updatedData = {
       ID: result.data?.ID,
-      CompanyName: `Updated ${result.data?.CompanyName}`,
-      UrlName: `updated-${Date.now()}`,
-      Password: createTestProviderPassword()
+      Title: `Updated ${result.data?.Title}`,
+      Location: "Updated Location"
     };
 
-    const { success: updateSuccess, result: updateResult } = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${id}`, 'PUT', updatedData);
-    if (!updateSuccess || !updateResult) {
+    const { success: updateSuccess, result: updateResult } = await makeApiCall<ArticleResponse>(req, `/api/protected/articles/${id}`, 'PUT', updatedData);
+    if (!updateSuccess || !updateResult?.data) {
       return {
         name: "Update Record",
         status: TestStatus.Failed,
@@ -293,7 +285,7 @@ async function testUpdateDataprovider(req: NextApiRequest, id: string): Promise<
       name: "Update Record",
       status: TestStatus.Success,
       message: "Successfully updated the test record",
-      details: updateResult.data
+      details: updateResult?.data
     };
   } catch (error) {
     return {
@@ -305,15 +297,15 @@ async function testUpdateDataprovider(req: NextApiRequest, id: string): Promise<
   }
 }
 
-async function testDeleteDataprovider(req: NextApiRequest, id: string): Promise<TestResult> {
+async function testDeleteArticle(req: NextApiRequest, id: string): Promise<TestResult> {
   try {
-    const apiresult = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${id}`, 'DELETE');
-    if (!apiresult.success) {
+    const { success, result } = await makeApiCall<ArticleResponse>(req, `/api/protected/articles/${id}`, 'DELETE');
+    if (!success) {
       return {
         name: "Delete Record",
         status: TestStatus.Failed,
-        message: `Failed to delete record: ${apiresult.result?.error || 'Unknown error'}`,
-        details: { id, error: apiresult.result?.error }
+        message: `Failed to delete record: ${result?.error || 'Unknown error'}`,
+        details: { id, error: result?.error }
       };
     }
 
@@ -328,85 +320,6 @@ async function testDeleteDataprovider(req: NextApiRequest, id: string): Promise<
       name: "Delete Record",
       status: TestStatus.Failed,
       message: "Failed to delete record",
-      details: error
-    };
-  }
-}
-
-async function testValidateDataprovider(req: NextApiRequest, id: string): Promise<TestResult> {
-  try {
-    // First get the current record to use as base for our tests
-    const { success: getSuccess, result: getResult } = await makeApiCall<DataproviderResponse>(req, `/api/protected/dataprovider/${id}`);
-    if (!getSuccess || !getResult?.data) {
-      return {
-        name: "Validate Record",
-        status: TestStatus.Failed,
-        message: "Failed to get record for validation testing",
-        details: getResult?.error
-      };
-    }
-
-    const baseRecord = getResult.data;
-    const testCases = [
-      {
-        name: "Valid Record",
-        data: baseRecord,
-        expectedValid: true
-      },
-      {
-        name: "Missing CompanyName",
-        data: { ...baseRecord, CompanyName: "" },
-        expectedValid: false
-      },
-    ];
-
-    const results = [];
-    for (const testCase of testCases) {
-      const { success, result } = await makeApiCall<DataproviderValidateResponse>(
-        req,
-        `/api/protected/dataprovider/validate`,
-        'POST',
-        testCase.data
-      );
-
-      if (!success) {
-        return {
-          name: "Validate Record",
-          status: TestStatus.Failed,
-          message: `Failed to validate record: ${result?.message || 'Unknown error'}`,
-          details: { testCase: testCase.name, message: result?.message }
-        };
-      }
-
-      const isValid = result?.valid === testCase.expectedValid;
-      results.push({
-        testCase: testCase.name,
-        expected: testCase.expectedValid,
-        actual: result?.valid,
-        message: result?.message
-      });
-
-      if (!isValid) {
-        return {
-          name: "Validate Record",
-          status: TestStatus.Failed,
-          message: `Validation test failed for ${testCase.name}`,
-          details: { testCase: testCase.name, expected: testCase.expectedValid, actual: result?.valid, message: result?.message }
-        };
-      }
-    }
-
-    return {
-      name: "Validate Record",
-      status: TestStatus.Success,
-      message: "Successfully validated record with all test cases",
-      details: { results }
-    };
-  } catch (error) {
-    return {
-      name: "Validate Record",
-      status: TestStatus.Failed,
-      message: "Failed to validate record",
       details: error
     };
   }

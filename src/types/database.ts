@@ -144,14 +144,25 @@ export const getDefaultNewGemeente = (naam: string = "Nieuwe gemeente")=> {
 
 export const dataproviderSchema = z.object({
   ID: idSchema,
-  CompanyName: z.string().min(1).max(100),
+  CompanyName: z.string()
+    .min(1, { message: "Bedrijfsnaam is verplicht" })
+    .max(100, { message: "Bedrijfsnaam mag maximaal 100 tekens bevatten" }),
   ItemType: itemTypeEnum,
-  UrlName: z.string().nullable(),
-  Password: z.string().nullable(),
-  Status: z.string().nullable(),
-  DateRegistration: z.union([z.string().datetime(), z.date(), z.null()]).optional(),
-  DateConfirmed: z.union([z.string().datetime(), z.date(), z.null()]).optional(),
-  DateRejected: z.union([z.string().datetime(), z.date(), z.null()]).optional(),
+  UrlName: z.string()
+    .nullable()
+    .optional(),
+  Password: z.string()
+    .nullable()
+    .optional(),
+  Status: z.string()
+    .nullable()
+    .optional(),
+  DateRegistration: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
+  DateConfirmed: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
+  DateRejected: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
 });
 
 export const dataproviderCreateSchema = dataproviderSchema.omit({ ID: true });
@@ -166,4 +177,33 @@ export const getDefaultNewDataprovider = (name: string) => ({
   DateRegistration: null,
   DateConfirmed: null,
   DateRejected: null,
+});
+
+export const getDefaultNewSecurityUser = (name: string) => ({
+  ID: 'new',
+  UserName: '',
+  DisplayName: name,
+  Status: "1",
+  Password: null,
+  EncryptedPassword: null,
+  EncryptedPassword2: null,
+});
+
+export const securityuserSchema = z.object({
+  UserID: idSchema,
+  UserName: z.string()
+    .min(1, { message: "Gebruikersnaam is verplicht" })
+    .max(100, { message: "Gebruikersnaam mag maximaal 100 tekens bevatten" }),
+  DisplayName: z.string()
+    .min(1, { message: "Weergavenaam is verplicht" })
+    .max(100, { message: "Weergavenaam mag maximaal 100 tekens bevatten" }),
+  Status: z.string()
+    .nullable()
+    .optional(),
+  EncryptedPassword: z.string()
+    .nullable()
+    .optional(),
+  EncryptedPassword2: z.string()
+    .nullable()
+    .optional(),
 });

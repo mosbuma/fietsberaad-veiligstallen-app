@@ -1,52 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { security_roles } from '@prisma/client';
-import { VSUserGroupValues, VSUserWithRolesNew } from '~/types/users';
+import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
 import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
 import { ConfirmPopover } from '~/components/ConfirmPopover';
 import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
+import { makeClientApiCall } from '~/utils/client/api-tools';
+import { useUsers } from '~/hooks/useUsers';
+import { getNewRoleLabel } from '~/types/utils';
 
 type UserComponentProps = { 
   groupid: VSUserGroupValues,
-  roles: security_roles[],
 };
 
 const UsersComponent: React.FC<UserComponentProps> = (props) => {
-  const { groupid, roles } = props;
+  const roles = Object.values(VSUserRoleValuesNew).map(role => ({
+    label: getNewRoleLabel(role),
+    value: role.toString()
+  }))
   const [id, setId] = useState<string | undefined>(undefined);
-  const [users, setUsers] = useState<VSUserWithRolesNew[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [updateCounter, setUpdateCounter] = useState(0);
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<HTMLElement | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/protected/security_users');
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-        const responseData = await response.json() as SecurityUsersResponse;
-        if(!responseData.error) {
-          setUsers(responseData.data || []);
-        } else {
-          console.error('Error fetching users:', responseData.error);
-          setUsers([]);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setUsers([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [updateCounter]);
+  const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsers();
 
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
@@ -75,7 +53,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
       }
 
       // Refresh the user list
-      setUpdateCounter(prev => prev + 1);
+      reloadUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
       alert('Er is een fout opgetreden bij het verwijderen van de gebruiker');
@@ -89,38 +67,44 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
 
   const filteredusers = 
     users && 
-    users.filter((user) => (user.GroupID === groupid))
-      .sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
+    users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
 
-  let title = "";
-  switch (groupid) {
-    case VSUserGroupValues.Intern:
-      title = "Interne Gebruikers";
-      break;
-    case VSUserGroupValues.Extern:
-      title = "Externe Gebruikers";
-      break;
-    case VSUserGroupValues.Exploitant:
-      title = "Exploitanten";
-      break;
-    case VSUserGroupValues.Beheerder:
-      title = "Beheerders";
-      break;
-    default:
-      title = "Overige Gebruikers";
-      break;
-  }
+  let title = "Gebruikers";
+  // switch (groupid) {
+  //   case VSUserGroupValues.Intern:
+  //     title = "Interne Gebruikers";
+  //     break;
+  //   case VSUserGroupValues.Extern:
+  //     title = "Externe Gebruikers";
+  //     break;
+  //   case VSUserGroupValues.Exploitant:
+  //     title = "Exploitanten";
+  //     break;
+  //   case VSUserGroupValues.Beheerder:
+  //     title = "Beheerders";
+  //     break;
+  //   default:
+  //     title = "Overige Gebruikers";
+  //     break;
+  // }
 
-  const handleUserEditClose = (userChanged: boolean) => {
-    if (userChanged) {
-      setUpdateCounter(prev => prev + 1);
+  const handleUserEditClose = (userChanged: boolean, confirmClose: boolean) => {
+    if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
+      return;
     }
+
     setId(undefined);
+
+    if (userChanged) { reloadUsers(); }
   }
 
   const renderOverview = () => {
-    if (isLoading) {
-      return <LoadingSpinner message="Gebruikers laden..." />;
+    if (isLoadingUsers) {
+      return <LoadingSpinner message="Gebruikers laden" />;
+    }
+
+    if (errorUsers) {
+      return <div>Error: {errorUsers}</div>;
     }
 
     return (
@@ -128,11 +112,9 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
       { id && (
         displayInOverlay(
           <UserEditComponent 
-            id={id} 
-            groupid={groupid} 
-            users={users} 
+            id={id}      
             onClose={handleUserEditClose} 
-            showBackButton={false}/>, false, "Gebruiker bewerken", () => setId(undefined))
+            />, false, "Gebruiker bewerken", () => setId(undefined))
       )}
       <div className={`${id!==undefined ? "hidden" : ""}`}>
         <div className="flex justify-between items-center mb-4">
@@ -156,12 +138,12 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
           </thead>
           <tbody>
             {filteredusers.map((user) => { 
-              const role = roles && roles.find((r) => r.RoleID === user.RoleID);
+              const role = roles && roles.find((r) => r.value === user.securityProfile.roleId);
               return (
                 <tr key={user.UserID}>
                   <td className="border px-4 py-2">{user.DisplayName}</td>
                   <td className="border px-4 py-2">{user.UserName}</td>
-                  <td className="border px-4 py-2">{role?.Description || "--"}</td>
+                  <td className="border px-4 py-2">{role?.label || "--"}</td>
                   <td className="border px-4 py-2">
                     {user.Status === "1" ? (
                       <span className="text-green-500">●</span>

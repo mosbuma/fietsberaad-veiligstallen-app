@@ -165,26 +165,26 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     }, [props.id, activecontact, isNew]);
 
     const isDataChanged = () => {
-        if (isNew) {
-          return !!CompanyName || !!ZipID || !!DayBeginsAt || !!Coordinaten || !!Zoom;
-        }
+      if (isNew) {
+        return !!CompanyName || !!ZipID || !!DayBeginsAt || !!Coordinaten || !!Zoom;
+      }
 
-        return (
-            CompanyName !== initialData.CompanyName ||
-            AlternativeCompanyName !== initialData.AlternativeCompanyName ||
-            UrlName !== initialData.UrlName ||
-            ZipID !== initialData.ZipID ||
-            Helpdesk !== initialData.Helpdesk ||
-            DayBeginsAt !== initialData.DayBeginsAt ||
-            Coordinaten !== initialData.Coordinaten ||
-            Zoom !== initialData.Zoom ||
-            Bankrekeningnr !== initialData.Bankrekeningnr ||
-            PlaatsBank !== initialData.PlaatsBank ||
-            Tnv !== initialData.Tnv ||
-            Notes !== initialData.Notes ||
-            DateRegistration !== initialData.DateRegistration
-        );
-      };
+      return (
+          CompanyName !== initialData.CompanyName ||
+          AlternativeCompanyName !== initialData.AlternativeCompanyName ||
+          UrlName !== initialData.UrlName ||
+          ZipID !== initialData.ZipID ||
+          Helpdesk !== initialData.Helpdesk ||
+          DayBeginsAt !== initialData.DayBeginsAt ||
+          Coordinaten !== initialData.Coordinaten ||
+          Zoom !== initialData.Zoom ||
+          Bankrekeningnr !== initialData.Bankrekeningnr ||
+          PlaatsBank !== initialData.PlaatsBank ||
+          Tnv !== initialData.Tnv ||
+          Notes !== initialData.Notes ||
+          DateRegistration !== initialData.DateRegistration
+      );
+    };
     
       const handleUpdate = async () => {
         if (!CompanyName || !ZipID || !DayBeginsAt || !Coordinaten) {

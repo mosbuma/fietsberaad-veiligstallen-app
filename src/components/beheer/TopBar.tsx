@@ -188,6 +188,7 @@ const TopBar: React.FC<TopBarProps> = ({
               font-bold
               text-white
               shadow-lg
+              whitespace-nowrap
             "
             style={{
               backgroundColor: themeColor2 || themeColor1,

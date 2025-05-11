@@ -5,9 +5,7 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession, updateSecurityProfile } from "~/utils/server/database-tools";
 import { gemeenteSchema, gemeenteCreateSchema, getDefaultNewGemeente } from "~/types/database";
-import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
 import { type VSContactGemeente, gemeenteSelect } from "~/types/contacts";
-import { createSecurityProfile } from "~/utils/server/securitycontext";
 
 export type GemeenteResponse = {
   data?: VSContactGemeente;

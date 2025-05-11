@@ -1,27 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
+import { type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
-import { validateUserSession } from "~/utils/server/database-tools";
-import bcrypt from "bcrypt";
-
+import { generateID, validateUserSession } from "~/utils/server/database-tools";
+import { convertToNewUser } from "~/pages/api/protected/security_users";
 // TODO: implement filtering on accessible security_users
 
 export type SecurityUserResponse = {
-  data?: VSUserWithRoles;
+  data?: VSUserWithRolesNew;
   error?: string;
 };
 
-const securityUserUpdateSchema = z.object({
-  UserName: z.string().min(1).optional(),
-  DisplayName: z.string().min(1).optional(),
-  RoleID: z.number().optional(),
-  GroupID: z.string().optional(),
-  Status: z.string().optional(),
-  Password: z.string().min(1).optional(),
-  SiteID: z.string().optional(),
+const securityUserPasswordUpdateSchema = z.object({
+  hashedpassword: z.string(),
 });
 
 export default async function handle(
@@ -41,50 +34,30 @@ export default async function handle(
   }
 
   const id = req.query.id as string;
-
-  console.log(">>> security_users/[id] id", id);
+  const activeContactId = session.user.activeContactId;
 
   switch (req.method) {
-    case "GET": {
-      console.log("GET", id);
-      const user = await prisma.security_users.findFirst({
-        where: {
-          UserID: id,
-        },
-        select: securityUserSelect
-      }) as VSUserWithRoles;
-      res.status(200).json({data: user});
-      break;
-    }
-    case "PUT": {
+    case "POST": {
       try {
-        const parseResult = securityUserUpdateSchema.safeParse(req.body);
+        const parseResult = securityUserPasswordUpdateSchema.safeParse(req.body);
         if (!parseResult.success) {
           console.error("Unexpected/missing data error:", parseResult.error);
-          res.status(400).json({error: "Unexpected/missing data error:"});
+          res.status(400).json({ error: "Unexpected/missing data error:" });
           return;
         }
-
         const parsed = parseResult.data;
-        const updateData: any = {
-          UserName: parsed.UserName,
-          DisplayName: parsed.DisplayName,
-          RoleID: parsed.RoleID,
-          GroupID: parsed.GroupID,
-          Status: parsed.Status,
-        };
-
-        // Only update password if provided
-        if (parsed.Password) {
-          updateData.EncryptedPassword = await bcrypt.hash(parsed.Password, 10);
-        }
 
         const updatedUser = await prisma.security_users.update({
           where: { UserID: id },
-          data: updateData,
+          data: {
+            EncryptedPassword: parsed.hashedpassword,
+            EncryptedPassword2: parsed.hashedpassword,
+          },
           select: securityUserSelect
         }) as VSUserWithRoles;
-        res.status(200).json({data: updatedUser});
+
+        const newUser = await convertToNewUser(updatedUser, activeContactId);
+        res.status(201).json({ data: newUser });
       } catch (e) {
         console.error("Error updating security user:", e);
         res.status(500).json({error: "Error updating security user"});
@@ -93,8 +66,12 @@ export default async function handle(
     }
     case "DELETE": {
       try {
-        await prisma.security_users.delete({
-          where: { UserID: id }
+        await prisma.security_users.update({
+          where: { UserID: id },
+          data: {
+            EncryptedPassword: null,
+            EncryptedPassword2: null,
+          }
         });
         res.status(200).json({});
       } catch (e) {
