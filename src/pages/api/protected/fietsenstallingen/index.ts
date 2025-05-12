@@ -23,6 +23,7 @@ export default async function handle(
   }
 
   const { sites } = validationResult;
+  const { GemeenteID } = req.query;
 
   switch (req.method) {
     case "GET": {
@@ -32,10 +33,29 @@ export default async function handle(
       // GET all fietsenstallingen user can access
       const fietsenstallingen = (await prisma.fietsenstallingen.findMany({
         where: {
-          SiteID: { in: sites }
+          // Get for 1 specific gemeente, or for all sites
+          SiteID: { in: GemeenteID ? [GemeenteID as string] : sites }
         },
         select: compact ? fietsenstallingLijstSelect : fietsenstallingSelect
       })) as unknown as (VSFietsenstalling[] | VSFietsenstallingLijst[]);
+     
+      // Loop all fietsenstallingen and console.log any that has a BigInt in any of its fields
+      // fietsenstallingen.forEach(fietsenstalling => {
+      //   Object.keys(fietsenstalling).forEach(key => {
+      //     if (typeof fietsenstalling[key] === 'bigint') {
+      //       console.log(`BigInt found in field: ${key}`);
+      //     }
+      //   });
+      // });
+      
+      // Convert all BigInt fields to strings
+      fietsenstallingen.forEach(fietsenstalling => {
+        Object.keys(fietsenstalling).forEach(key => {
+          if (typeof fietsenstalling[key] === 'bigint') {
+            fietsenstalling[key] = fietsenstalling[key].toString();
+          }
+        });
+      });
       
       res.status(200).json({data: fietsenstallingen});
       break;
