@@ -5,9 +5,9 @@ import { createVeiligstallenOrgLink } from "~/utils/parkings";
 
 export const createFixBadDataReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean = true): Promise<ReportContent> => {
     // Alles op een rij:
-    // 1. fietsenstallingen.stallingsID: not null & unique
-    // 2. fietsenstallingen.siteID: not null & foreign key naar contacts.id (is al geimplementeerd)
-    // 3. fietsenstallingen.exploitantID: foreign key naar contacts.id (is al geimplementeerd)
+    // 1. fietsenstallingen.StallingsID: not null & unique
+    // 2. fietsenstallingen.SiteID: not null & foreign key naar contacts.id (is al geimplementeerd)
+    // 3. fietsenstallingen.ExploitantID: foreign key naar contacts.id (is al geimplementeerd)
 
     const alwaysvisibleColumns = [
         "Title",

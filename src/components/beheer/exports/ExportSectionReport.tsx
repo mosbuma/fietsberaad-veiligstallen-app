@@ -42,7 +42,7 @@ const ExportSectionReportComponent: React.FC<ExportSectionReportProps> = ({
             },
             body: JSON.stringify({
               reportType,
-              bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+              bikeparkIDs: bikeparks.map(bp => bp.StallingsID),
               startDT: firstDate,
               endDT: lastDate
             }),

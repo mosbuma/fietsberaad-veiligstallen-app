@@ -22,7 +22,7 @@ export const reportRangeUnitValues = ["range_all", "range_year", "range_month", 
 
 export type ReportBikepark = {
   id: string;
-  stallingsID: string;
+  StallingsID: string;
   Title: string;
   GemeenteID: string;
   hasData: boolean;
@@ -121,6 +121,8 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 }) => {
   const selectClasses = "min-w-56 h-10 p-2 border-2 border-gray-300 rounded-md";
 
+  console.log('*** ReportsFilterComponent - bikeparks', bikeparks);
+
   // Load initial state from localStorage or use defaults
   const loadInitialState = () => {
     const savedState = localStorage.getItem(STORAGE_KEY);
@@ -169,7 +171,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   const previousStateRef = useRef<ReportState | null>(null);
 
   useEffect(() => {
-    setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.stallingsID));
+    setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.StallingsID));
   }, [bikeparks]);
 
   useEffect(() => {
@@ -178,7 +180,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
       reportGrouping,
       reportCategories,
       reportRangeUnit,
-      selectedBikeparkIDs: reportCategories === "per_stalling" ? bikeparks.map((bikepark) => bikepark.stallingsID) : selectedBikeparkIDs,
+      selectedBikeparkIDs: reportCategories === "per_stalling" ? bikeparks.map((bikepark) => bikepark.StallingsID) : selectedBikeparkIDs,
       reportRangeYear,
       reportRangeValue,
       fillups,
@@ -276,9 +278,9 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
   // useEffect(() => {
   // Filter out any selected bikeparks that are no longer in the bikeparks array
   // setSelectedBikeparkIDs((prevSelected) =>
-  //   prevSelected.filter((id) => bikeparks.some((park) => park.stallingsID === id))
+  //   prevSelected.filter((id) => bikeparks.some((park) => park.StallingsID === id))
   // );
-  // setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.stallingsID));
+  // setSelectedBikeparkIDs(bikeparks.map((bikepark) => bikepark.StallingsID));
   // }, [bikeparks]);  
 
   const checkInput = () => {

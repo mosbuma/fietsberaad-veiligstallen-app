@@ -165,7 +165,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         }
         const data = await response.json() as AvailableDataDetailedResult[] | false;
         if (data) {
-          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.StallingsID)));
         } else {
           setErrorState("Unable to fetch list of bikeparks with data");
         }

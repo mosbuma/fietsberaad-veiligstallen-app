@@ -147,6 +147,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
 
       try {
         const data: Partial<VSUserWithRolesNew> = {
+          UserID: id,
           DisplayName: displayName,
           // RoleID: newRoleID,
           UserName: userName,
@@ -169,6 +170,8 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
 
         const method = isNew ? 'POST' : 'PUT';
         const url = `/api/protected/security_users/${id}`;
+
+        console.log("*** UserEditComponent handleUpdate", url, method,data);
 
         const response = await makeClientApiCall<SecurityUserResponse>(url, method, data);
         if(!response.success) {
