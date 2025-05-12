@@ -153,7 +153,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           },
           body: JSON.stringify({
             reportType: filterState.reportType,
-            bikeparkIDs: bikeparks.map(bp => bp.stallingsID),
+            bikeparkIDs: bikeparks.filter(bp => bp.StallingsID !==  null).map(bp => bp.StallingsID),
             startDT: startDT,
             endDT: endDT
           }),
@@ -165,7 +165,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
         }
         const data = await response.json() as AvailableDataDetailedResult[] | false;
         if (data) {
-          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.stallingsID)));
+          setBikeparksWithData(bikeparks.filter(bp => data.map(d => d.locationID).includes(bp.StallingsID)));
         } else {
           setErrorState("Unable to fetch list of bikeparks with data");
         }

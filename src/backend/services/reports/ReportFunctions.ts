@@ -150,7 +150,7 @@ export const getCategoryNames = async (params: ReportParams): Promise<ReportCate
     case "none":
       return [{ id: "0", name: "Totaal" }];
     case "per_stalling": {
-      const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE stallingsID IN (${idString})`;
+      const sql = `SELECT StallingsID, Title FROM fietsenstallingen WHERE StallingsID IN (${idString})`;
 
       const results = await prisma.$queryRawUnsafe<{ StallingsID: string, Title: string }[]>(sql)
       return results.map(r => ({ id: r.StallingsID, name: r.Title }));

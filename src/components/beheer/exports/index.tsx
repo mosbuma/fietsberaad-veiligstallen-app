@@ -42,10 +42,10 @@ export const convertToBikeparkData = (bikeparks: ReportBikepark[], data: Availab
 
       let bikepark = bikeparkData.find(bp => bp.bikeparkID === d.locationID);
       if(!bikepark) {
-          const info = bikeparks.find(bp => bp.stallingsID === d.locationID);
+          const info = bikeparks.find(bp => bp.StallingsID === d.locationID);
           bikepark = {
               bikeparkID: d.locationID, 
-              bikeparkTitle: info?.title || "unknown",
+              bikeparkTitle: info?.Title || "unknown",
               monthsWithData: []
           }
           bikeparkData.push(bikepark);

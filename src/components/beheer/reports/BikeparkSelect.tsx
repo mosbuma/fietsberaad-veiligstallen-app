@@ -23,9 +23,9 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
 
   const toggleSelectAll = () => {
     if (selectedBikeparkIDs.length > 0 && selectedBikeparkIDs.length < bikeparks.length) {
-      setSelectedBikeparkIDs(bikeparks.map(park => park.stallingsID));
+      setSelectedBikeparkIDs(bikeparks.map(park => park.StallingsID));
     } else {
-      const newSelection = bikeparks.filter((park => selectedBikeparkIDs.includes(park.stallingsID) === false)).map(park => park.stallingsID);
+      const newSelection = bikeparks.filter((park => selectedBikeparkIDs.includes(park.StallingsID) === false)).map(park => park.StallingsID);
       setSelectedBikeparkIDs(newSelection);
     }
   };
@@ -39,7 +39,7 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
     if (selectedBikeparkIDs.length === 0) {
       return "Geen stallingen";
     } else if (selectedBikeparkIDs.length === 1) {
-      return bikeparks.find(park => park.stallingsID === selectedBikeparkIDs[0])?.title.trim();
+      return bikeparks.find(park => park.StallingsID === selectedBikeparkIDs[0])?.Title.trim();
     } else if (selectedBikeparkIDs.length < bikeparks.length) {
       return `${selectedBikeparkIDs.length} Stallingen`;
     } else {
@@ -111,21 +111,21 @@ const BikeparkSelect: React.FC<BikeparkSelectProps> = ({
             ✔️
           </button>
           {bikeparks.map((park) => (
-            <div key={park.stallingsID}>
+            <div key={park.StallingsID}>
               <label>
                 <input
                   type="checkbox"
-                  checked={selectedBikeparkIDs.includes(park.stallingsID)}
-                  value={park.stallingsID}
+                  checked={selectedBikeparkIDs.includes(park.StallingsID)}
+                  value={park.StallingsID}
                   onChange={() =>
                     setSelectedBikeparkIDs((prev) =>
-                      prev.includes(park.stallingsID)
-                        ? prev.filter((id) => id !== park.stallingsID)
-                        : [...prev, park.stallingsID]
+                      prev.includes(park.StallingsID)
+                        ? prev.filter((id) => id !== park.StallingsID)
+                        : [...prev, park.StallingsID]
                     )
                   }
                 />
-                {park.title}
+                {park.Title}
               </label>
             </div>
           ))}

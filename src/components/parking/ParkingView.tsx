@@ -278,10 +278,10 @@ const ParkingView = ({
 
         {isLoggedIn && <Reports bikeparks={[
           {
-            gemeenteID: parkingdata.SiteID,
-            title: parkingdata.Title,
+            GemeenteID: parkingdata.SiteID,
+            Title: parkingdata.Title,
             id: parkingdata.StallingsID,
-            stallingsID: parkingdata.StallingsID || "---",
+            StallingsID: parkingdata.StallingsID || "---",
             hasData: true,
           }
         ]} />}

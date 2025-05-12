@@ -3,8 +3,8 @@ import { ReportBikepark } from './ReportsFilter';
 
 // Define a new type for bikepark with data source selection
 export type BikeparkWithDataSource = {
-  stallingsID: string;
-  title: string;
+  StallingsID: string;
+  Title: string;
   source: 'FMS' | 'Lumiguide';
 };
 
@@ -29,8 +29,8 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
   // Initialize state with all bikeparks set to FMS by default
   const [selectedBikeparks, setSelectedBikeparks] = useState<BikeparkWithDataSource[]>(
     bikeparks.map(park => ({
-      stallingsID: park.stallingsID,
-      title: park.title,
+      StallingsID: park.StallingsID,
+      Title: park.Title,
       source: 'FMS'
     }))
   );
@@ -39,10 +39,10 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
   useEffect(() => {
     // Keep previous source selections when possible, default to FMS for new parks
     setSelectedBikeparks(bikeparks.map(park => {
-      const existing = selectedBikeparks.find(p => p.stallingsID === park.stallingsID);
+      const existing = selectedBikeparks.find(p => p.StallingsID === park.StallingsID);
       return {
-        stallingsID: park.stallingsID,
-        title: park.title,
+        StallingsID: park.StallingsID,
+        Title: park.Title,
         source: existing ? existing.source : 'FMS'
       };
     }));
@@ -63,10 +63,10 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
     setIsDropdownOpen(false);
   };
 
-  const handleSourceChange = (stallingsID: string, source: 'FMS' | 'Lumiguide') => {
+  const handleSourceChange = (StallingsID: string, source: 'FMS' | 'Lumiguide') => {
     setSelectedBikeparks(prev =>
       prev.map(park =>
-        park.stallingsID === stallingsID
+        park.StallingsID === StallingsID
           ? { ...park, source }
           : park
       )
@@ -126,14 +126,14 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
             <h3 className="text-lg font-medium mb-2">Gegevensbron per stalling</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto p-2 border rounded">
               {bikeparks.map(park => (
-                <div key={park.stallingsID} className="flex justify-flex-start py-0 px-2 border-b">
+                <div key={park.StallingsID} className="flex justify-flex-start py-0 px-2 border-b">
                   <div className="flex space-x-4 text-left">
                     <label className="inline-flex items-center">
                       <input
                         type="radio"
-                        name={`source-${park.stallingsID}`}
-                        checked={selectedBikeparks.find(p => p.stallingsID === park.stallingsID)?.source === 'FMS'}
-                        onChange={() => handleSourceChange(park.stallingsID, 'FMS')}
+                        name={`source-${park.StallingsID}`}
+                        checked={selectedBikeparks.find(p => p.StallingsID === park.StallingsID)?.source === 'FMS'}
+                        onChange={() => handleSourceChange(park.StallingsID, 'FMS')}
                         className="form-radio h-4 w-4 text-blue-600"
                       />
                       <span className="ml-2">FMS</span>
@@ -141,14 +141,14 @@ const BikeparkDataSourceSelect: React.FC<BikeparkDataSourceSelectProps> = ({
                     <label className="inline-flex items-center">
                       <input
                         type="radio"
-                        name={`source-${park.stallingsID}`}
-                        checked={selectedBikeparks.find(p => p.stallingsID === park.stallingsID)?.source === 'Lumiguide'}
-                        onChange={() => handleSourceChange(park.stallingsID, 'Lumiguide')}
+                        name={`source-${park.StallingsID}`}
+                        checked={selectedBikeparks.find(p => p.StallingsID === park.StallingsID)?.source === 'Lumiguide'}
+                        onChange={() => handleSourceChange(park.StallingsID, 'Lumiguide')}
                         className="form-radio h-4 w-4 text-blue-600"
                       />
                       <span className="ml-2">Lumiguide</span>
                     </label>
-                    <div className="flex-1 font-medium">{park.title}</div>
+                    <div className="flex-1 font-medium">{park.Title}</div>
                   </div>
                 </div>
               ))}

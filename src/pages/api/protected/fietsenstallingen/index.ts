@@ -28,11 +28,11 @@ export default async function handle(
     case "GET": {
       // Check if compact mode is requested
       const compact = req.query.compact === 'true';
-      
+
       // GET all fietsenstallingen user can access
       const fietsenstallingen = (await prisma.fietsenstallingen.findMany({
         where: {
-          ID: { in: sites }
+          SiteID: { in: sites }
         },
         select: compact ? fietsenstallingLijstSelect : fietsenstallingSelect
       })) as unknown as (VSFietsenstalling[] | VSFietsenstallingLijst[]);

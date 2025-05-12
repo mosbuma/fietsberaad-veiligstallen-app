@@ -63,6 +63,7 @@ export default async function handle(
     }
     case "POST": {
       try {
+        console.log("*** SECURITY_USERS/[ID] POST", req.body);
         const parseResult = securityUserCreateSchema.safeParse(req.body);
         if (!parseResult.success) {
           console.error("Unexpected/missing data error:", parseResult.error);

@@ -44,6 +44,7 @@ export default async function handle(
   }
 
   if (!validateUserSessionResult.sites.includes(data.UserID) && data.UserID !== "new") {
+    console.error("Geen toegang tot deze organisatie", data.UserID);
     res.status(403).json({ valid: false, error: "Geen toegang tot deze organisatie" });
     return;
   }

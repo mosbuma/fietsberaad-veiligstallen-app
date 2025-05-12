@@ -20,7 +20,7 @@ const filter_bikeparks_sql = (params: {
   if (params.reportType === 'bezetting') {
     const getSourceForBikepark = (bikeparkID: string): string => {
       if (!params.bikeparkDataSources) return 'FMS';
-      const bikepark = params.bikeparkDataSources.find(x => x.stallingsID === bikeparkID);
+      const bikepark = params.bikeparkDataSources.find(x => x.StallingsID === bikeparkID);
       return bikepark?.source || 'FMS';
     }
 
