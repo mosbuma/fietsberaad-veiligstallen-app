@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { articlesSelect } from "~/types/articles";
+import { articleSelect } from "~/types/articles";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (req.query.SiteID && Array.isArray(req.query.SiteID)) return;
@@ -25,7 +25,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
   const query: Prisma.articlesFindFirstArgs = {
     where,
-    select: articlesSelect,
+    select: articleSelect,
     orderBy: {
       SortOrder: 'asc',
     }

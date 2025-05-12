@@ -11,7 +11,7 @@ import type { ParkingDetailsType } from "~/types/parking";
 
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { makeClientApiCall } from '~/utils/client/api-tools';
-import { useUsers } from '~/hooks/useUsers';
+// import { useUsers, useUsersInLijst } from '~/hooks/useUsers';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import { useGemeenten } from '~/hooks/useGemeenten';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
@@ -22,7 +22,7 @@ type ExploitantComponentProps = {
 const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
 
-  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
+  // const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
   const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten();
   const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
 
@@ -157,7 +157,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     const showUserEdit = currentUserId !== undefined;
     const showExploitantEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
 
-    const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
+    // const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
 
     if(!showStallingEdit && !showExploitantEdit && !showUserEdit) {
       return null;
@@ -183,10 +183,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
-            currentContactID={currentContactID}
-            users={filteredUsers} 
-            onClose={()=>setCurrentUserId(undefined)} 
-            showBackButton={false} />
+            onClose={()=>setCurrentUserId(undefined)} />
         );
       } else if(showStallingEdit) {
         return (
@@ -214,9 +211,11 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     }
   };
 
-  if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten) {
+  // isLoadingUsers || 
+  //         isLoadingUsers && "Gebruikers",
+
+  if(isLoadingExploitanten || isLoadingGemeenten) {
     const whatIsLoading = [
-        isLoadingUsers && "Gebruikers",
         isLoadingExploitanten && "Exploitanten",
         isLoadingGemeenten && "Gemeenten",
     ].filter(Boolean).join(" + ");
@@ -224,8 +223,11 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     return <LoadingSpinner message={whatIsLoading + ' laden'} />;
   }
 
-  if(errorUsers || errorExploitanten || errorGemeenten) {
-    return <div>Error: {errorUsers || errorExploitanten || errorGemeenten}</div>;
+
+  // errorUsers ||
+  // errorUsers || 
+  if( errorExploitanten || errorGemeenten) {
+    return <div>Error: {errorExploitanten || errorGemeenten}</div>;
   }
   
   return (

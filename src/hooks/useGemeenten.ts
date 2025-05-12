@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { VSContactGemeenteInLijst, VSContactGemeente } from '~/types/contacts';
 
 type GemeentenResponse<T extends VSContactGemeenteInLijst | VSContactGemeente> = {
@@ -6,20 +6,17 @@ type GemeentenResponse<T extends VSContactGemeenteInLijst | VSContactGemeente> =
   error?: string;
 };
 
-const useGemeentenBasis = <T extends VSContactGemeenteInLijst | VSContactGemeente>() => {
+const useGemeentenBasis = <T extends VSContactGemeenteInLijst | VSContactGemeente>(compact: boolean) => {
   const [gemeenten, setGemeenten] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const mounted = useRef(false);
 
   const fetchGemeenten = async () => {
     try {
-      console.debug('Fetching gemeenten version:', version);
-      
       setIsLoading(true);
       setError(null);
-      // Type-level check for compact flag
-      const compact = {} as T extends VSContactGemeenteInLijst ? true : false;
       const response = await fetch(`/api/protected/gemeenten?compact=${compact}`);
       const result: GemeentenResponse<T> = await response.json();
       
@@ -36,7 +33,10 @@ const useGemeentenBasis = <T extends VSContactGemeenteInLijst | VSContactGemeent
   };
 
   useEffect(() => {
-    fetchGemeenten();
+    if (!mounted.current) {
+      mounted.current = true;
+      fetchGemeenten();
+    }
   }, [version]);
 
   return {
@@ -47,6 +47,6 @@ const useGemeentenBasis = <T extends VSContactGemeenteInLijst | VSContactGemeent
   };
 }; 
 
-export const useGemeentenInLijst = () => useGemeentenBasis<VSContactGemeenteInLijst>();
-export const useGemeenten = () => useGemeentenBasis<VSContactGemeente>();
+export const useGemeentenInLijst = () => useGemeentenBasis<VSContactGemeenteInLijst>(true);
+export const useGemeenten = () => useGemeentenBasis<VSContactGemeente>(false);
 

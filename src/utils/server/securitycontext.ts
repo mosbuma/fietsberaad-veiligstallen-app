@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/index";    
+import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic, VSUserSecurityProfileCompact } from "~/types/index";    
 import { VSModuleValues } from "~/types/modules";
 import { type VSContactGemeente, type VSContactExploitant, gemeenteSelect, exploitantSelect } from "~/types/contacts";    
 import { type VSUserWithRoles, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
@@ -18,6 +18,24 @@ const getModuleIDs = async (contactID: string): Promise<VSModuleValues[]> => {
     const IDs = modules.map((module) => module.ModuleID) as VSModuleValues[];
     return IDs;
 };
+
+export const getMainContactId = (user: VSUserWithRoles): string | undefined => {
+    switch(user.GroupID) {
+        case 'intern': {
+            return "1";
+        }
+        case 'extern': {
+            const relatedSites = user.security_users_sites;
+            return relatedSites[0]?.SiteID
+        }
+        case 'exploitant': {
+            return user?.SiteID || undefined;
+        }
+        case 'dataprovider':
+        default:
+            return undefined;
+    }
+}
 
 export const getMainContact = async (user: VSUserWithRoles | undefined): Promise<VSContactGemeente | VSContactExploitant | undefined> => {
     if (!user) {
@@ -75,8 +93,10 @@ export const getMainContact = async (user: VSUserWithRoles | undefined): Promise
     return contact;
 }
 
-export const getManagedContacts = async (user: VSUserWithRoles, mainContact: VSContactGemeente | VSContactExploitant | undefined | null): Promise<(VSContactGemeente | VSContactExploitant)[]> => {
+export const getManagedContacts = async (user: VSUserWithRoles): Promise<(VSContactGemeente | VSContactExploitant)[]> => {
     if(!user) return [];
+
+    let mainContact = await getMainContact(user);
 
     let managedContacts: (VSContactGemeente | VSContactExploitant)[] = [];
     if(mainContact) {
@@ -125,26 +145,47 @@ export const createSecurityProfile = async (
     user: VSUserWithRoles,
     activeContactId?: string | undefined
 ): Promise<VSUserSecurityProfile> => {
-
     if (!user) {
         throw new Error("User not found");
     }
 
-    const mainContact = await getMainContact(user);
-    const managingContactIDs: string[] = (await getManagedContacts(user, mainContact)).map((contact) => contact.ID);
-    const modules: VSModuleValues[] = activeContactId ? await getModuleIDs(activeContactId) : [];
-
     // map old groupID / RoleID values to new RoleID values for simplified RBAC
-    const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContact?.ID === activeContactId : false);
+    const mainContactId = getMainContactId(user) || "";
+    const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
     const rights = getRoleRights(newRoleID);
 
+    const managingContactIDs: string[] = (await getManagedContacts(user)).map((contact) => contact.ID);
+    const modules: VSModuleValues[] = activeContactId ? await getModuleIDs(activeContactId) : [];
+
     const profile: VSUserSecurityProfile = {
-        modules,
         roleId: newRoleID,
         rights,
-        mainContactId: mainContact?.ID || "",
+        mainContactId,
+        modules,
         managingContactIDs,
     };
+    return profile;
+}
 
+export const createSecurityProfileCompact = (
+    user: VSUserWithRoles,
+    activeContactId?: string | undefined
+): VSUserSecurityProfileCompact => {
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    // map old groupID / RoleID values to new RoleID values for simplified RBAC
+    const mainContactId = getMainContactId(user) || "";
+    const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
+    const rights = getRoleRights(newRoleID);
+
+    const profile: VSUserSecurityProfileCompact = {
+        roleId: newRoleID,
+        rights,
+        // modules,
+        mainContactId: mainContactId || "",
+        // managingContactIDs,
+    };
     return profile;
 }

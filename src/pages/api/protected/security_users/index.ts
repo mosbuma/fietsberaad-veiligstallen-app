@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserSitesNew, securityUserSelect, VSUserGroupValues } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserInLijstNew,type VSUserSitesNew, securityUserSelect, VSUserGroupValues } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { validateUserSession, generateID } from "~/utils/server/database-tools";
-import bcrypt from "bcrypt";
-import { createSecurityProfile } from "~/utils/server/securitycontext";
+import { createSecurityProfile, createSecurityProfileCompact } from "~/utils/server/securitycontext";
 
 // TODO: implement filtering on accessible security_users
 
@@ -35,8 +34,24 @@ export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: s
   }
 }
 
+export const convertToNewUserCompact = (user: VSUserWithRoles): VSUserInLijstNew => {
+  return {
+    UserID: user.UserID, 
+    UserName: user.UserName, 
+    DisplayName: user.DisplayName, 
+    Status: user.Status, 
+    SiteID: user.SiteID, 
+    ParentID: user.ParentID, 
+    LastLogin: user.LastLogin, 
+    // EncryptedPassword: user.EncryptedPassword, 
+    // EncryptedPassword2: user.EncryptedPassword2,
+    sites: getSitesForUser(user),
+    securityProfile: createSecurityProfileCompact(user)
+  }
+}
+
 export type SecurityUsersResponse = {
-  data?: VSUserWithRolesNew[];
+  data?: VSUserWithRolesNew[] | VSUserInLijstNew[];
   error?: string;
 };
 
@@ -80,17 +95,27 @@ export default async function handle(
 
   switch (req.method) {
     case "GET": {
+      const compact = req.query.compact === 'true';
+
       // GET all security users
       const users = await prisma.security_users.findMany({
         where: wherefilter,
         select: securityUserSelect
       }) as VSUserWithRoles[];
 
-      const newUsers = await Promise.all(users.map(async (user) => ({
-        ...user,
-        sites: getSitesForUser(user),
-        securityProfile: await createSecurityProfile(user, activeContactId)
-      })));
+      let newUsers: VSUserWithRolesNew[] | VSUserInLijstNew[] = [];
+
+      if(compact) {
+        newUsers = users.map((user) => {
+          const result = convertToNewUserCompact(user);
+          return result;
+        });
+      } else {
+        newUsers = await Promise.all(users.map(async (user) => {
+          const result = convertToNewUser(user, activeContactId);
+          return result;
+        }));
+      }
 
       res.status(200).json({data: newUsers});
       break;

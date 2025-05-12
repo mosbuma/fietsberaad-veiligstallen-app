@@ -81,7 +81,7 @@ function ParkingOnTheMap({ parking }) {
       : null; // I.e.: 52.508011,5.473280;
 
     if (coords === null || (coords[0] < -90 || coords[0] > 90 || coords[1] < -180 || coords[1] > 180)) {
-      console.log("***** invalid coordinates for parking", parking.Title, coords);
+      console.warn("invalid coordinates for parking", parking.Title, coords);
       return;
     }
 

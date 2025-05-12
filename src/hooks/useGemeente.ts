@@ -19,8 +19,6 @@ export const useGemeente = (gemeenteID: string) => {
       const response = await fetch(`/api/protected/gemeenten/${gemeenteID||false}`);
       const result: GemeenteResponse = await response.json();
 
-      console.log(`*** USEGEMEENTE with ID ${gemeenteID}:`, result);
-
       if (result.error) {
         throw new Error(result.error);
       }

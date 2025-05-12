@@ -41,16 +41,12 @@ import { VSMenuTopic } from "~/types/index";
 
 // import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
-import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
+// import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
 import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
 import GemeenteEdit from '~/components/contact/GemeenteEdit';
 import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
-import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
-import { useUsers } from '~/hooks/useUsers';
 import { useGemeenten } from '~/hooks/useGemeenten';
-import { useExploitanten } from '~/hooks/useExploitanten';
 import { useFietsenstallingen } from '~/hooks/useFietsenstallingen';
-import { useDataproviders } from '~/hooks/useDataproviders';
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
 //     font-weight: bold;
@@ -126,7 +122,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
   const selectedGemeenteID = session?.user?.activeContactId || "";
 
-  const { users, isLoading: usersLoading, error: usersError, reloadUsers } = useUsers();
   const { gemeenten, isLoading: gemeentenLoading, error: gemeentenError, reloadGemeenten } = useGemeenten();
   const { fietsenstallingen: bikeparks, isLoading: bikeparksLoading, error: bikeparksError, reloadFietsenstallingen } = useFietsenstallingen(selectedGemeenteID);
   const [isSwitchingGemeente, setIsSwitchingGemeente] = useState(false);
@@ -243,10 +238,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case VSMenuTopic.ContactsGemeenten:
           selectedComponent = (
-            <GemeenteComponent
-              users={users || []}
-              fietsenstallingtypen={fietsenstallingtypen || []}
-            />
+            <GemeenteComponent fietsenstallingtypen={fietsenstallingtypen || []}/>
           );
           break;
         case VSMenuTopic.ContactsExploitanten:

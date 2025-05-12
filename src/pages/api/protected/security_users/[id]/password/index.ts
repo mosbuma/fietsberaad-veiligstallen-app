@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
+import { type VSUserWithRoles, type VSUserWithRolesNew, securityUserChangePasswordSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
@@ -8,18 +8,18 @@ import { generateID, validateUserSession } from "~/utils/server/database-tools";
 import { convertToNewUser } from "~/pages/api/protected/security_users";
 // TODO: implement filtering on accessible security_users
 
-export type SecurityUserResponse = {
+export type SecurityUserChangePasswordResponse = {
   data?: VSUserWithRolesNew;
   error?: string;
 };
 
-const securityUserPasswordUpdateSchema = z.object({
+const securityUserChangePasswordPasswordUpdateSchema = z.object({
   hashedpassword: z.string(),
 });
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse<SecurityUserResponse>
+  res: NextApiResponse<SecurityUserChangePasswordResponse>
 ) {
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -39,7 +39,7 @@ export default async function handle(
   switch (req.method) {
     case "POST": {
       try {
-        const parseResult = securityUserPasswordUpdateSchema.safeParse(req.body);
+        const parseResult = securityUserChangePasswordPasswordUpdateSchema.safeParse(req.body);
         if (!parseResult.success) {
           console.error("Unexpected/missing data error:", parseResult.error);
           res.status(400).json({ error: "Unexpected/missing data error:" });
@@ -53,7 +53,7 @@ export default async function handle(
             EncryptedPassword: parsed.hashedpassword,
             EncryptedPassword2: parsed.hashedpassword,
           },
-          select: securityUserSelect
+          select: securityUserChangePasswordSelect
         }) as VSUserWithRoles;
 
         const newUser = await convertToNewUser(updatedUser, activeContactId);

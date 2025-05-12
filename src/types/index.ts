@@ -6,16 +6,19 @@ import { VSModuleValues } from './modules';
 /* from the "old" database are in use                                            */
 export type DayPrefix = 'ma' | 'di' | 'wo' | 'do' | 'vr' | 'za' | 'zo';
 
-export type VSUserSecurityProfile = {
-    modules: VSModuleValues[];
+export type VSUserSecurityProfileCompact = {
     roleId: VSUserRoleValuesNew;
     rights: {
         [key in VSSecurityTopic]?: VSCRUDRight;
     };
     mainContactId: string;
-    managingContactIDs: string[];
 };
 
+// Adds all items that are fetched separately from the database (slow, use at record level, not in lists)
+export type VSUserSecurityProfile = VSUserSecurityProfileCompact & {
+    modules: VSModuleValues[];
+    managingContactIDs: string[];
+};
 
 export enum VSSecurityTopic {
     "Abonnementen" = "abonnementen",

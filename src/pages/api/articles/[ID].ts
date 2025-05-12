@@ -1,6 +1,6 @@
 import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { articlesSelect } from "~/types/articles";
+import { articleSelect } from "~/types/articles";
 // import { z } from "zod";
 
 // Define Zod schema for VSArticle
@@ -60,7 +60,7 @@ async function handleGet(articleId: string, res: NextApiResponse) {
       ID: articleId, 
       Status: "1" 
     },
-    select: articlesSelect,
+    select: articleSelect,
     orderBy: [
       { SiteID: 'asc' },
       { SortOrder: 'asc' },
