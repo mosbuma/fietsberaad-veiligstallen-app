@@ -20,6 +20,7 @@ const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({
   const [currentParkingId, setCurrentParkingId] = useState<string | undefined>(undefined);
   const [currentParking, setCurrentParking] = useState<ParkingDetailsType | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
+  const [filteredParkings, setFilteredParkings] = useState<any[]>([]);
 
   // Use the useFietsenstallingen hook to fetch parkings
   const { fietsenstallingen, isLoading, error, reloadFietsenstallingen } = useFietsenstallingen(selectedGemeenteID, false);
@@ -59,6 +60,10 @@ const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({
     }   
   }, [router.query.id]);
 
+  useEffect(() => {
+    setFilteredParkings(fietsenstallingen);
+  }, [fietsenstallingen]);
+
   const handleEdit = (id: string) => {
     setCurrentParkingId(id);
   };
@@ -87,6 +92,8 @@ const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({
       return;
     }
     setCurrentParkingId(undefined);
+    // Refresh the fietsenstallingen list
+    reloadFietsenstallingen();
   };
 
   if (status === 'loading') {
@@ -107,48 +114,59 @@ const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({
     }
 
     return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-                Naam
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-                Acties
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white">
-            {fietsenstallingen.map((parking: any) => (
-              <tr key={parking.id}>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                  {parking.Title}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                  {type}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                  <button
-                    onClick={() => handleEdit(parking.ID)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-4"
-                  >
-                    Bewerken
-                  </button>
-                  <button
-                    onClick={() => handleDelete(parking.ID)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Verwijderen
-                  </button>
-                </td>
+      <div>
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Vind stalling..."
+            className="w-full p-2 border rounded"
+            onChange={(e) => {
+              const searchTerm = e.target.value.toLowerCase();
+              setFilteredParkings(
+                fietsenstallingen.filter(parking =>
+                  parking.Title?.toLowerCase().includes(searchTerm)
+                )
+              );
+            }}
+          />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Naam
+                </th>
+                <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Acties
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white">
+              {filteredParkings.map((parking: any) => (
+                <tr key={parking.id}>
+                  <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                    {parking.Title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                    <button
+                      onClick={() => handleEdit(parking.ID)}
+                      className="text-yellow-500 mx-1 disabled:opacity-40"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(parking.ID)}
+                      className="text-red-500 mx-1 disabled:opacity-40"
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
