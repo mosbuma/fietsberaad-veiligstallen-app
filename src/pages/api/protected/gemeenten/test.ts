@@ -359,7 +359,6 @@ async function testValidateGemeente(req: NextApiRequest, id: string): Promise<Te
       };
     }
 
-    console.log("*** GOT BASERECORD", getResult.data);
     const baseRecord = getResult.data;
     const testCases = [
       {

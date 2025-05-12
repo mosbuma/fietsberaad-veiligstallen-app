@@ -96,7 +96,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
   
         if (isNew) {
             // Use default values for new record
-            const initial = {
+            const initial: CurrentState = {
                 CompanyName: DEFAULTGEMEENTE.CompanyName,
                 AlternativeCompanyName: DEFAULTGEMEENTE.AlternativeCompanyName,
                 UrlName: DEFAULTGEMEENTE.UrlName,
@@ -407,8 +407,6 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
               <Tab label="Algemeen" value="tab-algemeen" />
               <Tab label="Logos" value="tab-logos" />
               <Tab label="Coordinaten" value="tab-coordinaten" />
-              <Tab label="Gebruikers" value="tab-gebruikers" />
-              <Tab label="Externe Gebruikers" value="tab-externe-gebruikers" />
             </Tabs>
             {selectedTab === "tab-algemeen" && (
               <div className="mt-4 w-full">

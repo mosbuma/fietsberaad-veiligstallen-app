@@ -6,16 +6,15 @@ import type { fietsenstallingtypen } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
 import { getParkingDetails } from "~/utils/parkings";
-import type { VSContactGemeente } from "~/types/contacts";
+import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
 import { type VSUserWithRolesNew } from "~/types/users";
 import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
-import { useUsers } from '~/hooks/useUsers';
+import { useUsersInLijst } from '~/hooks/useUsers';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
 
 type GemeenteComponentProps = { 
-  users: VSUserWithRolesNew[]
   fietsenstallingtypen: fietsenstallingtypen[]  
 };
 
@@ -23,14 +22,14 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   const router = useRouter();
   const { fietsenstallingtypen } = props;
 
-  const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeente[]>([]);
+  const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeenteInLijst[]>([]);
   const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
 
-  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
+  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
   const { gemeenten, reloadGemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
 
   useEffect(() => {
@@ -81,17 +80,18 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     }
   };
 
-  const getContactPerson = (contact: VSContactGemeente): string => {
-    // const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
-    const contactperson = users.find(user => user.sites.some(site => site.SiteID === contact.ID && site.IsContact === true));
-    return contactperson!==undefined ? 
-      contactperson.DisplayName + " (" + contactperson.UserName + ")" : "";
-  }
+  // const getContactPerson = (contact: VSContactGemeenteInLijst): string => {
+  //   // const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
+  //   console.log("**** contact", contact, users);
+  //   const contactperson = users.find(user => user.sites.some(site => site.SiteID === contact.ID && site.IsContact === true));
+  //   return contactperson!==undefined ? 
+  //     contactperson.DisplayName + " (" + contactperson.UserName + ")" : "";
+  // }
 
-  const getModules = (contact: VSContactGemeente): string => {
-    const modules = contact.modules_contacts?.map(module => module.module.Name).join(", ") || "";
-    return modules;
-  } 
+  // const getModules = (contact: VSContactGemeenteInLijst): string => {
+  //   const modules = contact.modules_contacts?.map(module => module.module.Name).join(", ") || "";
+  //   return modules;
+  // } 
 
   const renderOverview = () => {
     return (
@@ -107,7 +107,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         </div>
 
         <GemeenteFilter
-          gemeenten={gemeenten as VSContactGemeente[]}
+          gemeenten={gemeenten}
           users={users}
           onFilterChange={setFilteredGemeenten}
           showStallingenFilter={true}
@@ -118,10 +118,10 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         <table className="min-w-full bg-white mt-4">
           <thead>
             <tr>
-              <th className="py-2">Naam</th>
-              <th className="py-2">Contactpersoon</th>
-              <th className="py-2">Modules</th>
-              <th className="py-2"></th>
+              <th className="py-2 text-left px-4">Naam</th>
+              {/* <th className="py-2">Contactpersoon</th> */}
+              {/* <th className="py-2">Modules</th> */}
+              <th className="py-2 text-left px-4">Acties</th>
             </tr>
           </thead>
           <tbody>
@@ -129,8 +129,8 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
               return (
                 <tr key={contact.ID}>
                   <td className="border px-4 py-2">{contact.CompanyName}</td>
-                  <td className="border px-4 py-2">{getContactPerson(contact)}</td>
-                  <td className="border px-4 py-2">{getModules(contact)}</td>
+                  {/* <td className="border px-4 py-2">{getContactPerson(contact)}</td> */}
+                  {/* <td className="border px-4 py-2">{getModules(contact)}</td> */}
                   <td className="border px-4 py-2">
                     <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
                     <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40">🗑️</button>
@@ -175,10 +175,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
-            currentContactID={currentContactID}
-            users={filteredUsers} 
             onClose={() => handleOnClose(true)}
-            showBackButton={true}
           />
         );
       } else if(showStallingEdit) {

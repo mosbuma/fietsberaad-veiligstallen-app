@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { security_roles } from '@prisma/client';
+import React, { useState } from 'react';
 import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
-import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
 import { ConfirmPopover } from '~/components/ConfirmPopover';
 import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
-import { makeClientApiCall } from '~/utils/client/api-tools';
-import { useUsers } from '~/hooks/useUsers';
+import { useUsersInLijst } from '~/hooks/useUsers';
 import { getNewRoleLabel } from '~/types/utils';
 
 type UserComponentProps = { 
@@ -24,7 +20,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<HTMLElement | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsers();
+  const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsersInLijst();
 
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
@@ -138,7 +134,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
           </thead>
           <tbody>
             {filteredusers.map((user) => { 
-              const role = roles && roles.find((r) => r.value === user.securityProfile.roleId);
+              const role = roles && roles.find((r) => r.value === user.securityProfile?.roleId);
               return (
                 <tr key={user.UserID}>
                   <td className="border px-4 py-2">{user.DisplayName}</td>

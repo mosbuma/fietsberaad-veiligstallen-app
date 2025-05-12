@@ -1,27 +1,31 @@
-import { useState, useEffect } from 'react';
-import { VSUserWithRolesNew } from '~/types/users';
+import { useState, useEffect, useRef } from 'react';
+import { VSUserWithRolesNew, VSUserInLijstNew } from '~/types/users';
 import { SecurityUsersResponse } from '~/pages/api/protected/security_users';
 
-export const useUsers = () => {
-  const [users, setUsers] = useState<VSUserWithRolesNew[]>([]);
+type UsersResponse<T extends VSUserWithRolesNew | VSUserInLijstNew> = {
+  data?: T[];
+  error?: string;
+};
+
+const useUsersBasis = <T extends VSUserWithRolesNew | VSUserInLijstNew>(compact: boolean) => {
+  const [users, setUsers] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const mounted = useRef(false);
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/protected/security_users');
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
+      // Type-level check for compact flag
+      const response = await fetch(`/api/protected/security_users?compact=${compact}`);
+      const result: UsersResponse<T>= await response.json();
+      if (result.error) {
+        throw new Error(result.error);
       }
-      const data: SecurityUsersResponse = await response.json();
-      if (data.data) {
-        setUsers(data.data);
-      } else {
-        setUsers([]);
-      }
+
+      setUsers(result.data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch users');
@@ -32,7 +36,10 @@ export const useUsers = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    if (!mounted.current) {
+      mounted.current = true;
+      fetchUsers();
+    }
   }, [version]);
 
   return {
@@ -42,3 +49,6 @@ export const useUsers = () => {
     reloadUsers: () => setVersion(v => v + 1)
   };
 }; 
+
+export const useUsersInLijst = () => useUsersBasis<VSUserInLijstNew>(true);
+export const useUsers = () => useUsersBasis<VSUserWithRolesNew>(false);

@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
-import bcrypt from "bcrypt";
 import { convertToNewUser } from "~/pages/api/protected/security_users/index";
 // TODO: implement filtering on accessible security_users
 
@@ -17,7 +16,6 @@ export type SecurityUserResponse = {
 const securityUserUpdateSchema = z.object({
   UserName: z.string().min(1).optional(),
   DisplayName: z.string().min(1).optional(),
-  NewRoleID: z.number().optional(),
   Status: z.string().optional(),
   SiteID: z.string().optional(),
 });
@@ -25,9 +23,8 @@ const securityUserUpdateSchema = z.object({
 const securityUserCreateSchema = z.object({
   UserName: z.string().min(1),
   DisplayName: z.string().min(1),
-  NewRoleID: z.number(),
   Status: z.string().optional(),
-  SiteID: z.string().optional(),
+  SiteID: z.string(),
 });
 
 export default async function handle(
@@ -84,8 +81,8 @@ export default async function handle(
             UserID: newUserID,
             UserName: parsed.UserName,
             DisplayName: parsed.DisplayName,
-            RoleID: parsed.RoleID,
-            GroupID: parsed.GroupID,
+            // RoleID: parsed.RoleID,
+            // GroupID: parsed.GroupID,
             Status: parsed.Status ?? "1",
             // EncryptedPassword: hashedPassword,
             SiteID: session.user.SiteID 
@@ -115,15 +112,15 @@ export default async function handle(
         const updateData: any = {
           UserName: parsed.UserName,
           DisplayName: parsed.DisplayName,
-          RoleID: parsed.RoleID,
-          GroupID: parsed.GroupID,
+          // RoleID: parsed.RoleID,
+          // GroupID: parsed.GroupID,
           Status: parsed.Status,
         };
 
         // Only update password if provided
-        if (parsed.Password) {
-          updateData.EncryptedPassword = await bcrypt.hash(parsed.Password, 10);
-        }
+        // if (parsed.Password) {
+        //   updateData.EncryptedPassword = await bcrypt.hash(parsed.Password, 13);
+        // }
 
         const updatedUser = await prisma.security_users.update({
           where: { UserID: id },

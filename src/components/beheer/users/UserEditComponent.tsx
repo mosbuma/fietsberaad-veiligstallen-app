@@ -13,7 +13,7 @@ import { makeClientApiCall } from '~/utils/client/api-tools';
 import type { SecurityUserValidateResponse } from '~/pages/api/protected/security_users/validate';
 import { SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
 
-// const bcrypt = require('bcryptjs');
+import bcrypt from "bcryptjs";
 
 // export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker" | "dataprovider";
 export type UserStatus = "actief" | "inactief";
@@ -66,7 +66,6 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       confirmPassword: '',
     });
 
-
     const { user: activeuser, isLoading: isLoadingUser, error: errorUser, reloadUser } = useUser(id);
 
     useEffect(() => {
@@ -94,9 +93,9 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           // const newRoleID = site?.newRoleId || VSUserRoleValuesNew.None;
 
           const initial = {
-            displayName: activeuser.DisplayName || '',
-            newRoleID: activeuser.security_profile?.RoleID || VSUserRoleValuesNew.None,
-            userName: activeuser.UserName || '',
+            displayName: activeuser.DisplayName || initialData.displayName,
+            newRoleID: activeuser.securityProfile?.roleId || initialData.newRoleID,
+            userName: activeuser.UserName || initialData.userName,
             status: activeuser.Status === "1",
             password: '',
             confirmPassword: '',
@@ -139,7 +138,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
 
     const handleUpdate = async () => {
       if (!displayName || !userName || !newRoleID || !status ) {
-        alert("Vul alle verplichte velden in");
+        alert("Naam, Gebruikersnaam, Rol en Status zijn verplicht.");
         return;
       }
       // if (!validateData()) {
@@ -149,7 +148,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       try {
         const data: Partial<VSUserWithRolesNew> = {
           DisplayName: displayName,
-          RoleID: newRoleID,
+          // RoleID: newRoleID,
           UserName: userName,
           // EncryptedPassword: password ? hashPassword(password) : undefined,
           // EncryptedPassword2: password ? hashPassword(password) : undefined,
@@ -177,15 +176,48 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           return;
         }
   
-        if (!response.result?.error) {
-          if (props.onClose) {
-            props.onClose(false, false);
-          }
-        } else {
+        if (response.result?.error) {
           console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
           setErrorMessage('Fout bij het opslaan van de gebruiker');
         }
 
+        // Change the role if it is changed
+        if (newRoleID !== initialData.newRoleID) {
+          const urlChangeRole = `/api/protected/security_users/${id}/change_role`;
+          const responseChangeRole = await makeClientApiCall<SecurityUserResponse>(urlChangeRole, 'POST', { roleId: newRoleID });
+
+          if(!responseChangeRole.success) {
+            setErrorMessage(`Kan gebruikersrol niet wijzigen: (${responseChangeRole.error})`);
+            return;
+          }
+    
+          if (responseChangeRole.result?.error) {
+            console.error("API Error Response:", responseChangeRole.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+            setErrorMessage('Fout bij het opslaan van de gebruiker');
+          }
+        }
+
+        // change the password if it is changed
+        if(password !== "" && confirmPassword === password) {
+          const passwordhash = bcrypt.hash(password, 13);
+
+          const urlChangePassword = `/api/protected/security_users/${id}/password`;
+          const responseChangePassword = await makeClientApiCall<SecurityUserResponse>(urlChangePassword, 'POST', { passwordhash: passwordhash });
+
+          if(!responseChangePassword.success) {
+            setErrorMessage(`Kan wachtwoord niet wijzigen: (${responseChangePassword.error})`);
+            return;
+          }
+
+          if (responseChangePassword.result?.error) {
+            console.error("API Error Response:", responseChangePassword.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+            setErrorMessage('Fout bij het opslaan van de gebruiker');
+          }
+        }
+
+        if (props.onClose) {
+          props.onClose(false, false);
+        }
 
         // const oldRoleID = convertNewRoleToOldRole(newRoleID, false);
       } catch (error) {

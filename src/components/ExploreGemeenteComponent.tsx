@@ -309,9 +309,6 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
 
     const relatedUsers = getRelatedUsersForGemeente(users, selectedGemeenteID);
 
-    console.log("*** users", users.map((user) => user.UserName));
-    console.log("*** relatedUsers", relatedUsers.map((user) => user.UserName));
-
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

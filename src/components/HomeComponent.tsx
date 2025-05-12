@@ -158,7 +158,6 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
         }
 
         if(articlechanged) {
-          console.debug("**** HomeComponent - change article", url_municipalitypage);
           dispatch(setActiveArticle({
             articleTitle: url_municipalitypage,
             municipality: activeMunicipalityInfo?.UrlName 

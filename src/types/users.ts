@@ -1,5 +1,5 @@
 import type { security_users, security_users_sites, security_roles } from "@prisma/client";
-import type { VSUserSecurityProfile } from "~/types/";
+import type { VSUserSecurityProfile, VSUserSecurityProfileCompact } from "~/types/";
 
 export enum VSUserGroupValues {
     Intern = "intern",
@@ -36,6 +36,11 @@ export interface VSUserSitesNew {
     IsContact: boolean;
     IsOwnOrganization: boolean;
     newRoleId: VSUserRoleValuesNew;
+}
+
+export type VSUserInLijstNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
+    sites: VSUserSitesNew[];
+    securityProfile: VSUserSecurityProfileCompact;
 }
 
 export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {

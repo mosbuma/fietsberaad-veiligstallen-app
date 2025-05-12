@@ -19,8 +19,6 @@ export const useDataprovider = (dataproviderID: string) => {
       const response = await fetch(`/api/protected/dataproviders/${dataproviderID||false}`);
       const result: DataproviderResponse = await response.json();
 
-      console.log(`*** USEDATAPROVIDER with ID ${dataproviderID}:`, result);
-
       if (result.error) {
         throw new Error(result.error);
       }

@@ -89,13 +89,10 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
       var formData = new FormData();
       formData.append("media", file);
 
-      console.log('**** formData', JSON.stringify(formData, null, 2), file);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-
-      console.log('**** res', res);
 
       const {
         data,
@@ -115,7 +112,6 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
       // Check if parking was changed
       const update = { [logoField]: data.url[0] }
       try {
-        console.log('**** update', JSON.stringify(update, null, 2));
         const result = await fetch(
           "/api/contacts?id=" + contactdata.ID,
           {

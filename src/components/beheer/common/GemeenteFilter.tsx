@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import CollapsibleContent from './CollapsibleContent';
-import type { VSContactGemeente } from "~/types/contacts";
-import type { VSUserWithRolesNew } from "~/types/users";
+import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
+import type { VSUserWithRolesNew, VSUserInLijstNew } from "~/types/users";
 import { useDispatch, useSelector } from 'react-redux';
 
 import { 
@@ -14,9 +14,9 @@ import {
 } from '~/store/gemeenteFiltersSlice';
 
 interface GemeenteFilterProps {
-  gemeenten: VSContactGemeente[];
-  users: VSUserWithRolesNew[];
-  onFilterChange: (filteredGemeenten: VSContactGemeente[]) => void;
+  gemeenten: VSContactGemeenteInLijst[];
+  users: VSUserInLijstNew[];
+  onFilterChange: (filteredGemeenten: VSContactGemeenteInLijst[]) => void;
   showStallingenFilter?: boolean;
   showUsersFilter?: boolean;
   showExploitantenFilter?: boolean;
@@ -33,6 +33,10 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
   const dispatch = useDispatch();
   const filters = useSelector(selectGemeenteFilters);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  console.log(`*** GemeenteFilter - filters: ${JSON.stringify(filters)}`);
+  console.log(`*** GemeenteFilter - gemeenten:`, gemeenten);
+  console.log(`*** GemeenteFilter - users:`, users);
 
   // Initialize filters if they don't exist
   useEffect(() => {
@@ -66,24 +70,24 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
         gemeente.CompanyName?.toLowerCase().includes((filters?.nameFilter || "").toLowerCase())
       )
       .filter((gemeente) => {
-        const numNietSysteemStallingen = 
-          (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
-          filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
-        const hasUsers = users.some((user) => 
-          user.sites.some((site) => site.SiteID === gemeente.ID)
-        );
-        const hasExploitanten = gemeente.isManagedByContacts?.length || 0 > 0;
+        // const numNietSysteemStallingen = 
+        //   (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
+        //   filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
+        // const hasUsers = users.some((user) => 
+        //   user.sites.some((site) => site.SiteID === gemeente.ID)
+        // );
+        // const hasExploitanten = gemeente.isManagedByContacts?.length || 0 > 0;
 
         return (
           (!showStallingenFilter || 
-            (numNietSysteemStallingen === 0 && filters?.showGemeentenWithoutStallingen !== "no" || 
-             numNietSysteemStallingen > 0 && filters?.showGemeentenWithoutStallingen !== "only")) &&
+            (!gemeente.hasStallingen && filters?.showGemeentenWithoutStallingen !== "no" || 
+              gemeente.hasStallingen && filters?.showGemeentenWithoutStallingen !== "only")) &&
           (!showUsersFilter || 
-            (!hasUsers && filters?.showGemeentenWithoutUsers !== "no" || 
-             hasUsers && filters?.showGemeentenWithoutUsers !== "only")) &&
+            (!gemeente.hasUsers && filters?.showGemeentenWithoutUsers !== "no" || 
+              gemeente.hasUsers && filters?.showGemeentenWithoutUsers !== "only")) &&
           (!showExploitantenFilter || 
-            (!hasExploitanten && filters?.showGemeentenWithoutExploitanten !== "no" ||
-             hasExploitanten && filters?.showGemeentenWithoutExploitanten !== "only"))
+            (!gemeente.hasExploitanten && filters?.showGemeentenWithoutExploitanten !== "no" ||
+              gemeente.hasExploitanten && filters?.showGemeentenWithoutExploitanten !== "only"))
         );
       });
 

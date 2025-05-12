@@ -61,8 +61,12 @@ export interface VSContactExploitant {
 
   export type VSContactGemeenteInLijst = Pick<contacts, 
   "ID" | 
-  "CompanyName" 
-  >
+  "CompanyName"
+  > & {
+    hasStallingen: boolean;
+    hasExploitanten: boolean;
+    hasUsers: boolean;
+  }
   
   export type VSContactGemeente = Pick<contacts, 
       "ID" | 
@@ -105,6 +109,38 @@ export interface VSContactExploitant {
     export const gemeenteLijstSelect = {
         ID: true,
         CompanyName: true,
+        fietsenstallingen_fietsenstallingen_SiteIDTocontacts: {
+          select: {
+            ID: true,
+            Title: true,
+            StallingsID: true,
+            Type: true,
+          }
+        },
+        isManagingContacts: {
+            select: {
+                ID: true,
+                childSiteID: true,
+                admin: true
+            }
+        },
+        isManagedByContacts: {
+            select: {
+                ID: true,
+                parentSiteID: true,
+                admin: true
+            }
+        },
+        modules_contacts: {
+          select: {
+            module: {
+                select : {
+                    ID: true,
+                    Name: true
+                }
+            }
+          }
+        }  
     };
     
     export const gemeenteSelect = {

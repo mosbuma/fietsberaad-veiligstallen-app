@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { VSUserWithRolesNew } from '~/types/user';
-import { SecurityUserResponse } from '~/pages/api/protected/security_user';
+import { VSUserWithRolesNew } from '~/types/users';
+import { SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
 
 export const useUser = (id: string) => {
   const [user, setUser] = useState<VSUserWithRolesNew | null>(null);
@@ -12,7 +12,7 @@ export const useUser = (id: string) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/protected/security_user/' + id);
+      const response = await fetch('/api/protected/security_users/' + id);
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
@@ -20,12 +20,12 @@ export const useUser = (id: string) => {
       if (data.data) {
         setUser(data.data);
       } else {
-        setUser([]);
+        setUser(null);
       }
     } catch (error) {
       console.error('Error fetching user:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch user');
-      setUser([]);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
