@@ -61,6 +61,20 @@ const ParkingView = ({
   }, []);
 
   useEffect(() => {
+    // All types:
+    // 'bewaakt',
+    // 'geautomatiseerd',
+    // 'toezicht',
+    // 'onbewaakt',
+    // 'buurtstalling',
+    // 'fietstrommel',
+    // 'fietskluizen'
+
+    if (parkingdata.Type !== "fietskluizen") {
+      setUrlOpwaarderen("");
+      return;
+    }
+
     if (!municipalities) {
       setUrlOpwaarderen("");
       return;
