@@ -66,19 +66,17 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     );
   }
 
-
+  // Do only show reports? Temporary for testing, 2025-05
+  const doOnlyShowReports = (): boolean => {
+    return typeof window !== "undefined" && (
+      window.location.href.indexOf('veiligstallen.work') > -1
+      || window.location.href.indexOf('localhost') > -1
+    );
+  }
 
   const renderUnifiedMenu = () => {
     // Base conditions from user security profile
     const profile = securityProfile;
-
-    // Do only show reports? Temporary for testing, 2025-05
-    const doOnlyShowReports: boolean = 
-      typeof window !== "undefined" && (
-        window.location.href.indexOf('veiligstallen.work') > -1
-        || window.location.href.indexOf('localhost') > -1
-      )
-      ? false : true;
 
     // Role-based conditions
     const isAdmin = userHasRole(profile, VSUserRoleValuesNew.RootAdmin) || userHasRole(profile, VSUserRoleValuesNew.Admin);
@@ -142,11 +140,11 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       <>
         {formatLi(VSMenuTopic.Home, 'Home')}
 
-        {doOnlyShowReports && <>
+        {doOnlyShowReports() && <>
           {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
         </>}
 
-        {! doOnlyShowReports && <>
+        {! doOnlyShowReports() && <>
           { isAdmin && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
 
           { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheerGemeente, `Gebruikers`)}

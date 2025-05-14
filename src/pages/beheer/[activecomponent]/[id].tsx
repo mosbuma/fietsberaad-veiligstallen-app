@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
 import type { User, Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { useRouter } from "next/router";
-import LeftMenu from "~/components/beheer/LeftMenu";
+const LeftMenu = dynamic(() => import('~/components/beheer/LeftMenu'), { ssr: false })// TODO Make SSR again
+
 import TopBar from "~/components/beheer/TopBar";
 // import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
 
@@ -42,7 +44,8 @@ import { VSMenuTopic } from "~/types/index";
 // import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
 // import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
-import LeftMenuGemeente from '~/components/beheer/LeftMenuGemeente';
+const LeftMenuGemeente = dynamic(() => import('~/components/beheer/LeftMenu'), { ssr: false })// TODO Make SSR again
+
 import GemeenteEdit from '~/components/contact/GemeenteEdit';
 import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
 import { useGemeenten } from '~/hooks/useGemeenten';
