@@ -23,7 +23,8 @@ const include = {
     include: {
       abonnementsvormen: true
     }
-  }
+  },
+  uitzonderingenopeningstijden: true,
 }
 
 // inspired by https://medium.com/@brandonlostboy/build-it-better-next-js-crud-api-b45d2e923896
@@ -37,6 +38,7 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
       // },
       include: {
         fietsenstalling_secties: true,
+        uitzonderingenopeningstijden: true,
       }
     });
   },

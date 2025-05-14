@@ -1,5 +1,8 @@
 import { VSUserRoleValuesNew } from './users';
 import { VSModuleValues } from './modules';
+import { fietsenstallingtypen } from '@prisma/client';
+import { abonnementsvormen } from '@prisma/client';
+import { ParkingSections } from './parking';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
@@ -111,6 +114,31 @@ export enum VSMenuTopic {
     "TestDatabaseApi" = "testdatabaseapi",
 }
 
+export type ParkingSectionPerBikeType = {
+  Toegestaan: boolean | null,
+  Capaciteit: number | null,
+  fietstype: {
+    Name: string // Assuming Name is of type string
+  }
+}
+
+export type ParkingSection = {
+  titel: string,
+  secties_fietstype: ParkingSectionPerBikeType[] // base data for capacity
+}
+
+export type UitzonderingOpeningstijden = {
+  ID: string,
+  closingDateTime: Date,
+  fietsenstallingsID: string,
+  openingDateTime: Date,
+}
+
+export type UpdateParkingSectionsData = {
+  parkingId: string,
+  sectionId: number,
+  parkingSections: ParkingSections
+}
 
 
 // Define basic types for the RBAC system
@@ -120,3 +148,83 @@ export type VSCRUDRight = {
     update: boolean;
     delete: boolean;
 };
+export type UitzonderingenOpeningstijden = UitzonderingOpeningstijden[];
+
+export type ParkingDetailsType = {
+  ID: string,
+  Status: string,
+  EditorCreated: string,
+  Title: string,
+  Location: string,
+  Postcode: string,
+  Plaats: string,
+  Type: string,
+  SiteID: string,
+  StallingsID: string,
+  Description: string;
+  Image: any;
+  Open_ma: Date,
+  Dicht_ma: Date,
+  Open_di: Date,
+  Dicht_di: Date,
+  Open_wo: Date,
+  Dicht_wo: Date,
+  Open_do: Date,
+  Dicht_do: Date,
+  Open_vr: Date,
+  Dicht_vr: Date,
+  Open_za: Date,
+  Dicht_za: Date,
+  Open_zo: Date,
+  Dicht_zo: Date,
+  Openingstijden: string,
+  Capacity: number,
+  Coordinaten: string,
+  DateCreated: Date,
+  DateModified: Date,
+  FMS: boolean,
+  Beheerder: string,
+  BeheerderContact: string,
+  BerekentStallingskosten: boolean,
+  fietsenstalling_type: fietsenstallingtypen[],
+  fietsenstalling_secties: ParkingSections,
+  uitzonderingenopeningstijden: UitzonderingenOpeningstijden,
+  // abonnementen: abonnementsvorm_fietsenstalling[],
+  abonnementsvorm_fietsenstalling: {
+    SubscriptionTypeID: number,
+    BikeparkID: string,
+    abonnementsvormen: abonnementsvormen
+  }[],
+  Tariefcode: number,
+  ExtraServices: string,
+  // abonnementsvormen: {
+  //     ID: string,
+  //     naam: string,
+  //     omschrijving: string,
+  //     prijs: string,
+  //     tijdsduur: string,
+  //     conditions: string,
+  //     siteID: string,
+  //     bikeparkTypeID: string,
+  //     isActief: string,
+  //     exploitantSiteID: string,
+  //     idmiddelen: string,
+  //     contractID: string,
+  //     paymentAuthorizationID: string,
+  //     conditionsID: string
+  // }[]
+  // },
+  ExploitantID: string,
+  exploitant: {
+    ID: string,
+    Helpdesk: string,
+    CompanyName: string,
+  },
+  fietsenstallingen_services:
+  {
+    services: {
+      ID: string,
+      Name: string
+    }
+  }[]
+}

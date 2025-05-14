@@ -5,6 +5,17 @@
 **Stalling-details**
 
 - ✨ Toon 'Statistieken' voor ingelogde gebruikers
+## VeiligStallen 2025-01-03
+
+Deze hotfix deployment is gepubliceerd om een bug op te lossen. Als een beheerder aangepaste openingstijden had toegevoegd, werden deze niet zichtbaar in de app. Nu wel.
+
+**Stallingslijst**
+
+- 🐛 Fix openingstijden: uitzonderingen waren genegeerd
+
+**Stalling-details**
+
+- 🐛 Fix openingstijden: uitzonderingen waren genegeerd
 
 ## VeiligStallen 2024-04-11
 
