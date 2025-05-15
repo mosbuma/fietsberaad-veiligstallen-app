@@ -66,7 +66,13 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     );
   }
 
-
+  // Do only show reports? Temporary for testing, 2025-05
+  const doOnlyShowReports = (): boolean => {
+    return typeof window !== "undefined" && (
+      window.location.href.indexOf('veiligstallen.work') > -1
+      || window.location.href.indexOf('localhost') > -1
+    );
+  }
 
   const renderUnifiedMenu = () => {
     // Base conditions from user security profile
@@ -132,26 +138,32 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
     return (
       <>
-        {formatLiDevelopment(VSMenuTopic.Home, 'Home')}
+        {formatLi(VSMenuTopic.Home, 'Home')}
 
-        { isAdmin && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
+        {doOnlyShowReports() && <>
+          {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
+        </>}
 
-        { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheerGemeente, `Gebruikers`)}
-        { isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
-        { isAdmin && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
-  
-        { hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
-  
-        { hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
-        { hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')}
+        {! doOnlyShowReports() && <>
+          { isAdmin && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
 
-        {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
+          { isAdmin && formatLi(VSMenuTopic.UsersGebruikersbeheerGemeente, `Gebruikers`)}
+          { isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
+          { isAdmin && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
+    
+          { hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
+    
+          { hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
+          { hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')}
 
-        {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
-        {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
-        {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
+          {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
 
-        {hasWebsiteRight && formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
+          {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
+          {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
+          {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
+
+          {hasWebsiteRight && formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
+        </>}
       </>
     )
   }

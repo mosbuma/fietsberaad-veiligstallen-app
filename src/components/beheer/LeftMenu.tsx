@@ -66,7 +66,13 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     );
   }
 
-
+  // Do only show reports? Temporary for testing, 2025-05
+  const doOnlyShowReports = (): boolean => {
+    return typeof window !== "undefined" && (
+      window.location.href.indexOf('veiligstallen.work') > -1
+      || window.location.href.indexOf('localhost') > -1
+    );
+  }
 
   const renderUnifiedMenu = () => {
     // Base conditions from user security profile
@@ -135,65 +141,70 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
       <>
         {formatLi(VSMenuTopic.Home, 'Home')}
 
-        {hasInstellingenRight && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
+        {doOnlyShowReports() && <>
+          {formatLi(VSMenuTopic.Report, 'Rapportages', true)}
+        </>}
 
-        {hasUsersRight && formatLi(VSMenuTopic.UsersGebruikersbeheerFietsberaad, `Gebruikers`, true)}
+        {! doOnlyShowReports() && <>
+          {hasInstellingenRight && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
 
-        { formatLi(false, 'Organisaties', false,
-          <ul className="ml-4 mt-1">
-            {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
-            { hasSystemRight && isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
-            { hasSystemRight && isAdmin && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
-            {!hasSystemRight && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Toegang fmsservice')}
-          </ul>) }
-  
-        {!hasSystemRight && hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
-  
-        {/* {hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
-        {hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')} */}
+          {hasUsersRight && formatLi(VSMenuTopic.UsersGebruikersbeheerFietsberaad, `Gebruikers`, true)}
 
-  
-        {hasRapportagesRight && 
-          formatLi(false, 'Rapportages', false,
+          { formatLi(false, 'Organisaties', false,
             <ul className="ml-4 mt-1">
-              {formatLi(VSMenuTopic.Report, 'Rapportage', true)}
-              {formatLi(VSMenuTopic.Export, 'Export', true)}
-              {formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
-            </ul>
-          )
-        }
+              {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
+              { hasSystemRight && isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
+              { hasSystemRight && isAdmin && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
+              {!hasSystemRight && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Toegang fmsservice')}
+            </ul>) }
 
-        {hasSystemRight && hasExternalApisRight && (
-          formatLi(false, 'Externe API\'s', false,
-            <ul className="ml-4 mt-1">
-              {formatLiDevelopment(VSMenuTopic.ApisOverzicht, 'Overzicht API\'s', true)}
-              {formatLiDevelopment(VSMenuTopic.ApisGekoppeldeLocaties, 'Gekoppelde locaties', true)}
-            </ul>
-          )
-        )}
-  
-        {(hasWebsiteRight) && 
-          formatLi(VSMenuTopic.Website, 'Website beheer', false,
-            <ul className="ml-4 mt-1">
-              {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
-            </ul>
-          )
-        }
+          {!hasSystemRight && hasRegistrantenRight && formatLi(VSMenuTopic.Accounts, 'Registranten')}
 
-        {hasDatabaseRight && formatLi(VSMenuTopic.Database, 'Database')}
+          {/* {hasLocatiesRight && formatLi(VSMenuTopic.Fietsenstallingen, 'Fietsenstallingen')}
+          {hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')} */}
 
-        { hasDevelopmentRight && (
-            formatLi(false, 'Ontwikkeling', false,
+          {hasRapportagesRight && 
+            formatLi(false, 'Rapportages', false,
               <ul className="ml-4 mt-1">
-                {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeenten', true)}
-                {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
-                {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
-                {formatLi(VSMenuTopic.ExplorePages, `Pagina's`, true)}
-                {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
-                {formatLi(VSMenuTopic.TestDatabaseApi, 'Test Database API', true)}
-              </ul>)
+                {formatLi(VSMenuTopic.Report, 'Rapportage', true)}
+                {formatLi(VSMenuTopic.Export, 'Export', true)}
+                {formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
+              </ul>
             )
-        }
+          }
+
+          {hasSystemRight && hasExternalApisRight && (
+            formatLi(false, 'Externe API\'s', false,
+              <ul className="ml-4 mt-1">
+                {formatLiDevelopment(VSMenuTopic.ApisOverzicht, 'Overzicht API\'s', true)}
+                {formatLiDevelopment(VSMenuTopic.ApisGekoppeldeLocaties, 'Gekoppelde locaties', true)}
+              </ul>
+            )
+          )}
+
+          {(hasWebsiteRight) && 
+            formatLi(VSMenuTopic.Website, 'Website beheer', false,
+              <ul className="ml-4 mt-1">
+                {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
+              </ul>
+            )
+          }
+
+          {hasDatabaseRight && formatLi(VSMenuTopic.Database, 'Database')}
+
+          { hasDevelopmentRight && (
+              formatLi(false, 'Ontwikkeling', false,
+                <ul className="ml-4 mt-1">
+                  {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeenten', true)}
+                  {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
+                  {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
+                  {formatLi(VSMenuTopic.ExplorePages, `Pagina's`, true)}
+                  {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
+                  {formatLi(VSMenuTopic.TestDatabaseApi, 'Test Database API', true)}
+                </ul>)
+              )
+          }
+        </>}
       </>
     )
   }
