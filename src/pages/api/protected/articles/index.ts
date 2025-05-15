@@ -34,10 +34,25 @@ export default async function handle(
       // Check if compact mode is requested
       const compact = req.query.compact === 'true';
       
+      // Define the sites we want to get articles for
+      const sitesToGetArticlesFor = () => {
+        // If SiteID is provided as query parameter, we want to get articles for that site
+        if (req.query.SiteID) {
+          return [req.query.SiteID as string];
+        }
+        // If there's an active contact ID and no SiteID is provided
+        // -> Get articles for that contact
+        else if (activeContactId) {
+          return [activeContactId];
+        }
+        // Otherwise, we want to get articles for all sites
+        return sites;
+      }
+
       // GET all articles user can access
       const articles = (await prisma.articles.findMany({
         where: {
-          SiteID: { in: activeContactId ? [activeContactId] : sites }
+          SiteID: { in: sitesToGetArticlesFor() }
         },
         select: compact ? articleLijstSelect : articleSelect
       })) as unknown as (VSArticle[] | VSArticleInLijst[]);

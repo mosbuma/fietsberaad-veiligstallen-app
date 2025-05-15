@@ -12,7 +12,11 @@ const useArticlesBasis = <T extends VSArticleInLijst | VSArticle>() => {
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async ({
+    SiteID,
+  }: {
+    SiteID?: string;
+  } = {}) => {
     try {
       console.debug('Fetching articles version:', version);
       
@@ -20,7 +24,7 @@ const useArticlesBasis = <T extends VSArticleInLijst | VSArticle>() => {
       setError(null);
       // Type-level check for compact flag
       const compact = {} as T extends VSArticleInLijst ? true : false;
-      const response = await fetch(`/api/protected/articles?compact=${compact}`);
+      const response = await fetch(`/api/protected/articles?compact=${compact}${SiteID ? `&SiteID=${SiteID}` : ''}`);
       const result: ArticlesResponse<T> = await response.json();
       
       if (result.error) {
