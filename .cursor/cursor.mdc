@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Cursor Rules
+
+## Database Rules
+- `rules/database/general.yaml`
+- `rules/database/contacts.yaml`
+- `rules/database/organizations.yaml`
+- `rules/database/exploitants.yaml`
+- `rules/database/dataproviders.yaml`
+- `rules/database/security_users.yaml`
+- `rules/database/fietsenstallingen.yaml`
+
+## Code Rules
+- `rules/code/preserve_comments.yaml`
+- `rules/code/console-logging.yaml`

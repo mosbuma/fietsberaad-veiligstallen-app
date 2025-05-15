@@ -6,9 +6,11 @@ import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 
 const ImageSlider = ({
-  images
-}, {
-  images: Array
+  images,
+  baseUrl = "https://static.veiligstallen.nl/library/fietsenstallingen/"
+}: {
+  images: Array<string>
+  baseUrl?: string
 }) => {
   // const [ref] = useKeenSlider<HTMLDivElement>({
   //   slides: {
@@ -28,7 +30,7 @@ const ImageSlider = ({
     } else if (imgUrl.includes('[local]')) {
       newurl = imgUrl.substring(7);
     } else {
-      newurl = `https://static.veiligstallen.nl/library/fietsenstallingen/${imgUrl}`
+      newurl = `${baseUrl}${imgUrl}`
     }
     // console.log('got newurl', newurl);
     return newurl;

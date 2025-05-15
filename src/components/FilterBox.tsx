@@ -1,20 +1,20 @@
-// @ts-nocheck
-
-import { useState } from "react";
-import { FiFilter } from "react-icons/fi";
+// import { useState } from "react";
+// import { FiFilter } from "react-icons/fi";
 import { useSession } from "next-auth/react";
-import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
+// import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import FilterBoxList, {
   updateActiveTypeStates,
 } from "~/components/FilterBoxList";
-import FilterBoxPrice, {
-  updateActivePriceStates,
-} from "~/components/FilterBoxPrice";
+// import FilterBoxPrice, {
+//   updateActivePriceStates,
+// } from "~/components/FilterBoxPrice";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleType, toggleType2 } from "~/store/filterSlice";
-import { AppState } from "~/store/store";
 
-const OPTIONS_1 = [
+import { AppState } from "~/store/store";
+import { toggleType, toggleType2 } from "~/store/filterSlice";
+import { toggleType as toggleTypeArticles } from "~/store/filterArticlesSlice";
+
+export const FILTERBOX_OPTIONS = [
   {
     id: "bewaakt",
     name: "bewaakt",
@@ -39,9 +39,6 @@ const OPTIONS_1 = [
     title: "Onbewaakte stalling",
     active: false,
   },
-];
-
-const OPTIONS_2 = [
   {
     id: "buurtstalling",
     name: "buurtstalling",
@@ -62,13 +59,13 @@ const OPTIONS_2 = [
   },
 ];
 
-const OPTIONS_PRICE = [
-  { id: "per_uur", title: "Per uur", active: true },
-  { id: "per_dag", title: "Per dag", active: true },
-  { id: "jaarabonnement", title: "Jaarabonnement", active: true },
-];
+// const FILTERBOX_OPTIONS_PRICE = [
+//   { id: "per_uur", title: "Per uur", active: true },
+//   { id: "per_dag", title: "Per dag", active: true },
+//   { id: "jaarabonnement", title: "Jaarabonnement", active: true },
+// ];
 
-const OPTIONS_SUBMISSIONS = [
+const FILTERBOX_OPTIONS_SUBMISSIONS = [
   {
     id: "show_submissions",
     name: "show_submissions",
@@ -78,56 +75,53 @@ const OPTIONS_SUBMISSIONS = [
 ];
 
 type FilterBoxProps = {
-  children?: React.ReactNode;
-  isOpen: boolean;
-  onOpen?: () => void;
-  onClose?: () => void;
-  onReset?: () => void;
+  filterArticles: boolean;
+  // showMeerFiltersVisible: boolean;
+  showFilterAanmeldingen: boolean;
 };
 
 const FilterBox: React.FC<FilterBoxProps> = ({
-  children,
-  isOpen,
-  onOpen,
-  onClose,
-  onReset,
-}: {
-  children?: any;
-  isOpen: boolean;
-  onOpen: Function;
-  onClose: Function;
-  onReset: Function;
-}) => {
+  filterArticles,
+  showFilterAanmeldingen = false,
+}:FilterBoxProps) => {
+  const isOpen = false;
   const dispatch = useDispatch();
   const { data: session } = useSession()
+
+  // TODO: prijsfilter werkt nog niet
+  //  const [alleFilters, setAlleFilters] = useState(false); 
 
   const activeTypes = useSelector(
     (state: AppState) => state.filter.activeTypes
   );
 
-  const toggleFilter = (optionId: string) => {
-    // ("toggleFilter", optionId);
-    dispatch(toggleType({ pfType: optionId }));
+  const activeTypesArticles = useSelector(
+    (state: AppState) => state.filter.activeTypesArticles
+  );
+
+  const toggleFilterTypes = (optionId: string) => {
+    if(filterArticles===false) {  
+      dispatch(toggleType({ pfType: optionId }));
+    } else {
+      dispatch(toggleTypeArticles({ pfType: optionId }));
+    }
   };
 
-  const activeTypes2 = useSelector(
+  const activeAanmeldingen = useSelector(
     (state: AppState) => state.filter.activeTypes2
   );
 
-  const toggleFilter2 = (optionId: string) => {
-    // ("toggleFilter", optionId);
+  const toggleFilterAanmeldingen = (optionId: string) => {
     dispatch(toggleType2({ pfType: optionId }));
   };
 
-  const options1_with_state = updateActiveTypeStates(OPTIONS_1, activeTypes);
-  const options2_with_state = updateActiveTypeStates(OPTIONS_2, activeTypes);
-  const options_price_with_state = updateActivePriceStates(OPTIONS_PRICE, []);
-  const options3_with_state = updateActiveTypeStates(OPTIONS_SUBMISSIONS, activeTypes2);
+  const options_type_with_state = updateActiveTypeStates(FILTERBOX_OPTIONS, filterArticles ? activeTypesArticles : activeTypes);
+  // const filterbox_options_price_with_state = updateActivePriceStates(FILTERBOX_OPTIONS_PRICE, []);
+  const options_aanmeldingen_with_state = updateActiveTypeStates(FILTERBOX_OPTIONS_SUBMISSIONS, filterArticles ? []: activeAanmeldingen);
 
   return (
     <div
-      className={`h-auto rounded-xl border-t border-gray-200 bg-white ${isOpen ? "" : "h-16"
-        } transition-all duration-300 ease-in-out`}
+      className={`h-auto rounded-xl border-t border-gray-200 bg-white transition-all duration-300 ease-in-out ${filterArticles ? "border-2 border-red-500" : ""}`}
     >
       <div className="mx-auto max-w-7xl px-4 py-5">
         <div
@@ -135,50 +129,33 @@ const FilterBox: React.FC<FilterBoxProps> = ({
           ${isOpen ? "flex justify-between" : ""}
         `}
         >
-          <div
-            className={`
-            ${isOpen ? "mr-3 w-6/12" : ""}
-          `}
-          >
+          <div className={``}>
             <FilterBoxList
-              title={`${isOpen ? "Publieke Stalling" : ""}`}
-              options={options1_with_state}
-              onToggleFilter={toggleFilter}
-            />
-          </div>
-          <div
-            className={`
-              ${isOpen ? "mr-3 w-6/12" : ""}
-            `}
-          >
-            <FilterBoxList
-              title={`${isOpen ? "Private Stalling" : ""}`}
-              options={options2_with_state}
-              onToggleFilter={toggleFilter}
+              title={``}
+              options={options_type_with_state}
+              onToggleFilter={toggleFilterTypes}
             />
           </div>
         </div>
 
-        <div className="hidden">
+        {/* <div className={`${alleFilters ? "" : "hidden"}`}>
           <FilterBoxPrice
             title="Prijs"
-            options={options_price_with_state}
-            onToggleFilter={toggleFilter}
+            options={filterbox_options_price_with_state}
+            onToggleFilter={toggleFilterTypes}
           />
-        </div>
+        </div> */}
 
-        {session && session.user ?
+        {showFilterAanmeldingen && !filterArticles ?
           <div className="mt-5">
             <FilterBoxList
-              title=""
-              options={options3_with_state}
-              onToggleFilter={toggleFilter2}
+              title=''
+              options={options_aanmeldingen_with_state}
+              onToggleFilter={toggleFilterAanmeldingen}
             />
           </div> : null}
 
-        {children}
-
-        <div className="hidden">
+        {/* <div className={`${showMeerFiltersVisible ? "" : "hidden"}`}>
           <button
             className={`
               flex
@@ -189,11 +166,11 @@ const FilterBox: React.FC<FilterBoxProps> = ({
               text-white
             `}
             onClick={() => {
-              isOpen ? onClose() : onOpen();
+              setAlleFilters(!alleFilters);
             }}
-            aria-expanded={isOpen}
+            aria-expanded={alleFilters}
           >
-            {isOpen && (
+            {alleFilters && (
               <>
                 <div className="mr-2 flex h-full flex-col justify-center">
                   <AiFillMinusCircle size={20} color="white" />
@@ -202,7 +179,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
               </>
             )}
 
-            {!isOpen && (
+            {!alleFilters && (
               <>
                 <div className="mr-2 flex h-full flex-col justify-center">
                   <AiFillPlusCircle size={20} color="white" />
@@ -211,7 +188,7 @@ const FilterBox: React.FC<FilterBoxProps> = ({
               </>
             )}
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

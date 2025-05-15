@@ -2,73 +2,172 @@
     support functions for login with next-auth
 */
 // import type { User } from "next-auth";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { prisma } from "~/server/db";
-import { DefaultUser } from "next-auth";
-
-export interface User extends DefaultUser {
-  OrgUserID: string | null,
-  OtherUserID: string | null,
-  org_account_type: number | null,
-  sites: string[],
-}
+import type { User } from "next-auth";
+import {
+  securityUserSelect,
+  VSUserRoleValuesNew,
+  VSUserWithRoles,
+} from "~/types/users";
+import { createSecurityProfile } from "~/utils/server/securitycontext";
+import { initAllTopics } from "~/types/utils";
+import { checkToken } from "~/utils/token-tools";
 
 export const getUserFromCredentials = async (
-  credentials: Record<"email" | "password", string> | undefined
+  credentials: Record<"email" | "password", string> | undefined,
 ): Promise<User | null> => {
-  if (!credentials) return null;
-
-  console.log("### getUserFromCredentials", credentials);
-
-  const { email, password } = credentials;
-  if (!email || !password) return null;
-
-  let validaccount = false;
-  let account: User = {
-    id: "",
-    email: email.toLocaleLowerCase(),
-    OrgUserID: null,
-    OtherUserID: null,
-    org_account_type: null,
-    sites: [],
-  };
-
-  // check if this is an organizational account via security_accounts table
-  const orgaccount = await prisma.security_users.findFirst({ where: { UserName: email.toLowerCase() } });
-  if (orgaccount !== undefined && orgaccount !== null && orgaccount.EncryptedPassword !== null) {
-    console.log("got orgaccount", orgaccount);
-    if (bcrypt.compareSync(password, orgaccount.EncryptedPassword)) {
-      validaccount = true;
-      account.id = orgaccount.UserID;
-      account.OrgUserID = orgaccount.UserID;
-      account.org_account_type = orgaccount.RoleID;
-
-      const sites = await prisma.security_users_sites.findMany({ where: { UserID: orgaccount.UserID } });
-      console.log("got sites", sites);
-
-      // console.log("### getUserFromCredentials - found account in security_users table -", account);
-    } else {
-      console.log("### getUserFromCredentials - invalid password for security_users table");
+  try {
+    if (!credentials) {
+      console.error("### getUserFromCredentials - no credentials provided");
+      return null;
     }
-  } else {
-    console.log("### getUserFromCredentials - no orgaccount");
+
+    const { email, password } = credentials;
+    if (!email || !password) {
+      console.error("### getUserFromCredentials - missing email or password");
+      return null;
+    }
+
+    let validaccount = false;
+    let account: User = {
+      id: "",
+      email: email.toLocaleLowerCase(),
+      activeContactId: "",
+      securityProfile: {
+        managingContactIDs: [],
+        mainContactId: "",
+        roleId: VSUserRoleValuesNew.None,
+        rights: initAllTopics({
+          create: false,
+          read: false,
+          update: false,
+          delete: false,
+        }),
+        modules: [],
+      },
+    };
+
+    const orgaccount = await prisma.security_users.findFirst({
+      where: { UserName: email.toLowerCase() },
+      select: { UserID: true, EncryptedPassword: true },
+    });
+
+    if (
+      orgaccount !== undefined &&
+      orgaccount !== null &&
+      orgaccount.EncryptedPassword !== null
+    ) {
+      if (await bcrypt.compare(password, orgaccount.EncryptedPassword)) {
+        const userdata = (await prisma.security_users.findFirst({
+          where: { UserName: email.toLowerCase() },
+          select: securityUserSelect,
+        })) as VSUserWithRoles;
+        validaccount = true;
+        account.id = userdata?.UserID || "";
+        account.securityProfile = await createSecurityProfile(userdata);
+        if (account.securityProfile) {
+          account.activeContactId = account.securityProfile.mainContactId;
+        }
+      } else {
+        console.error(
+          "### getUserFromCredentials - invalid password for security_users table",
+        );
+      }
+    } else {
+      console.error("### getUserFromCredentials - no orgaccount");
+    }
+
+    return validaccount ? account : null;
+  } catch (error) {
+    console.error("Error in getUserFromCredentials:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+    return null;
   }
+};
 
-  // check if this is a normal user via accounts table
-  // const useraccount = await prisma.accounts.findFirst({ where: { Email: email.toLowerCase(), account_type: 'USER' } });
-  // if(useraccount!==undefined && useraccount!==null && useraccount.EncryptedPassword!==null) {
-  //   if(bcrypt.compareSync(password, useraccount.EncryptedPassword)) {
-  //     validaccount = true;
-  //     account.OtherUserID = useraccount.ID;
+export const getUserFromLoginCode = async (
+  credentials: Record<"userid" | "token", string> | undefined,
+): Promise<User | null> => {
+  try {
+    if (!credentials) {
+      console.error("### getUserFromLoginCode - no credentials provided");
+      return null;
+    }
 
-  //     // console.log("### getUserFromCredentials - found account in accounts table -", account);
-  //   } else {
-  //     console.log("### getUserFromCredentials - invalid password for accounts table");
-  //   }
-  // } else {
-  //   console.log("### getUserFromCredentials - no useraccount");
-  // }
+    const { userid, token } = credentials;
+    if (!userid || !token) {
+      console.error("### getUserFromLoginCode - missing userid or token");
+      return null;
+    }
 
+    let validaccount = false;
+    let account: User = {
+      id: "",
+      email: "",
+      activeContactId: "",
+      securityProfile: {
+        managingContactIDs: [],
+        mainContactId: "",
+        roleId: VSUserRoleValuesNew.None,
+        rights: initAllTopics({
+          create: false,
+          read: false,
+          update: false,
+          delete: false,
+        }),
+        modules: [],
+      },
+    };
 
-  return validaccount ? account : null;
+    try {
+      const tokenData = checkToken(token);
+
+      if (
+        tokenData !== false &&
+        tokenData.userid.toLowerCase() === userid.toLowerCase()
+      ) {
+        const userdata = (await prisma.security_users.findFirst({
+          where: { UserID: userid },
+          select: securityUserSelect,
+        })) as VSUserWithRoles;
+        validaccount = true;
+        account.id = userdata?.UserID || "";
+        account.email = userdata?.UserName || "";
+        account.securityProfile = await createSecurityProfile(userdata);
+        if (account.securityProfile) {
+          account.activeContactId = account.securityProfile.mainContactId;
+        }
+      } else {
+        console.error("### getUserFromLoginCode - invalid login code");
+      }
+    } catch (error) {
+      console.error("Error processing login code:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        });
+      }
+    }
+
+    return validaccount ? account : null;
+  } catch (error) {
+    console.error("Error in getUserFromLoginCode:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+    return null;
+  }
 };

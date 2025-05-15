@@ -1,0 +1,145 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Organizations API
+
+Version: 1.0
+
+Base Path: `/api/organizations`
+
+## Routes
+
+### 1. List Organizations
+
+**Method**: GET  
+**Path**: `/`  
+**Description**: Get a list of all organizations
+
+#### Parameters
+- References general.yaml pagination parameters
+- References general.yaml sorting parameters
+- References general.yaml filtering parameters
+
+#### Responses
+
+##### 200 OK
+**Description**: List of organizations
+
+**Schema**:
+```json
+{
+  "data": [Organization],
+  "meta": {
+    // References general.yaml meta schema
+  }
+}
+```
+
+### 2. Get Organization
+
+**Method**: GET  
+**Path**: `/{id}`  
+**Description**: Get a single organization by ID
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Organization ID |
+
+#### Responses
+
+##### 200 OK
+**Description**: Organization details  
+**Schema**: Organization
+
+##### 404 Not Found
+**Description**: Organization not found
+
+### 3. Create Organization
+
+**Method**: POST  
+**Path**: `/`  
+**Description**: Create a new organization
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| body | body | true | object | OrganizationInput |
+
+#### Responses
+
+##### 201 Created
+**Description**: Organization created  
+**Schema**: Organization
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+### 4. Update Organization
+
+**Method**: PUT  
+**Path**: `/{id}`  
+**Description**: Update an existing organization
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Organization ID |
+| body | body | true | object | OrganizationInput |
+
+#### Responses
+
+##### 200 OK
+**Description**: Organization updated  
+**Schema**: Organization
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+##### 404 Not Found
+**Description**: Organization not found
+
+### 5. Delete Organization
+
+**Method**: DELETE  
+**Path**: `/{id}`  
+**Description**: Delete an organization
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Organization ID |
+
+#### Responses
+
+##### 204 No Content
+**Description**: Organization deleted
+
+##### 404 Not Found
+**Description**: Organization not found
+
+## Definitions
+
+### Organization
+
+Extends BaseContact with additional properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| Department | string | Department name |
+| JobTitle | string | Job title |
+| URL | string | Website URL |
+| Notes | string | Additional notes |
+
+### OrganizationInput
+
+Extends BaseContactInput with additional properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| Department | string | Department name |
+| JobTitle | string | Job title |
+| URL | string | Website URL |
+| Notes | string | Additional notes |

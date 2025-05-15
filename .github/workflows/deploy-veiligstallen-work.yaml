@@ -1,0 +1,59 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches:
+      - veiligstallen-v2
+  workflow_dispatch:
+
+# Add permissions configuration
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Digital Ocean
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.DROPLET_HOST }}
+          username: ${{ vars.DROPLET_USERNAME }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /var/www/veiligstallen
+            git pull origin veiligstallen-v2
+
+            # Create .env file for build
+            cat > .env << EOL
+            NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_WEB_BASE_URL=${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXTAUTH_URL=${{ vars.NEXTAUTH_URL }}
+            NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
+            LOGINTOKEN_SIGNER_PRIVATE_KEY=${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
+            EOL
+
+            # Stop and remove existing container if it exists
+            docker stop veiligstallen || true
+            docker rm veiligstallen || true
+
+            # Build and run the new container
+            docker build \
+              --build-arg NEXT_PUBLIC_API_BASE_URL="${{ vars.NEXT_PUBLIC_API_BASE_URL }}" \
+              --build-arg NEXT_PUBLIC_WEB_BASE_URL="${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}" \
+              --build-arg DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              --build-arg NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+              --build-arg NEXTAUTH_URL="${{ vars.NEXTAUTH_URL }}" \
+              --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}" \
+              --build-arg LOGINTOKEN_SIGNER_PRIVATE_KEY="${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}" \
+              -t veiligstallen .
+
+            docker run -d \
+              --name veiligstallen \
+              --restart always \
+              --network host \
+              --add-host=host.docker.internal:host-gateway \
+              veiligstallen

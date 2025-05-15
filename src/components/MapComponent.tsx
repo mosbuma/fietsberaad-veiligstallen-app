@@ -8,10 +8,14 @@ import {
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
-  setActiveMunicipality,
+  // setActiveMunicipality,
   setSelectedParkingId,
   setActiveParkingId,
 } from "~/store/mapSlice";
+
+import {
+  setActiveArticle,
+} from "~/store/appSlice";
 
 import { AppState } from "~/store/store";
 
@@ -105,8 +109,6 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
   );
 
   const filterQuery = useSelector((state: AppState) => state.filter.query);
-
-  const filterTypes2 = useSelector((state: AppState) => state.filter.activeTypes2);
 
   const mapExtent = useSelector((state: AppState) => state.map.extent);
 
@@ -229,6 +231,7 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
         if (!stateMap || stateMap === undefined) {
           return;
         }
+        // Get source, if it exists
         const source: maplibregl.GeoJSONSource = stateMap.getSource(
           sourceKey
         ) as maplibregl.GeoJSONSource;
@@ -253,6 +256,7 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
       };
       addOrUpdateSource("fietsenstallingen");
       addOrUpdateSource("fietsenstallingen-clusters");
+      addOrUpdateSource("fietsenstallingen-clusters-count");
 
       // Add MARKERS layer
       if (!stateMap.getLayer("fietsenstallingen-markers")) {
@@ -260,7 +264,6 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
           id: "fietsenstallingen-markers",
           source: "fietsenstallingen",
           type: "circle",
-          // filter: ["all"],
           filter: ["!", ["has", "point_count"]],
           paint: {
             "circle-color": "#fff",
@@ -349,57 +352,25 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
     try {
       if (!stateMap || stateMap === undefined) return;
 
-      let filter = [
-        "all",
-        ["in", ["get", "type"], ["literal", filterActiveTypes]],
-      ];
+      stateMap.setFilter("fietsenstallingen-markers", getLayerFilter(filterActiveTypes, filterQuery));
 
-      if (filterQuery === "") {
-        filter = [
-          "all",
-          ["in", ["get", "type"], ["literal", filterActiveTypes]],
-        ];
-      } else {
-        filter = [
-          "all",
-          ["in", ["get", "type"], ["literal", filterActiveTypes]],
-          [
-            "any",
-            [
-              ">",
-              [
-                "index-of",
-                ["literal", filterQuery.toLowerCase()],
-                ["get", "title"],
-              ],
-              -1,
-            ],
-            [
-              ">",
-              [
-                "index-of",
-                ["literal", filterQuery.toLowerCase()],
-                ["get", "locatie"],
-              ],
-              -1,
-            ],
-            [
-              ">",
-              [
-                "index-of",
-                ["literal", filterQuery.toLowerCase()],
-                ["get", "plaats"],
-              ],
-              -1,
-            ],
-          ],
-        ];
-      }
-      stateMap.setFilter("fietsenstallingen-markers", filter);
+      // Filter geojson source data for cluster sources
+      (() => {
+        let filteredGeojson = filterGeojsonForClusterSources(createGeoJson(fietsenstallingen));
+        const sources = ["fietsenstallingen-clusters", "fietsenstallingen-clusters-count"];
+        sources.forEach((sourceKey) => {
+          const source: maplibregl.GeoJSONSource = stateMap.getSource(
+            sourceKey
+          ) as maplibregl.GeoJSONSource;
+          if (source) {
+            source.setData(filteredGeojson);
+          }
+        });
+      })();
     } catch (ex) {
       console.warn("error in MapComponent layer setfilter useEffect call", ex);
     }
-  }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery, filterTypes2]);
+  }, [stateMap, fietsenstallingen, filterActiveTypes, filterQuery]);
 
   // Update visible features in state if filter changes
   React.useEffect(() => {
@@ -409,6 +380,79 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
       dispatch(setMapVisibleFeatures(visibleFeatures));
     });
   }, [stateMap, filterActiveTypes]);
+
+  const filterGeojsonForClusterSources = (geojson) => {
+    if (!geojson.features) return geojson;
+
+    // Filter features
+    let filteredGeojson;
+    if (filterQuery === "") {
+      filteredGeojson = geojson.features.filter((feature) => {
+        return filterActiveTypes.indexOf(feature.properties.type) > -1;
+      });
+    } else {
+      filteredGeojson = geojson.features.filter((feature) => {
+        return filterActiveTypes.indexOf(feature.properties.type) > -1 &&
+          (feature.properties.title.indexOf(filterQuery) > -1 ||
+            feature.properties.location.indexOf(filterQuery) > -1 ||
+            feature.properties.plaats.indexOf(filterQuery) > -1);
+      });
+    }
+
+    // Return filtered geojson
+    return {
+      ...geojson,
+      features: filteredGeojson,
+    };
+  }
+
+  const getLayerFilter = (filterActiveTypes, filterQuery) => {
+    let filter = [];
+    if (filterQuery === "") {
+      filter = [
+        "all",
+        ["!", ["has", "point_count"]],
+        ["in", ["get", "type"], ["literal", filterActiveTypes]],
+      ];
+    } else {
+      filter = [
+        "all",
+        ["!", ["has", "point_count"]],
+        ["in", ["get", "type"], ["literal", filterActiveTypes]],
+        [
+          "any",
+          [
+            ">",
+            [
+              "index-of",
+              ["literal", filterQuery.toLowerCase()],
+              ["get", "title"],
+            ],
+            -1,
+          ],
+          [
+            ">",
+            [
+              "index-of",
+              ["literal", filterQuery.toLowerCase()],
+              ["get", "locatie"],
+            ],
+            -1,
+          ],
+          [
+            ">",
+            [
+              "index-of",
+              ["literal", filterQuery.toLowerCase()],
+              ["get", "plaats"],
+            ],
+            -1,
+          ],
+        ],
+      ];
+    }
+    return filter;
+  }
 
   const highlighMarker = (map: any, id: string) => {
     map.setPaintProperty("fietsenstallingen-markers", "circle-radius", [
@@ -508,13 +552,13 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
     // Calculate the center of this map view
     const center = turf.center(polygon);
     // Get active municipality
-    (async () => {
-      if (!center) return;
-      const activeMunicipality = await getActiveMunicipality(
-        center.geometry.coordinates
-      );
-      dispatch(setActiveMunicipality(activeMunicipality));
-    })();
+    // (async () => {
+    //   if (!center) return;
+    //   const activeMunicipality = await getActiveMunicipality(
+    //     center.geometry.coordinates
+    //   );
+    //   dispatch(setActiveMunicipalityInfo(activeMunicipality));
+    // })();
 
     // Set values in state
     const coordinates = [center.geometry.coordinates[0].toString(), center.geometry.coordinates[1].toString()]
@@ -529,6 +573,13 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
     <div
       ref={mapNode}
       style={{ width: "100vw", height: "100dvh", overflowY: "hidden" }}
+      onClick={() => {
+        dispatch(setActiveParkingId(undefined));
+        dispatch(setActiveArticle({
+          articleTitle: undefined,
+          municipality: undefined,
+        }));
+      }}
     />
   );
 }

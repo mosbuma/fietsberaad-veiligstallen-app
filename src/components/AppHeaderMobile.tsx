@@ -17,27 +17,8 @@ import {
 import Logo from './Logo';
 import PageTitle from "~/components/PageTitle";
 
-const PrimaryMenuItem = (props: any) => {
-  return <div className="
-    PrimaryMenuItem
-    px-5
-  ">
-    <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
-    </a>
-  </div>
-}
+import { PrimaryMenuItem, SecundaryMenuItem } from "~/components/MenuItems";
 
-const SecundaryMenuItem = (props: any) => {
-  return <div className="
-    SecundaryMenuItem
-    px-2
-  ">
-    <a href="#" className="flex flex-col justify-center h-full">
-      {props.item}
-    </a>
-  </div>
-}
 
 function AppHeaderMobile({
   title,

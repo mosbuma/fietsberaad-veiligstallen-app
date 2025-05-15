@@ -1,8 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AppState } from "./store";
 import { HYDRATE } from "next-redux-wrapper";
-
-// Type for our state
 export interface FilterState {
   activeTypes: String[];
   query: String;
@@ -10,7 +7,7 @@ export interface FilterState {
 }
 
 // Initial state
-const initialState: FilterState = {
+export const initialState: FilterState = {
   activeTypes: [
     "bewaakt",
     "geautomatiseerd",
@@ -20,7 +17,7 @@ const initialState: FilterState = {
   activeTypes2: []
 };
 
-const allowedTypes = [
+export const allowedTypes = [
   'bewaakt',
   'geautomatiseerd',
   'toezicht',
@@ -30,7 +27,7 @@ const allowedTypes = [
   'fietskluizen'
 ];
 
-const allowedTypes2 = [
+export const allowedTypes2 = [
   'show_submissions',
 ];
 

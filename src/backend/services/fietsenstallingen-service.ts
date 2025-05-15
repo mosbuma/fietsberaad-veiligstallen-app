@@ -2,11 +2,7 @@ import { prisma } from "~/server/db";
 import type { fietsenstallingen, fietsenstalling_sectie, sectie_fietstype } from "@prisma/client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
-BigInt.prototype.toJSON = function () {
-  const int = Number.parseInt(this.toString());
-  return int ?? this.toString();
-};
-
+// 
 const include = {
   fietsenstalling_type: true,
   fietsenstalling_secties: {
@@ -27,15 +23,22 @@ const include = {
     include: {
       abonnementsvormen: true
     }
-  }
+  },
+  uitzonderingenopeningstijden: true,
 }
 
 // inspired by https://medium.com/@brandonlostboy/build-it-better-next-js-crud-api-b45d2e923896
 const FietsenstallingenService: ICrudService<fietsenstallingen> = {
   getAll: async () => {
     return await prisma.fietsenstallingen.findMany({
+      // where: {
+      //   Title: {
+      //     not: 'Systeemstalling'
+      //   }
+      // },
       include: {
         fietsenstalling_secties: true,
+        uitzonderingenopeningstijden: true,
       }
     });
   },

@@ -1,16 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "./store";
 import { HYDRATE } from "next-redux-wrapper";
-
+import { VSContactGemeente } from "~/types/contacts";
 // Type for our state
 export interface MapState {
   extent: Number[];
   zoom: Number | undefined;
-  municipality: Array[];
   selectedParkingId: string | undefined; // selected on map / in list
   activeParkingId: string | undefined;  // visible in modal
-  activeMunicipality: any;
-  activeMunicipalityInfo: any;
+  activeMunicipalityInfo: VSContactGemeente | undefined;
   initialLatLng: string[] | undefined;
   currentLatLng: string[] | undefined;
   visibleFeatures: string[];
@@ -21,10 +19,8 @@ const initialState: MapState = {
   extent: [],
   zoom: undefined,
   visibleFeatures: [],
-  municipality: [],
   selectedParkingId: undefined,
   activeParkingId: undefined,
-  activeMunicipality: undefined,
   activeMunicipalityInfo: undefined,
   initialLatLng: undefined,
   currentLatLng: undefined,
@@ -51,10 +47,6 @@ export const mapSlice = createSlice({
     setMapVisibleFeatures(state, action) {
       state.visibleFeatures = action.payload;
     },
-    // Action to set active municipality based on location)
-    setMunicipality(state, action) {
-      state.municipality = action.payload;
-    },
     // Set selectedParkingId
     setSelectedParkingId(state, action) {
       state.selectedParkingId = action.payload;
@@ -65,9 +57,9 @@ export const mapSlice = createSlice({
       state.activeParkingId = action.payload;
     },
     // setActiveMunicipality
-    setActiveMunicipality(state, action) {
-      state.activeMunicipality = action.payload;
-    },
+    // setActiveMunicipality(state, action) {
+    //   state.activeMunicipality = action.payload;
+    // },
     // setActiveMunicipalityInfo
     setActiveMunicipalityInfo(state, action) {
       state.activeMunicipalityInfo = action.payload;
@@ -96,7 +88,7 @@ export const {
   setMapVisibleFeatures,
   setSelectedParkingId,
   setActiveParkingId,
-  setActiveMunicipality,
+  // setActiveMunicipality,
   setActiveMunicipalityInfo,
   setInitialLatLng
 } = mapSlice.actions;

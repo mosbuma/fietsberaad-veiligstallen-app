@@ -1,0 +1,74 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Console Logging Pattern
+
+Enforces consistent console logging patterns across the codebase.
+
+## Debug Logging Pattern
+
+### Pattern
+```regex
+console\.(log|info|warn|debug)\s*\(\s*["'](mdc:?!\*\*\*\*)
+```
+
+### Message
+Use `console.debug(`**** <function/class name/context> - <message>`)` with template literals for non-error logging
+
+### Severity
+warning
+
+### Excluded Files
+- `**/*.test.ts`
+- `**/*.spec.ts`
+- `**/test/**`
+
+### Examples
+
+#### Bad Examples
+```typescript
+console.log("Processing data");
+console.info("User logged in");
+console.debug("req.body", req.body);
+```
+
+#### Good Examples
+```typescript
+console.debug(`**** processData - Processing user data`);
+console.debug(`**** handleLogin - User authentication successful`);
+console.debug(`**** validateGemeente - Request body: ${JSON.stringify(req.body)}`);
+```
+
+## Error Logging Pattern
+
+### Pattern
+```regex
+console\.error\s*\(\s*["'](mdc:?!.*\s*-\s*error:)
+```
+
+### Message
+Use `console.error(`<function/class name/context> - error: <message>`)` with template literals in error handlers
+
+### Severity
+warning
+
+### Excluded Files
+- `**/*.test.ts`
+- `**/*.spec.ts`
+- `**/test/**`
+
+### Examples
+
+#### Bad Examples
+```typescript
+console.error("Failed to process");
+console.error("req.body", req.body);
+```
+
+#### Good Examples
+```typescript
+console.error(`processData - error: Failed to process user data`);
+console.error(`validateGemeente - error: Invalid request body: ${JSON.stringify(req.body)}`);
+```

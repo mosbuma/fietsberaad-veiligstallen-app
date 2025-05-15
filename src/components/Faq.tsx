@@ -7,13 +7,14 @@ import Styles from './Faq.module.css';
 import {
   getFaqSections
 } from "~/utils/faq";
+import { VSFaqFull } from "~/types/faq";
 
 function Faq({
 }: {
 }) {
   const dispatch = useDispatch();
 
-  const [faq, setFaq] = useState([]);
+  const [faq, setFaq] = useState<VSFaqFull[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -24,7 +25,6 @@ function Faq({
 
   return (
     <div className="Faq">
-
       {faq.map((section) => {
         return (
           <details className={`${Styles.details}`}>

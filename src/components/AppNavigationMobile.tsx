@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 
+import { VSArticle } from "~/types/articles";
+
 import {
   setIsFilterBoxVisible,
   setIsMobileNavigationVisible,
@@ -9,10 +11,11 @@ import {
 } from "~/store/appSlice";
 
 import {
-  getNavigationItemsForMunicipality,
-  filterNavItemsBasedOnMapZoom,
+  // getNavigationItemsForMunicipality,
+  getArticlesForMunicipality,
+  filterNavItems,
   getPrimary,
-  getSecundary,
+  getSecondary,
   getFooter,
 } from "~/utils/navigation";
 
@@ -35,7 +38,7 @@ const NavSection = ({ children }: { children: any }) => {
 };
 
 // If it has an icon: Show bold text
-const NavItem = ({ title, icon, onClick }) => {
+const NavItem = ({ title, icon, onClick }: { title: string, icon?: string, onClick: (e: React.MouseEvent<HTMLAnchorElement>) => void }) => {
   return (
     <a
       className={`
@@ -67,7 +70,7 @@ const NavItem = ({ title, icon, onClick }) => {
 
 const AppNavigationMobile = ({
   activeMunicipalityInfo,
-  mapZoom,
+  mapZoom = 12,
 }: {
   activeMunicipalityInfo?: any;
   mapZoom?: number;
@@ -75,37 +78,32 @@ const AppNavigationMobile = ({
   const { push } = useRouter();
   const dispatch = useDispatch();
 
-  const [articles, setArticles] = useState([]);
-  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+  const [articlesMunicipality, setArticlesMunicipality] = useState<VSArticle[]>([]);
+  const [articlesFietsberaad, setArticlesFietsberaad] = useState<VSArticle[]>([]);
 
   // Get menu items based on active municipality
   useEffect(() => {
-    // Get menu items from SiteID 1 OR SiteID of the municipality
-    let SiteIdToGetArticlesFrom;
-    if (mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.ID) {
-      SiteIdToGetArticlesFrom = activeMunicipalityInfo.ID;
-    } else {
-      SiteIdToGetArticlesFrom = "1";
-    }
-
     (async () => {
-      const response = await getNavigationItemsForMunicipality(
-        SiteIdToGetArticlesFrom
-      );
-      setArticles(response);
+      const response = await getArticlesForMunicipality(activeMunicipalityInfo?.ID||"1");
+      setArticlesMunicipality(filterNavItems(response));
     })();
-  }, [activeMunicipalityInfo]);
+  }, [
+    activeMunicipalityInfo,
+    mapZoom
+  ]);
 
-  // Get menu items for siteId 1 (Fietsberaad)
   useEffect(() => {
     (async () => {
-      const response = await getNavigationItemsForMunicipality(1);
-      setFietsberaadArticles(response);
+      const response = await getArticlesForMunicipality("1");
+      setArticlesFietsberaad(filterNavItems(response));
     })();
-  }, []);
+  }, [
+    activeMunicipalityInfo,
+    mapZoom
+  ]);
 
   const clickItem = (url: string) => {
-    console.log("sure");
+    // console.log("sure");
     dispatch(setIsMobileNavigationVisible(false));
     dispatch(setIsParkingListVisible(false));
     push(url);
@@ -113,16 +111,15 @@ const AppNavigationMobile = ({
 
   const title =
     mapZoom >= 12 &&
-    activeMunicipalityInfo &&
-    activeMunicipalityInfo.CompanyName
+      activeMunicipalityInfo &&
+      activeMunicipalityInfo.CompanyName
       ? `Welkom in ${activeMunicipalityInfo.CompanyName}`
       : `Welkom bij VeiligStallen`;
 
-  const allMenuItems = filterNavItemsBasedOnMapZoom(articles, mapZoom);
-  const primaryMenuItems = getPrimary(allMenuItems);
-  const secundaryMenuItems = getSecundary(allMenuItems);
-  const footerMenuItems = getFooter(fietsberaadArticles);
-
+  const primaryMenuItems = getPrimary(articlesMunicipality, articlesFietsberaad, mapZoom < 12);
+  const secundaryMenuItems = getSecondary(articlesMunicipality, articlesFietsberaad, mapZoom < 12);
+  const footerMenuItems = getFooter(articlesFietsberaad);
+  
   return (
     <div
       className="
@@ -133,21 +130,16 @@ const AppNavigationMobile = ({
       <header>
         <PageTitle
           className="
-					mb-2 text-2xl text-red-600
-				"
-          style={{
-            maxWidth: "90%",
-          }}
+            mb-2 text-2xl text-red-600 max-w-[90%]
+          "
         >
           {title}
         </PageTitle>
         <p
-          style={{
-            maxWidth: "70%",
-          }}
+          className="max-w-[70%]"
         >
           De kortste weg naar een veilige plek voor je fiets{" "}
-          {mapZoom >= 12 ? "in Utrecht" : ""}
+          {mapZoom >= 12 ? `in ${activeMunicipalityInfo?.CompanyName}` : ""}
         </p>
       </header>
 
@@ -182,13 +174,12 @@ const AppNavigationMobile = ({
               <NavItem
                 key={"pmi-" + xidx}
                 title={x.DisplayTitle ? x.DisplayTitle : x.Title ? x.Title : ""}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${mapZoom >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
@@ -204,13 +195,12 @@ const AppNavigationMobile = ({
               <NavItem
                 key={"pmi-" + xidx}
                 title={x.DisplayTitle ? x.DisplayTitle : x.Title ? x.Title : ""}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault();
                   clickItem(
-                    `/${
-                      mapZoom >= 12 && activeMunicipalityInfo
-                        ? activeMunicipalityInfo.UrlName
-                        : "fietsberaad"
+                    `/${mapZoom >= 12 && activeMunicipalityInfo
+                      ? activeMunicipalityInfo.UrlName
+                      : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`
                   );
                 }}
@@ -220,11 +210,11 @@ const AppNavigationMobile = ({
         )}
         <NavSection>
           {/*<NavItem title="Over VeiligStallen" />*/}
-          {footerMenuItems.map((x, xidx) => (
+          {footerMenuItems.map((x: VSArticle, xidx: number) => (
             <NavItem
               key={"pmi-" + xidx}
               title={x.DisplayTitle ? x.DisplayTitle : x.Title ? x.Title : ""}
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault();
                 clickItem(`/fietsberaad/${x.Title ? x.Title : ""}`);
               }}

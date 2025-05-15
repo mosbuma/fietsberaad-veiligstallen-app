@@ -1,77 +1,75 @@
+import { type VSArticle } from "~/types/articles";
 
-export const getNavigationItemsForMunicipality = async (siteId: string | null) => {
+export const getArticlesForMunicipality = async (siteId: string | null): Promise<VSArticle[]> => {
   try {
-    const response = await fetch(`/api/articles/?SiteID=${siteId}`);
-    const articles = await response.json();
-
-    let primaryMenuItems = articles;
-
-    // Only keep items for veiligstallen
-    primaryMenuItems = primaryMenuItems.filter(x => x.ModuleID === 'veiligstallen');
-
-    return primaryMenuItems;
+    const url = siteId ? `/api/articles/?SiteID=${siteId}` : "/api/articles/";
+    const response = await fetch(url);
+    return await response.json() as VSArticle[];
   } catch (err) {
     console.error(err);
+    return [];
   }
 }
 
-export const filterNavItemsBasedOnMapZoom = (items, mapZoom) => {
-  if (!items) return items;
+export const filterNavItems = (items: VSArticle[]|undefined) => {
+  if (!items) return [];
 
-  // Only keep items that are unique for this site
-  if (mapZoom >= 12) {
-    items = items.filter(x => x.SiteID !== '1');
-  }
-  // Hide 'Stallingen' and 'Fietstrommels' for Fietsberaad site
-  if (mapZoom < 12) {
-    items = items.filter(x => {
-      return x.Title !== 'Stallingen' && x.Title !== 'Buurttrommels';
-    });
+  const hasContent = (x: VSArticle) => (x.Abstract!=='' && x.Abstract!==null) || (x.Article!=='' && x.Article!==null)
+  return items.filter(x => x.ModuleID === 'veiligstallen' && x.Status === '1' && hasContent(x)) // && x.ShowInNav === '1' 
+}
+
+export const getPrimary = (itemsMunicipality: VSArticle[]|undefined, itemsFietsberaad: VSArticle[]|undefined, showGemeenteMenu: boolean): VSArticle[] => {
+  const filterPrimaryItems = (items: VSArticle[]) => {
+    return items.filter(x => x.Navigation === 'main')
+    .filter((x) => {
+      const excludeTitles = ['Tips', 'Contact', 'FAQ'];
+      const noContent = (x.Article||'') === '' && (x.Abstract||'') === '';
+
+      return !excludeTitles.includes(x.Title) && !noContent;
+    })
+    .sort((a, b) => a.SortOrder - b.SortOrder)
   }
 
+  let items = showGemeenteMenu && itemsMunicipality ? filterPrimaryItems(itemsMunicipality) : [];
+  if(items.length === 0 && itemsFietsberaad) {
+    items = filterPrimaryItems(itemsFietsberaad);
+  }
+  console.debug("#### primary items", items);
   return items;
 }
 
-export const getPrimary = (items) => {
-  let primaryItems = items;
-  if (!primaryItems) return;
+export const getSecondary = (itemsMunicipality: VSArticle[]|undefined, itemsfietsberaad: VSArticle[]|undefined, showGemeenteMenu: boolean): VSArticle[] => {
+  const secundaryItems = [];
 
-  // Only include 'main' items
-  primaryItems = primaryItems.filter(x => x.Navigation === 'main');
+  // Tips always comes from fietsberaad site
+  const tips = itemsfietsberaad && itemsfietsberaad?.find(x => x.Title === 'Tips');
+  if (tips) {
+    secundaryItems.push(tips);
+  }
 
-  // Update title: Home -> Info
-  // |-> Niet nodig, want we hebben DisplayTitle
-  // primaryItems = primaryItems.map(x => {
-  //   if(x.Title === 'Home') {
-  //     x.DisplayTitle = 'Info';
-  //   }
-  //   return x;
-  // });
+  let contact = undefined;
+  if(showGemeenteMenu === true && itemsMunicipality) {
+    // check if a contact article exists in the municipality
+    contact = itemsMunicipality?.find(x => x.Title === 'Contact');
+  }
+  if(!contact) { 
+    // otherwise use the contact article from fietsberaad
+    contact = itemsfietsberaad?.find(x => x.Title === 'Contact'); 
+  }
 
-  // Keep everything apart from Tips, Contact and FAQ
-  return primaryItems.filter((x) => {
-    return x.Title !== 'Tips' && x.Title !== 'Contact' && x.Title !== 'FAQ';
-  });
+  if (contact) {
+    secundaryItems.push(contact);
+  }
+
+  return secundaryItems;
 }
 
-export const getSecundary = (items) => {
-  let secundaryItems = items;
-  if (!secundaryItems) return [];
+export const getFooter = (itemsfietsberaad: VSArticle[]|undefined): VSArticle[] => {
+  const footerTitles = ['Disclaimer', 'Privacy', 'Algemene Voorwaarden', 'Copyright'];
 
-  // Only include 'main' items
-  secundaryItems = secundaryItems.filter(x => x.Navigation === 'main');
-
-  return secundaryItems.filter((x) => {
-    return x.Title === 'Tips' || x.Title === 'Contact';
-  });
-}
-
-export const getFooter = (items) => {
-  if (items) {
-    return items.filter((x) => {
-      return x.Title === 'Over ons' || x.Title === 'Disclaimer' || x.Title === 'Privacy' || x.Title === 'Algemene Voorwaarden';
-    });
+  if (itemsfietsberaad) {
+    return itemsfietsberaad.filter((x) => x.SiteID === '1' && footerTitles.includes(x.Title));
   } else {
-    return null
+    return []
   }
 }

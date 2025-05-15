@@ -8,7 +8,7 @@ export type MunicipalityType = {
   "zone_type": string
 }
 
-export const getMunicipalityBasedOnLatLng = async (latLng: string[] | undefined): Promise<MunicipalityType | false> => {
+export const getMunicipalityBasedOnLatLng = async (latLng: string[] | undefined | null): Promise<MunicipalityType | false> => {
   // Abort active fetch call, if any
   if (controller) controller.abort();
 

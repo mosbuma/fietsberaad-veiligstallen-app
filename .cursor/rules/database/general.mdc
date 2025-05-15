@@ -1,0 +1,172 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# General API Rules
+
+Version: 1.0
+
+## Rules
+
+### 1. Authentication
+
+**Description**: All routes require authentication  
+**Type**: middleware  
+**Implementation**: auth
+
+### 2. Error Handling
+
+**Description**: Standard error responses
+
+#### Responses
+
+| Status | Description | Schema |
+|--------|-------------|--------|
+| 400 | Bad Request | `{ error: string }` |
+| 401 | Unauthorized | - |
+| 403 | Forbidden | - |
+| 404 | Not Found | - |
+| 500 | Internal Server Error | - |
+
+### 3. Date Field Handling
+
+**Description**: Standard handling of date fields in database operations
+
+#### Implementation
+
+##### Validation Schema
+```typescript
+{
+  date_fields: {
+    pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$",
+    validation: {
+      zod_type: "z.union([z.string().datetime(), z.date()]).nullable().optional()"
+    },
+    update_conversion: {
+      pattern: "field: value ? new Date(value) : undefined"
+    }
+  }
+}
+```
+
+#### Requirements
+
+##### Date Validation
+- **Schema Definition**: Date fields must be defined in the Zod schema using the standard date validation
+- **Update Handling**: Date fields must be properly converted in update operations
+- **Null Handling**: Date fields must properly handle null values
+
+##### Date Types
+- **Prisma Types**: ["DateTime", "Date", "Time"]
+- **Zod Types**: ["string", "date"]
+
+### 4. Pagination
+
+**Description**: Standard pagination parameters
+
+#### Parameters
+| Name | In | Type | Default | Description |
+|------|----|------|---------|-------------|
+| page | query | integer | 1 | Page number |
+| limit | query | integer | 10 | Items per page |
+
+### 5. Sorting
+
+**Description**: Standard sorting parameters
+
+#### Parameters
+| Name | In | Type | Default | Description |
+|------|----|------|---------|-------------|
+| sort | query | string | - | Field to sort by |
+| order | query | string | asc | Sort order (asc/desc) |
+
+### 6. Filtering
+
+**Description**: Standard filtering parameters
+
+#### Parameters
+| Name | In | Type | Description |
+|------|----|------|-------------|
+| filter | query | string | Filter criteria in JSON format |
+
+### 7. Response Format
+
+**Description**: Standard response format
+
+#### Schema
+```json
+{
+  "data": [object],
+  "meta": {
+    "total": integer,
+    "page": integer,
+    "limit": integer,
+    "pages": integer
+  }
+}
+```
+
+### 8. REST Endpoint Patterns
+
+**Description**: Standard REST endpoint patterns
+
+#### Patterns
+- **POST**: Create new item
+- **GET**: List all items or get single item
+- **PUT**: Update item
+- **DELETE**: Delete item
+
+## Database API Requirements
+
+### Test Implementation
+- **Endpoint Path**: string
+- **Method**: string
+- **Test Suite**: string
+- **UI Integration**: boolean
+
+### Documentation
+- **Endpoint**: string
+- **Method**: string
+- **Parameters**: object
+- **Response**: object
+- **Examples**: array
+
+### Error Handling
+- **Input Validation**: boolean
+- **User Friendly Messages**: boolean
+- **HTTP Status Codes**: boolean
+
+### Security
+- **Authentication**: boolean
+- **Authorization**: boolean
+- **Input Sanitization**: boolean
+
+### Performance
+- **Pagination**: boolean
+- **Caching**: boolean
+- **Query Optimization**: boolean
+
+### Validation
+
+#### Schema Definition
+- **Field Types**: Must match Prisma field types
+- **Field Lengths**: Must match VARCHAR/CHAR length constraints
+- **Required Fields**: Must match Prisma @default and optional fields
+- **Enums**: Must match Prisma enum values
+- **Relations**: Must validate relation constraints
+- **Date Fields**: Must use standard date field validation
+
+#### Validation Implementation
+- **Create**: Validate on record creation
+- **Update**: Validate on record updates
+- **Delete**: Validate on record deletion
+- **Query**: Validate query parameters
+- **Safe Parse**: Must use safeParse instead of parse for better error handling
+- **Error Logging**: Must log validation errors before returning 400 status
+- **DB Error Logging**: Must log database errors before returning 500 status
+
+#### Error Messages
+- **Field Specific**: Errors must reference specific fields
+- **Constraint Specific**: Errors must explain violated constraints
+- **Suggestion**: Errors should suggest valid values when possible

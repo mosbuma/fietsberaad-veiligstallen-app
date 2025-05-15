@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
 import SectionBlock from "~/components/SectionBlock";
-import { ParkingDetailsType } from "~/types";
+import { ParkingDetailsType } from "~/types/parking";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsType }) => {
@@ -80,7 +80,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
   */}
 
     let url = "";
-    const stallingMunicipalty = await getMunicipalityBasedOnLatLng(parkingdata.Coordinaten.split(","));
+    const stallingMunicipalty = await getMunicipalityBasedOnLatLng(parkingdata.Coordinaten!==null ? parkingdata.Coordinaten.split(",") : null);
     if (stallingMunicipalty) {
       switch (parkingdata.Type) {
         case "fietskluizen":
@@ -121,7 +121,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               </Button>
             </div >
             :
-            <div className="text-start col-span-3">
+            <div className="text-start col-span-3 -ml-2 -mr-2">
               Geen abonnementen beschikbaar
             </div>}
         </div>

@@ -1,0 +1,160 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Fietsenstallingen API
+
+Version: 1.0
+
+Base Path: `/api/fietsenstallingen`
+
+## Routes
+
+### 1. List Fietsenstallingen
+
+**Method**: GET  
+**Path**: `/`  
+**Description**: Get a list of all fietsenstallingen
+
+#### Parameters
+- References general.yaml pagination parameters
+- References general.yaml sorting parameters
+- References general.yaml filtering parameters
+
+#### Responses
+
+##### 200 OK
+**Description**: List of fietsenstallingen
+
+**Schema**:
+```json
+{
+  "data": [Fietsenstalling],
+  "meta": {
+    // References general.yaml meta schema
+  }
+}
+```
+
+### 2. Get Fietsenstalling
+
+**Method**: GET  
+**Path**: `/{id}`  
+**Description**: Get a single fietsenstalling by ID
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Fietsenstalling ID |
+
+#### Responses
+
+##### 200 OK
+**Description**: Fietsenstalling details  
+**Schema**: Fietsenstalling
+
+##### 404 Not Found
+**Description**: Fietsenstalling not found
+
+### 3. Create Fietsenstalling
+
+**Method**: POST  
+**Path**: `/`  
+**Description**: Create a new fietsenstalling
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| body | body | true | object | FietsenstallingInput |
+
+#### Responses
+
+##### 201 Created
+**Description**: Fietsenstalling created  
+**Schema**: Fietsenstalling
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+### 4. Update Fietsenstalling
+
+**Method**: PUT  
+**Path**: `/{id}`  
+**Description**: Update an existing fietsenstalling
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Fietsenstalling ID |
+| body | body | true | object | FietsenstallingInput |
+
+#### Responses
+
+##### 200 OK
+**Description**: Fietsenstalling updated  
+**Schema**: Fietsenstalling
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+##### 404 Not Found
+**Description**: Fietsenstalling not found
+
+### 5. Delete Fietsenstalling
+
+**Method**: DELETE  
+**Path**: `/{id}`  
+**Description**: Delete a fietsenstalling
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Fietsenstalling ID |
+
+#### Responses
+
+##### 204 No Content
+**Description**: Fietsenstalling deleted
+
+##### 404 Not Found
+**Description**: Fietsenstalling not found
+
+## Definitions
+
+### Fietsenstalling
+
+| Property | Type | Description |
+|----------|------|-------------|
+| ID | string | Unique identifier |
+| StallingsID | string | External stallings ID |
+| SiteID | string | Associated site ID |
+| Title | string | Title of the fietsenstalling |
+| Description | string | Detailed description |
+| Location | string | Physical location |
+| Postcode | string | Postal code |
+| Plaats | string | City |
+| Capacity | integer | Total capacity |
+| Status | string | Current status |
+| Type | string | Type of fietsenstalling |
+| ExploitantID | string | ID of the exploitant |
+
+### FietsenstallingInput
+
+#### Required Fields
+- StallingsID
+- Title
+- Location
+
+#### Properties
+| Property | Type | Description |
+|----------|------|-------------|
+| StallingsID | string | External stallings ID |
+| Title | string | Title of the fietsenstalling |
+| Description | string | Detailed description |
+| Location | string | Physical location |
+| Postcode | string | Postal code |
+| Plaats | string | City |
+| Capacity | integer | Total capacity |
+| Type | string | Type of fietsenstalling |
+| ExploitantID | string | ID of the exploitant |

@@ -5,7 +5,7 @@ import { getParkingColor } from "~/utils/theme";
 import { openRoute } from "~/utils/map/index";
 
 import { formatOpeningToday } from "~/utils/parkings-openclose";
-import type { ParkingDetailsType } from "~/types/";
+import type { ParkingDetailsType } from "~/types/parking";
 
 import Styles from "./ParkingFacilityBlock.module.css";
 
@@ -151,7 +151,7 @@ function ParkingFacilityBlock({
                 href="#"
                 className="text-sm text-gray-500 underline p-1 inline-block"
               >
-                meer informatie2
+                meer informatie
               </a>
             </div>}
           </div>
@@ -201,7 +201,7 @@ function ParkingFacilityBlock({
                     }
                   }}
                   href="#"
-                  className="text-sm text-gray-500 underline px-1 py-2 inline-block -px-1 -my-2"
+                  className="whitespace-nowrap text-sm text-gray-500 underline px-1 py-2 inline-block -px-1 -my-2"
                 >
                   meer informatie
                 </a>
