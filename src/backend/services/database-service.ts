@@ -1,7 +1,7 @@
-import { getTransactionCacheStatus, updateTransactionCache, clearTransactionCache, createTransactionCacheTable, dropTransactionCacheTable } from "~/backend/services/database/TransactionsCacheActions";
-import { getBezettingCacheStatus, updateBezettingCache, clearBezettingCache, createBezettingCacheTable, dropBezettingCacheTable } from "~/backend/services/database/BezettingCacheActions";
-import { getStallingsduurCacheStatus, updateStallingsduurCache, clearStallingsduurCache, createStallingsduurCacheTable, dropStallingsduurCacheTable } from "~/backend/services/database/StallingsduurCacheActions";
-export type CacheActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status';
+import { getTransactionCacheStatus, updateTransactionCache, clearTransactionCache, createTransactionCacheTable, dropTransactionCacheTable, createTransactionParentIndices, dropTransactionParentIndices } from "~/backend/services/database/TransactionsCacheActions";
+import { getBezettingCacheStatus, updateBezettingCache, clearBezettingCache, createBezettingCacheTable, dropBezettingCacheTable, createBezettingParentIndices, dropBezettingParentIndices } from "~/backend/services/database/BezettingCacheActions";
+import { getStallingsduurCacheStatus, updateStallingsduurCache, clearStallingsduurCache, createStallingsduurCacheTable, dropStallingsduurCacheTable, createStallingsduurParentIndices, dropStallingsduurParentIndices } from "~/backend/services/database/StallingsduurCacheActions";
+export type CacheActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status' | 'createparentindices' | 'dropparentindices';
 
 export interface CacheResult {
   success: boolean;
@@ -20,6 +20,8 @@ export interface CacheParams {
 
 export interface CacheStatus {
   status: 'missing' | 'available' | 'error';
+
+  indexstatus: 'missing' | 'available' | 'error';
 
   // stats for the cache table
   size: number | undefined;
@@ -55,6 +57,14 @@ const DatabaseService = {
         const status = await dropTransactionCacheTable(params);
         return { success: status!==undefined, message: "", status };
       }
+      case 'createparentindices': {
+        const status = await createTransactionParentIndices(params);
+        return { success: status!==undefined, message: "", status  };
+      }
+      case 'dropparentindices': {
+        const status = await dropTransactionParentIndices(params);
+        return { success: status!==undefined, message: "", status };
+      }
       default: {
         return { success: false, message: "Invalid action" };
       }
@@ -82,6 +92,14 @@ const DatabaseService = {
         const status = await dropBezettingCacheTable(params);
         return { success: status!==undefined, message: "", status };
       }
+      case 'createparentindices': {
+        const status = await createBezettingParentIndices(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'dropparentindices': {
+        const status = await dropBezettingParentIndices(params);
+        return { success: status!==undefined, message: "", status };
+      }
       default: {
         return { success: false, message: "Invalid action" };
       }
@@ -107,6 +125,14 @@ const DatabaseService = {
       }
       case 'droptable': { // TODO: remove when this table has been implemented in the prisma scripts and primary database
         const status = await dropStallingsduurCacheTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'createparentindices': {
+        const status = await createStallingsduurParentIndices(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'dropparentindices': {
+        const status = await dropStallingsduurParentIndices(params);
         return { success: status!==undefined, message: "", status };
       }
       default: {

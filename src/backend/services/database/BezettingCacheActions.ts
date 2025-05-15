@@ -2,12 +2,23 @@ import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
+import { type IndicesInfo, getParentIndicesStatus, dropParentIndices, createParentIndices } from "./cachetools";
+
+const cacheInfo: IndicesInfo = {
+  basetable: 'bezettingsdata',
+  indices: {
+    idx_bezettingcache_1: `timestamp, bikeparkID, sectionID, source, fillup, open`,
+    idx_bezettingcache_2: `bikeparkID, timestamp`,
+  },
+};
+
 export const getBezettingCacheStatus = async (params: CacheParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'bezettingsdata_day_hour_cache'`;
 
   let tableExists = false;
   let status: CacheStatus | false = {
     status: 'missing',
+    indexstatus: 'missing',
     size: undefined,
     firstUpdate: undefined,
     lastUpdate: undefined,
@@ -16,7 +27,10 @@ export const getBezettingCacheStatus = async (params: CacheParams) => {
     originalLastUpdate: undefined
   };
 
+
   try {
+    status.indexstatus = await getParentIndicesStatus(cacheInfo);
+
     const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable);
     tableExists = result && result.length > 0 && result[0] ? result[0].count > 0 : false;
     if (tableExists) {
@@ -46,14 +60,14 @@ export const getBezettingCacheStatus = async (params: CacheParams) => {
 }
 
 export const updateBezettingCache = async (params: CacheParams) => {
-  console.log("UPDATE BEZETTING CACHE");
+  // console.log("UPDATE BEZETTING CACHE");
 
   if (false === await clearBezettingCache(params)) {
     console.error(">>> updateBezettingCache ERROR Unable to clear bezettingsdata cache");
     return false;
   }
 
-  const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
+  const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate, undefined);
 
   if (adjustedStartDate === undefined) {
     console.error(">>> updateBezettingCache ERROR Start date is undefined", params);
@@ -110,14 +124,14 @@ export const updateBezettingCache = async (params: CacheParams) => {
       fillup,
       open;`;
 
-  console.log("++++++++++++++++++++++")
-  console.log(sql);
+  // console.log("++++++++++++++++++++++")
+  // console.log(sql);
     /* const result = */ await prisma.$executeRawUnsafe(sql);
   return getBezettingCacheStatus(params);
 }
 
 export const clearBezettingCache = async (params: CacheParams) => {
-  console.log(params);
+  // console.log(params);
 
   if (!params.allDates && !params.startDate) {
     console.error(">>> clearTransactionCache ERROR No start date provided");
@@ -201,3 +215,21 @@ export const dropBezettingCacheTable = async (params: CacheParams) => {
 
   return getBezettingCacheStatus(params);
 } 
+
+export const dropBezettingParentIndices = async (params: CacheParams) => {
+  const success = await dropParentIndices(cacheInfo);
+  if(!success) {
+      console.error("Unable to drop bezetting parent indices", success);
+      return false;
+  }
+  return getBezettingCacheStatus(params);
+}
+
+export const createBezettingParentIndices = async (params: CacheParams) => {
+  const success = await createParentIndices(cacheInfo);
+  if(!success) {
+      console.error("Unable to create bezetting parent indices", success);
+      return false;
+  }
+  return getBezettingCacheStatus(params);
+}
