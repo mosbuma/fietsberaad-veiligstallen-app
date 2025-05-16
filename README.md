@@ -36,6 +36,8 @@ For development purposes:
 
 ## Deploying the app
 
+TODO Document new deployment process
+
 The app is deployed to a test server at the moment: https://beta.veiligstallen.nl/
 
 Deploy a new version using these commands:
