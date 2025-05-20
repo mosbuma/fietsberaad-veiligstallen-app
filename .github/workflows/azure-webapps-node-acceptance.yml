@@ -58,6 +58,7 @@ jobs:
           NEXTAUTH_URL: ${{vars.ACC_NEXTAUTH_URL}}
           NEXT_PUBLIC_MAPBOX_TOKEN: ${{vars.ACC_NEXT_PUBLIC_MAPBOX_TOKEN}}
         run: |
+          npx prisma generate
           npm install
           npm run build
           mv ./build/static ./build/standalone/build
