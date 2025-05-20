@@ -63,6 +63,11 @@ if (!!process.env.SKIP_ENV_VALIDATION == false) {
     throw new Error("Invalid environment variables");
   }
 
+  if(env === undefined) {
+    console.error("❌ env is undefined");
+    throw new Error("env is undefined");
+  }
+
   env = new Proxy(parsed.data, {
     get(target, prop) {
       if (typeof prop !== "string") return undefined;
