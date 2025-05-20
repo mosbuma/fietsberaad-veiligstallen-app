@@ -77,7 +77,7 @@
   },
   "devDependencies": {
     "@prisma-korea/prisma-generator-proto": "^2.3.2",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.8.2",
     "@types/bcrypt": "^5.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/eslint": "^8.21.3",
