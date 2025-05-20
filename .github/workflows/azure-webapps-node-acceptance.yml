@@ -60,9 +60,11 @@ jobs:
         run: |
           npm install
           npx prisma generate
-          ls -la ../node_modules/.prisma/client
+          ls -la
           npm run build
           mv ./build/static ./build/standalone/build
+          ls -la ./build/standalone
+          ls -la ./build/standalone/build
           mv ./public ./build/standalone
 
       - name: "Deploy to Azure Web App"
