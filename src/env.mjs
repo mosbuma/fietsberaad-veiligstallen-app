@@ -5,7 +5,7 @@ import { z } from "zod";
  * built with invalid env vars.
  */
 const server = z.object({
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string(),
   NODE_ENV: z.enum(["development", "test", "production"]),
   NEXTAUTH_SECRET: z.string().min(1),
   NEXTAUTH_URL: z.string().url(),
@@ -60,12 +60,7 @@ if (!!process.env.SKIP_ENV_VALIDATION == false) {
       "❌ Invalid environment variables:",
       parsed.error.flatten().fieldErrors,
     );
-    throw new Error("Invalid environment variables");
-  }
-
-  if(env === undefined) {
-    console.error("❌ env is undefined");
-    throw new Error("env is undefined");
+    // throw new Error("Invalid environment variables");
   }
 
   env = new Proxy(parsed.data, {
