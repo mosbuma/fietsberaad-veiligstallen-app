@@ -64,10 +64,8 @@ jobs:
           ls -la ./src
           echo "DIR node_modules"
           ls -la ./node_modules
-          echo "DIR prisma"
-          ls -la ./node_modules/prisma
-          echo "DIR prisma/client"
-          ls -la ./node_modules/prisma/client
+          echo "DIR .prisma"
+          ls -la ./node_modules/.prisma
           npm run build
           mv ./build/static ./build/standalone/build
           ls -la ./build/standalone
