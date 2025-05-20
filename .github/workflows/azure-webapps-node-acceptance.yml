@@ -61,7 +61,7 @@ jobs:
           npm install
           npx prisma generate
           echo "DIR ./src"
-          ls -la ./
+          ls -la ./src
           echo "DIR node_modules"
           ls -la ./node_modules
           echo "DIR prisma"
