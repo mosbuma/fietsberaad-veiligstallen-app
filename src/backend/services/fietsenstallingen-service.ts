@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import type { fietsenstallingen, fietsenstalling_sectie, sectie_fietstype } from "@prisma/client";
+import type { fietsenstallingen, fietsenstalling_sectie, sectie_fietstype } from "~/generated/prisma-client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
 // 

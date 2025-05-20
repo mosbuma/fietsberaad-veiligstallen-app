@@ -1,4 +1,4 @@
-import { modules } from "@prisma/client";
+import { modules } from "~/generated/prisma-client";
 
 export type VSModule = Pick<modules, "ID" | "Name">;
 

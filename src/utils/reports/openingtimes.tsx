@@ -1,4 +1,4 @@
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen } from "~/generated/prisma-client";
 import { ReportContent } from "./types";
 import { ParkingDetailsType } from "~/types/parking";
 import moment from "moment";

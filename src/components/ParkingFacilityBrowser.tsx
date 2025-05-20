@@ -7,7 +7,7 @@ import { setMunicipalities } from "~/store/geoSlice";
 import { useSession } from "next-auth/react";
 
 import { convertCoordinatenToCoords } from "~/utils/map/index";
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen } from "~/generated/prisma-client";
 
 import {
   getMunicipalities

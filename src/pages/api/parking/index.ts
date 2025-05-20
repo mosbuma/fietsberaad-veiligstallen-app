@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import {
   Prisma,
   type fietsenstallingen,
-} from "@prisma/client";
+} from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
 import { ParkingDetailsType, selectParkingDetailsType } from "~/types/parking";
 

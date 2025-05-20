@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-// import { Prisma } from "@prisma/client";
+// import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {

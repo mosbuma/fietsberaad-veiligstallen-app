@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen } from "~/generated/prisma-client";
 import { AppState } from "~/store/store";
 import { type VSArticle } from "~/types/articles";
 
@@ -35,7 +35,7 @@ const ArticleComponent = ({isSm, municipality, page, fietsenstallingen, onFilter
     (async () => {
       try {
         const response = await fetch(
-          `/api/articles/?Title=${page}&SiteID=${municipality}&findFirst=true`
+          `/api/protected/?Title=${page}&SiteID=${municipality}&findFirst=true`
         );
         const json = await response.json();
         if (!json) return;

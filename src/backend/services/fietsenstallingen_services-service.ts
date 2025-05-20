@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
-import type { fietsenstallingen_services } from "@prisma/client";
+import type { fietsenstallingen_services } from "~/generated/prisma-client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
 // inspired by https://medium.com/@brandonlostboy/build-it-better-next-js-crud-api-b45d2e923896

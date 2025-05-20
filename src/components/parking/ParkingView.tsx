@@ -18,7 +18,7 @@ import ParkingViewBeheerder from "~/components/parking/ParkingViewBeheerder";
 import ParkingViewServices from "~/components/parking/ParkingViewServices";
 
 import { type ParkingDetailsType } from "~/types/parking";
-import type { fietsenstallingen, contacts } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
 import { createVeiligstallenOrgOpwaardeerLinkForMunicipality } from "~/utils/parkings";
 
 
