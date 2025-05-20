@@ -2,6 +2,15 @@ import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
+import { type IndicesInfo, getParentIndicesStatus, dropParentIndices, createParentIndices } from "./cachetools";
+
+const cacheInfo: IndicesInfo = {
+  basetable: 'transacties_archief',
+  indices: {
+    idx_transactionscache_1: `locationID, checkoutdate, checkintype, checkouttype, checkindate`,
+    idx_transactionscache_2: `sectionID, clienttypeID`,
+  },
+};
 
 export const getTransactionCacheStatus = async (params: CacheParams) => {
     const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'transacties_archief_day_cache'`
@@ -9,6 +18,7 @@ export const getTransactionCacheStatus = async (params: CacheParams) => {
     let tableExists = false;
     let status: CacheStatus | false = { 
         status: 'missing', 
+        indexstatus: 'missing',
         size: undefined, 
         firstUpdate: undefined, 
         lastUpdate: undefined, 
@@ -17,8 +27,11 @@ export const getTransactionCacheStatus = async (params: CacheParams) => {
         originalLastUpdate: undefined 
     };
     try {
+        status.indexstatus = await getParentIndicesStatus(cacheInfo);
+
         const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable); //  as 
         tableExists = result && result.length>0 && result[0] ? result[0].count > 0: false;
+
         if(tableExists) {
             status.status = 'available';
 
@@ -52,7 +65,7 @@ export const updateTransactionCache = async (params: CacheParams) => {
         return false;
     }
 
-    const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
+    const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate, undefined);
 
     if(adjustedStartDate === undefined) {
         console.error(">>> updateTransactionCache ERROR Start date is undefined");
@@ -120,7 +133,7 @@ export const createTransactionCacheTable = async (params: CacheParams) => {
         PRIMARY KEY (ID)
     );`;
 
-    const sqlCreateIndex = `CREATE INDEX idx_location_date IF NOT EXISTS ON transacties_archief_day_cache (locationID, checkoutdate);`
+    const sqlCreateIndex = `CREATE INDEX idx_location_date ON transacties_archief_day_cache (locationID, checkoutdate);`
 
     const result1 = await prisma.$queryRawUnsafe(sqlCreateTable);
     if(!result1) {
@@ -143,6 +156,26 @@ export const dropTransactionCacheTable = async (params: CacheParams) => {
     const result = await prisma.$queryRawUnsafe(sql);
     if(!result) {
         console.error("Unable to drop transactions_cache table",result);
+        return false;
+    }
+
+    return getTransactionCacheStatus(params);
+}
+
+export const dropTransactionParentIndices = async (params: CacheParams) => {
+    const success = await dropParentIndices(cacheInfo);
+    if(!success) {
+        console.error("Unable to drop transaction parent indices", success);
+        return false;
+    }
+
+    return getTransactionCacheStatus(params);
+}
+
+export const createTransactionParentIndices = async (params: CacheParams) => {
+    const success = await createParentIndices(cacheInfo);
+    if(!success) {
+        console.error("Unable to create transaction parent indices", success);
         return false;
     }
 

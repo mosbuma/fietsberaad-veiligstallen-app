@@ -7,7 +7,7 @@ const dateSchema = z.string().datetime();
 
 const CacheParamsSchema = z.object({
   databaseParams: z.object({
-    action: z.enum(['clear', 'rebuild', 'status', 'createtable', 'droptable', 'update']),
+    action: z.enum(['clear', 'rebuild', 'status', 'createtable', 'droptable', 'update', 'createparentindices', 'dropparentindices']),
     startDate: dateSchema.datetime(),
     endDate: dateSchema.datetime(),
     selectedBikeparkIDs: z.array(z.string()),
@@ -41,7 +41,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
             });
           }
 
-          const params = parseResult.data.databaseParams as CacheParams;
+          const params = parseResult.data.databaseParams as unknown as CacheParams;
           const result = req.query.actionType === "transactionscache"
             ? await DatabaseService.manageTransactionCache(params)
             : req.query.actionType === "bezettingencache"

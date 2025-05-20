@@ -2,6 +2,15 @@ import { prisma } from "~/server/db";
 import { CacheParams, CacheStatus } from "~/backend/services/database-service";
 import moment from "moment";
 import { getAdjustedStartEndDates } from "~/components/beheer/reports/ReportsDateFunctions";
+import { type IndicesInfo, getParentIndicesStatus, dropParentIndices, createParentIndices } from "./cachetools";
+
+const cacheInfo: IndicesInfo = {
+  basetable: 'transacties_archief',
+  indices: {
+    idx_stallingduurcache_1: `locationID, checkoutdate, sectionID, clienttypeID`,
+    idx_stallingduurcache_2: `checkindate, checkoutdate`,
+  },
+};
 
 export const getStallingsduurCacheStatus = async (params: CacheParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'stallingsduur_cache'`
@@ -9,6 +18,7 @@ export const getStallingsduurCacheStatus = async (params: CacheParams) => {
   let tableExists = false;
   let status: CacheStatus | false = {
     status: 'missing',
+    indexstatus: 'missing',
     size: undefined,
     firstUpdate: undefined,
     lastUpdate: undefined,
@@ -16,7 +26,11 @@ export const getStallingsduurCacheStatus = async (params: CacheParams) => {
     originalFirstUpdate: undefined,
     originalLastUpdate: undefined
   };
+
+
   try {
+    status.indexstatus = await getParentIndicesStatus(cacheInfo);
+
     const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable); //  as 
     tableExists = result && result.length > 0 && result[0] ? result[0].count > 0 : false;
     if (tableExists) {
@@ -52,7 +66,7 @@ export const updateStallingsduurCache = async (params: CacheParams) => {
     return false;
   }
 
-  const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate);
+  const { timeIntervalInMinutes, adjustedStartDate } = getAdjustedStartEndDates(params.startDate, params.endDate, undefined);
 
   if (adjustedStartDate === undefined) {
     console.error(">>> updateStallingsduurCache ERROR Start date is undefined");
@@ -75,16 +89,16 @@ export const updateStallingsduurCache = async (params: CacheParams) => {
 
   const calculateBucketItems = []
   calculateBucketItems.push(`  CASE`);
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 14 * 24 * 60 THEN 10`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 14 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 7 * 24 * 60 THEN 9`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 7 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 2 * 24 * 60 THEN 8`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 2 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 1 * 24 * 60 THEN 7`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 8 * 60 THEN 6`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 8 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 4 * 60 THEN 5`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 4 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 2 * 60 THEN 4`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 2 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 1 * 60 THEN 3`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 30 THEN 2`);[]
-  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 30 THEN 1`);[]
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 14 * 24 * 60 THEN 10`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 14 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 7 * 24 * 60 THEN 9`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 7 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 2 * 24 * 60 THEN 8`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 2 * 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 1 * 24 * 60 THEN 7`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 24 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 8 * 60 THEN 6`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 8 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 4 * 60 THEN 5`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 4 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 2 * 60 THEN 4`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 2 * 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 1 * 60 THEN 3`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 60 AND TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) > 30 THEN 2`);
+  calculateBucketItems.push(`    WHEN TIMESTAMPDIFF(MINUTE, checkindate, checkoutdate) <= 30 THEN 1`);
   calculateBucketItems.push(`    ELSE 'Unknown' END`);
   const sqlCalculateBucket = calculateBucketItems.join('\n');
 
@@ -184,6 +198,26 @@ export const dropStallingsduurCacheTable = async (params: CacheParams) => {
   if (!result) {
     console.error("Unable to drop transactions_cache table", result);
     return false;
+  }
+
+  return getStallingsduurCacheStatus(params);
+}
+
+export const dropStallingsduurParentIndices = async (params: CacheParams) => {
+  const success = await dropParentIndices(cacheInfo);
+  if(!success) {
+      console.error("Unable to drop stallingsduur parent indices", success);
+      return false;
+  }
+
+  return getStallingsduurCacheStatus(params);
+}
+
+export const createStallingsduurParentIndices = async (params: CacheParams) => {
+  const success = await createParentIndices(cacheInfo);
+  if(!success) {
+      console.error("Unable to create stallingsduur parent indices", success);
+      return false;
   }
 
   return getStallingsduurCacheStatus(params);

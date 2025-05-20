@@ -121,8 +121,6 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
 }) => {
   const selectClasses = "min-w-56 h-10 p-2 border-2 border-gray-300 rounded-md";
 
-  console.log('*** ReportsFilterComponent - bikeparks', bikeparks);
-
   // Load initial state from localStorage or use defaults
   const loadInitialState = () => {
     const savedState = localStorage.getItem(STORAGE_KEY);

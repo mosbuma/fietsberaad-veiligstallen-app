@@ -33,7 +33,9 @@ yarn-error.log*
 # local env files
 # do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
 .env
-.env*.local
+.env*.*
+#do not exclude all .env*.example files
+!*.env*.example
 
 # vercel
 .vercel
@@ -59,3 +61,10 @@ mysql-db/export-db.zip
 
 #auto generated test scripts
 create-test-user.sql
+
+#temporary files
+/broncode
+debug.log
+
+#temporary files
+TESTQUERIES.sql
