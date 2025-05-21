@@ -52,7 +52,7 @@ import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 import { Session } from "next-auth";
 import ArticleComponent from "./ArticleComponent";
-import { fietsenstallingen } from "@prisma/client";
+import { fietsenstallingen } from "~/generated/prisma-client";
 import InfomodalComponent from "./InfomodalComponent";
 
 interface HomeComponentProps {

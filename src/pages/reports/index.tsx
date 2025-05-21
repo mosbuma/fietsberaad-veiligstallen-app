@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from "next-auth/next"
 import { type Session } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import type { fietsenstallingen, contacts } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
 import moment from "moment";
 
 import { getParkingsFromDatabase } from "~/utils/prisma";

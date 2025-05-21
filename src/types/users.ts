@@ -1,4 +1,4 @@
-import type { security_users, security_users_sites, security_roles } from "@prisma/client";
+import type { security_users, security_users_sites, security_roles } from "~/generated/prisma-client";
 import type { VSUserSecurityProfile, VSUserSecurityProfileCompact } from "~/types/";
 
 export enum VSUserGroupValues {

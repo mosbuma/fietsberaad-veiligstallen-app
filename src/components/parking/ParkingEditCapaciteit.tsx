@@ -6,7 +6,7 @@ import { ParkingDetailsType, ParkingSectionPerBikeType, ParkingSections } from '
 import {
   getAllFietstypen
 } from "~/utils/parkings";
-import { fietstypen } from "@prisma/client";
+import { fietstypen } from "~/generated/prisma-client";
 
 export type CapaciteitType = { ID: string, Name: string };
 

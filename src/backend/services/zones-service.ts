@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import { zones } from "@prisma/client";
+import { zones } from "~/generated/prisma-client";
 import { ICrudService } from "~/backend/handlers/crud-service-interface";
 
 // inspired by https://medium.com/@brandonlostboy/build-it-better-next-js-crud-api-b45d2e923896

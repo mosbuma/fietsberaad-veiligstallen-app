@@ -1,6 +1,6 @@
-import Prisma from "@prisma/client"
+import Prisma from "~/generated/prisma-client"
 import { prisma } from "~/server/db";
-import type { contacts } from "@prisma/client";
+import type { contacts } from "~/generated/prisma-client";
 import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
 // export default async function handle(req: NextApiRequest, res: NextApiResponse) {

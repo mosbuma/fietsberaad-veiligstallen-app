@@ -1,4 +1,4 @@
-import type { fietsenstallingtypen, abonnementsvormen, fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingtypen, abonnementsvormen, fietsenstallingen } from "~/generated/prisma-client";
 
 export type VSParking = Pick<fietsenstallingen,
 "ID" | 

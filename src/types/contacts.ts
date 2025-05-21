@@ -1,4 +1,4 @@
-import type { contacts } from "@prisma/client";
+import type { contacts } from "~/generated/prisma-client";
 import type { VSParking } from "~/types/parking";
 import type { VSModule } from "~/types/modules";
 

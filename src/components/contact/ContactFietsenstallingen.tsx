@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { fietsenstallingtypen } from "@prisma/client";
+import type { fietsenstallingtypen } from "~/generated/prisma-client";
 import type { VSContact } from "~/types/contacts";
 import type { VSParking } from "~/types/parking";
 

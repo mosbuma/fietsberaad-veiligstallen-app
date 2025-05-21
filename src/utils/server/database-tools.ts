@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
 import type { NextApiRequest } from "next";
 import { type VSUserWithRoles, securityUserSelect } from "~/types/users";

@@ -3,7 +3,7 @@ import { Session } from "next-auth";
 import { reverseGeocode } from "~/utils/nomatim";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 import type { VSservice } from "~/types/services";
-import type { fietsenstallingen, contacts } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
 import type { ParkingDetailsType } from "~/types/parking";
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {

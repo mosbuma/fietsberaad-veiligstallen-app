@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
-import type { fietsenstallingen } from "@prisma/client";
+import type { fietsenstallingen } from "~/generated/prisma-client";
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { Session } from "next-auth";
 
