@@ -7,11 +7,35 @@ import { setActiveArticle } from "~/store/appSlice";
 import { VSArticle } from "~/types/articles";
 
 import {
-  // getNavigationItemsForMunicipality,
   getArticlesForMunicipality,
   filterNavItems,
   getFooter
 } from "~/utils/navigation";
+
+const FooterNavItem = ({
+  url,
+  children,
+  className
+}: {
+  url?: string,
+  children: any,
+  className?: string,
+}) => {
+  const { push } = useRouter();
+
+  return <a href={url} className={`
+    ${className}
+    mx-2
+  `}
+    onClick={(e) => {
+      e.preventDefault();
+
+      push(url);
+    }}
+  >
+    {children}
+  </a>
+}
 
 const FooterNavItemClick = ({
   onClick,
@@ -33,6 +57,68 @@ const FooterNavItemClick = ({
 }
 
 const FooterNav = ({ onStallingAanmelden, children }: {
+  onStallingAanmelden?: () => void,
+  children?: any
+}) => {
+  const { data: session } = useSession()
+
+  const [fietsberaadArticles, setFietsberaadArticles] = useState([]);
+
+  // Get menu items for siteId 1 (Fietsberaad)
+  useEffect(() => {
+    (async () => {
+      const response = await getArticlesForMunicipality(1);
+      setFietsberaadArticles(response);
+    })();
+  }, []);
+
+  const navItemsPrimary = [
+    // { title: 'Stalling toevoegen' },
+    { title: 'Over Veilig Stallen', url: '/fietsberaad/Copyright' },
+  ];
+
+  const footerMenuItems = getFooter(fietsberaadArticles);
+
+  return (
+    <div className="
+      fixed
+      bottom-0
+      right-0
+      bg-white
+      py-3
+      px-2
+      rounded-t-xl
+      flex
+      text-xs
+      z-10
+    ">
+      {!session ?
+        <FooterNavItemClick
+          onClick={() => { onStallingAanmelden && onStallingAanmelden() }}
+          className="cursor-pointer font-bold">
+          Stalling aanmelden
+        </FooterNavItemClick> : null}
+
+      {navItemsPrimary.map(x => <FooterNavItem
+        key={x.title}
+        url={x.url}
+        className="font-bold"
+      >
+        {x.title}
+      </FooterNavItem>)}
+
+      {footerMenuItems ? footerMenuItems.map((x, idx) => <FooterNavItem
+        key={'pmi-f-' + idx}
+        url={`/fietsberaad/${x.Title ? x.Title : ''}`}
+      >
+        {x.DisplayTitle ? x.DisplayTitle : (x.Title ? x.Title : '')}
+      </FooterNavItem>) : ''}
+
+    </div>
+  );
+}
+
+const FooterNav_overlay = ({ onStallingAanmelden, children }: {
   onStallingAanmelden?: () => void,
   children?: any
 }) => {
