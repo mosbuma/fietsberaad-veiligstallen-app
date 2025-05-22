@@ -156,14 +156,14 @@ function AppHeaderDesktop({
             targetmunicipality={articlemunicipality}
             targetpage={articlepage}
             title={''}
-            // url={'/'}
+            url={'/'}
           />}
           {primaryMenuItems ? primaryMenuItems.map((x: VSArticle, idx: number) => <PrimaryMenuItem
             key={'pmi-h1-' + idx}
             targetmunicipality={x.SiteID}
             targetpage={x.Title}
             title={x.DisplayTitle ? x.DisplayTitle : x.Title}
-            // url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
+            url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
           />) : ''}
           <div className="
           " style={{
@@ -189,6 +189,7 @@ function AppHeaderDesktop({
               targetmunicipality={x.SiteID}
               targetpage={x.Title}
               title={x.DisplayTitle}
+              url={`/${(mapZoom >= 12 && activeMunicipalityInfo) ? activeMunicipalityInfo.UrlName : 'fietsberaad'}/${x.Title ? x.Title : ''}`}
               onClick={() => {
                 dispatch(setActiveArticle({
                   articleTitle: x.Title,

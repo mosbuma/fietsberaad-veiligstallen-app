@@ -48,6 +48,7 @@ const getParkingsFromDatabase = async (sites: string[] | undefined, session: Ses
       }
       if (prop instanceof Prisma.Decimal) {
         delete obj[key];
+        // obj[key] = Number(prop);
       }
     });
     return obj;

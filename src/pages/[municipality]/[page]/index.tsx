@@ -7,12 +7,12 @@ import type { fietsenstallingen } from "~/generated/prisma-client";
 import { getParkingsFromDatabase } from "~/utils/prisma";
 import { Session } from "next-auth";
 
-import HomeComponent from "~/components/HomeComponent";
+// import HomeComponent from "~/components/HomeComponent";
+import Content from "../../content";
 
 export const getServerSideProps = async (context: any) => {
     try {
         const { municipality, page } = context.params as { municipality: string[]|string, page: string[]|string };
-        console.log("MunicipalitySlug - got municipality from context:", municipality);
 
         const session: Session | null = await getServerSession(
             context.req,
@@ -50,7 +50,8 @@ export const getServerSideProps = async (context: any) => {
 
   const MunicipalitySlug: NextPage = ( props : any) => {
     console.log(`rendering page ${props.url_municipalitypage} for municipality ${props.url_municipality}`);
-    return <HomeComponent {...props} />;
+    // return <HomeComponent {...props} />;
+    return <Content {...props} />;
   }
 
   export const metadata: Metadata = {
