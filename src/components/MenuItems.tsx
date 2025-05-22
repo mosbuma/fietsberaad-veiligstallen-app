@@ -2,51 +2,51 @@ import { useDispatch } from "react-redux";
 import { setActiveArticle } from "~/store/appSlice";
 
 export interface MenuItem {
-    municipality: string;
-    page: string;
-    title: string;
+  municipality: string;
+  page: string;
+  title: string;
 }
 
 export interface MenuItemProps {
-    targetmunicipality: string;
-    targetpage: string;
-    title?: string;
-    icon?: string;
-    onClick?: () => void;
+  targetmunicipality: string;
+  targetpage: string;
+  title?: string;
+  icon?: string;
+  onClick?: () => void;
 }
 
 export const PrimaryMenuItem = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-    return <div className={`
-        PrimaryMenuItem
-        px-5
-        `}>
-        <a href="" className="flex flex-col justify-center h-full" onClick={(e) => {
-        e.preventDefault();
+  return <div className={`
+    PrimaryMenuItem
+    px-5
+  `}>
+    <a href="" className="flex flex-col justify-center h-full" onClick={(e) => {
+      e.preventDefault();
 
-        // console.debug("#### AppHeaderDesktop - PrimaryMenuItem - set active article ", title);
-        dispatch(setActiveArticle({municipality: targetmunicipality, articleTitle: targetpage}));
-        }}>
-        {icon ? <img src={icon} style={{ height: '30px' }} /> : ''}
-        {title}
-        </a>
-    </div>
+      // console.debug("#### AppHeaderDesktop - PrimaryMenuItem - set active article ", title);
+      dispatch(setActiveArticle({municipality: targetmunicipality, articleTitle: targetpage}));
+    }}>
+      {icon ? <img src={icon} style={{ height: '30px' }} /> : ''}
+      {title}
+    </a>
+  </div>
 }
 
 export const SecundaryMenuItem = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-return <div className="
+  return <div className="
     SecundaryMenuItem
     px-2
-">
+  ">
     <a href="#" className="flex flex-col justify-center h-full" onClick={(e) => {
-    e.preventDefault();
+      e.preventDefault();
 
-    dispatch(setActiveArticle({municipality: targetmunicipality, articleTitle: targetpage}));
+      dispatch(setActiveArticle({municipality: targetmunicipality, articleTitle: targetpage}));
     }}>
-    {title}
+      {title}
     </a>
-</div>
+  </div>
 }
