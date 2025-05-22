@@ -52,6 +52,7 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
   },
   create: async (_data: Partial<fietsenstallingen>): Promise<fietsenstallingen> => {
     try {
+      console.log("### create", _data);
       const createresult = await prisma.fietsenstallingen.create({ data: _data });
 
       if (createresult) {
@@ -112,9 +113,12 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
     _data: fietsenstallingen
   ): Promise<fietsenstallingen> => {
     try {
+      // Remove ID and SiteID from the data object as they need special handling
+      const { ID, SiteID, ...updateData } = _data;
+      
       const result = await prisma.fietsenstallingen.update({
         where: { ID: _id },
-        data: _data,
+        data: updateData
       });
 
       return result;
@@ -122,7 +126,6 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
       console.error("### update error", error);
       throw new Error("Update failed");
     }
-    // throw new Error("Function not implemented.");
   },
   delete: async (_id: string): Promise<fietsenstallingen> => {
     try {
