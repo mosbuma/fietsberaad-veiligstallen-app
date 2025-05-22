@@ -176,10 +176,10 @@ export const getNewStallingDefaultRecord = async (Status: string, latlong?: stri
     FMS: false,
     Beheerder: "",
     BeheerderContact: "",
-    SiteID: "",
+    SiteID: "1",
     DateCreated: new Date(),
     DateModified: new Date(),
-    ExploitantID: "",
+    ExploitantID: "1",
   }
 
   return data
