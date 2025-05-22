@@ -8,10 +8,14 @@ import {
   setMapExtent,
   setMapZoom,
   setMapVisibleFeatures,
-  setActiveMunicipality,
+  // setActiveMunicipality,
   setSelectedParkingId,
   setActiveParkingId,
 } from "~/store/mapSlice";
+
+import {
+  setActiveArticle,
+} from "~/store/appSlice";
 
 import { AppState } from "~/store/store";
 
@@ -548,13 +552,13 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
     // Calculate the center of this map view
     const center = turf.center(polygon);
     // Get active municipality
-    (async () => {
-      if (!center) return;
-      const activeMunicipality = await getActiveMunicipality(
-        center.geometry.coordinates
-      );
-      dispatch(setActiveMunicipality(activeMunicipality));
-    })();
+    // (async () => {
+    //   if (!center) return;
+    //   const activeMunicipality = await getActiveMunicipality(
+    //     center.geometry.coordinates
+    //   );
+    //   dispatch(setActiveMunicipalityInfo(activeMunicipality));
+    // })();
 
     // Set values in state
     const coordinates = [center.geometry.coordinates[0].toString(), center.geometry.coordinates[1].toString()]
@@ -569,6 +573,13 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
     <div
       ref={mapNode}
       style={{ width: "100vw", height: "100dvh", overflowY: "hidden" }}
+      onClick={() => {
+        dispatch(setActiveParkingId(undefined));
+        dispatch(setActiveArticle({
+          articleTitle: undefined,
+          municipality: undefined,
+        }));
+      }}
     />
   );
 }

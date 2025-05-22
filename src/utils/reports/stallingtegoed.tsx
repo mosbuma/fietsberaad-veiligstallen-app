@@ -1,6 +1,6 @@
-import type { fietsenstallingen, contacts } from "@prisma/client";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
 import { ReportContent } from "./types";
-import { ParkingDetailsType } from "~/types";
+import { ParkingDetailsType } from "~/types/parking";
 import { createVeiligstallenOrgOpwaardeerLinkForMunicipality, createVeiligstallenOrgLink } from "~/utils/parkings";
 
 export const createStallingtegoedReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean): Promise<ReportContent> => {

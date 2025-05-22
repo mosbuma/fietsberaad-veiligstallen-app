@@ -8,7 +8,6 @@ import Link from 'next/link'
 
 // Import components
 import Modal from "src/components/Modal";
-import AppNavigationMobile from "~/components/AppNavigationMobile";
 import {Button} from "~/components/Button";
 
 import {
@@ -44,7 +43,7 @@ function WelcomeToMunicipality({
         className="
           h-24
           mx-auto
-          -mt-16
+          -mt-2
         "
       />
     </div>

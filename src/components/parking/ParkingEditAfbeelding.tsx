@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ChangeEvent, MouseEvent, useState } from "react";
-import type { ParkingDetailsType } from "~/types/";
+import type { ParkingDetailsType } from "~/types/parking";
 import { Button } from "~/components/Button";
 import ImageSlider from "~/components/ImageSlider";
 

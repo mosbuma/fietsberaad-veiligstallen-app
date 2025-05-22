@@ -17,8 +17,8 @@ import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnemente
 import ParkingViewBeheerder from "~/components/parking/ParkingViewBeheerder";
 import ParkingViewServices from "~/components/parking/ParkingViewServices";
 
-import { type ParkingDetailsType } from "~/types/";
-import type { fietsenstallingen, contacts } from "@prisma/client";
+import { type ParkingDetailsType } from "~/types/parking";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
 import { createVeiligstallenOrgOpwaardeerLinkForMunicipality } from "~/utils/parkings";
 
 
@@ -26,6 +26,8 @@ import { getMunicipalities } from "~/utils/municipality";
 import { useDispatch, useSelector } from "react-redux";
 import { setMunicipalities } from "~/store/geoSlice";
 import type { AppState } from "~/store/store";
+import ReportComponent from "../beheer/reports";
+import { ReportBikepark } from "../beheer/reports/ReportsFilter";
 
 const ParkingView = ({
   parkingdata,
@@ -59,6 +61,20 @@ const ParkingView = ({
   }, []);
 
   useEffect(() => {
+    // All types:
+    // 'bewaakt',
+    // 'geautomatiseerd',
+    // 'toezicht',
+    // 'onbewaakt',
+    // 'buurtstalling',
+    // 'fietstrommel',
+    // 'fietskluizen'
+
+    if (parkingdata.Type !== "fietskluizen") {
+      setUrlOpwaarderen("");
+      return;
+    }
+
     if (!municipalities) {
       setUrlOpwaarderen("");
       return;
@@ -137,130 +153,171 @@ const ParkingView = ({
   </Button>
 
   return (
-    <div
-      className="
-    "
-    >
+    <>
       <div
         className="
-          sm:mr-8 flex
-          justify-between
-        "
+      "
       >
-        <PageTitle className="flex w-full justify-center sm:justify-start">
-          <div className="mr-4 hidden sm:block">{parkingdata?.Title}</div>
-          {onEdit !== undefined ? (
-            <Button
-              key="b-1"
-              className="mt-3 sm:mt-0 hidden sm:block"
-              onClick={(e: any) => {
-                if (e) e.preventDefault();
-                onEdit();
-              }}
-            >
-              Bewerken
-            </Button>
-          ) : null}
-          {isLoggedIn && onToggleStatus !== undefined && ["0", "1"].includes(parkingdata.Status) ? (
-            <Button
-              key="b-2"
-              className="mt-3 ml-3 sm:mt-0 hidden sm:block"
-              variant="secundary"
-              onClick={(e: any) => {
-                if (e) e.preventDefault();
-                onToggleStatus();
-              }}
-            >
-              {parkingdata.Status === "0" ? "Zichtbaar maken" : "Verbergen"}
-            </Button>
-          ) : null}
-        </PageTitle>
-      </div>
-      {parkingdata?.Description && <p className="mb-8">
-        {parkingdata?.Description}
-      </p>}
-
-
-      <div className="flex justify-between">
-        <div data-name="content-left" className="sm:mr-12">
-          {parkingdata.Image && (
-            <div className="mb-8">
-              <ImageSlider images={[parkingdata.Image]} />
-            </div>
-          )}
-
-          {renderAddress()}
-
-          {showOpening ? (
-            <ParkingViewOpening parkingdata={parkingdata} />
-          ) : null}
-
-          {showTarief ? <ParkingViewTarief parkingdata={parkingdata} /> : null}
-
-          <ParkingViewServices parkingdata={parkingdata} />
-
-          <ParkingViewCapaciteit parkingdata={parkingdata} />
-
-          <ParkingViewAbonnementen parkingdata={parkingdata} />
-
-          <SectionBlock heading="Soort stalling">
-            <div className="flex flex-col">
-              {parkingdata.Type || "Onbekend"}
-              {urlOpwaarderen !== "" ? buttonOpwaarderen : null}
-            </div>
-          </SectionBlock>
-
-          <HorizontalDivider className="my-4" />
-
-          <ParkingViewBeheerder parkingdata={parkingdata} />
-
-          {isLoggedIn && status !== '' ?
-            <>
-              <HorizontalDivider className="my-4" />
-
-              <SectionBlock heading="Status">
-                {status}
-              </SectionBlock>
-            </> : null}
-
-          <p className="mb-10">{/*Some spacing*/}</p>
-
-          {/*<button>Breng mij hier naartoe</button>*/}
+        <div
+          className="
+            sm:mr-8 flex
+            justify-between
+          "
+        >
+          <PageTitle className="flex w-full justify-center sm:justify-start">
+            <div className="mr-4 hidden sm:block">{parkingdata?.Title}</div>
+            {onEdit !== undefined ? (
+              <Button
+                key="b-1"
+                className="mt-3 sm:mt-0 hidden sm:block"
+                onClick={(e: any) => {
+                  if (e) e.preventDefault();
+                  onEdit();
+                }}
+              >
+                Bewerken
+              </Button>
+            ) : null}
+            {isLoggedIn && onToggleStatus !== undefined && ["0", "1"].includes(parkingdata.Status) ? (
+              <Button
+                key="b-2"
+                className="mt-3 ml-3 sm:mt-0 hidden sm:block"
+                variant="secundary"
+                onClick={(e: any) => {
+                  if (e) e.preventDefault();
+                  onToggleStatus();
+                }}
+              >
+                {parkingdata.Status === "0" ? "Zichtbaar maken" : "Verbergen"}
+              </Button>
+            ) : null}
+          </PageTitle>
         </div>
+        {parkingdata?.Description && <p className="mb-8">
+          {parkingdata?.Description}
+        </p>}
 
-        <div data-name="content-right" className="ml-12 hidden lg:block">
-          <div className="relative">
 
-            <ParkingOnTheMap parking={parkingdata} />
+        <div className="flex justify-between">
+          <div data-name="content-left" className="sm:mr-12">
+            {parkingdata.Image && (
+              <div className="mb-8">
+                <ImageSlider images={[parkingdata.Image]} />
+              </div>
+            )}
 
-            <Button
-              className="
-                fixed bottom-3
-                right-3 z-10
-                flex
-                py-3
-                sm:absolute
-                sm:bottom-1
-              "
-              onClick={(e: any) => {
-                if (e) e.preventDefault();
-                openRoute(parkingdata.Coordinaten);
-              }}
-              htmlBefore=<img
-                src="/images/icon-route-white.png"
-                alt="Route"
-                className="mr-3 w-5"
-              />
-            >
-              Breng mij hier naartoe
-            </Button>
+            {renderAddress()}
 
+            {showOpening ? (
+              <ParkingViewOpening parkingdata={parkingdata} />
+            ) : null}
+
+            {showTarief ? <ParkingViewTarief parkingdata={parkingdata} /> : null}
+
+            <ParkingViewServices parkingdata={parkingdata} />
+
+            <ParkingViewCapaciteit parkingdata={parkingdata} />
+
+            <ParkingViewAbonnementen parkingdata={parkingdata} />
+
+            <SectionBlock heading="Soort stalling">
+              <div className="flex flex-col">
+                {parkingdata.Type || "Onbekend"}
+                {urlOpwaarderen !== "" ? buttonOpwaarderen : null}
+              </div>
+            </SectionBlock>
+
+            <HorizontalDivider className="my-4" />
+
+            <ParkingViewBeheerder parkingdata={parkingdata} />
+
+            {isLoggedIn && status !== '' ?
+              <>
+                <HorizontalDivider className="my-4" />
+
+                <SectionBlock heading="Status">
+                  {status}
+                </SectionBlock>
+              </> : null}
+
+            <p className="mb-10">{/*Some spacing*/}</p>
+
+            {/*<button>Breng mij hier naartoe</button>*/}
           </div>
+
+          <div data-name="content-right" className="ml-12 hidden lg:block">
+            <div className="relative">
+
+              <ParkingOnTheMap parking={parkingdata} />
+
+              <Button
+                className="
+                  fixed bottom-3
+                  right-3 z-10
+                  flex
+                  py-3
+                  sm:absolute
+                  sm:bottom-1
+                "
+                onClick={(e: any) => {
+                  if (e) e.preventDefault();
+                  openRoute(parkingdata.Coordinaten);
+                }}
+                htmlBefore=<img
+                  src="/images/icon-route-white.png"
+                  alt="Route"
+                  className="mr-3 w-5"
+                />
+              >
+                Breng mij hier naartoe
+              </Button>
+
+            </div>
+          </div>
+
         </div>
+
       </div>
 
-    </div >
+      <div data-name="content-bottom" className="">
+        <h2 className="
+          text-2xl
+          font-poppinssemi
+          font-normal
+          mb-6
+        "
+        >
+          Statistieken
+        </h2>
+
+        {isLoggedIn && <Reports bikeparks={[
+          {
+            GemeenteID: parkingdata.SiteID,
+            Title: parkingdata.Title,
+            id: parkingdata.StallingsID,
+            StallingsID: parkingdata.StallingsID || "---",
+            hasData: true,
+          }
+        ]} />}
+
+      </div>
+    </>
   );
 };
+
+const Reports = ({ bikeparks }: { bikeparks: ReportBikepark[] }) => {
+  const showAbonnementenRapporten = true;
+  const firstDate = new Date("2018-03-01");
+  const lastDate = new Date(); lastDate.setHours(0, 0, 0, 0); // set time to midnight
+
+  return (
+    <ReportComponent
+      showAbonnementenRapporten={showAbonnementenRapporten}
+      firstDate={firstDate}
+      lastDate={lastDate}
+      bikeparks={bikeparks || []}
+    />
+  )
+}
 
 export default ParkingView;

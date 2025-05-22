@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
-import { ParkingDetailsType, ParkingSectionPerBikeType, ParkingSections } from '~/types';
+import { ParkingDetailsType, ParkingSectionPerBikeType, ParkingSections } from '~/types/parking';
 
 import {
   getAllFietstypen
 } from "~/utils/parkings";
-import { fietstypen } from "@prisma/client";
+import { fietstypen } from "~/generated/prisma-client";
 
 export type CapaciteitType = { ID: string, Name: string };
 

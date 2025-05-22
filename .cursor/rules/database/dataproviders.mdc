@@ -1,0 +1,149 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Data Providers API
+
+Version: 1.0
+
+Base Path: `/api/dataproviders`
+
+## Routes
+
+### 1. List Data Providers
+
+**Method**: GET  
+**Path**: `/`  
+**Description**: Get a list of all data providers
+
+#### Parameters
+- References general.yaml pagination parameters
+- References general.yaml sorting parameters
+- References general.yaml filtering parameters
+
+#### Responses
+
+##### 200 OK
+**Description**: List of data providers
+
+**Schema**:
+```json
+{
+  "data": [DataProvider],
+  "meta": {
+    // References general.yaml meta schema
+  }
+}
+```
+
+### 2. Get Data Provider
+
+**Method**: GET  
+**Path**: `/{id}`  
+**Description**: Get a single data provider by ID
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Data Provider ID |
+
+#### Responses
+
+##### 200 OK
+**Description**: Data Provider details  
+**Schema**: DataProvider
+
+##### 404 Not Found
+**Description**: Data Provider not found
+
+### 3. Create Data Provider
+
+**Method**: POST  
+**Path**: `/`  
+**Description**: Create a new data provider
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| body | body | true | object | DataProviderInput |
+
+#### Responses
+
+##### 201 Created
+**Description**: Data Provider created  
+**Schema**: DataProvider
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+### 4. Update Data Provider
+
+**Method**: PUT  
+**Path**: `/{id}`  
+**Description**: Update an existing data provider
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Data Provider ID |
+| body | body | true | object | DataProviderInput |
+
+#### Responses
+
+##### 200 OK
+**Description**: Data Provider updated  
+**Schema**: DataProvider
+
+##### 400 Bad Request
+**Description**: Invalid input
+
+##### 404 Not Found
+**Description**: Data Provider not found
+
+### 5. Delete Data Provider
+
+**Method**: DELETE  
+**Path**: `/{id}`  
+**Description**: Delete a data provider
+
+#### Parameters
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| id | path | true | string | Data Provider ID |
+
+#### Responses
+
+##### 204 No Content
+**Description**: Data Provider deleted
+
+##### 404 Not Found
+**Description**: Data Provider not found
+
+## Definitions
+
+### DataProvider
+
+Extends BaseContact with additional properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| Paslezer | string | Card reader type |
+| PassRange_validate | string | Pass validation range |
+| PassRange_start | integer | Start of pass range |
+| PassRange_end | integer | End of pass range |
+| LockNGo | string | Lock and Go functionality |
+| URL | string | API endpoint URL |
+
+### DataProviderInput
+
+Extends BaseContactInput with additional properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| Paslezer | string | Card reader type |
+| PassRange_validate | string | Pass validation range |
+| PassRange_start | integer | Start of pass range |
+| PassRange_end | integer | End of pass range |
+| LockNGo | string | Lock and Go functionality |
+| URL | string | API endpoint URL |

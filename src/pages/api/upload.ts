@@ -21,7 +21,7 @@ const handler = async (
 
   // Just after the "Method Not Allowed" code
   try {
-    const { fields, files } = await parseForm(req);
+    const { files } = await parseForm(req);
 
     const file = files.media;
     if(!file) {
@@ -35,7 +35,8 @@ const handler = async (
     // for now, to distinguish between files that were uploaded in "new "veiligstallen and "old" veiligstallen
     // we add [local] to the path -> any file that has [local] in the path is a file that was uploaded in public/uploads etc.
     const makepathrelative = (filename: string) => (filename.replace(process.cwd()+'/public','[local]'));
-    let url = Array.isArray(file) ? file.map((f) => makepathrelative(f.filepath)) : makepathrelative(file.filepath);
+    // let url = Array.isArray(file) ? file.map((f) => makepathrelative(f.filepath)) : makepathrelative(file.filepath);
+    let url = file.map((f) => makepathrelative(f.filepath));
 
     res.status(200).json({
       data: {

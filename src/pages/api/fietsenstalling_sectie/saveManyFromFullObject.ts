@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
-import type { ParkingSection, ParkingSectionPerBikeType, UpdateParkingSectionsData } from "~/types/";
-import type { fietstypen } from "@prisma/client";
+import type { ParkingSection, ParkingSectionPerBikeType, UpdateParkingSectionsData } from "~/types/parking";
+import type { fietstypen } from "~/generated/prisma-client";
 
 const updateSingleSubSection = async (parkingId: string, sectionId: number, subSectionPerFietstype: ParkingSectionPerBikeType, fietstypen: fietstypen[]) => {
   const fietstypedata = fietstypen.find((fietstype) => {

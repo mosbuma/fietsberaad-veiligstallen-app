@@ -1,5 +1,10 @@
 # App updates VeiligStallen
 
+## VeiligStallen 2024-XX-XX
+
+**Stalling-details**
+
+- ✨ Toon 'Statistieken' voor ingelogde gebruikers
 ## VeiligStallen 2025-01-03
 
 Deze hotfix deployment is gepubliceerd om een bug op te lossen. Als een beheerder aangepaste openingstijden had toegevoegd, werden deze niet zichtbaar in de app. Nu wel.
@@ -18,6 +23,7 @@ Deze hotfix deployment is gepubliceerd om een bug op te lossen. Als een beheerde
 
 - ✨ Toon "Koop abonnement" knop bij stallingen
 - ✨ Toon de 'extra services' van een stalling
+- ✨ Toon de stallingsbeschrijving onder de titel
 - 🖌️ Verbeter weergave 'Abonnementen'
 - 🐛 Opgelost: openingstijden toonden de 'wintertijd'
 - 🐛 Tijdelijk bericht: openingstijd-uren kunnen niet worden bewerkt

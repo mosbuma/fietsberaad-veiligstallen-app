@@ -216,7 +216,7 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
               return parkingTypesToFilterOn.indexOf(x.Type) > -1
                 && (
                   // Check if parking municipality == active municipality
-                  (activeMunicipalityInfo.CompanyName && activeMunicipalityInfo.CompanyName.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1)
+                  (activeMunicipalityInfo?.CompanyName && activeMunicipalityInfo.CompanyName.toLowerCase().indexOf(x.Plaats?.toLowerCase()) > -1)
                   // Hide parkings without municipality, if municipality is set
                   // This makes sure not all Dutch NS stallingen are shown on a municipality page
                   && (x.Plaats && x.Plaats.length > 0)

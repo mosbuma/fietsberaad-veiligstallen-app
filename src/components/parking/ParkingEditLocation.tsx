@@ -25,6 +25,7 @@ function ParkingEditLocation({
   parkingCoords,
   centerCoords,
   onPan,
+  initialZoom = 16,
 }): React.ReactElement<{
   parkingCoords: string;
   centerCoords: string | undefined;
@@ -64,7 +65,7 @@ function ParkingEditLocation({
       // style: "maplibre://styles/mapbox/streets-v11",
       style: nine3030,
       center: ccoords ? [ccoords[1], ccoords[0]] : [52.508011, 5.47328],
-      zoom: 16,
+      zoom: initialZoom,
     });
 
     mapboxMap.on("load", () => onMapLoaded(mapboxMap));

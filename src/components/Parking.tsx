@@ -3,8 +3,8 @@ import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
 import { AppState } from "~/store/store";
 
-import { type ParkingDetailsType } from "~/types/";
-import type { fietsenstallingen } from "@prisma/client";
+import type { ParkingDetailsType } from "~/types/parking";
+import type { fietsenstallingen } from "~/generated/prisma-client";
 
 import { getParkingDetails, getNewStallingDefaultRecord } from "~/utils/parkings";
 

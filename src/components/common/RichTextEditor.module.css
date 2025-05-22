@@ -1,0 +1,75 @@
+.richTextEditor {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.editorContainer {
+  position: relative;
+  min-height: 300px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+  background-color: #f8f9fa;
+}
+
+.toolbarItem {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toolbarItem:hover {
+  background-color: #f0f0f0;
+}
+
+.editorInput {
+  min-height: 250px;
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  outline: none;
+}
+
+.editorPlaceholder {
+  color: #999;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.editorErrorBoundary {
+  padding: 16px;
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+.editorInput ul {
+  list-style-type: disc;
+}
+
+.editorInput ol {
+  list-style-type: decimal;
+}
+
+.editorInput li {
+  margin-left: 16px;
+}
+
+.editorInput p {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+

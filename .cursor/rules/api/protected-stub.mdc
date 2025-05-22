@@ -1,0 +1,118 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Protected API Stub Creation Guide
+
+Version: 1.0
+
+This guide describes the process of creating a new API stub for a table in the schema.prisma file.
+It follows the pattern established in the api/protected/gemeenten implementation.
+
+## Steps
+
+### 1. Create Types File
+
+**Location**: `src/types/{entity}.ts`
+
+**Instructions**:
+1. Create a new file in `src/types/{entity}.ts`
+2. Import zod: `import { z } from "zod";`
+3. Create the following exports:
+   - `VSEntity` type: Copy all fields from schema.prisma model, convert to TypeScript types
+   - `VSEntityLijst` type: Create a compact version with only essential fields
+   - `entitySelect`: Copy all fields from schema.prisma model, set all values to true
+   - `entityLijstSelect`: Copy only essential fields, set all values to true
+   - `entitySchema`: Create Zod schema matching the model
+   - `entityCreateSchema`: Create schema omitting auto-generated fields
+4. Reference: `src/types/contacts.ts` for gemeente implementation
+
+### 2. Create [id].ts File
+
+**Location**: `src/pages/api/protected/{entity}/[id].ts`
+
+**Instructions**:
+1. Create a new file in `src/pages/api/protected/{entity}/[id].ts`
+2. Import required dependencies:
+   - `NextApiRequest`, `NextApiResponse` from next
+   - `prisma` from `~/server/db`
+   - `VSEntity` and `entitySelect` from `~/types/{entity}`
+   - `getServerSession` and `authOptions`
+   - `z` from zod
+   - `validateUserSession` from `~/utils/server/database-tools`
+   - `entitySchema` from `~/types/{entity}`
+3. Implement the following endpoints:
+   - GET: Handle both "new" template and individual record retrieval
+   - PUT: Update existing record with validation
+   - DELETE: Remove record
+4. Include proper error handling and authentication checks
+5. Reference: `src/pages/api/protected/gemeenten/[id].ts`
+
+### 3. Create index.ts File
+
+**Location**: `src/pages/api/protected/{entity}/index.ts`
+
+**Instructions**:
+1. Create a new file in `src/pages/api/protected/{entity}/index.ts`
+2. Import required dependencies (similar to [id].ts)
+3. Implement the following endpoints:
+   - GET: List all records with compact mode support
+   - POST: Create new record with validation
+4. Include security link creation if needed
+5. Reference: `src/pages/api/protected/gemeenten/index.ts`
+
+### 4. Create test.ts File
+
+**Location**: `src/pages/api/protected/{entity}/test.ts`
+
+**Instructions**:
+1. Create a new file in `src/pages/api/protected/{entity}/test.ts`
+2. Import required dependencies:
+   - `NextApiRequest`, `NextApiResponse` from next
+   - `getServerSession` and `authOptions`
+   - `validateUserSession` and `makeApiCall` from `~/utils/server/database-tools`
+   - `TestResult`, `TestResponse` from `~/types/test`
+   - `TestStatus` from `~/types/test`
+   - `EntitiesResponse` and `EntityResponse` from local files
+3. Implement test functions for:
+   - Create Record
+   - Retrieve All Records
+   - Retrieve Single Record
+   - Update Record
+   - Delete Record
+4. Include cleanup functionality
+5. Reference: `src/pages/api/protected/gemeenten/test.ts`
+
+### 5. Update DatabaseApiTest Component
+
+**Location**: `src/components/beheer/test/DatabaseApiTest.tsx`
+
+**Instructions**:
+1. Add a new section to the testSections array with:
+   - name: "{Entity} API"
+   - endpoint: "/api/protected/{entity}/test"
+   - expanded: false
+   - results: null
+   - error: null
+   - isLoading: false
+2. Reference: Existing sections in the file
+
+## Notes
+
+When implementing a new API stub:
+1. Replace {entity} with the actual entity name in all files
+2. Copy fields from schema.prisma model to types file
+3. Convert Prisma types to TypeScript/Zod types
+4. Implement proper validation in schemas
+5. Add appropriate error handling
+6. Test all CRUD operations
+7. Add security checks as needed
+8. Update documentation
+
+### Key files to reference:
+- `src/types/contacts.ts`
+- `src/pages/api/protected/gemeenten/[id].ts`
+- `src/pages/api/protected/gemeenten/index.ts`
+- `src/pages/api/protected/gemeenten/test.ts`
+- `src/components/beheer/test/DatabaseApiTest.tsx`

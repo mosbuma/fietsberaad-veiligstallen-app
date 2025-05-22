@@ -8,9 +8,9 @@ const c_extern_admin = 4; 	//	Admin (gemeente)
 const c_extern_editor = 5; 	//	Redacteur (gemeente)	
 const c_exploitant = 6; 	//	Exploitant	
 const c_beheerder = 7; 	//	Beheerder	
-// const c_exploitant_data_analyst: number = 8; // Exploitant data analyst -> disabled
+// const c_exploitant_data_analyst: number = 8; // Exploitant Data Analist -> disabled
 const c_intern_data_analyst = 9;
-// const c_extern_data_analyst: number = 10; // Extern data analyst -> disabled
+// const c_extern_data_analyst: number = 10; // Extern Data Analist -> disabled
 
 const saltRounds = 13; // 13 salt rounds used in the original code
 

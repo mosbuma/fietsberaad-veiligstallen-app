@@ -1,7 +1,7 @@
 import React from "react";
 import moment from "moment";
 
-import type { ParkingDetailsType, DayPrefix, UitzonderingenOpeningstijden } from "~/types/";
+import type { ParkingDetailsType, DayPrefix, UitzonderingenOpeningstijden } from "~/types/index";
 
 const getOpenTimeKey = (day: DayPrefix): keyof ParkingDetailsType => {
   return ('Open_' + day) as keyof ParkingDetailsType;

@@ -2,11 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import {
   Prisma,
   type fietsenstallingen,
-} from "@prisma/client";
+} from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
-import { ParkingDetailsType } from "~/types";
+import { ParkingDetailsType, selectParkingDetailsType } from "~/types/parking";
 
-const fixFieldsForParking = (parking: fietsenstallingen) => {
+const fixFieldsForParking = (parking: Partial<fietsenstallingen>) => {
   for (const [key, prop] of Object.entries(parking)) {
     if (prop instanceof Date) {
       (parking as any)[key] = prop.toString();
@@ -18,8 +18,8 @@ const fixFieldsForParking = (parking: fietsenstallingen) => {
       delete (parking as any)[key];
     }
   }
-  delete parking.reservationCostPerDay;
-  delete parking.wachtlijst_Id;
+  delete (parking as any).reservationCostPerDay;
+  delete (parking as any).wachtlijst_Id;
 };
 
 export default async function handle(
@@ -34,104 +34,21 @@ export default async function handle(
         where: {
           ID: stallingId,
         },
-        select: {
-          Title: true,
-          ID: true,
-          SiteID: true,
-          Location: true,
-          Postcode: true,
-          Plaats: true,
-          Type: true,
-          Image: true,
-          Open_ma: true,
-          Dicht_ma: true,
-          Open_di: true,
-          Dicht_di: true,
-          Open_wo: true,
-          Dicht_wo: true,
-          Open_do: true,
-          Dicht_do: true,
-          Open_vr: true,
-          Dicht_vr: true,
-          Open_za: true,
-          Dicht_za: true,
-          Open_zo: true,
-          Dicht_zo: true,
-          Openingstijden: true,
-          Capacity: true,
-          Coordinaten: true,
-          Beheerder: true,
-          BeheerderContact: true,
-          fietsenstalling_type: {
-            select: {
-              id: true,
-              name: true,
-              sequence: true,
-            }
-          },
-          fietsenstalling_secties: {
-            select: {
-              titel: true,
-              secties_fietstype: {
-                select: {
-                  Toegestaan: true,
-                  Capaciteit: true,
-                  fietstype: { select: { Name: true } },
-                },
-              },
-            },
-          },
-          abonnementsvorm_fietsenstalling: {
-            select: {
-              abonnementsvormen: {
-                select: {
-                  ID: true,
-                  naam: true,
-                  omschrijving: true,
-                  prijs: true,
-                  tijdsduur: true,
-                  conditions: true,
-                  siteID: true,
-                  bikeparkTypeID: true,
-                  isActief: true,
-                  exploitantSiteID: true,
-                  idmiddelen: true,
-                  contractID: true,
-                  paymentAuthorizationID: true,
-                  conditionsID: true
-                }
-              }
-            }
-          },
-          exploitant: {
-            select: {
-              ID: true,
-              Helpdesk: true,
-              CompanyName: true,
-            }
-          },
-          fietsenstallingen_services: {
-            select: {
-              services: {
-                select: {
-                  ID: true,
-                  Name: true
-                }
-              }
-            }
-          }
-        }
-      })) as unknown as ParkingDetailsType;
-
+        select: selectParkingDetailsType
+      })) as Partial<fietsenstallingen>;
 
       if (parking !== null) {
         fixFieldsForParking(parking);
       }
 
       // console.log("#### parking fixed", JSON.stringify(parking,0,2));
-      res.status(200).json(parking);
-    } else {
-      // let allcapacity = [];
+
+      const parkingDetails = parking as ParkingDetailsType;
+      // TODO: check type agains the ParkingDetailsType
+
+      res.status(200).json(parkingDetails);
+      } else {
+        // let allcapacity = [];
 
 
       // const parkings = await prisma.fietsenstallingen.findMany({

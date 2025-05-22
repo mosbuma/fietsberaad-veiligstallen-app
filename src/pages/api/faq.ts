@@ -1,9 +1,17 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { VSFaqFull } from "~/types/faq";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (!req.query.siteId || Array.isArray(req.query.siteId)) return;
+  // const theContact = await prisma.contacts.findFirst({
+  //   where: {
+  //     ID: req.query.siteId
+  //   }
+  // })
+
+  // if (!theContact) return res.status(404).json({ error: 'Contact not found' });
 
   // Get FAQ sections for site
   const queryRequest: Prisma.contacts_faqFindManyArgs = {
@@ -31,8 +39,9 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         Question: true,
         Answer: true,
         SortOrder: true,
-        ModuleID: true
-      },
+        ModuleID: true,
+        Status: true
+    },
       orderBy: {
         SortOrder: { sort: 'asc', nulls: 'last' },
       }
@@ -43,7 +52,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   }
 
   // Get FAQ answers
-  const faqFull = [];
+  const faqFull: VSFaqFull[] = [];
   for await (const section of faqSections) {
     const faqQuestionAndAnswers = await prisma.faq.findMany({
       where: {
@@ -52,17 +61,19 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       },
       select: {
         ID: true,
+        Title: true,
         Question: true,
         Answer: true,
         SortOrder: true,
-        ModuleID: true
+        ModuleID: true,
+        Status: true
       },
       orderBy: {
         SortOrder: { sort: 'asc', nulls: 'last' },
       }
     });
     faqFull.push({
-      sectionTitle: section.Title,
+      sectionTitle: section.Title || '',
       q_and_a: faqQuestionAndAnswers || []
     });
   }

@@ -1,0 +1,5 @@
+archive/
+*.sql
+*.zip
+## exclude all files and folders in this folder
+**/*

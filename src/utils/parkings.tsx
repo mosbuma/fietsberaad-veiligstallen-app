@@ -2,9 +2,9 @@ import React from "react";
 import { Session } from "next-auth";
 import { reverseGeocode } from "~/utils/nomatim";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
-
-import type { fietsenstallingen, contacts } from "@prisma/client";
-import type { ParkingDetailsType, DayPrefix } from "~/types/";
+import type { VSservice } from "~/types/services";
+import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
+import type { ParkingDetailsType } from "~/types/parking";
 
 export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: string) => {
   let index = 0,
@@ -20,9 +20,8 @@ export const findParkingIndex = (parkings: fietsenstallingen[], parkingId: strin
 
 export const getParkingDetails = async (stallingId: string): Promise<ParkingDetailsType | null> => {
   try {
-    // const response = await fetch(`/api/parking?stallingid=${stallingId}`);
     const response = await fetch(
-      "/api/fietsenstallingen?id=" + stallingId,
+      `/api/fietsenstallingen?id=${stallingId}`,
       {
         method: "GET",
         headers: {
@@ -42,17 +41,18 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
   }
 };
 
-export const getAllServices = async (): Promise<any> => {
+export const getAllServices = async (): Promise<VSservice[]> => {
   try {
     const response = await fetch(
       `/api/services/`
     );
     const json = await response.json();
-    if (!json) return;
+    if (!json) return [];
 
-    return json;
+    return json as VSservice[];
   } catch (err) {
     console.error("get all services error", err);
+    return []
   }
 };
 
@@ -101,7 +101,7 @@ export const getDefaultLocation = (): string => {
 }
 
 const determineNewStatus = (session: Session | null): "1" | "aanm" => {
-  if (session === null || !session.user || !session.user.OrgUserID) {
+  if (session === null || !session.user || !session.user.securityProfile) { // TODO: check if this is correct, used OrgUserID before
     return "aanm";
   } else {
     return "1";
@@ -111,7 +111,7 @@ const determineNewStatus = (session: Session | null): "1" | "aanm" => {
 export const createNewStalling = async (session: Session | null, currentLatLong: string[]): Promise<string | undefined> => {
   const data = await getNewStallingDefaultRecord(determineNewStatus(session), currentLatLong)
   const result = await fetch(
-    "/api/fietsenstallingen",
+    `/api/fietsenstallingen`,
     {
       method: "POST",
       body: JSON.stringify(data),
@@ -176,10 +176,10 @@ export const getNewStallingDefaultRecord = async (Status: string, latlong?: stri
     FMS: false,
     Beheerder: "",
     BeheerderContact: "",
-    SiteID: "",
+    SiteID: "1",
     DateCreated: new Date(),
     DateModified: new Date(),
-    ExploitantID: "",
+    ExploitantID: "1",
   }
 
   return data

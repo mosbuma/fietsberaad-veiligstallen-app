@@ -8,27 +8,13 @@ This is the code repository of the VeiligStallen frontend app. The codebase uses
 
 Run: `npm install`
 
-Make sure that Docker is installed and working
+### Configure .env file
 
-### Fill in database credentials in the .env file
+Fill in database credentials in the .env file:
 
-Make sure that you have filled in the database config in the .env file. In example:
+DATABASE_URL=mysql://UNAME:PASSWD@127.0.0.1:5555/veiligstallen
 
-    DATABASE_URL="mysql://root:safepark99@localhost:3308/veiligstallen"
-    PORT=3308
-    PASSWD=safepark99
-
-Make sure that you have filled in a Mapbox key in the .env.local file
-
-### Setup database
-
-Next, setup the database:
-
-```bash
-npm run setup-db
-```
-
-This above command creates a Docker container with MySQL loaded with the VeiligStallen test database. The prisma ORM model is recreated automatically.
+Fill in a Mapbox key in the .env.local file.
 
 ### Create key for nextauth
 
@@ -40,15 +26,17 @@ Add the key in `.env`, as value for `NEXTAUTH_SECRET`
 
 ## Running the app
 
-Make sure the database is running:
+Make sure that a connection to the database is available (by opening an ssh tunnel to the development database server @veiligstallen.work):
 
-    npm run start-db
+     ./scripts/launch-ssh-tunnel.sh
 
 For development purposes:
 
     npm run dev
 
 ## Deploying the app
+
+TODO Document new deployment process
 
 The app is deployed to a test server at the moment: https://beta.veiligstallen.nl/
 
@@ -61,7 +49,6 @@ Deployment is configured like this:
 
 - Op de testserver wordt een pull van de repository gedaan, daarna een npm build
 - De app wordt gedraaid met de pm2 taakmanager
-- Op de achtergrond draait altijd een Docker container voor de database
 
 ^ DIT IS OUDE INFORMATIE - DEPLOYMENT VINDT AUTOMATISCH PLAATS VIA GITLAB CI/CD PIPELINES (ACTIONS)
 
@@ -96,3 +83,30 @@ NOTE: Na elke `npm run setup-db` moet schema.prisma worden gerevert.
 `npx prisma generate` daarna: dat maakt de classes in de app op basis van het schema.
 
 (als ik geen setup-db meer doet, blijft alles hetzelfde)
+
+--
+
+Als na pull er prisma errors zijn, dan doe:
+- npx prisma generate
+- npm i
+
+
+# data exploration paginas
+
+Deze paginas kunnen worden gebruikt voor het bekijken van gebruiksdata/organisatie data
+- http://localhost:3000/beheer/exploreexploitanten
+- http://localhost:3000/beheer/exploregemeenten
+- http://localhost:3000/beheer/exploreusers
+
+# various
+- in development mode: klik op de gebruikersnaam om de sessie info te tonen in het console log
+
+# wijzigen database password voor gebruiker veiligstallen_readwrite
+- verbind via ssh met veiligstallen@veiligstallen.work
+- sudo mysql
+```
+ALTER USER 'veiligstallen_readwrite'@'127.0.0.1' IDENTIFIED BY 'new password';
+FLUSH PRIVILEGES;
+```
+
+nieuw wachtwoord aanmaken bv met openssl rand -base64 32

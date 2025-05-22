@@ -28,10 +28,10 @@ now check the variables in the script output
 #changing the database url separately
 
 ```
-gh variable set ACC_DATABASE_URL --body "connection string"
-gh variable set PROD_DATABASE_URL --body "connection string"
+gh variable set ACC_DATABASE_URL --body `connection string`
+gh variable set PROD_DATABASE_URL --body `connection string`
 
-cd azure
-bash az-login.sh
-bash az-app-restart.sh
+gh variable list 
 ```
+
+check the value in the output from the list command, then redeploy the application using the github action

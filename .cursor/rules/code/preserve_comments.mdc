@@ -1,0 +1,22 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Preserve Commented Code
+
+Prevents deletion of commented out code blocks.
+
+## Preserve Commented Code Blocks
+
+### Pattern
+```regex
+//.*
+/\*[\s\S]*?\*/
+```
+
+### Action
+preserve
+
+### Message
+Commented code should be preserved for reference

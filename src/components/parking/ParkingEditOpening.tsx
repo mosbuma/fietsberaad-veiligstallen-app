@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import type { ParkingDetailsType, DayPrefix } from "~/types/";
+import type { DayPrefix } from "~/types/index";
+import type { ParkingDetailsType } from "~/types/parking";
 
 import SectionBlock from "~/components/SectionBlock";
 import HorizontalDivider from "~/components/HorizontalDivider";

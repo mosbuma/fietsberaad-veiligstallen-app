@@ -34,7 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",
-    "**/*.mjs"
+    "**/*.mjs", "src/pages/api/_[...nextcrud].ts.not", "src/pages/api/protected/gemeenten/[id].ts.old",
   ],
   "exclude": [
     "node_modules"
