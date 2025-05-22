@@ -74,25 +74,29 @@ restore_structure() {
         fi
 
     # execute these mysql commands after importing
-    echo "converting fk column to bigint for bikeparklog"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE bikeparklog MODIFY PlaceID BIGINT;"
+    # echo "converting fk column to bigint for bikeparklog"
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE bikeparklog MODIFY PlaceID BIGINT;"
 
-    echo "converting 2 fk columns to bigint for financialtransactions"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE financialtransactions MODIFY placeID BIGINT;"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE financialtransactions MODIFY sectionID INT NOT NULL;"
+    # echo "converting 2 fk columns to bigint for financialtransactions"
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE financialtransactions MODIFY placeID BIGINT;"
 
-    echo "converting fk column to bigint for fmsservicelog" 
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE fmsservicelog MODIFY plekID BIGINT;"
+    # # refers to fietsenstalling_sectie.externalID
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE financialtransactions MODIFY sectionID INT NOT NULL;"
 
-    echo "converting fk column to bigint for fietsenstalling_plek"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE fietsenstalling_plek MODIFY sectie_id INT NOT NULL;"
+    # echo "converting fk column to bigint for fmsservicelog" 
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE fmsservicelog MODIFY plekID BIGINT;"
 
-    echo "converting 2 fk columns to bigint for abonnementen"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE abonnementen MODIFY plekID BIGINT;"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE abonnementen MODIFY sectionID INT NOT NULL;"
+    # echo "converting fk column to bigint for fietsenstalling_plek"
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE fietsenstalling_plek MODIFY sectie_id INT NOT NULL;"
 
-    echo "converting fk column to bigint for abonnementen"
-    mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE transacties MODIFY PlaceID BIGINT;"
+    # echo "converting 2 fk columns to bigint for abonnementen"
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE abonnementen MODIFY plekID BIGINT;"
+
+    # # refers to fietsenstalling_sectie.externaalid
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE abonnementen MODIFY sectionID INT NOT NULL;"
+
+    # echo "converting fk column to bigint for abonnementen"
+    # mysql -h "$DB_HOST" -u "$DBUSER_RW" -P "$DB_PORT" "$DB_NAME" -e "ALTER TABLE transacties MODIFY PlaceID BIGINT;"
 
     # for now, drop unused tables
     drop_unused_tables
