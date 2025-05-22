@@ -1,5 +1,6 @@
 import { useDispatch } from "react-redux";
 import { setActiveArticle } from "~/store/appSlice";
+import { useRouter } from "next/navigation";
 
 export interface MenuItem {
   municipality: string;
@@ -15,7 +16,42 @@ export interface MenuItemProps {
   onClick?: () => void;
 }
 
-export const PrimaryMenuItem = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
+export const PrimaryMenuItem = (props: any) => {
+  const { push } = useRouter();
+
+  return <div className="
+    PrimaryMenuItem
+    px-5
+  ">
+    <a href={props.url} className="flex flex-col justify-center h-full" onClick={(e) => {
+      e.preventDefault();
+
+      push(props.url);
+    }}>
+      {props.icon ? <img src={props.icon} style={{ height: '30px' }} /> : ''}
+      {props.title}
+    </a>
+  </div>
+}
+
+export const SecundaryMenuItem = (props: any) => {
+  const { push } = useRouter();
+
+  return <div className="
+    SecundaryMenuItem
+    px-2
+  ">
+    <a href="#" className="flex flex-col justify-center h-full" onClick={(e) => {
+      e.preventDefault();
+
+      push(props.url);
+    }}>
+      {props.title}
+    </a>
+  </div>
+}
+
+export const PrimaryMenuItem_overlay = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
   const dispatch = useDispatch();
 
   return <div className={`
@@ -34,7 +70,7 @@ export const PrimaryMenuItem = ({targetmunicipality, targetpage, title, icon}: M
   </div>
 }
 
-export const SecundaryMenuItem = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
+export const SecundaryMenuItem_overlay = ({targetmunicipality, targetpage, title, icon}: MenuItemProps) => {
   const dispatch = useDispatch();
 
   return <div className="
