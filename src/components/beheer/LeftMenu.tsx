@@ -182,6 +182,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
           {(hasWebsiteRight) && 
             formatLi(VSMenuTopic.Website, 'Website beheer', false,
               <ul className="ml-4 mt-1">
+                {formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
                 {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
               </ul>
             )
