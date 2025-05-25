@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
+import type { Prisma } from "@prisma/client";
 import { type VSArticle, type VSArticleInLijst, articleSelect, articleLijstSelect } from "~/types/articles";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
@@ -49,14 +50,34 @@ export default async function handle(
         return sites;
       }
 
-      // GET all articles user can access
-      const articles = (await prisma.articles.findMany({
-        where: {
-          SiteID: { in: sitesToGetArticlesFor() }
-        },
-        select: compact ? articleLijstSelect : articleSelect
-      })) as unknown as (VSArticle[] | VSArticleInLijst[]);
-      
+      // Define where clause
+      const where: Prisma.articlesWhereInput = {
+        SiteID: { in: sitesToGetArticlesFor() }
+      };
+      if (req.query.Title) {
+        where.Title = req.query.Title as string
+      }
+      if (req.query.Navigation) {
+        where.Navigation = req.query.Navigation as string;
+      }
+
+      // Define full query
+      const query: Prisma.articlesFindFirstArgs = {
+        where: where,
+        select: compact ? articleLijstSelect : articleSelect,
+        orderBy: {
+          SortOrder: 'asc',
+        }
+      }
+
+      let articles;
+      if (req.query.findFirst) {
+        articles = (await prisma.articles.findFirst(query)) as unknown as (VSArticle | VSArticleInLijst);
+      }
+      else {
+        articles = (await prisma.articles.findMany(query)) as unknown as (VSArticle[] | VSArticleInLijst[]);
+      }
+    
       res.status(200).json({data: articles});
       break;
     }

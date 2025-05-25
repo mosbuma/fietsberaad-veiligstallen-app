@@ -175,7 +175,7 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
       (async () => {
         const ddmunicipality = await getMunicipalityBasedOnLatLng(currentLatLng);
         if (!ddmunicipality) {
-          console.warn("#### HomeComponent - no municipality found", currentLatLng);
+          console.debug("#### HomeComponent - no municipality found", currentLatLng);
           // updateUrl("root");
           return;
         }
