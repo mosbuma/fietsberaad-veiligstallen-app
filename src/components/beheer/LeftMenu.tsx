@@ -217,7 +217,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   // }
 
   return (
-    <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
+    <ul id="leftMenu" className="shadow w-64 min-h-screen max-h-[calc(100vh-100px)] overflow-y-auto p-4">
       {renderUnifiedMenu()}
     </ul>
   );
