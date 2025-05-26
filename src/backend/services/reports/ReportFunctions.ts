@@ -3,10 +3,11 @@ import { getLabelMapForXAxis, getXAxisTitle, XAxisLabelMap } from "~/backend/ser
 
 import { prisma } from "~/server/db";
 import fs from "fs";
+import moment from "moment";
 
 export interface ReportSeriesData {
   name: string;
-  data: number[];
+  data: [number, number][];
 }
 
 export interface ReportData {
@@ -42,7 +43,8 @@ interface SingleResult {
 export const convertToTimegroupSeries = async (
   results: SingleResult[],
   params: ReportParams,
-  keyToLabelMap: XAxisLabelMap): Promise<ReportSeriesData[]> => {
+  keyToLabelMap: XAxisLabelMap
+): Promise<ReportSeriesData[]> => {
   let series: ReportSeriesData[] = [];
 
   const categoryNames = await getCategoryNames(params);
@@ -72,7 +74,28 @@ export const convertToTimegroupSeries = async (
   series = Object.values(groupedByCategory).map((stalling: any) => {
     return {
       name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
-      data: Object.values(stalling.data),
+      data: Object.entries(stalling.data).map(([timegroup, value]) => {
+        // Convert timegroup to timestamp based on the grouping type
+        let timestamp;
+        if (params.reportGrouping === 'per_hour') {
+          timestamp = moment().hour(parseInt(timegroup)).valueOf();
+        } else if (params.reportGrouping === 'per_weekday') {
+          timestamp = moment().day(parseInt(timegroup)).valueOf();
+        } else if (params.reportGrouping === 'per_day') {
+          timestamp = moment(timegroup, 'YYYY-DDD').valueOf();
+        } else if (params.reportGrouping === 'per_month') {
+          timestamp = moment(timegroup, 'YYYY-M').valueOf();
+        } else if (params.reportGrouping === 'per_week') {
+          timestamp = moment(timegroup, 'YYYY-W').valueOf();
+        } else if (params.reportGrouping === 'per_quarter') {
+          timestamp = moment(timegroup, 'YYYY-Q').valueOf();
+        } else if (params.reportGrouping === 'per_year') {
+          timestamp = moment(timegroup, 'YYYY').valueOf();
+        } else {
+          timestamp = moment(timegroup).valueOf();
+        }
+        return [timestamp, Number(value)];
+      }),
       groups: Object.keys(stalling.data)
     }
   });

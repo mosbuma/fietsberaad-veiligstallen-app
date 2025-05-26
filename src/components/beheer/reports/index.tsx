@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
 import { prisma } from "~/server/db";
 import BikeparkDataSourceSelect, { BikeparkWithDataSource } from './BikeparkDataSourceSelect';
+import { getXAxisTitle } from "~/backend/services/reports/ReportAxisFunctions";
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
@@ -339,13 +340,15 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                     },
                     markers: {
                     },
-                    xaxis: reportData.options?.xaxis || {
-                      type: 'category',
-                      categories: ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'],
-                      title: {
-                        text: 'Weekdag',
-                        align: 'left'
+                    xaxis: {
+                      type: 'datetime',
+                      labels: {
+                        datetimeUTC: false
                       },
+                      title: {
+                        text: reportData.options?.xaxis?.title?.text || 'Time',
+                        align: 'left'
+                      }
                     },
                     yaxis: reportData.options?.yaxis || {
                       title: {
@@ -360,7 +363,15 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
                     },
                     tooltip: {
                       enabled: true,
-                      shared: false
+                      shared: true,
+                      intersect: false,
+                      followCursor: true,
+                      // x: {
+                      //   format: 'dd MMM yyyy HH:mm'
+                      // },
+                      // y: {
+                      //   formatter: (value: number) => value.toFixed(2)
+                      // }
                     }
                   }}
                   series={reportData.series}
