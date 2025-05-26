@@ -112,7 +112,8 @@ const AppNavigationMobile = ({
   const title =
     mapZoom >= 12 &&
       activeMunicipalityInfo &&
-      activeMunicipalityInfo.CompanyName
+      activeMunicipalityInfo.CompanyName &&
+      activeMunicipalityInfo.CompanyName !== 'FIETSBERAAD'
       ? `Welkom in ${activeMunicipalityInfo.CompanyName}`
       : `Welkom bij VeiligStallen`;
 

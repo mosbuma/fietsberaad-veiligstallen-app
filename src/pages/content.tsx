@@ -112,12 +112,13 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
     (async () => {
       try {
         const response = await fetch(
-          `/api/articles/?Title=${pageSlug}&SiteID=${activeMunicipalityInfo.ID}&findFirst=true`
+          `/api/protected/articles/?compact=false&Title=${pageSlug}&SiteID=${activeMunicipalityInfo.ID}&findFirst=true`
         );
         const json = await response.json();
-        if (!json) return;
+        if (!json.data) return;
         // If result is an array with 1 node: Get node only
-        const pageContentToSet = json && json.SiteID ? json : json[0];
+        const pageContentToSet = json.data;
+        console.log('pageContentToSet', pageContentToSet)
         setPageContent(pageContentToSet);
       } catch (err) {
         console.error(err);

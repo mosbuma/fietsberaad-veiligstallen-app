@@ -14,9 +14,9 @@ export const getMunicipalityBasedOnUrlName = async (urlName: string): Promise<VS
     return undefined;
   }
 
-  if(urlName === "fietsberaad") {
-    urlName = "1";
-  }
+  // if(urlName === "fietsberaad") {
+  //   urlName = "1";
+  // }
 
   try {
     const response = await fetch(`/api/contacts?urlName=${urlName}`);
