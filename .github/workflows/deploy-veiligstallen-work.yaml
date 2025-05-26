@@ -40,6 +40,9 @@ jobs:
             docker stop veiligstallen || true
             docker rm veiligstallen || true
 
+            # Clean up unused images while preserving build cache
+            docker image prune -f
+
             # Build and run the new container
             docker build \
               --build-arg NEXT_PUBLIC_API_BASE_URL="${{ vars.NEXT_PUBLIC_API_BASE_URL }}" \
