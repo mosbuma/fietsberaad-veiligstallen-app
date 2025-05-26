@@ -143,7 +143,6 @@ export default async function handle(
           BronBezettingsdata: parsed.BronBezettingsdata ?? "FMS",
           reservationCostPerDay: parsed.reservationCostPerDay ?? undefined,
           wachtlijst_Id: parsed.wachtlijst_Id ?? undefined,
-          freeHoursReservation: parsed.freeHoursReservation ?? undefined,
           thirdPartyReservationsUrl: parsed.thirdPartyReservationsUrl ?? undefined,
         }
 
@@ -255,7 +254,6 @@ export default async function handle(
             BronBezettingsdata: parsed.BronBezettingsdata ?? undefined,
             reservationCostPerDay: parsed.reservationCostPerDay ?? undefined,
             wachtlijst_Id: parsed.wachtlijst_Id ?? undefined,
-            freeHoursReservation: parsed.freeHoursReservation ?? undefined,
             thirdPartyReservationsUrl: parsed.thirdPartyReservationsUrl ?? undefined,
           }
         });
