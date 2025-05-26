@@ -60,7 +60,6 @@ export type VSFietsenstalling = {
   BronBezettingsdata: string | null;
   reservationCostPerDay: number | null;
   wachtlijst_Id: bigint | null;
-  freeHoursReservation: number | null;
   thirdPartyReservationsUrl: string | null;
 };
 
@@ -140,7 +139,6 @@ export const getDefaultNewFietsenstalling = (name: string): VSFietsenstalling =>
   BronBezettingsdata: "FMS",
   reservationCostPerDay: null,
   wachtlijst_Id: null,
-  freeHoursReservation: null,
   thirdPartyReservationsUrl: null
 });
 
@@ -204,7 +202,6 @@ export const fietsenstallingSelect = {
   BronBezettingsdata: true,
   reservationCostPerDay: true,
   wachtlijst_Id: true,
-  freeHoursReservation: true,
   thirdPartyReservationsUrl: true,
 };
 
@@ -284,7 +281,6 @@ export const fietsenstallingSchema = z.object({
   BronBezettingsdata: z.string().max(20).nullable(),
   reservationCostPerDay: z.number().nullable(),
   wachtlijst_Id: z.bigint().nullable(),
-  freeHoursReservation: z.number().nullable(),
   thirdPartyReservationsUrl: z.string().max(255).nullable(),
 });
 
@@ -347,6 +343,5 @@ export const fietsenstallingCreateSchema = z.object({
   BronBezettingsdata: z.string().max(20).nullable().optional(),
   reservationCostPerDay: z.number().nullable().optional(),
   wachtlijst_Id: z.bigint().nullable().optional(),
-  freeHoursReservation: z.number().nullable().optional(),
   thirdPartyReservationsUrl: z.string().max(255).nullable().optional(),
 }); 
