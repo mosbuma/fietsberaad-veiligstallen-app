@@ -8,21 +8,23 @@ import { type VSFAQ } from "~/types/faq";
 
 // Schema for creating a new FAQ
 const faqCreateSchema = z.object({
+  ParentID: z.string(),
   Question: z.string(),
   Answer: z.string(),
   SiteID: z.string().optional(),
   SortOrder: z.number().optional(),
   Status: z.string().optional(),
-  ModuleID: z.string().optional(),
+  ModuleID: z.string().nullable(),
 });
 
 // Schema for updating an FAQ
 const faqSchema = z.object({
+  ParentID: z.string().optional(),
   Question: z.string().optional(),
   Answer: z.string().optional(),
   SortOrder: z.number().optional(),
   Status: z.string().optional(),
-  ModuleID: z.string().optional(),
+  ModuleID: z.string().nullable(),
 });
 
 export type FaqResponse = {
@@ -58,12 +60,12 @@ export default async function handle(
         // Return default new FAQ
         const defaultRecord: VSFAQ = {
           ID: '',
-          Category: '',
+          ParentID: '',
           Question: '',
           Answer: '',
           SortOrder: null,
           Status: '1',
-          ModuleID: 'veiligstallenprisma',
+          ModuleID: null,
           Title: null
         };
         res.status(200).json({data: defaultRecord});
@@ -93,10 +95,11 @@ export default async function handle(
 
         const newData = {
           ID: newID,
+          ParentID: parsed.ParentID,
           Question: parsed.Question,
           Answer: parsed.Answer,
           Status: parsed.Status || "1",
-          ModuleID: parsed.ModuleID || "veiligstallenprisma",
+          ModuleID: parsed.ModuleID || null,
           SortOrder: parsed.SortOrder,
           SiteID: parsed.SiteID,
         }
@@ -153,6 +156,7 @@ export default async function handle(
         const updatedFaq = await prisma.faq.update({
           where: { ID: id },
           data: {
+            ParentID: parsed.ParentID,
             Question: parsed.Question,
             Answer: parsed.Answer,
             SortOrder: parsed.SortOrder,
@@ -160,6 +164,7 @@ export default async function handle(
             ModuleID: parsed.ModuleID,
           }
         }) as unknown as VSFAQ;
+
         res.status(200).json({data: updatedFaq});
       } catch (e) {
         if (e instanceof z.ZodError) {

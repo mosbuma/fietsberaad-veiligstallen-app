@@ -1,6 +1,10 @@
 import type { VSFAQ } from "~/types/faq";
 
-const FaqSection = ({ section, items }: { section: VSFAQ, items: VSFAQ[] }) => {
+const FaqSection = ({
+  section, items, handleEditFaq, handleDeleteFaq
+}: {
+  section: VSFAQ, items: VSFAQ[], handleEditFaq: (id: string) => void, handleDeleteFaq: (id: string) => void
+}) => {
   // Don't show empty sections
   if(items.length === 0) {
     return null;

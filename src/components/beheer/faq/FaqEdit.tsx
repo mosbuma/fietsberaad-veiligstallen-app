@@ -6,18 +6,18 @@ import RichTextEditor from '~/components/common/RichTextEditor';
 type FaqEditProps = {
   id: string;
   onClose: (confirmClose?: boolean) => void;
+  sections: VSFAQ[];
 };
 
-const CATEGORIES = [
-  'Algemeen',
-  'Fietskluizen',
-  'Buurtstallingen',
-  'Abonnementen',
-  'Technisch',
-  'Overig'
-];
-
-const FaqEdit: React.FC<FaqEditProps> = ({ id, onClose }) => {
+const FaqEdit: React.FC<FaqEditProps> = ({
+  id,
+  onClose,
+  sections
+}: {
+  id: string,
+  onClose: (confirmClose?: boolean) => void,
+  sections: VSFAQ[]
+}) => {
   const { data: session } = useSession();
   const [faq, setFaq] = useState<VSFAQ | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,12 +29,11 @@ const FaqEdit: React.FC<FaqEditProps> = ({ id, onClose }) => {
       if (id === 'new') {
         setFaq({
           ID: '',
-          Category: '',
+          ParentID: '',
           Question: '',
           Answer: '',
-          DateModified: new Date().toISOString(),
-          DateCreated: new Date().toISOString(),
-          ModuleID: 'veiligstallenprisma'
+          DateModified: new Date(),
+          DateCreated: new Date()
         });
         setIsLoading(false);
         return;
@@ -42,7 +41,6 @@ const FaqEdit: React.FC<FaqEditProps> = ({ id, onClose }) => {
 
       try {
         setIsLoading(true);
-        // TODO: Replace with actual API call
         const response = await fetch(`/api/protected/faqs/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch FAQ');
@@ -117,6 +115,8 @@ const FaqEdit: React.FC<FaqEditProps> = ({ id, onClose }) => {
     return <div>FAQ niet gevonden</div>;
   }
 
+  console.log('faq', faq)
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
@@ -133,21 +133,22 @@ const FaqEdit: React.FC<FaqEditProps> = ({ id, onClose }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="Category" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="ParentID" className="block text-sm font-medium text-gray-700">
             Categorie
           </label>
           <select
-            id="Category"
-            name="Category"
-            value={faq.Category || ''}
+            id="ParentID"
+            name="ParentID"
+            value={faq.ParentID || ''}
+            defaultValue={faq.ParentID || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           >
             <option value="">Selecteer een categorie</option>
-            {CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {category}
+            {sections.filter((section: VSFAQ) => section.Title !== '').map((section) => (
+              <option key={section.ID} value={section.ID || ''}>
+                {section.Title}
               </option>
             ))}
           </select>

@@ -111,6 +111,8 @@ const FaqComponent: React.FC = () => {
             key={section.ID}
             section={section}
             items={filteredFaqs.items.filter((item: VSFAQ) => item.ParentID === section.ID)}
+            handleEditFaq={handleEditFaq}
+            handleDeleteFaq={handleDeleteFaq}
           />)
         }
 
@@ -133,6 +135,7 @@ const FaqComponent: React.FC = () => {
       ) : (
         <FaqEdit
           id={currentFaqId}
+          sections={faqs.sections}
           onClose={handleCloseEdit}
         />
       )}
