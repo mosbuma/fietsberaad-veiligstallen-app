@@ -149,7 +149,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
           { formatLi(false, 'Organisaties', false,
             <ul className="ml-4 mt-1">
-              {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
+              {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Data-eigenaren')}
               { hasSystemRight && isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
               { hasSystemRight && isAdmin && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
               {!hasSystemRight && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Toegang fmsservice')}
