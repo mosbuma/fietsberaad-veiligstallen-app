@@ -68,7 +68,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
   // Do only show reports? Temporary for testing, 2025-05
   const doOnlyShowReports = (): boolean => {
-    return false;//!['veiligstallen.work', 'localhost:3000'].includes(window?.location?.host||'');
+    return !['veiligstallen.work', 'localhost:3000'].includes(window?.location?.host||'');
   }
 
   const renderUnifiedMenu = () => {
