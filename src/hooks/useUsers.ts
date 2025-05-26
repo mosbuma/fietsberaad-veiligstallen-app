@@ -11,7 +11,6 @@ const useUsersBasis = <T extends VSUserWithRolesNew | VSUserInLijstNew>(compact:
   const [users, setUsers] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
   const mounted = useRef(false);
 
   const fetchUsers = async () => {
@@ -40,13 +39,13 @@ const useUsersBasis = <T extends VSUserWithRolesNew | VSUserInLijstNew>(compact:
       mounted.current = true;
       fetchUsers();
     }
-  }, [version]);
+  });
 
   return {
     users,
     isLoading,
     error,
-    reloadUsers: () => setVersion(v => v + 1)
+    reloadUsers: () => { fetchUsers(); }
   };
 }; 
 

@@ -80,6 +80,30 @@ export const convertRoleToNewRole = (roleID: VSUserRoleValues | null, isOwnOrgan
     return newRoleID;
 }
 
+export const convertNewRoleToOldRole = (newRoleID: VSUserRoleValuesNew | null): VSUserRoleValues | null => {
+    if (!newRoleID) {
+        return null;
+    }
+
+    switch(newRoleID) {
+        case VSUserRoleValuesNew.RootAdmin:
+            return VSUserRoleValues.Root;
+        case VSUserRoleValuesNew.Admin:
+            // Since Admin could come from multiple old roles, we'll return the most restrictive one
+            // that would map back to Admin in the new system
+            return VSUserRoleValues.InternAdmin;
+        case VSUserRoleValuesNew.Editor:
+            return VSUserRoleValues.InternEditor;
+        case VSUserRoleValuesNew.DataAnalyst:
+            return VSUserRoleValues.InternDataAnalyst;
+        case VSUserRoleValuesNew.None:
+            return null;
+        default:
+            return null;
+    }
+}
+
+
 export const getRights = (profile: VSUserSecurityProfile | null, topic: VSSecurityTopic): VSCRUDRight => {
     if (!profile) {
         return allowNone;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { z } from 'zod';
 import { VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
@@ -11,7 +12,7 @@ import { useUser } from '~/hooks/useUser';
 import { makeClientApiCall } from '~/utils/client/api-tools';
 
 import type { SecurityUserValidateResponse } from '~/pages/api/protected/security_users/validate';
-import { SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
+import { securityUserCreateSchema, SecurityUserResponse, securityUserUpdateSchema } from '~/pages/api/protected/security_users/[id]';
 
 import bcrypt from "bcryptjs";
 
@@ -36,8 +37,6 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       password: string,
       confirmPassword: string,
     }
-
-    console.log("*** UserEditComponent", props);
 
     const isNew = props.id === "new";
 
@@ -134,100 +133,100 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       );
     };
 
-    // const hashPassword = (password: string) => {
-    //   const salt = bcrypt.genSaltSync(13); // 13 salt rounds used in the coldfusion code
-    //   return bcrypt.hashSync(password, salt); 
-    // }
+    const validateData = async (data: z.infer<typeof securityUserCreateSchema> | z.infer<typeof securityUserUpdateSchema>) => {
+      const responseValidate = await makeClientApiCall<SecurityUserValidateResponse>(`/api/protected/security_users/validate/`, 'POST', data);
+      if(!responseValidate.success) {
+        setErrorMessage(`Kan gebruikersdata niet valideren: (${responseValidate.error})`);
+        return false;
+      }
+
+      if (!responseValidate.result.valid) {
+        setErrorMessage(responseValidate.result.message);
+        return false;
+      }
+
+      return true;
+    }
 
     const handleUpdate = async () => {
-      if (!displayName || !userName || !newRoleID || !status ) {
-        alert("Naam, Gebruikersnaam, Rol en Status zijn verplicht.");
-        return;
-      }
-      // if (!validateData()) {
-      //   return;
-      // }
-
-
       try {
-        const data: Partial<VSUserWithRolesNew> = {
-          UserID: id,
-          DisplayName: displayName,
-          // RoleID: newRoleID,
-          UserName: userName,
-          // EncryptedPassword: password ? hashPassword(password) : undefined,
-          // EncryptedPassword2: password ? hashPassword(password) : undefined,
-          Status: status ? "1" : "0",
-          SiteID: props.siteID,
-        }
-
-        const urlValidate = `/api/protected/security_users/validate/`;
-        const responseValidate = await makeClientApiCall<SecurityUserValidateResponse>(urlValidate, 'POST', data);
-        if(!responseValidate.success) {
-          setErrorMessage(`Kan gebruikersdata niet valideren: (${responseValidate.error})`);
-          return;
-        }
-
-        if (!responseValidate.result.valid) {
-          setErrorMessage(responseValidate.result.message);
-          return;
-        }
-
-        const method = isNew ? 'POST' : 'PUT';
-        const url = `/api/protected/security_users/${id}`;
-
-        console.log("*** UserEditComponent handleUpdate", url, method,data);
-
-        const response = await makeClientApiCall<SecurityUserResponse>(url, method, data);
-        if(!response.success) {
-          setErrorMessage(`Kan gebruikersdata niet opslaan: (${response.error})`);
-          return;
-        }
+        if(isNew) {
+            if (!displayName || !userName || !newRoleID || !status ) {
+              setErrorMessage("Naam, Gebruikersnaam, Rol en Status zijn verplicht.");
+              return;
+            }
   
-        if (response.result?.error) {
-          console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
-          setErrorMessage('Fout bij het opslaan van de gebruiker');
-        }
+            const data: z.infer<typeof securityUserCreateSchema> = {
+            UserID: id,
+            DisplayName: displayName,
+            RoleID: newRoleID,
+            UserName: userName,
+            password: password,
+            Status: status ? "1" : "0",
+            SiteID: props.siteID,
+          }
 
-        // Change the role if it is changed
-        if (newRoleID !== initialData.newRoleID) {
-          const urlChangeRole = `/api/protected/security_users/${id}/change_role`;
-          const responseChangeRole = await makeClientApiCall<SecurityUserResponse>(urlChangeRole, 'POST', { roleId: newRoleID });
-
-          if(!responseChangeRole.success) {
-            setErrorMessage(`Kan gebruikersrol niet wijzigen: (${responseChangeRole.error})`);
+          if(!await validateData(data)) {
+            return;
+          }
+  
+          const response = await makeClientApiCall<SecurityUserResponse>(`/api/protected/security_users/${id}`, 'POST', data);
+          if(!response.success) {
+            setErrorMessage(`Kan gebruikersdata niet opslaan: (${response.error})`);
             return;
           }
     
-          if (responseChangeRole.result?.error) {
-            console.error("API Error Response:", responseChangeRole.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+          if (response.result?.error) {
+            console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
             setErrorMessage('Fout bij het opslaan van de gebruiker');
           }
+        } else {
+            const data: z.infer<typeof securityUserUpdateSchema> = {
+              UserID: id,
+              DisplayName: displayName,
+              RoleID: newRoleID,
+              UserName: userName,
+              password: password,
+              Status: status ? "1" : "0",
+              SiteID: props.siteID,
+            }
+
+            if(!await validateData(data)) {
+              return;
+            }
+    
+            const response = await makeClientApiCall<SecurityUserResponse>(`/api/protected/security_users/${id}`,"PUT", data);
+            if(!response.success) {
+              setErrorMessage(`Kan gebruikersdata niet opslaan: (${response.error})`);
+              return;
+            }
+      
+            if (response.result?.error) {
+              console.error("API Error Response:", response.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+              setErrorMessage('Fout bij het opslaan van de gebruiker');
+            }
+    
+            // // Change the role if it is changed
+            // if (newRoleID !== initialData.newRoleID) {
+            //   const urlChangeRole = `/api/protected/security_users/${id}/change_role`;
+            //   const responseChangeRole = await makeClientApiCall<SecurityUserResponse>(urlChangeRole, 'POST', { roleId: newRoleID });
+    
+            //   if(!responseChangeRole.success) {
+            //     setErrorMessage(`Kan gebruikersrol niet wijzigen: (${responseChangeRole.error})`);
+            //     return;
+            //   }
+        
+            //   if (responseChangeRole.result?.error) {
+            //     console.error("API Error Response:", responseChangeRole.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
+            //     setErrorMessage('Fout bij het opslaan van de gebruiker');
+            //   }
+            // }
+            // }
         }
-
-        // change the password if it is changed
-        if(password !== "" && confirmPassword === password) {
-          const passwordhash = bcrypt.hash(password, 13);
-
-          const urlChangePassword = `/api/protected/security_users/${id}/password`;
-          const responseChangePassword = await makeClientApiCall<SecurityUserResponse>(urlChangePassword, 'POST', { passwordhash: passwordhash });
-
-          if(!responseChangePassword.success) {
-            setErrorMessage(`Kan wachtwoord niet wijzigen: (${responseChangePassword.error})`);
-            return;
-          }
-
-          if (responseChangePassword.result?.error) {
-            console.error("API Error Response:", responseChangePassword.result?.error || 'Onbekende fout bij het opslaan van de gebruiker');
-            setErrorMessage('Fout bij het opslaan van de gebruiker');
-          }
-        }
-
+        
         if (props.onClose) {
-          props.onClose(false, false);
+          props.onClose(true, false);
         }
-
-        // const oldRoleID = convertNewRoleToOldRole(newRoleID, false);
       } catch (error) {
         setError('Error: ' + error);
       }
@@ -292,7 +291,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
             <Button
               key="b-4"
               className="ml-2 mt-3 sm:mt-0"
-              onClick={() => props.onClose(false, false)}
+              onClick={() => props.onClose(true, false)}
             >
               Terug
             </Button>

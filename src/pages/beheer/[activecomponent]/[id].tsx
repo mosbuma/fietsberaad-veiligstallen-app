@@ -7,6 +7,8 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 
 import { useRouter } from "next/router";
 const LeftMenu = dynamic(() => import('~/components/beheer/LeftMenu'), { ssr: false })// TODO Make SSR again
+const LeftMenuGemeente = dynamic(() => import('~/components/beheer/LeftMenuGemeente'), { ssr: false })// TODO Make SSR again
+const LeftMenuExploitant = dynamic(() => import('~/components/beheer/LeftMenuExploitant'), { ssr: false })// TODO Make SSR again
 
 import TopBar from "~/components/beheer/TopBar";
 // import { ReportBikepark } from "~/components/beheer/reports/ReportsFilter";
@@ -44,12 +46,14 @@ import { VSMenuTopic } from "~/types/index";
 // import Styles from "~/pages/content.module.css";
 import { useSession } from "next-auth/react";
 // import ExploreLeftMenuComponent from '~/components/ExploreLeftMenuComponent';
-const LeftMenuGemeente = dynamic(() => import('~/components/beheer/LeftMenu'), { ssr: false })// TODO Make SSR again
+
 
 import GemeenteEdit from '~/components/contact/GemeenteEdit';
 import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
-import { useGemeenten } from '~/hooks/useGemeenten';
+import { useGemeenten, useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { useFietsenstallingen } from '~/hooks/useFietsenstallingen';
+import { useExploitanten } from '~/hooks/useExploitanten';
+import ExploitantEdit from '~/components/contact/ExploitantEdit';
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
 //     font-weight: bold;
@@ -111,7 +115,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
 
 export type BeheerPageProps = {
   currentUser?: User;
-  selectedGemeenteID?: string;
+  selectedContactID?: string;
   roles?: security_roles[];
   fietsenstallingtypen?: fietsenstallingtypen[];
 };
@@ -123,10 +127,11 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   const queryRouter = useRouter();
   const { data: session, update: updateSession } = useSession();
 
-  const selectedGemeenteID = session?.user?.activeContactId || "";
+  const selectedContactID = session?.user?.activeContactId || "";
 
-  const { gemeenten, isLoading: gemeentenLoading, error: gemeentenError, reloadGemeenten } = useGemeenten();
-  const { fietsenstallingen: bikeparks, isLoading: bikeparksLoading, error: bikeparksError, reloadFietsenstallingen } = useFietsenstallingen(selectedGemeenteID);
+  const { gemeenten, isLoading: gemeentenLoading, error: gemeentenError, reloadGemeenten } = useGemeentenInLijst();
+  const { exploitanten, isLoading: exploitantenLoading, error: exploitantenError, reloadExploitanten } = useExploitanten(selectedContactID);
+  const { fietsenstallingen: bikeparks, isLoading: bikeparksLoading, error: bikeparksError, reloadFietsenstallingen } = useFietsenstallingen(selectedContactID);
   const [isSwitchingGemeente, setIsSwitchingGemeente] = useState(false);
 
   const showAbonnementenRapporten = true;
@@ -191,18 +196,19 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     }
   };
 
-  const gemeentenaam = gemeenten?.find(gemeente => gemeente.ID === selectedGemeenteID)?.CompanyName || "";
+  const gemeentenaam = gemeenten?.find(gemeente => gemeente.ID === selectedContactID)?.CompanyName || "";
+  const exploitantnaam = exploitanten?.find(exploitant => exploitant.ID === selectedContactID)?.CompanyName || "";
 
   const renderComponent = () => {
     try {
       let selectedComponent = undefined;
       switch (activecomponent) {
         case VSMenuTopic.Home:
-          selectedComponent = <HomeInfoComponent gemeentenaam={gemeentenaam} />;
+          selectedComponent = <HomeInfoComponent gemeentenaam={gemeentenaam||exploitantnaam} />;
           break;
         case VSMenuTopic.Report:
           {
-            selectedGemeenteID !== "" ? (
+            selectedContactID !== "" ? (
               selectedComponent = <ReportComponent
                 showAbonnementenRapporten={showAbonnementenRapporten}
                 firstDate={firstDate}
@@ -229,7 +235,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           break;
         case VSMenuTopic.Export:
           selectedComponent = <ExportComponent
-            gemeenteID={selectedGemeenteID}
+            gemeenteID={selectedContactID}
             gemeenteName={gemeentenaam}
             firstDate={firstDate}
             lastDate={lastDate}
@@ -245,7 +251,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           );
           break;
         case VSMenuTopic.ContactsExploitanten:
-          selectedComponent = <ExploitantComponent/>;
+          selectedComponent = <ExploitantComponent contactID={selectedContactID} showGemeenten={selectedContactID==="1"} readonly={selectedContactID!=="1"} />;
           break;
         case VSMenuTopic.ContactsDataproviders:
           selectedComponent = <DataproviderComponent />;
@@ -273,13 +279,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} siteID={null} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern}/>;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} siteID={selectedContactID}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerExploitant:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant}/>;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} siteID={selectedContactID}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerBeheerder:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} />;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} siteID={selectedContactID} />;
           break;
         case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;
@@ -309,14 +315,26 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent =           
             <GemeenteEdit 
               fietsenstallingtypen={fietsenstallingtypen || []}
-              id={selectedGemeenteID} 
+              id={selectedContactID} 
               onClose={undefined} 
               onEditStalling={(stallingID: string | undefined) => {}}
               onEditUser={(userID: string | undefined) => {}}
               onSendPassword={(userID: string | undefined) => {}}
             />
           break;
-          // case VSMenuTopic.Abonnementen:
+        case VSMenuTopic.SettingsExploitant:
+          selectedComponent =           
+            <ExploitantEdit 
+              gemeenten={gemeenten || []}
+              // fietsenstallingtypen={fietsenstallingtypen || []}
+              id={selectedContactID} 
+              onClose={undefined} 
+              onEditStalling={(stallingID: string | undefined) => {}}
+              onEditUser={(userID: string | undefined) => {}}
+              onSendPassword={(userID: string | undefined) => {}}
+            />
+          break;
+            // case VSMenuTopic.Abonnementen:
         //   selectedComponent = <AbonnementenComponent type="abonnementen" />;
         //   break;
         // case VSMenuTopic.Abonnementsvormen:
@@ -369,18 +387,27 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         currentComponent={activecomponent}
         user={currentUser} 
         gemeenten={gemeenten}
-        selectedGemeenteID={selectedGemeenteID}
+        exploitanten={exploitanten}
+        selectedGemeenteID={selectedContactID}
         onGemeenteSelect={handleSelectGemeente}
       />
       <div className="flex">
-        {selectedGemeenteID !== "1" ? (
-          <LeftMenuGemeente
+        {selectedContactID === "1" && (
+          <LeftMenu
             securityProfile={currentUser?.securityProfile}
             activecomponent={activecomponent}
             onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
           />
-        ) : (
-          <LeftMenu
+        )}
+        {gemeenten.find(gemeente => gemeente.ID === selectedContactID) && (
+          <LeftMenuGemeente
+            securityProfile={currentUser?.securityProfile}
+            activecomponent={activecomponent}
+            onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key
+          />)
+        }
+        {exploitanten.find(exploitant => exploitant.ID === selectedContactID) && (
+          <LeftMenuExploitant
             securityProfile={currentUser?.securityProfile}
             activecomponent={activecomponent}
             onSelect={(componentKey: VSMenuTopic) => handleSelectComponent(componentKey)} // Pass the component key

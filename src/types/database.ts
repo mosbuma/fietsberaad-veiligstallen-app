@@ -1,5 +1,6 @@
 import { z } from "zod";
 import moment from "moment";
+import { VSUserRoleValuesNew } from "./users";
 // Custom validation for the ID format (e.g., 0199B305-F1B5-408D-9D4927EBA0F9A80D)
 export const idSchema = z.string().refine(
   (id) => {
@@ -183,6 +184,7 @@ export const getDefaultNewSecurityUser = (name: string) => ({
   ID: 'new',
   UserName: '',
   DisplayName: name,
+  RoleID: VSUserRoleValuesNew.None,
   Status: "1",
   Password: null,
   EncryptedPassword: null,
@@ -199,6 +201,8 @@ export const securityuserSchema = z.object({
     .max(100, { message: "Weergavenaam mag maximaal 100 tekens bevatten" }),
   Status: z.string()
     .nullable()
+    .optional(),
+  RoleID: z.nativeEnum(VSUserRoleValuesNew)
     .optional(),
   EncryptedPassword: z.string()
     .nullable()

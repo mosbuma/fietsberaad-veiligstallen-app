@@ -7,13 +7,14 @@ import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
 import type { VSUserSecurityProfile } from "~/types/";
 import type { Session } from "next-auth";
-import type { VSContactGemeenteInLijst } from "~/types/contacts";
+import type { VSContactExploitant, VSContactGemeenteInLijst } from "~/types/contacts";
 import { userHasRight, logSession } from '~/types/utils';
 interface TopBarProps {
   title: string;
   currentComponent: string;
   user: User | undefined;
   gemeenten: VSContactGemeenteInLijst[] | undefined;
+  exploitanten: VSContactExploitant[] | undefined;
   selectedGemeenteID: string | undefined;
   onGemeenteSelect: (gemeenteID: string) => void;
 }
@@ -23,6 +24,7 @@ const TopBar: React.FC<TopBarProps> = ({
   currentComponent,
   user,
   gemeenten,
+  exploitanten,
   selectedGemeenteID,
   onGemeenteSelect,
 }) => {
@@ -68,11 +70,12 @@ const TopBar: React.FC<TopBarProps> = ({
   const fietsberaad = {
     ID: "1",
     CompanyName: "Fietsberaad",
-    CompanyShortName: "Fietsberaad"
   }
 
-  const organisaties = showFietsberaadInList ? [fietsberaad, ...(gemeenten || [])] : gemeenten;
-  const visibleContacts = organisaties?.sort((a, b) => {
+  const gemeentenKort = gemeenten?.map(gemeente => ({
+    ID: gemeente.ID,
+    CompanyName: gemeente.CompanyName,
+  })).sort((a, b) => {
     // If a is the main contact, it should come first
     if (a.ID === (profile?.mainContactId || "")) return -1;
     // If b is the main contact, it should come first
@@ -80,6 +83,22 @@ const TopBar: React.FC<TopBarProps> = ({
     // Otherwise sort alphabetically
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
+  const exploitantenKort = exploitanten?.map(exploitant => ({
+    ID: exploitant.ID,
+    CompanyName: "** " + exploitant.CompanyName + " **",
+  })).sort((a, b) => {
+    // If a is the main contact, it should come first
+    if (a.ID === (profile?.mainContactId || "")) return -1;
+    // If b is the main contact, it should come first
+    if (b.ID === (profile?.mainContactId || "")) return 1;
+    // Otherwise sort alphabetically
+    return (a.CompanyName || '').localeCompare(b.CompanyName || '');
+  });
+
+  let organisaties = [...(gemeentenKort || []), ...(exploitantenKort || [])];
+  if(showFietsberaadInList) {
+    organisaties.unshift(fietsberaad);
+  }
 
   return (
     <div
@@ -139,18 +158,18 @@ const TopBar: React.FC<TopBarProps> = ({
             Beheer Home
           </Link>
         )}
-        {visibleContacts && visibleContacts.length > 0 && (
+        {organisaties && organisaties.length > 0 && (
           <select
             onChange={handleGemeenteChange}
             value={selectedGemeenteID || ""}
             className="rounded bg-gray-700 px-2 py-1 text-white"
           >
-            {visibleContacts.map(gemeente => (
+            {organisaties.map(organisatie => (
               <option
-                key={`select-gemeente-option-${gemeente.ID}`}
-                value={gemeente.ID}
+                key={`select-organisatie-option-${organisatie.ID}`}
+                value={organisatie.ID}
               >
-                {gemeente.CompanyName} {gemeente.ID===profile?.mainContactId ? " (mijn organisatie)" : ""}
+                {organisatie.CompanyName} {organisatie.ID===profile?.mainContactId ? " (mijn organisatie)" : ""}
               </option>
             ))}
           </select>

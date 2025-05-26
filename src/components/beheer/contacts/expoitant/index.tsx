@@ -17,13 +17,16 @@ import { useGemeenten } from '~/hooks/useGemeenten';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
 
 type ExploitantComponentProps = { 
+  contactID: string | undefined;
+  showGemeenten?: boolean;
+  readonly?: boolean;
 };
 
 const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
 
   // const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
-  const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten();
+  const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten(props.contactID);
   const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
 
   const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
@@ -122,7 +125,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
             <tr>
               <th className="py-2">Naam</th>
               <th className="py-2">E-mail</th>
-              <th className="py-2">Gemeente(n)</th>
+              {props.showGemeenten && <th className="py-2">Gemeente(n)</th>}
               <th className="py-2">Actief</th>
             </tr>
           </thead>
@@ -132,7 +135,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
                 <tr key={contact.ID}>
                   <td className="border px-4 py-2">{contact.CompanyName}</td>
                   <td className="border px-4 py-2">{contact.Helpdesk}</td>
-                  <td className="border px-4 py-2">{getGemeenten(contact)}</td>
+                  {props.showGemeenten && <td className="border px-4 py-2">{getGemeenten(contact)}</td>}
                   <td className="border px-4 py-2">
                     {contact.Status === "1" ? 
                       <span className="text-green-500">●</span> : 
@@ -140,8 +143,12 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
                     }
                   </td>
                   <td className="border px-4 py-2">
-                    <button onClick={() => handleEdit(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button onClick={() => handleDelete(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!isAdmin}>🗑️</button>
+                    {!props.readonly && (
+                      <>
+                        <button onClick={() => handleEdit(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
+                        <button onClick={() => handleDelete(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!isAdmin}>🗑️</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               );

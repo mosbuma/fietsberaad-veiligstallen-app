@@ -83,11 +83,34 @@ export default async function handle(
 
   const { sites, userId, activeContactId } = validateUserSessionResult;
 
-  let wherefilter = undefined;
+  const activeContact = await prisma.contacts.findUnique({
+    where: {
+      ID: activeContactId
+    }, 
+    select: {
+      ItemType: true
+    }
+  });
+
+  let wherefilter: any = undefined;
   if(activeContactId === "1") {
     // intern users
     wherefilter = { GroupID: VSUserGroupValues.Intern };
-  } else {
+  } else if(activeContact?.ItemType==="exploitant" || activeContact?.ItemType==="beheerder") {
+
+    const mainusers = await prisma.security_users.findMany({
+      where: { SiteID: activeContactId },
+      select: { UserID: true }
+    });
+
+    const mainids = mainusers.map(u => u.UserID);
+    wherefilter = {
+      OR: [
+        { UserID: { in: mainids } },
+        { ParentID: { in: mainids} }
+      ]
+    }
+  } else if(activeContact?.ItemType==="organizations") {
     // extern users
     wherefilter = { 
       security_users_sites: {
@@ -96,6 +119,11 @@ export default async function handle(
         }
       }, 
       GroupID: VSUserGroupValues.Extern };
+  } else if(activeContact?.ItemType==="dataprovider") {
+    wherefilter = { GroupID: false };
+  } else {
+    console.warn("Unknown activeContact type", activeContact?.ItemType);
+    wherefilter = { GroupID: false };
   }
 
   switch (req.method) {
@@ -116,10 +144,10 @@ export default async function handle(
           return result;
         });
       } else {
-        newUsers = await Promise.all(users.map(async (user) => {
+        newUsers = (await Promise.all(users.map(async (user) => {
           const result = convertToNewUser(user, activeContactId);
           return result;
-        }));
+        }))).filter((user): user is VSUserWithRolesNew => user !== false);
       }
 
       res.status(200).json({data: newUsers});
