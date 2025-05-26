@@ -177,8 +177,20 @@ export default async function handle(
     }
     case "DELETE": {
       try {
+        const activeContactID = session?.user?.activeContactId;
+        if(! activeContactID) {
+          console.error("No active contact ID found");
+          res.status(400).json({error: "No active contact ID found"});
+          return;
+        }
+
+        // Delete from faq table
         await prisma.faq.delete({
           where: { ID: id }
+        });
+        // Delete from contacts_faq table
+        await prisma.contacts_faq.delete({
+          where: { SiteID_FaqID: { SiteID: activeContactID, FaqID: id } }
         });
         res.status(200).json({});
       } catch (e) {
