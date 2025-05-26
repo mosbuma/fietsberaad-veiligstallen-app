@@ -145,7 +145,7 @@ const TopBar: React.FC<TopBarProps> = ({
         </div>
       </div>
       <div
-        className="flex items-center justify-end space-x-4 text-sm"
+        className="flex items-center justify-end space-x-4 text-sm whitespace-nowrap"
         style={{ flex: 3 }}
       >
         {session?.user?.name && (

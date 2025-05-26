@@ -68,7 +68,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
   // Do only show reports? Temporary for testing, 2025-05
   const doOnlyShowReports = (): boolean => {
-    return false;//!['veiligstallen.work', 'localhost:3000'].includes(window?.location?.host);
+    return !['veiligstallen.work', 'localhost:3000'].includes(window?.location?.host);
   }
 
   const renderUnifiedMenu = () => {
@@ -149,7 +149,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
 
           { formatLi(false, 'Organisaties', false,
             <ul className="ml-4 mt-1">
-              {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Gemeenten')}
+              {(isAdmin || hasGemeenteRight) && formatLi(VSMenuTopic.ContactsGemeenten, 'Data-eigenaren')}
               { hasSystemRight && isAdmin && formatLi(VSMenuTopic.ContactsExploitanten, 'Exploitanten')}
               { hasSystemRight && isAdmin && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Dataleveranciers')}
               {!hasSystemRight && hasDataprovidersRight && formatLi(VSMenuTopic.ContactsDataproviders, 'Toegang fmsservice')}
@@ -182,7 +182,8 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
           {(hasWebsiteRight) && 
             formatLi(VSMenuTopic.Website, 'Website beheer', false,
               <ul className="ml-4 mt-1">
-                {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
+                {formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
+                {formatLi(VSMenuTopic.Faq, 'FAQ', true)}
               </ul>
             )
           }
@@ -217,7 +218,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   // }
 
   return (
-    <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
+    <ul id="leftMenu" className="shadow w-64 h-[calc(100vh-64px)] overflow-y-auto p-4">
       {renderUnifiedMenu()}
     </ul>
   );
