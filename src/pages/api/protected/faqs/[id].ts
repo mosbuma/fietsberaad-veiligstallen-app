@@ -14,7 +14,7 @@ const faqCreateSchema = z.object({
   SiteID: z.string().optional(),
   SortOrder: z.number().optional(),
   Status: z.string().optional(),
-  ModuleID: z.string().nullable(),
+  ModuleID: z.string().optional().nullable(),
 });
 
 // Schema for updating an FAQ
@@ -24,7 +24,7 @@ const faqSchema = z.object({
   Answer: z.string().optional(),
   SortOrder: z.number().optional(),
   Status: z.string().optional(),
-  ModuleID: z.string().nullable(),
+  ModuleID: z.string().optional().nullable(),
 });
 
 export type FaqResponse = {
@@ -99,9 +99,8 @@ export default async function handle(
           Question: parsed.Question,
           Answer: parsed.Answer,
           Status: parsed.Status || "1",
-          ModuleID: parsed.ModuleID || null,
-          SortOrder: parsed.SortOrder,
-          SiteID: parsed.SiteID,
+          ModuleID: parsed.ModuleID,
+          SortOrder: parsed.SortOrder
         }
 
         const newFaq = await prisma.faq.create({data: newData}) as unknown as VSFAQ;
@@ -112,11 +111,11 @@ export default async function handle(
         }
 
         // add a record to the security_users_sites table that links the new FAQ to the user's sites
-        const newLink = await prisma.security_users_sites.create({
+        const newLink = await prisma.contacts_faq.create({
           data: {
-            UserID: userId,
-            SiteID: newFaq.ID,
-            IsContact: false
+            SiteID: parsed.SiteID as string,
+            FaqID: newID,
+            Status: true
           }
         });
         if(!newLink) {

@@ -18,7 +18,7 @@ const FaqSection = ({
         <tbody>
           {items.map((faq) => (
             <tr key={faq.ID}>
-              <td className="border px-4 py-2">{faq.Question}</td>
+              <td className="border px-4 py-2 w-full">{faq.Question}</td>
               <td className="border px-4 py-2 whitespace-nowrap">
                 <button 
                   onClick={() => handleEditFaq(faq.ID)} 

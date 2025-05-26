@@ -115,8 +115,6 @@ const FaqEdit: React.FC<FaqEditProps> = ({
     return <div>FAQ niet gevonden</div>;
   }
 
-  console.log('faq', faq)
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
