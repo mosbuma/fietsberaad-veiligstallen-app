@@ -81,6 +81,12 @@ jobs:
             LOGINTOKEN_SIGNER_PRIVATE_KEY=${{ secrets.LOGINTOKEN_SIGNER_PRIVATE_KEY }}
             EOL
 
+            # Configure Docker credential helper
+            sudo apt-get update
+            sudo apt-get install -y pass gnupg2
+            echo "{}" > ~/.docker/config.json
+            echo '{"credsStore":"pass"}' > ~/.docker/config.json
+
             # Login to GitHub Container Registry with retry
             for i in {1..3}; do
               echo "Attempt $i to login to ghcr.io"
