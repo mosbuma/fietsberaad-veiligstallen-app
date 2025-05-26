@@ -126,18 +126,13 @@ const TopBar: React.FC<TopBarProps> = ({
         </div>
       </div>
       <div
-        className="flex items-center justify-end space-x-4 text-sm"
+        className="flex items-center justify-end space-x-4 text-sm whitespace-nowrap"
         style={{ flex: 3 }}
       >
         {session?.user?.name && (
           <div className="text-sm" onClick={handleDisplaySessionInfo}>
             {session?.user?.name || "---"}
           </div>
-        )}
-        {currentComponent !== "home" && (
-          <Link href="/beheer" className="hover:underline">
-            Beheer Home
-          </Link>
         )}
         {visibleContacts && visibleContacts.length > 0 && (
           <select

@@ -365,7 +365,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   return (
     <div className="flex flex-col h-screen overflow-y-hidden">
       <TopBar
-        title="Veiligstallen Beheer Dashboard"
+        title="VeiligStallen beheer"
         currentComponent={activecomponent}
         user={currentUser} 
         gemeenten={gemeenten}
