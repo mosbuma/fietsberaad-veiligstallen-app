@@ -45,8 +45,12 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=${{ github.workflow }}
+            type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
+          cache-to: |
+            type=gha,scope=${{ github.workflow }},mode=max
+            type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
           build-args: |
             NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_WEB_BASE_URL=${{ vars.NEXT_PUBLIC_WEB_BASE_URL }}
