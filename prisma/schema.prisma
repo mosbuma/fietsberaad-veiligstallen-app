@@ -710,7 +710,6 @@ model fietsenstallingen {
   BronBezettingsdata                                String?                      @default("FMS") @db.VarChar(20)
   reservationCostPerDay                             Decimal?                     @db.Decimal(8, 2)
   wachtlijst_Id                                     BigInt?
-  // freeHoursReservation                              Decimal?                     @db.Decimal(8, 2)
   thirdPartyReservationsUrl                         String?                      @db.VarChar(255)
   contacts_fietsenstallingen_SiteIDTocontacts       contacts?                    @relation("fietsenstallingen_SiteIDTocontacts", fields: [SiteID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK10w2mep03sjwvk4vd4gla321c")
   contacts_fietsenstallingen_ExploitantIDTocontacts contacts?                    @relation("fietsenstallingen_ExploitantIDTocontacts", fields: [ExploitantID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FKF4836A5566279D18")

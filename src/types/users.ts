@@ -94,3 +94,23 @@ export const securityUserSelect = {
         }
     }
 }
+
+export const getDefaultSecurityProfile = (): VSUserSecurityProfile => ({
+    mainContactId: "",
+    roleId: VSUserRoleValuesNew.None,
+    rights: {},
+    modules: [],
+    managingContactIDs:[]
+})
+
+export const getDefaultNewUser = (name: string, siteid: string | null): VSUserWithRolesNew => ({
+    UserID: 'new',
+    UserName: '',
+    DisplayName: name,
+    Status: "1",
+    SiteID: siteid,
+    sites: [],
+    ParentID: null,
+    LastLogin: null,
+    securityProfile: getDefaultSecurityProfile()
+  });

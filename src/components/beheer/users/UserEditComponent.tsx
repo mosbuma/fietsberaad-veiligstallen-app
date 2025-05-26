@@ -20,6 +20,7 @@ export type UserStatus = "actief" | "inactief";
 
 export interface UserEditComponentProps {
     id: string,
+    siteID: string | null,
     onClose: (userChanged: boolean, confirmClose: boolean) => void,
 }
 
@@ -35,6 +36,8 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       password: string,
       confirmPassword: string,
     }
+
+    console.log("*** UserEditComponent", props);
 
     const isNew = props.id === "new";
 
@@ -145,6 +148,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
       //   return;
       // }
 
+
       try {
         const data: Partial<VSUserWithRolesNew> = {
           UserID: id,
@@ -154,6 +158,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           // EncryptedPassword: password ? hashPassword(password) : undefined,
           // EncryptedPassword2: password ? hashPassword(password) : undefined,
           Status: status ? "1" : "0",
+          SiteID: props.siteID,
         }
 
         const urlValidate = `/api/protected/security_users/validate/`;

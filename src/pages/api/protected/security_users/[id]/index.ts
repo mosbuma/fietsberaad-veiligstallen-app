@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
+import { VSUserGroupValues, type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
 import { convertToNewUser } from "~/pages/api/protected/security_users/index";
+import bcrypt from "bcryptjs";
 // TODO: implement filtering on accessible security_users
 
 export type SecurityUserResponse = {
@@ -17,14 +18,16 @@ const securityUserUpdateSchema = z.object({
   UserName: z.string().min(1).optional(),
   DisplayName: z.string().min(1).optional(),
   Status: z.string().optional(),
-  SiteID: z.string().optional(),
+  SiteID: z.string().nullable().optional(),
+  password: z.string().optional(),
 });
 
 const securityUserCreateSchema = z.object({
   UserName: z.string().min(1),
   DisplayName: z.string().min(1),
   Status: z.string().optional(),
-  SiteID: z.string(),
+  SiteID: z.string().nullable().optional(),
+  password: z.string().optional(),
 });
 
 export default async function handle(
@@ -73,27 +76,62 @@ export default async function handle(
         const parsed = parseResult.data;
 
         const newUserID = generateID();
+
+        // determine the groupID based on the siteID
+        let groupID: VSUserGroupValues | undefined = undefined;
+        if(parsed.SiteID===null) {
+          groupID = VSUserGroupValues.Intern;
+        } else {
+          const contact = await prisma.contacts.findFirst({
+            where: {
+              ID: parsed.SiteID,
+            },
+          });
+
+          if(!contact) {
+            console.error("Contact not found for siteID:", parsed.SiteID);
+            res.status(400).json({error: "Contact not found for siteID"});
+            return;
+          }
+
+          if(contact.ItemType === "organizations") {
+            groupID = VSUserGroupValues.Extern;
+          } else if(contact.ItemType === "exploitant") {
+            groupID = VSUserGroupValues.Exploitant;
+          } else if(contact.ItemType === "dataprovider") {
+            
+          } else {
+            console.error("Contact has unknown item type:", contact.ItemType);
+            res.status(400).json({error: "Contact has unknown item type"});
+            return;
+          }
+        }
+
+        const data: any = {
+          UserID: newUserID,
+          UserName: parsed.UserName,
+          DisplayName: parsed.DisplayName,
+          // RoleID: parsed.RoleID,
+          GroupID: groupID,
+          Status: parsed.Status ?? "1",
+          // EncryptedPassword: hashedPassword,
+          SiteID: session.user.SiteID 
+        }
         
         // Hash the password
-        // const hashedPassword = await bcrypt.hash(parsed.Password, 10);
+        if(parsed.password) {
+          const hashedPassword = await bcrypt.hash(parsed.password, 10);
+          data.EncryptedPassword = hashedPassword;
+        }
         
         const createdUser = await prisma.security_users.create({
-          data: {
-            UserID: newUserID,
-            UserName: parsed.UserName,
-            DisplayName: parsed.DisplayName,
-            // RoleID: parsed.RoleID,
-            // GroupID: parsed.GroupID,
-            Status: parsed.Status ?? "1",
-            // EncryptedPassword: hashedPassword,
-            SiteID: session.user.SiteID 
-          },
+          data,
           select: securityUserSelect
         }) as VSUserWithRoles;
 
         const newUser = await convertToNewUser(createdUser, activeContactId);
 
-        res.status(201).json({ data: newUser });
+        res.status(201).json({ data: newUser || undefined });
       } catch (e) {
         console.error("Error creating security user:", e);
         res.status(500).json({error: "Error creating security user"});

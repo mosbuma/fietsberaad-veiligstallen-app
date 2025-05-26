@@ -1,4 +1,4 @@
-import { VSUserRoleValuesNew } from './users';
+import { VSUserGroupValues, VSUserRoleValuesNew } from './users';
 import { VSModuleValues } from './modules';
 import { fietsenstallingtypen } from '@prisma/client';
 import { abonnementsvormen } from '@prisma/client';
@@ -10,6 +10,7 @@ import { ParkingSections } from './parking';
 export type DayPrefix = 'ma' | 'di' | 'wo' | 'do' | 'vr' | 'za' | 'zo';
 
 export type VSUserSecurityProfileCompact = {
+    groupId: VSUserGroupValues;
     roleId: VSUserRoleValuesNew;
     rights: {
         [key in VSSecurityTopic]?: VSCRUDRight;

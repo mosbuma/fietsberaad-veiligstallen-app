@@ -270,7 +270,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern}/>;
+          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} siteID={null} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
           selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern}/>;

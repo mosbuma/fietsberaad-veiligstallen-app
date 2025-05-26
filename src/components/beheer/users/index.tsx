@@ -9,6 +9,7 @@ import { getNewRoleLabel } from '~/types/utils';
 
 type UserComponentProps = { 
   groupid: VSUserGroupValues,
+  siteID: string | null,
 };
 
 const UsersComponent: React.FC<UserComponentProps> = (props) => {
@@ -109,6 +110,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
         displayInOverlay(
           <UserEditComponent 
             id={id}      
+            siteID={props.siteID}
             onClose={handleUserEditClose} 
             />, false, "Gebruiker bewerken", () => setId(undefined))
       )}
@@ -116,7 +118,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">{title}</h1>
           <button 
-            onClick={() => setId('nieuw')}
+            onClick={() => setId('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe gebruiker

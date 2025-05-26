@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
 import { VSContactDataprovider, VSContactGemeente, VSContactExploitant } from "~/types/contacts";
-import { VSUserWithRolesNew, VSUserRole, VSUserGroupValues } from "~/types/users";
+import { VSUserWithRolesNew, VSUserRole, VSUserGroupValues, VSUserRoleValuesNew } from "~/types/users";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 import LeftMenu from "./beheer/LeftMenu";
 import { convertRoleToNewRole } from "~/utils/securitycontext";
@@ -28,7 +28,7 @@ const ExploreLeftMenuComponent = (props: ExploreLeftMenuComponentProps) => {
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
 
     const [emailFilter, setEmailFilter] = useState<string>("");
-    const [roleFilter, setRoleFilter] = useState<number | undefined>(undefined);
+    const [roleFilter, setRoleFilter] = useState<VSUserRoleValuesNew | undefined>(undefined);
     const [contactFilter, setContactFilter] = useState<"Yes" | "No">("No");
     const [gemeenteFilter, setGemeenteFilter] = useState<string>("");
     const [exploitantFilter, setExploitantFilter] = useState<string>("");
@@ -94,10 +94,10 @@ const ExploreLeftMenuComponent = (props: ExploreLeftMenuComponentProps) => {
                 user.UserName?.toLowerCase().includes(emailFilter.toLowerCase()) || 
                 user.DisplayName?.toLowerCase().includes(emailFilter.toLowerCase())
             ))
-            .filter((user) => (roleFilter === undefined || user.RoleID === roleFilter))
+            .filter((user) => (roleFilter === undefined || user.securityProfile.roleId === roleFilter))
             .filter((user) => (
                 gemeenteFilter === "" || 
-                user.security_users_sites.some((site) => site.SiteID === gemeenteFilter)
+                user.security_profile.managingContactIDs.some((contactID) => contactID === gemeenteFilter)
             ))
             .filter((user) => {
                 if (exploitantFilter === "") return true;

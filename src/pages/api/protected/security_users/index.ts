@@ -18,7 +18,12 @@ const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
   }))
 }
 
-export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: string): Promise<VSUserWithRolesNew> => {
+export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: string): Promise<VSUserWithRolesNew|false> => {
+  if(null===user) {
+    console.error("convertToNewUser: user is null");
+    return false;
+  }
+
   return {
     UserID: user.UserID, 
     UserName: user.UserName, 
