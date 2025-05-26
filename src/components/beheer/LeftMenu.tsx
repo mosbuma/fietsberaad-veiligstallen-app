@@ -182,7 +182,8 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
           {(hasWebsiteRight) && 
             formatLi(VSMenuTopic.Website, 'Website beheer', false,
               <ul className="ml-4 mt-1">
-                {formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
+                {formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
+                {formatLi(VSMenuTopic.Faq, 'FAQ', true)}
               </ul>
             )
           }
@@ -217,7 +218,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
   // }
 
   return (
-    <ul id="leftMenu" className="shadow w-64 min-h-screen p-4">
+    <ul id="leftMenu" className="shadow w-64 h-[calc(100vh-64px)] overflow-y-auto p-4">
       {renderUnifiedMenu()}
     </ul>
   );
