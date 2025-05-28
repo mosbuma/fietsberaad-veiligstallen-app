@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserGroupValues, type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
+import { VSUserGroupValues, VSUserRoleValues, VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
 import { convertToNewUser } from "~/pages/api/protected/security_users/index";
 import bcrypt from "bcryptjs";
+import { convertNewRoleToOldRole } from "~/utils/securitycontext";
+import { security_users } from "@prisma/client";
 // TODO: implement filtering on accessible security_users
 
 export type SecurityUserResponse = {
@@ -14,21 +16,24 @@ export type SecurityUserResponse = {
   error?: string;
 };
 
-const securityUserUpdateSchema = z.object({
-  UserName: z.string().min(1).optional(),
-  DisplayName: z.string().min(1).optional(),
-  Status: z.string().optional(),
-  SiteID: z.string().nullable().optional(),
-  password: z.string().optional(),
-});
-
-const securityUserCreateSchema = z.object({
+export const securityUserCreateSchema = z.object({
+  UserID: z.string(),
   UserName: z.string().min(1),
   DisplayName: z.string().min(1),
-  Status: z.string().optional(),
-  SiteID: z.string().nullable().optional(),
-  password: z.string().optional(),
+  Status: z.string(),
+  RoleID: z.nativeEnum(VSUserRoleValuesNew),
+  SiteID: z.string().nullable(),
+  password: z.string(),
 });
+
+export const securityUserUpdateSchema = securityUserCreateSchema.partial().required({UserID: true});
+
+const oldSecurityUserCreateSchema = securityUserCreateSchema.omit({password: true, RoleID: true}).extend({
+  RoleID: z.nativeEnum(VSUserRoleValues),
+  EncryptedPassword: z.string(),
+});
+
+export const oldSecurityUserUpdateSchema = oldSecurityUserCreateSchema.partial().required({UserID: true})
 
 export default async function handle(
   req: NextApiRequest,
@@ -49,11 +54,8 @@ export default async function handle(
   const id = req.query.id as string;
   const activeContactId = session.user.activeContactId;
 
-  console.log(">>> security_users/[id] id", id);
-
   switch (req.method) {
     case "GET": {
-      console.log("GET", id);
       const user = await prisma.security_users.findFirst({
         where: {
           UserID: id,
@@ -61,12 +63,11 @@ export default async function handle(
         select: securityUserSelect
       }) as VSUserWithRoles;
       const newUser = await convertToNewUser(user, activeContactId);
-      res.status(200).json({data: newUser});
+      res.status(200).json({data: newUser || undefined});
       break;
     }
     case "POST": {
       try {
-        console.log("*** SECURITY_USERS/[ID] POST", req.body);
         const parseResult = securityUserCreateSchema.safeParse(req.body);
         if (!parseResult.success) {
           console.error("Unexpected/missing data error:", parseResult.error);
@@ -99,7 +100,9 @@ export default async function handle(
           } else if(contact.ItemType === "exploitant") {
             groupID = VSUserGroupValues.Exploitant;
           } else if(contact.ItemType === "dataprovider") {
-            
+            console.error("Dataproviders have no users");
+            res.status(400).json({error: "Contact has unknown item type"});
+            return;
           } else {
             console.error("Contact has unknown item type:", contact.ItemType);
             res.status(400).json({error: "Contact has unknown item type"});
@@ -107,21 +110,21 @@ export default async function handle(
           }
         }
 
-        const data: any = {
+        const hashedPassword = await bcrypt.hash(parsed.password, 10);
+
+        const oldRole = convertNewRoleToOldRole(parsed.RoleID);
+
+        const data: Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID" | "ParentID" | "LastLogin" | "EncryptedPassword">  = {
           UserID: newUserID,
           UserName: parsed.UserName,
           DisplayName: parsed.DisplayName,
-          // RoleID: parsed.RoleID,
+          RoleID: oldRole,
           GroupID: groupID,
           Status: parsed.Status ?? "1",
-          // EncryptedPassword: hashedPassword,
-          SiteID: session.user.SiteID 
-        }
-        
-        // Hash the password
-        if(parsed.password) {
-          const hashedPassword = await bcrypt.hash(parsed.password, 10);
-          data.EncryptedPassword = hashedPassword;
+          EncryptedPassword: hashedPassword,
+          SiteID: parsed.SiteID,
+          ParentID: null,
+          LastLogin: null
         }
         
         const createdUser = await prisma.security_users.create({
@@ -147,19 +150,22 @@ export default async function handle(
           return;
         }
 
-        const parsed = parseResult.data;
-        const updateData: any = {
-          UserName: parsed.UserName,
-          DisplayName: parsed.DisplayName,
-          // RoleID: parsed.RoleID,
-          // GroupID: parsed.GroupID,
-          Status: parsed.Status,
-        };
+        const parsed = parseResult.data as z.infer<typeof securityUserUpdateSchema>;
 
-        // Only update password if provided
-        // if (parsed.Password) {
-        //   updateData.EncryptedPassword = await bcrypt.hash(parsed.Password, 13);
-        // }
+        const updateData: z.infer<typeof oldSecurityUserUpdateSchema>  = {
+          UserID: parsed.UserID,
+          UserName: parsed.UserName || undefined,
+          DisplayName: parsed.DisplayName || undefined,
+          Status: parsed.Status || undefined,
+        }
+
+        if(parsed.password) {
+          updateData.EncryptedPassword = await bcrypt.hash(parsed.password, 10);
+        }
+
+        if(parsed.RoleID) {
+          updateData.RoleID = convertNewRoleToOldRole(parsed.RoleID) || undefined;
+        }
 
         const updatedUser = await prisma.security_users.update({
           where: { UserID: id },
@@ -167,7 +173,7 @@ export default async function handle(
           select: securityUserSelect
         }) as VSUserWithRoles;
         const newUser = await convertToNewUser(updatedUser, activeContactId);
-        res.status(200).json({data: newUser});
+        res.status(200).json({data: newUser || undefined});
       } catch (e) {
         console.error("Error updating security user:", e);
         res.status(500).json({error: "Error updating security user"});
