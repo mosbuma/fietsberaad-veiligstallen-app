@@ -34,7 +34,10 @@ const getTodaysCustomOpeningTimes = (today: moment.Moment, uitzonderingenopening
     return [null, null];
   }
 
-  const customOpeningTimes = uitzonderingenopeningstijden.find(x => today.isSame(x.openingDateTime, 'day'));
+  const customOpeningTimes = uitzonderingenopeningstijden.find(x => {
+    return today.isSame(moment(x.openingDateTime), 'day');
+  });
+  
   if (!customOpeningTimes) {
     return [null, null];
   }
@@ -162,11 +165,23 @@ export const formatOpeningTimes = (
   isToday: boolean,
   isNS: boolean = false
 ): React.ReactNode => {
-  // Get manually added exceptions (uitzonderingenopeningstijden)
-  const [customOpenTime, customCloseTime] = getTodaysCustomOpeningTimes(moment(), parkingdata.uitzonderingenopeningstijden);
+  // Get date based on current week and given day
+  // Day is a string like 'ma', 'di', 'wo', 'do', 'vr', 'za', 'zo', Dutch for 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  const dayToNumber: Record<DayPrefix, number> = {
+    'ma': 1,  // Monday
+    'di': 2,  // Tuesday
+    'wo': 3,  // Wednesday
+    'do': 4,  // Thursday
+    'vr': 5,  // Friday
+    'za': 6,  // Saturday
+    'zo': 7   // Sunday
+  };
+  const weekdayDate = moment().isoWeekday(dayToNumber[day]);
 
-  const opentime = (isToday && customOpenTime) || parkingdata[getOpenTimeKey(day)];
-  const closetime = (isToday && customCloseTime) || parkingdata[getDichtTimeKey(day)];
+  const [customOpenTime, customCloseTime] = getTodaysCustomOpeningTimes(weekdayDate, parkingdata.uitzonderingenopeningstijden);
+
+  const opentime = (customOpenTime) || parkingdata[getOpenTimeKey(day)];
+  const closetime = (customCloseTime) || parkingdata[getDichtTimeKey(day)];
   const tmpopen = moment.utc(opentime);
   const hoursopen = tmpopen.hours();
   const minutesopen = String(tmpopen.minutes()).padStart(2, "0");
