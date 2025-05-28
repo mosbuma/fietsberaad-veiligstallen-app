@@ -6,7 +6,8 @@ import SectionBlock from "~/components/SectionBlock";
 import HorizontalDivider from "~/components/HorizontalDivider";
 
 const ParkingViewOpening = ({ parkingdata }: { parkingdata: any }) => {
-  // Convert Openingstijden text to HTML format
+
+  // Convert 'openingstijden extra text' to HTML format
   if (parkingdata.Openingstijden !== null && parkingdata.Openingstijden.indexOf("\n") > -1) {
     parkingdata.Openingstijden = parkingdata.Openingstijden.replace("\n", "<br />");
   }
