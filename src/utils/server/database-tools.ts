@@ -39,7 +39,7 @@ export async function validateUserSession(session: any, itemType: string = "orga
     return { error: "Unauthorized", status: 401 };
   }
 
-  const theuser = await prisma.security_users.findUnique({
+  const theuser = await prisma.security_users.findFirst({
     where: {
       UserID: session.user.id
     },
