@@ -98,7 +98,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
           throw new Error(`Error: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('data', data, 'reportData.series', data.series);
         setReportData(data);
         setErrorState("");
       } catch (error) {
@@ -142,8 +141,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       // if (filterState.reportType !== 'bezetting') {
       //   return;
       // }
-
-      console.log('fetchBikeparksWithData', filterState.reportType, bikeparks, firstDate, lastDate);
 
       try {
         const apiEndpoint = "/api/database/availableDataPerBikepark";
