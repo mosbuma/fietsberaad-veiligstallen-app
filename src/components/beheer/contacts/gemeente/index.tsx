@@ -13,6 +13,7 @@ import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { useUsersInLijst } from '~/hooks/useUsers';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
+import { Table } from '~/components/common/Table';
 
 type GemeenteComponentProps = { 
   fietsenstallingtypen: fietsenstallingtypen[]  
@@ -115,31 +116,25 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
           showExploitantenFilter={true}
         />
 
-        <table className="min-w-full bg-white mt-4">
-          <thead>
-            <tr>
-              <th className="py-2 text-left px-4">Naam</th>
-              {/* <th className="py-2">Contactpersoon</th> */}
-              {/* <th className="py-2">Modules</th> */}
-              <th className="py-2 text-left px-4">Acties</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredGemeenten.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || '')).map((contact) => { 
-              return (
-                <tr key={contact.ID}>
-                  <td className="border px-4 py-2">{contact.CompanyName}</td>
-                  {/* <td className="border px-4 py-2">{getContactPerson(contact)}</td> */}
-                  {/* <td className="border px-4 py-2">{getModules(contact)}</td> */}
-                  <td className="border px-4 py-2">
-                    <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40">🗑️</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <Table 
+          columns={[
+            {
+              header: 'Naam',
+              accessor: 'CompanyName'
+            },
+            {
+              header: 'Acties',
+              accessor: (contact) => (
+                <>
+                  <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
+                  <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40">🗑️</button>
+                </>
+              )
+            }
+          ]}
+          data={filteredGemeenten.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || ''))}
+          className="mt-4"
+        />
       </div>
     );
   };

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 import DataproviderEdit from "~/components/contact/DataproviderEdit";
-
+import type { VSContactDataprovider } from "~/types/contacts";
 import { useDataproviders } from '~/hooks/useDataproviders';
+import { LoadingSpinner } from '../../common/LoadingSpinner';
+import { Table } from '~/components/common/Table';
 
 type DataproviderComponentProps = { 
 };
@@ -78,31 +80,34 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
             Nieuwe Dataprovider
           </button>
         </div>
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2">Naam</th>
-              <th className="py-2">Naam in URL</th>
-              <th className="py-2">Status</th>
-              <th className="py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredContacts.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || '')).map((contact) => { 
-              return (
-                <tr key={contact.ID}>
-                  <td className="border px-4 py-2">{contact.CompanyName}</td>
-                  <td className="border px-4 py-2">{contact.UrlName}</td>
-                  <td className="border px-4 py-2">{contact.Status === "1" ? "Actief" : "Inactief"}</td>
-                  <td className="border px-4 py-2">
-                    <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+
+        <Table 
+          columns={[
+            {
+              header: 'Naam',
+              accessor: 'CompanyName'
+            },
+            {
+              header: 'Naam in URL',
+              accessor: 'UrlName'
+            },
+            {
+              header: 'Status',
+              accessor: (contact) => contact.Status === "1" ? "Actief" : "Inactief"
+            },
+            {
+              header: '',
+              accessor: (contact) => (
+                <>
+                  <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
+                  <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
+                </>
+              )
+            }
+          ]}
+          data={filteredContacts.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || ''))}
+          className="min-w-full bg-white"
+        />
       </div>
     );
   };

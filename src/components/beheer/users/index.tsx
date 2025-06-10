@@ -6,6 +6,7 @@ import { ConfirmPopover } from '~/components/ConfirmPopover';
 import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
 import { useUsersInLijst } from '~/hooks/useUsers';
 import { getNewRoleLabel } from '~/types/utils';
+import { Table, Column } from '~/components/common/Table';
 
 type UserComponentProps = { 
   groupid: VSUserGroupValues,
@@ -104,6 +105,50 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
       return <div>Error: {errorUsers}</div>;
     }
 
+    const columns: Column<any>[] = [
+      {
+        header: 'Naam',
+        accessor: 'DisplayName',
+      },
+      {
+        header: 'E-mail',
+        accessor: 'UserName',
+      },
+      {
+        header: 'Rol',
+        accessor: (user) => {
+          const role = roles.find((r) => r.value === user.securityProfile?.roleId);
+          return role?.label || '--';
+        },
+      },
+      {
+        header: 'Status',
+        accessor: (user) => (
+          user.Status === "1" ? (
+            <span className="text-green-500">●</span>
+          ) : (
+            <span className="text-red-500">●</span>
+          )
+        ),
+      },
+      {
+        header: 'Acties',
+        accessor: (user) => (
+          <>
+            <button onClick={() => handleResetPassword(user.UserID)} className="text-blue-500 mx-1 disabled:opacity-40" disabled={true}>🔑</button>
+            <button onClick={() => handleEditUser(user.UserID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
+            <button 
+              onClick={(e) => handleDeleteClick(e, user.UserID)} 
+              className="text-red-500 mx-1 disabled:opacity-40" 
+              disabled={false}
+            >
+              🗑️
+            </button>
+          </>
+        ),
+      },
+    ];
+
     return (
       <>
       { id && (
@@ -125,47 +170,10 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
             Nieuwe gebruiker
           </button>
         </div>
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2">Naam</th>
-              <th className="py-2">E-mail</th>
-              <th className="py-2">Rol</th>
-              <th className="py-2"></th>
-              <th className="py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredusers.map((user) => { 
-              const role = roles && roles.find((r) => r.value === user.securityProfile?.roleId);
-              return (
-                <tr key={user.UserID}>
-                  <td className="border px-4 py-2">{user.DisplayName}</td>
-                  <td className="border px-4 py-2">{user.UserName}</td>
-                  <td className="border px-4 py-2">{role?.label || "--"}</td>
-                  <td className="border px-4 py-2">
-                    {user.Status === "1" ? (
-                      <span className="text-green-500">●</span>
-                    ) : (
-                      <span className="text-red-500">●</span>
-                    )}
-                  </td>
-                  <td className="border px-4 py-2">
-                    <button onClick={() => handleResetPassword(user.UserID)} className="text-blue-500 mx-1 disabled:opacity-40" disabled={true}>🔑</button>
-                    <button onClick={() => handleEditUser(user.UserID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                    <button 
-                      onClick={(e) => handleDeleteClick(e, user.UserID)} 
-                      className="text-red-500 mx-1 disabled:opacity-40" 
-                      disabled={false}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <Table 
+          columns={columns}
+          data={filteredusers}
+        />
       </div>
 
       <ConfirmPopover

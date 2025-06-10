@@ -4,6 +4,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import ArticleEdit from './ArticleEdit';
 import { useArticles } from '~/hooks/useArticles';
 import type { VSArticle } from '~/types/articles';
+import { Table, Column } from '~/components/common/Table';
 
 const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" | "buurtstallingen" | "abonnementen" }> = ({ type }) => {
   const router = useRouter();
@@ -77,24 +78,24 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
           />
         </div>
 
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2">Titel</th>
-              {/* <th className="py-2">Type</th> */}
-              <th className="py-2">Status</th>
-              <th className="py-2">Laatst gewijzigd</th>
-              <th className="py-2">Acties</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredArticles.map((article) => (
-              <tr key={article.ID}>
-                <td className="border px-4 py-2">{article.DisplayTitle}</td>
-                {/* <td className="border px-4 py-2">{article.Navigation}</td> */}
-                <td className="border px-4 py-2">{article.Status === '1' ? 'Actief' : 'Inactief'}</td>
-                <td className="border px-4 py-2">{new Date(article.DateModified || '').toLocaleDateString()}</td>
-                <td className="border px-4 py-2">
+        <Table 
+          columns={[
+            {
+              header: 'Titel',
+              accessor: 'DisplayTitle'
+            },
+            {
+              header: 'Status',
+              accessor: (article) => article.Status === '1' ? 'Actief' : 'Inactief'
+            },
+            {
+              header: 'Laatst gewijzigd',
+              accessor: (article) => new Date(article.DateModified || '').toLocaleDateString()
+            },
+            {
+              header: 'Acties',
+              accessor: (article) => (
+                <>
                   <button 
                     onClick={() => handleEditArticle(article.ID)} 
                     className="text-yellow-500 mx-1 disabled:opacity-40"
@@ -107,11 +108,13 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
                   >
                     🗑️
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </>
+              )
+            }
+          ]}
+          data={filteredArticles}
+          className="min-w-full bg-white"
+        />
       </div>
     );
   };

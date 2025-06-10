@@ -11,13 +11,16 @@ interface TableProps<T> {
   data: T[];
   className?: string;
   onRowClick?: (item: T) => void;
+  options?: {
+    hideHeaders?: boolean;
+  };
 }
 
-export function Table<T>({ columns, data, className = '', onRowClick }: TableProps<T>) {
+export function Table<T>({ columns, data, className = '', onRowClick, options = {} }: TableProps<T>) {
   return (
     <div className="overflow-x-auto">
       <table className={`min-w-full bg-white ${className}`}>
-        <thead>
+        {!options.hideHeaders && <thead>
           <tr>
             {columns.map((column, index) => (
               <th 
@@ -28,7 +31,7 @@ export function Table<T>({ columns, data, className = '', onRowClick }: TablePro
               </th>
             ))}
           </tr>
-        </thead>
+        </thead>}
         <tbody>
           {data.map((item, rowIndex) => (
             <tr 
