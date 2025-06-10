@@ -134,7 +134,6 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
       const isCurrentlySelected = exploitanten.some(e => e.ID === id); // is exploitant 
       if(isCurrentlySelected===false) {
         // add link
-        alert("add link to exploitant: " + id + " for contact: " + activeContactId);
         const url = `/api/protected/exploitant/${id}/gemeenten/${ activeContactId}`;
         const response = await makeClientApiCall<ExploitantGemeenteResponse>(url, 'POST', { admin: true });
         if(!response.success) {
