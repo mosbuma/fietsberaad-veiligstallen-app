@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
+import { VSUserGroupValues, VSUserRoleValuesNew } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
 import { ConfirmPopover } from '~/components/ConfirmPopover';
@@ -110,6 +110,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
         displayInOverlay(
           <UserEditComponent 
             id={id}      
+            groupid={props.groupid}
             siteID={props.siteID}
             onClose={handleUserEditClose} 
             />, false, "Gebruiker bewerken", () => setId(undefined))

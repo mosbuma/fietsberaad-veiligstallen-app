@@ -7,7 +7,7 @@ import ParkingEdit from '~/components/parking/ParkingEdit';
 import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
 import { getParkingDetails } from "~/utils/parkings";
 import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
-import { type VSUserWithRolesNew } from "~/types/users";
+import { VSUserGroupValues, type VSUserWithRolesNew } from "~/types/users";
 import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
@@ -175,6 +175,8 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
+            groupid={VSUserGroupValues.Extern}
+            siteID={currentContactID}
             onClose={() => handleOnClose(true)}
           />
         );

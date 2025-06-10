@@ -251,7 +251,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           );
           break;
         case VSMenuTopic.ContactsExploitanten:
-          selectedComponent = <ExploitantComponent contactID={selectedContactID} showGemeenten={selectedContactID==="1"} readonly={selectedContactID!=="1"} />;
+          selectedComponent = <ExploitantComponent contactID={selectedContactID} canManageExploitants={selectedContactID==="1"} canAddRemoveExploitants={selectedContactID!=="1"} />;
           break;
         case VSMenuTopic.ContactsDataproviders:
           selectedComponent = <DataproviderComponent />;
@@ -325,13 +325,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         case VSMenuTopic.SettingsExploitant:
           selectedComponent =           
             <ExploitantEdit 
-              gemeenten={gemeenten || []}
-              // fietsenstallingtypen={fietsenstallingtypen || []}
               id={selectedContactID} 
               onClose={undefined} 
-              onEditStalling={(stallingID: string | undefined) => {}}
-              onEditUser={(userID: string | undefined) => {}}
-              onSendPassword={(userID: string | undefined) => {}}
             />
           break;
             // case VSMenuTopic.Abonnementen:

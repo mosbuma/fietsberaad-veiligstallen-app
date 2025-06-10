@@ -1808,3 +1808,13 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model user_contact_role {
+  ID String @id @default("") @db.VarChar(35)
+  UserID String @db.VarChar(36)
+  ContactID String @db.VarChar(36) @unique
+  NewRoleID String @db.VarChar(16) @default("none") 
+
+  @@unique([UserID, ContactID], map: "UserID_ContactID")
+  
+}

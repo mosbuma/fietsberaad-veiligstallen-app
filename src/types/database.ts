@@ -20,11 +20,10 @@ export const itemTypeEnum = z.enum(["admin", "dataprovider", "exploitant", "orga
 export const exploitantSchema = z.object({
   ID: idSchema,
   CompanyName: z.string().min(1).max(100),
+  UrlName: z.string().min(0).max(100),
   ItemType: itemTypeEnum,
   Helpdesk: z.string().nullable().optional(),
-  Password: z.string().nullable().optional(),
   Status: z.string().nullable().optional(),
-  ParentID: z.string().nullable().optional(),
 });
   // DateRegistration: z.union([z.string().datetime(), z.date(), z.null()]).optional(),
   // DateConfirmed: z.union([z.string().datetime(), z.date(), z.null()]).optional(),
@@ -38,9 +37,9 @@ export const getDefaultNewExploitant = (naam: string = "Nieuwe exploitant")=> {
   return {
     ID: 'new',
     CompanyName: naam,
+    UrlName: "",
     ItemType: "exploitant",
     Helpdesk: "",
-    Password: "",
     Status: "active",
     ParentID: "mb",
     isManagingContacts: [],

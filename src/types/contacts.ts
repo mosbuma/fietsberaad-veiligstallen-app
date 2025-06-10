@@ -5,11 +5,10 @@ import type { VSModule } from "~/types/modules";
 export interface VSContactExploitant {
     ID: string;
     CompanyName: string | null;
+    UrlName: string | null;
     ItemType: string | null;
     Helpdesk: string | null;
-    Password: string | null;
     Status: string | null;
-    ParentID: string | null;
     isManagingContacts: {
       ID: number;
       childSiteID: string;
@@ -28,11 +27,10 @@ export interface VSContactExploitant {
   export const exploitantSelect = {
       ID: true,
       CompanyName: true,
+      UrlName: true,
       ItemType: true,
       Helpdesk: true,
-      Password: true,
       Status: true,
-      ParentID: true,
     //   isManagedByContacts: {
     //       select: {
     //           ID: true,

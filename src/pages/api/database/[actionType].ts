@@ -1,9 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import DatabaseService, { CacheParams } from "~/backend/services/database-service";
+import DatabaseService, { CacheParams, UserContactRoleParams } from "~/backend/services/database-service";
 import ReportService from "~/backend/services/reports-service";
 import { type ReportType, reportTypeValues } from "~/components/beheer/reports/ReportsFilter";
 import { z } from "zod";
 const dateSchema = z.string().datetime();
+
+const UserContactRoleParamsSchema = z.object({
+  databaseParams: z.object({
+    action: z.enum(['clear', 'rebuild', 'status', 'createtable', 'droptable', 'update']),
+  }),
+});
 
 const CacheParamsSchema = z.object({
   databaseParams: z.object({
@@ -29,6 +35,21 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   try {
     if (req.method === 'POST') {
       switch (req.query.actionType) {
+        case "usercontactrole": {
+          console.log("**** USER CONTACT ROLE", req.body);
+          const parseResult = UserContactRoleParamsSchema.safeParse(req.body);
+          if (!parseResult.success) {
+            return res.status(400).json({
+              error: "Invalid parameters",
+              details: parseResult.error.errors
+            });
+          }
+
+          const params = parseResult.data.databaseParams as unknown as UserContactRoleParams;
+          const result = await DatabaseService.manageUserContactRoleTable(params);
+          return res.json(result);
+        }
+
         case "transactionscache":
         case "bezettingencache":
         case "stallingsduurcache": {
