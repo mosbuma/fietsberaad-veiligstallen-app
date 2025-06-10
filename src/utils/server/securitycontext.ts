@@ -1,23 +1,9 @@
 import { prisma } from "~/server/db";
-import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic, VSUserSecurityProfileCompact } from "~/types/index";    
-import { VSModuleValues } from "~/types/modules";
+import { type VSUserSecurityProfile } from "~/types/index";    
 import { type VSContactGemeente, type VSContactExploitant, gemeenteSelect, exploitantSelect } from "~/types/contacts";    
 import { type VSUserWithRoles, VSUserGroupValues, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
 
 import { convertRoleToNewRole, getRoleRights } from "~/utils/securitycontext";
-
-const getModuleIDs = async (contactID: string): Promise<VSModuleValues[]> => {
-    const modules = await prisma.modules_contacts.findMany({
-        where: {
-            contact: {
-                ID: contactID
-            }
-        }
-    });
-
-    const IDs = modules.map((module) => module.ModuleID) as VSModuleValues[];
-    return IDs;
-};
 
 export const getMainContactId = (user: VSUserWithRoles): string | undefined => {
     switch(user.GroupID) {
@@ -149,24 +135,22 @@ export const createSecurityProfile = async (
         throw new Error("User not found");
     }
 
-    console.log("*** USER", user.user_contact_roles);
-
     // map old groupID / RoleID values to new RoleID values for simplified RBAC
     const mainContactId = getMainContactId(user) || "";
-    //const newRoleID = (user?.user_contact_roles[0]?.NewRoleID as VSUserRoleValuesNew) || VSUserRoleValuesNew.None;
-    const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
+    let newRoleID = VSUserRoleValuesNew.None;
+    if(user.user_contact_roles.length > 0) {
+        newRoleID = (user.user_contact_roles[0]?.NewRoleID as VSUserRoleValuesNew) || VSUserRoleValuesNew.None;
+    }
+    //const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
     const rights = getRoleRights(newRoleID);
 
-    const managingContactIDs: string[] = (await getManagedContacts(user)).map((contact) => contact.ID);
-    const modules: VSModuleValues[] = activeContactId ? await getModuleIDs(activeContactId) : [];
+    // const managingContactIDs: string[] = (await getManagedContacts(user)).map((contact) => contact.ID);
 
     const profile: VSUserSecurityProfile = {
         roleId: newRoleID,
         groupId: user.GroupID as VSUserGroupValues,
         rights,
         mainContactId,
-        modules,
-        managingContactIDs,
     };
     return profile;
 }
@@ -174,7 +158,7 @@ export const createSecurityProfile = async (
 export const createSecurityProfileCompact = (
     user: VSUserWithRoles,
     activeContactId?: string | undefined
-): VSUserSecurityProfileCompact => {
+): VSUserSecurityProfile => {
     if (!user) {
         throw new Error("User not found");
     }
@@ -184,12 +168,11 @@ export const createSecurityProfileCompact = (
     const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
     const rights = getRoleRights(newRoleID);
 
-    const profile: VSUserSecurityProfileCompact = {
+    const profile: VSUserSecurityProfile = {
         roleId: newRoleID,
+        groupId: user.GroupID as VSUserGroupValues,
         rights,
-        // modules,
         mainContactId: mainContactId || "",
-        // managingContactIDs,
     };
     return profile;
 }

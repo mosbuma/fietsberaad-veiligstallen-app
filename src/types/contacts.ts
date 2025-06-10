@@ -1,6 +1,5 @@
 import type { contacts } from "~/generated/prisma-client";
 import type { VSParking } from "~/types/parking";
-import type { VSModule } from "~/types/modules";
 
 export interface VSContactExploitant {
     ID: string;
@@ -94,8 +93,6 @@ export interface VSContactExploitant {
       "ThemeColor2" 
   > & {
           fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
-      } & {
-          modules_contacts?: { module: VSModule }[];
       } & {
           isManagingContacts?: {
               ID: number;

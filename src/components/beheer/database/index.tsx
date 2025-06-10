@@ -19,21 +19,21 @@ const DatabaseComponent: React.FC<DatabaseComponentProps> = ({ firstDate, lastDa
       <UserContactRoleTableComponent />
       <CacheTableComponent
         title="Transactie cache tabel"
-        cacheEndpoint="/api/database/transactionscache"
+        cacheEndpoint="/api/protected/database/transactionscache"
         firstDate={firstDate}
         lastDate={lastDate}
         bikeparks={bikeparks}
       />
       <CacheTableComponent
         title="Bezettingen cache tabel"
-        cacheEndpoint="/api/database/bezettingencache"
+        cacheEndpoint="/api/protected/database/bezettingencache"
         firstDate={firstDate}
         lastDate={lastDate}
         bikeparks={bikeparks}
       />
       <CacheTableComponent
         title="Stallingsduur cache tabel"
-        cacheEndpoint="/api/database/stallingsduurcache"
+        cacheEndpoint="/api/protected/database/stallingsduurcache"
         firstDate={firstDate}
         lastDate={lastDate}
         bikeparks={bikeparks}

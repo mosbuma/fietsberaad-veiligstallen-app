@@ -7,6 +7,7 @@ import { prisma } from "~/server/db";
 import type { User } from "next-auth";
 import {
   securityUserSelect,
+  VSUserGroupValues,
   VSUserRoleValuesNew,
   VSUserWithRoles,
 } from "~/types/users";
@@ -35,16 +36,15 @@ export const getUserFromCredentials = async (
       email: email.toLocaleLowerCase(),
       activeContactId: "",
       securityProfile: {
-        managingContactIDs: [],
         mainContactId: "",
         roleId: VSUserRoleValuesNew.None,
+        groupId: VSUserGroupValues.Extern,
         rights: initAllTopics({
           create: false,
           read: false,
           update: false,
           delete: false,
         }),
-        modules: [],
       },
     };
 
@@ -113,8 +113,8 @@ export const getUserFromLoginCode = async (
       email: "",
       activeContactId: "",
       securityProfile: {
-        managingContactIDs: [],
         mainContactId: "",
+        groupId: VSUserGroupValues.Extern,
         roleId: VSUserRoleValuesNew.None,
         rights: initAllTopics({
           create: false,
@@ -122,7 +122,6 @@ export const getUserFromLoginCode = async (
           update: false,
           delete: false,
         }),
-        modules: [],
       },
     };
 

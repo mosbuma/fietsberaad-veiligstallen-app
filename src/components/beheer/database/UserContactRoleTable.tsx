@@ -9,7 +9,7 @@ const UserContactRoleTableComponent: React.FC = ({  }) => {
   const [userContactRoleStatus, setUserContactRoleStatus] = useState<UserContactRoleStatus | undefined>(undefined);
   const [updateCounter, setUpdateCounter] = useState<number>(0);
 
-  const cacheEndpoint = '/api/database/usercontactrole';
+  const cacheEndpoint = '/api/protected/database/usercontactrole';
 
   useEffect(() => {
 
@@ -34,7 +34,6 @@ const UserContactRoleTableComponent: React.FC = ({  }) => {
           }
 
           const json = await response.json();
-          console.log("**** USER CONTACT ROLE STATUS", json);
           setUserContactRoleStatus(json.status);
           setErrorState("");
       } catch (error) {

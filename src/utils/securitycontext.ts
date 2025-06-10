@@ -1,7 +1,5 @@
 import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/index";    
-import { VSModuleValues } from "~/types/modules";
-import { type VSContactGemeente, type VSContactExploitant, gemeenteSelect, exploitantSelect } from "~/types/contacts";    
-import { type VSUserWithRoles, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
+import { VSUserRoleValues, VSUserRoleValuesNew } from '~/types/users';
 
 import { changeTopics, initAllTopics } from "~/types/utils";
 
@@ -111,14 +109,6 @@ export const getRights = (profile: VSUserSecurityProfile | null, topic: VSSecuri
 
     const baseRights = profile.rights[topic] || allowNone;
     return baseRights;
-}
-
-export const hasModuleAccess = (profile: VSUserSecurityProfile | null, module: VSModuleValues): boolean => {
-    if (!profile) {
-        return false;
-    }
-
-    return profile.modules.includes(module);
 }
 
 export const getRoleRights = (

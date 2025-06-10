@@ -1,7 +1,6 @@
 import { VSUserRoleValuesNew } from "~/types/users";
 import { VSSecurityTopic, VSCRUDRight, VSUserSecurityProfile } from "~/types/index";
 import { Session } from "next-auth";
-import { VSModuleValues } from "~/types/modules";
 import { VSUserRoleValues } from "~/types/users";
 
 export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
@@ -84,12 +83,6 @@ export const userHasRight = (profile: VSUserSecurityProfile | undefined, right: 
     return hasRight;
 }
 
-export const userHasModule = (profile: VSUserSecurityProfile | undefined, module: VSModuleValues): boolean => {
-    if(!profile) return false;
-
-    return profile.modules.includes(module);
-}
-
 export const userHasRole = (profile: VSUserSecurityProfile | undefined, role: VSUserRoleValuesNew): boolean => {
     if(!profile) return false;
 
@@ -129,11 +122,9 @@ export const logSecurityProfile = (profile: VSUserSecurityProfile | undefined, i
         .filter(([_, right]) => right.create || right.read || right.update || right.delete)
         .map(([key, _]) => key);
 
-    console.log(`${indent}modules: ${profile.modules.join(", ")}`);
     console.log(`${indent}roleId: ${profile.roleId}`);
     console.log(`${indent}rights: ${activeRights.join(", ")}`);
     console.log(`${indent}mainContactId: ${profile.mainContactId}`);
-    console.log(`${indent}managing: ${profile.managingContactIDs.length} contacts`);
 }
   
 

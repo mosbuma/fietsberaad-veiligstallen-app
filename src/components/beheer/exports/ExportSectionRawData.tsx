@@ -25,7 +25,7 @@ const ExportComponent: React.FC<ReportComponentProps> = ({
           setLoading(true);
 
           try {
-            const apiEndpoint = "/api/database/availableDataDetailed";
+            const apiEndpoint = "/api/protected/database/availableDataDetailed";
 
             const response = await fetch(apiEndpoint, {
               method: 'POST',

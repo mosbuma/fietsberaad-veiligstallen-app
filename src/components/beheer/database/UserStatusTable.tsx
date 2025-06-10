@@ -9,7 +9,7 @@ const UserStatusTableComponent: React.FC = () => {
   const [userStatusStatus, setUserStatusStatus] = useState<UserStatusStatus | undefined>(undefined);
   const [updateCounter, setUpdateCounter] = useState<number>(0);
 
-  const cacheEndpoint = '/api/database/userstatus';
+  const cacheEndpoint = '/api/protected/database/userstatus';
 
   useEffect(() => {
     const fetchTableStatus = async () => {
@@ -32,7 +32,6 @@ const UserStatusTableComponent: React.FC = () => {
         }
 
         const json = await response.json();
-        console.log("**** USER STATUS STATUS", json);
         setUserStatusStatus(json.status);
         setErrorState("");
       } catch (error) {

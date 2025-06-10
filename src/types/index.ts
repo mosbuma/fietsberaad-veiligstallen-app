@@ -1,27 +1,17 @@
 import { VSUserGroupValues, VSUserRoleValuesNew } from './users';
-import { VSModuleValues } from './modules';
-import { fietsenstallingtypen } from '@prisma/client';
-import { abonnementsvormen } from '@prisma/client';
-import { ParkingSections } from './parking';
 
 /* This type is used when returning parking details to the client                */
 /* By adding fields to this structure, it is possible to keep track which fields */
 /* from the "old" database are in use                                            */
 export type DayPrefix = 'ma' | 'di' | 'wo' | 'do' | 'vr' | 'za' | 'zo';
 
-export type VSUserSecurityProfileCompact = {
+export type VSUserSecurityProfile = {
     groupId: VSUserGroupValues;
     roleId: VSUserRoleValuesNew;
     rights: {
         [key in VSSecurityTopic]?: VSCRUDRight;
     };
     mainContactId: string;
-};
-
-// Adds all items that are fetched separately from the database (slow, use at record level, not in lists)
-export type VSUserSecurityProfile = VSUserSecurityProfileCompact & {
-    modules: VSModuleValues[];
-    managingContactIDs: string[];
 };
 
 export enum VSSecurityTopic {

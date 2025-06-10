@@ -142,7 +142,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       // }
 
       try {
-        const apiEndpoint = "/api/database/availableDataPerBikepark";
+        const apiEndpoint = "/api/protected/database/availableDataPerBikepark";
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {

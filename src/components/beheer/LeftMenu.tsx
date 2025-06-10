@@ -3,11 +3,9 @@ import React from 'react';
 import Link from 'next/link';
 
 import { VSSecurityTopic, VSMenuTopic, VSUserSecurityProfile } from '~/types/index';
-import { VSModuleValues } from '~/types/modules';
-import { type VSContactDataprovider, VSContactExploitant, type VSContactGemeente } from '~/types/contacts';
 import { VSUserRoleValuesNew } from '~/types/users';
 
-import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
+import { userHasRight, userHasRole } from '~/types/utils';
 interface LeftMenuProps {
   securityProfile?: VSUserSecurityProfile;
   activecomponent: VSMenuTopic | undefined;
@@ -81,12 +79,12 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const hasSystemRight = userHasRight(profile, VSSecurityTopic.System);
     const hasWebsiteRight = userHasRight(profile, VSSecurityTopic.Website);
     const hasGemeenteRight = userHasRight(profile, VSSecurityTopic.ContactsGemeenten);
-    const hasLocatiesRight = userHasRight(profile, VSSecurityTopic.ApisGekoppeldeLocaties);
-    const hasBuurtstallingenRight = userHasRight(profile, VSSecurityTopic.Buurtstallingen) && userHasModule(profile, VSModuleValues.Buurtstallingen);
-    const hasRegistrantenRight = userHasRight(profile, VSSecurityTopic.Accounts) && userHasModule(profile, VSModuleValues.Fms);
-    const hasRapportagesRight = userHasRight(profile, VSSecurityTopic.Report) && userHasModule(profile, VSModuleValues.Fms);
-    const hasUsersRight = userHasRight(profile, VSSecurityTopic.UsersGebruikersbeheer) && userHasModule(profile, VSModuleValues.Fms);
-    const hasDataprovidersRight = userHasRight(profile, VSSecurityTopic.ContactsDataproviders) && userHasModule(profile, VSModuleValues.Fms);
+    // const hasLocatiesRight = userHasRight(profile, VSSecurityTopic.ApisGekoppeldeLocaties);
+    // const hasBuurtstallingenRight = userHasRight(profile, VSSecurityTopic.Buurtstallingen) // && userHasModule(profile, VSModuleValues.Buurtstallingen);
+    const hasRegistrantenRight = userHasRight(profile, VSSecurityTopic.Accounts) // && userHasModule(profile, VSModuleValues.Fms);
+    const hasRapportagesRight = userHasRight(profile, VSSecurityTopic.Report) // && userHasModule(profile, VSModuleValues.Fms);
+    const hasUsersRight = userHasRight(profile, VSSecurityTopic.UsersGebruikersbeheer) // && userHasModule(profile, VSModuleValues.Fms);
+    const hasDataprovidersRight = userHasRight(profile, VSSecurityTopic.ContactsDataproviders) // && userHasModule(profile, VSModuleValues.Fms);
     const hasExternalApisRight = userHasRight(profile, VSSecurityTopic.ApisOverzicht);
     const hasDevelopmentRight = userHasRight(profile, VSSecurityTopic.Development);
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { ReportType } from "../reports/ReportsFilter";
 import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
@@ -33,7 +32,7 @@ const ExportSectionReportComponent: React.FC<ExportSectionReportProps> = ({
         setLoading(true);
 
         try {
-          const apiEndpoint = "/api/database/availableDataDetailed";
+          const apiEndpoint = "/api/protected/database/availableDataDetailed";
 
           const response = await fetch(apiEndpoint, {
             method: 'POST',
