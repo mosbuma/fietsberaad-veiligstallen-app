@@ -2,6 +2,7 @@ import { prisma } from "~/server/db";
 import { UserContactRoleParams, UserContactRoleStatus } from "~/backend/services/database-service";
 import { convertRoleToNewRole } from "~/utils/securitycontext";
 import { generateID } from "~/utils/server/database-tools";
+import { VSUserGroupValues, VSUserRoleValuesNew } from "~/types/users";
 
 export const getUserContactRoleTableStatus = async (params: UserContactRoleParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'user_contact_role'`;
@@ -12,11 +13,7 @@ export const getUserContactRoleTableStatus = async (params: UserContactRoleParam
     size: undefined,
   };
 
-  console.log("**** GET USER CONTACT ROLE TABLE STATUS", params);
-
   try {
-    // status.indexstatus = await getParentIndicesStatus(cacheInfo);
-
     const result = await prisma.$queryRawUnsafe<{ count: number }[]>(sqldetecttable);
     tableExists = result && result.length > 0 && result[0] ? result[0].count > 0 : false;
     if (tableExists) {
@@ -35,68 +32,56 @@ export const getUserContactRoleTableStatus = async (params: UserContactRoleParam
   }
 }
 
-export const updateUserContactRoleTable = async (params: UserContactRoleParams): Promise<UserContactRoleStatus | false> => {
-  // console.log("UPDATE BEZETTING CACHE");
+const userSelect = {
+  UserID: true,
+  DisplayName: true,
+  GroupID: true,
+  SiteID: true,
+  RoleID: true,
+  ParentID: true,
+  security_users_sites: true,
+}
+
+const processInternUsers = async () => {
+  // interne gebruikers: koppel aan fietsberaad met rol admin of none
+  const mainContactId= "1";
   
-  if (false === await clearUserContactRoleTable(params)) {
-    console.error(">>> updateUserContactRoleTable ERROR Unable to clear user-contacts table");
-    return false;
+  const allUsers = await prisma.security_users.findMany({select: userSelect,where: {GroupID: {in: [VSUserGroupValues.Intern]}}});
+  for(const user of allUsers) {
+    const newRoleID = convertRoleToNewRole(user.RoleID, true);
+
+    console.debug("*** INTERN USER", user.DisplayName, "oldrole", user.RoleID, "-> newrole", newRoleID.valueOf());
+
+    await prisma.user_contact_role.create({
+      data: {
+        ID: generateID(),
+        UserID: user.UserID,
+        ContactID: mainContactId,
+        NewRoleID: newRoleID.valueOf(),
+      } 
+    });
   }
 
-  // iterate over all security_users
+  return true;
+}
+
+const processExternUsers = async () => {
+  // externe gebruikers: koppel aan eigen organisatie met vertaalde rol
   const allUsers = await prisma.security_users.findMany({
-    select: {
-      UserID: true,
-      DisplayName: true,
-      GroupID: true,
-      SiteID: true,
-      RoleID: true,
-      ParentID: true,
-      security_users_sites: true,
-    }
-  });
-
+    select: userSelect,
+    where: {GroupID: {in: [VSUserGroupValues.Extern]}},});
   for(const user of allUsers) {
-    let mainContactId: string | undefined = undefined;
-    switch(user.GroupID) {
-      case 'intern': {
-          mainContactId = "1";
-          break;
-      }
-      case 'extern': {
-          const relatedSites = user.security_users_sites;
-          mainContactId = relatedSites[0]?.SiteID || undefined;
-          break;
-      }
-      case 'exploitant': 
-      case 'beheerder': {
-          mainContactId = user?.SiteID || undefined;
-          if(!mainContactId) {
-            if(user.ParentID) {
-              const parentUser = await prisma.security_users.findUnique({
-                where: {
-                  UserID: user.ParentID,
-                },
-              });
-              mainContactId = parentUser?.SiteID || undefined;
-            } else {
-              console.error(`**** updateUserContactRoleTable ERROR No main contact ID and no parent ID for user ${user.DisplayName} /${user.GroupID}`);
-            }
-
-          }
-          break;
-      }
-      case 'dataprovider':
-        continue; // for now not implemented
-      default:
-        console.error("**** updateUserContactRoleTable ERROR Unknown groupID", user.GroupID);
-        continue;
-    }
-
-    if(mainContactId) {
+    const relatedSites = user.security_users_sites;
+    const mainContactId = relatedSites[0]?.SiteID || undefined;
+    if(relatedSites.length != 1||!mainContactId) {
+      console.error(`**** processExternUsers ERROR User ${user.DisplayName} has ${relatedSites.length} sites, expected 1`);
+      continue;
+    } else {
       const newRoleID = convertRoleToNewRole(user.RoleID, true);
 
-      const result = await prisma.user_contact_role.create({
+      // console.debug("*** EXTERN USER - OWN ORGANIZATION", user.DisplayName, "oldrole", user.RoleID, "-> newrole", newRoleID.valueOf());
+
+      await prisma.user_contact_role.create({
         data: {
           ID: generateID(),
           UserID: user.UserID,
@@ -104,17 +89,121 @@ export const updateUserContactRoleTable = async (params: UserContactRoleParams):
           NewRoleID: newRoleID.valueOf(),
         } 
       });
-      console.log("**** result", result);
-      
-      console.log("**** create record for user", user.UserID, "with role", newRoleID.valueOf());
-    } else {
-      console.error(`**** updateUserContactRoleTable ERROR No main contact ID found for user ${user.UserID} /${user.GroupID}`);
     }
   }
-  
-  // get organizations that this user is linked to
+}
 
-  return getUserContactRoleTableStatus(params);
+const processExploitantUsers = async () => {
+  // exploitant gebruikers: koppel aan eigen organisatie met rol admin of none
+  const allUsers = await prisma.security_users.findMany({select: userSelect,where: {GroupID: {in: [VSUserGroupValues.Exploitant, VSUserGroupValues.Beheerder]}}});
+
+  for(const user of allUsers) {
+    let mainContactId: string | undefined = undefined;
+    let isSubUser = false;
+    if(user.ParentID) {
+      const parentUser = await prisma.security_users.findUnique({
+        where: {
+          UserID: user.ParentID,
+        },
+      });
+      mainContactId = parentUser?.SiteID || undefined;
+      isSubUser = true;
+    } else {
+      mainContactId = user?.SiteID || undefined;
+      isSubUser = false;
+    }
+
+    // First add a role for the user in their own organization
+    const mainSite = await prisma.contacts.findFirst({
+      where: {
+        ID: mainContactId,
+      },
+    });
+
+    if(mainContactId) {
+
+      const newRoleID = convertRoleToNewRole(user.RoleID, true);
+
+      console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - OWN ORGANIZATION - oldrole ${user.RoleID} -> newrole ${newRoleID.valueOf()}`);
+
+      await prisma.user_contact_role.create({
+        data: {
+          ID: generateID(),
+          UserID: user.UserID,
+          ContactID: mainContactId,
+          NewRoleID: newRoleID.valueOf(),
+        } 
+      });
+    } else {
+      console.error(`**** updateUserContactRoleTable ERROR No main contact ID found for user ${user.UserID} /${user.GroupID}`);
+      continue;
+    }
+
+    // Find all sites that the user is related to
+    const linkedsiteIDs = await prisma.security_users_sites.findMany({
+      where: {
+        UserID: user.UserID,
+      },
+    });
+    const linkedSites = await prisma.contacts.findMany({
+      where: {
+        ID: {in: linkedsiteIDs.map(site => site.SiteID)},
+      },
+    });
+
+    for(const site of linkedSites) {
+      const parentrelationtype = await prisma.contact_contact.findFirst({
+        select: {
+          parentSiteID: true,
+          childSiteID: true,
+          admin: true,
+        },
+        where: {
+          parentSiteID: mainContactId,
+          childSiteID: site.ID,
+        },
+      });
+      let newRoleID: VSUserRoleValuesNew | null = null;
+      if(parentrelationtype) {
+        if(parentrelationtype.admin) {
+          newRoleID = VSUserRoleValuesNew.Admin;
+        } else {
+          newRoleID = VSUserRoleValuesNew.Viewer;
+        }
+
+        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - IS LINKED TO ${site.CompanyName} - oldrole ${user.RoleID} -> newrole ${newRoleID?.valueOf()}`);
+
+        await prisma.user_contact_role.create({
+          data: {
+            ID: generateID(),
+            UserID: user.UserID,
+            ContactID: site.ID,
+            NewRoleID: newRoleID.valueOf(),
+          } 
+        });
+      } else {
+        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - NOT LINKED TO ${site.CompanyName} - no parent relation found`);
+
+        newRoleID = VSUserRoleValuesNew.None;
+        // Not added to the table, because the user is not an admin or viewer of the site
+      }
+    }
+  }
+}
+
+export const updateUserContactRoleTable = async (params: UserContactRoleParams): Promise<UserContactRoleStatus | false> => {
+  if (false === await clearUserContactRoleTable(params)) {
+    console.error(">>> updateUserContactRoleTable ERROR Unable to clear user-contacts table");
+    return false;
+  }
+
+  await processInternUsers();
+  await processExternUsers();
+  await processExploitantUsers();
+
+  const status = await getUserContactRoleTableStatus(params);
+  console.log("*** updateUserContactRoleTable STATUS", status);
+  return status;
 }
 
 export const clearUserContactRoleTable = async (params: UserContactRoleParams) => {
