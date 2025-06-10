@@ -40,6 +40,13 @@ const userSelect = {
   RoleID: true,
   ParentID: true,
   security_users_sites: true,
+  user_contact_roles: {
+    select: {
+      ID: true,
+      ContactID: true,
+      NewRoleID: true
+    }
+  }
 }
 
 const processInternUsers = async () => {

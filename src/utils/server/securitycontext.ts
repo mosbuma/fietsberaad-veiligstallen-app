@@ -2,7 +2,7 @@ import { prisma } from "~/server/db";
 import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic, VSUserSecurityProfileCompact } from "~/types/index";    
 import { VSModuleValues } from "~/types/modules";
 import { type VSContactGemeente, type VSContactExploitant, gemeenteSelect, exploitantSelect } from "~/types/contacts";    
-import { type VSUserWithRoles, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
+import { type VSUserWithRoles, VSUserGroupValues, VSUserRoleValues,VSUserRoleValuesNew } from '~/types/users';
 
 import { convertRoleToNewRole, getRoleRights } from "~/utils/securitycontext";
 
@@ -149,8 +149,11 @@ export const createSecurityProfile = async (
         throw new Error("User not found");
     }
 
+    console.log("*** USER", user.user_contact_roles);
+
     // map old groupID / RoleID values to new RoleID values for simplified RBAC
     const mainContactId = getMainContactId(user) || "";
+    //const newRoleID = (user?.user_contact_roles[0]?.NewRoleID as VSUserRoleValuesNew) || VSUserRoleValuesNew.None;
     const newRoleID = convertRoleToNewRole(user.RoleID, activeContactId ? mainContactId === activeContactId : false);
     const rights = getRoleRights(newRoleID);
 
@@ -159,6 +162,7 @@ export const createSecurityProfile = async (
 
     const profile: VSUserSecurityProfile = {
         roleId: newRoleID,
+        groupId: user.GroupID as VSUserGroupValues,
         rights,
         mainContactId,
         modules,

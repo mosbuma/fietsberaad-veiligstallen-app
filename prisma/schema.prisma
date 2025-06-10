@@ -1183,6 +1183,7 @@ model security_users {
   Status                String?                @db.VarChar(4)
   security_roles        security_roles?        @relation(fields: [RoleID], references: [RoleID], onDelete: Restrict, onUpdate: Restrict, map: "security_users_ibfk_1")
   security_users_sites  security_users_sites[]
+  user_contact_roles    user_contact_role[]    
 
   @@unique([UserID, SiteID], map: "unique_userID_siteID")
   @@index([RoleID], map: "RoleID")
@@ -1814,6 +1815,7 @@ model user_contact_role {
   UserID String @db.VarChar(36)
   ContactID String @db.VarChar(36) @unique
   NewRoleID String @db.VarChar(16) @default("none") 
+  security_user security_users @relation(fields: [UserID], references: [UserID]) 
 
   @@unique([UserID, ContactID], map: "UserID_ContactID") 
 }

@@ -1,4 +1,4 @@
-import type { security_users, security_users_sites, security_roles } from "~/generated/prisma-client";
+import type { security_users, security_users_sites, security_roles, user_contact_role } from "~/generated/prisma-client";
 import type { VSUserSecurityProfile, VSUserSecurityProfileCompact } from "~/types/";
 
 export enum VSUserGroupValues {
@@ -66,6 +66,7 @@ export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "Disp
     {
         security_roles: VSUserRole | null;
         security_users_sites: Pick<security_users_sites, "UserID" | "SiteID" | "IsContact">[]
+        user_contact_roles: Pick<user_contact_role, "UserID" | "ContactID" | "NewRoleID">[]
     }
 
 export const securityUserSelect = {
