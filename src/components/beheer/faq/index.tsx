@@ -4,14 +4,16 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import FaqEdit from './FaqEdit';
 import FaqSection from './FaqSection';
 import type { VSContactsFAQ, VSFAQ } from '~/types/faq';
+import { SearchFilter } from '~/components/common/SearchFilter';
 
 const FaqComponent: React.FC = () => {
   const router = useRouter();
-  const [faqs, setFaqs] = useState<{sections: VSFAQ[], items: VSFAQ[]}>([]);
+  const [faqs, setFaqs] = useState<{sections: VSFAQ[], items: VSFAQ[]}>({ sections: [], items: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filteredFaqs, setFilteredFaqs] = useState<{sections: VSFAQ[], items: VSFAQ[]}>([]);
+  const [filteredFaqs, setFilteredFaqs] = useState<{sections: VSFAQ[], items: VSFAQ[]}>({ sections: [], items: [] });
   const [currentFaqId, setCurrentFaqId] = useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchFaqs = async () => {
@@ -89,12 +91,13 @@ const FaqComponent: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <input
-            type="search"
-            placeholder="Zoek FAQ..."
-            className="w-full p-2 border rounded"
-            onChange={(e) => {
-              const searchTerm = e.target.value.toLowerCase();
+          <SearchFilter
+            id="faqSearch"
+            label="Zoek FAQ"
+            value={searchTerm}
+            onChange={(value) => {
+              setSearchTerm(value);
+              const searchTerm = value.toLowerCase();
               setFilteredFaqs({
                 sections: faqs.sections,
                 items: faqs.items.filter((faq: VSFAQ) =>

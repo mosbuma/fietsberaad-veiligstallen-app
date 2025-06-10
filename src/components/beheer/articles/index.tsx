@@ -5,12 +5,14 @@ import ArticleEdit from './ArticleEdit';
 import { useArticles } from '~/hooks/useArticles';
 import type { VSArticle } from '~/types/articles';
 import { Table, Column } from '~/components/common/Table';
+import { SearchFilter } from '~/components/common/SearchFilter';
 
 const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" | "buurtstallingen" | "abonnementen" }> = ({ type }) => {
   const router = useRouter();
   const { articles, isLoading, error, reloadArticles } = useArticles();
   const [filteredArticles, setFilteredArticles] = useState<VSArticle[]>([]);
   const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setFilteredArticles(articles);
@@ -61,22 +63,21 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
           </button>
         </div>
 
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Vind pagina..."
-            className="w-full p-2 border rounded"
-            onChange={(e) => {
-              const searchTerm = e.target.value.toLowerCase();
-              setFilteredArticles(
-                articles.filter(article =>
-                  article.Title?.toLowerCase().includes(searchTerm) ||
-                  article.Article?.toLowerCase().includes(searchTerm)
-                )
-              );
-            }}
-          />
-        </div>
+        <SearchFilter
+          id="articleSearch"
+          label="Zoek pagina"
+          value={searchTerm}
+          onChange={(value) => {
+            setSearchTerm(value);
+            const searchTerm = value.toLowerCase();
+            setFilteredArticles(
+              articles.filter(article =>
+                article.Title?.toLowerCase().includes(searchTerm) ||
+                article.Article?.toLowerCase().includes(searchTerm)
+              )
+            );
+          }}
+        />
 
         <Table 
           columns={[
@@ -113,7 +114,7 @@ const ArticlesComponent: React.FC<{ type: "articles" | "pages" | "fietskluizen" 
             }
           ]}
           data={filteredArticles}
-          className="min-w-full bg-white"
+          className="mt-4 min-w-full bg-white"
         />
       </div>
     );

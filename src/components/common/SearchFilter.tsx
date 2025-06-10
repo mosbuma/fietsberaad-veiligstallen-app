@@ -24,7 +24,7 @@ export const SearchFilter: React.FC<SearchFilterProps> = ({
       <label htmlFor={id} className="text-sm font-medium text-gray-700">{label}</label>
       <input 
         ref={inputRef}
-        type="text" 
+        type="search" 
         id={id}
         name={id}
         placeholder={placeholder}

@@ -3,6 +3,7 @@ import CollapsibleContent from './CollapsibleContent';
 import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
 import type { VSUserWithRolesNew, VSUserInLijstNew } from "~/types/users";
 import { useDispatch, useSelector } from 'react-redux';
+import { SearchFilter } from '~/components/common/SearchFilter';
 
 import { 
   setNameFilter,
@@ -52,8 +53,8 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
     }
   }, []);
 
-  const handleNameFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setNameFilter(event.target.value));
+  const handleNameFilterChange = (value: string) => {
+    dispatch(setNameFilter(value));
   };
 
   const handleResetFilters = () => {
@@ -104,17 +105,13 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
 
   return (
     <div className="space-y-4">
+
       <div className="flex flex-col">
-        <label htmlFor="gemeenteName" className="text-sm font-medium text-gray-700">Data-eigenaar:</label>
-        <input 
-          ref={nameInputRef}
-          type="text" 
-          id="gemeenteName" 
-          name="gemeenteName" 
-          placeholder="Type om te zoeken..." 
-          className="mt-1 p-2 border border-gray-300 rounded-md" 
+        <SearchFilter
+          id="gemeenteName"
+          label="Data-eigenaar:"
           value={filters?.nameFilter || ""}
-          onChange={handleNameFilterChange} 
+          onChange={handleNameFilterChange}
         />
       </div>
 

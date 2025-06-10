@@ -7,6 +7,7 @@ import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
 import { useUsersInLijst } from '~/hooks/useUsers';
 import { getNewRoleLabel } from '~/types/utils';
 import { Table, Column } from '~/components/common/Table';
+import { SearchFilter } from '~/components/common/SearchFilter';
 
 type UserComponentProps = { 
   groupid: VSUserGroupValues,
@@ -21,6 +22,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const [id, setId] = useState<string | undefined>(undefined);
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<HTMLElement | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [userFilter, setUserFilter] = useState<string | undefined>(undefined);
 
   const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsersInLijst();
 
@@ -63,9 +65,13 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     setUserToDelete(null);
   };
 
-  const filteredusers = 
-    users && 
-    users.sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || "")) || [];
+  const filteredusers = users
+    .filter((user) => 
+      (!userFilter || userFilter === "") || 
+      user.DisplayName?.toLowerCase().includes((userFilter || "").toLowerCase()) ||
+      user.UserName?.toLowerCase().includes((userFilter || "").toLowerCase())
+    )
+    .sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
 
   let title = "Gebruikers";
   // switch (groupid) {
@@ -170,10 +176,20 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
             Nieuwe gebruiker
           </button>
         </div>
+
+        <SearchFilter
+          id="filterUser"
+          label="Gebruiker:"
+          value={userFilter || ""}
+          onChange={(value) => setUserFilter(value)}
+        />
+
         <Table 
           columns={columns}
           data={filteredusers}
+          className="mt-4"
         />
+
       </div>
 
       <ConfirmPopover

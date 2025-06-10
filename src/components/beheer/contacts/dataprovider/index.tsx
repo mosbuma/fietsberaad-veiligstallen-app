@@ -6,6 +6,7 @@ import type { VSContactDataprovider } from "~/types/contacts";
 import { useDataproviders } from '~/hooks/useDataproviders';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
 import { Table } from '~/components/common/Table';
+import { SearchFilter } from '~/components/common/SearchFilter';
 
 type DataproviderComponentProps = { 
 };
@@ -81,6 +82,13 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
           </button>
         </div>
 
+        <SearchFilter
+          id="dataproviderName"
+          label="Data-leverancier:"
+          value={filterText}
+          onChange={(value) => setFilterText(value)}
+        />
+
         <Table 
           columns={[
             {
@@ -106,7 +114,7 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
             }
           ]}
           data={filteredContacts.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || ''))}
-          className="min-w-full bg-white"
+          className="mt-4 min-w-full bg-white"
         />
       </div>
     );
