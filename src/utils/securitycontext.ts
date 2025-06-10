@@ -56,7 +56,7 @@ export const convertRoleToNewRole = (roleID: VSUserRoleValues | null, isOwnOrgan
             break;
         case VSUserRoleValues.ExploitantDataAnalyst:
         case VSUserRoleValues.InternDataAnalyst:
-            newRoleID = VSUserRoleValuesNew.DataAnalyst;
+            newRoleID = VSUserRoleValuesNew.Viewer;
             break;
         case VSUserRoleValues.ExternAdmin:
             newRoleID = isOwnOrganization ? VSUserRoleValuesNew.Admin : VSUserRoleValuesNew.None;
@@ -68,7 +68,7 @@ export const convertRoleToNewRole = (roleID: VSUserRoleValues | null, isOwnOrgan
             newRoleID = isOwnOrganization ? VSUserRoleValuesNew.Editor : VSUserRoleValuesNew.None;
             break;
         case VSUserRoleValues.ExternDataAnalyst:
-            newRoleID = isOwnOrganization ? VSUserRoleValuesNew.DataAnalyst : VSUserRoleValuesNew.None;
+            newRoleID = isOwnOrganization ? VSUserRoleValuesNew.Viewer : VSUserRoleValuesNew.None;
             break;
         case VSUserRoleValues.Beheerder:
             newRoleID = isOwnOrganization ? VSUserRoleValuesNew.Admin : VSUserRoleValuesNew.None;
@@ -94,7 +94,7 @@ export const convertNewRoleToOldRole = (newRoleID: VSUserRoleValuesNew | null): 
             return VSUserRoleValues.InternAdmin;
         case VSUserRoleValuesNew.Editor:
             return VSUserRoleValues.InternEditor;
-        case VSUserRoleValuesNew.DataAnalyst:
+        case VSUserRoleValuesNew.Viewer:
             return VSUserRoleValues.InternDataAnalyst;
         case VSUserRoleValuesNew.None:
             return null;
@@ -145,7 +145,7 @@ export const getRoleRights = (
                 // VSSecurityTopic.Fietskluizen,
                 VSSecurityTopic.Website,
             ], allowCRUD);
-        case VSUserRoleValuesNew.DataAnalyst:
+        case VSUserRoleValuesNew.Viewer:
             let rights = changeTopics(noRights, [
                 VSSecurityTopic.ContactsGemeenten,
                 VSSecurityTopic.ContactsExploitanten,

@@ -14,7 +14,7 @@ export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
             return "Admin";
         case VSUserRoleValuesNew.Editor:
             return "Editor";
-        case VSUserRoleValuesNew.DataAnalyst:
+        case VSUserRoleValuesNew.Viewer:
             return "Data Analist";
         default:
             return "Unknown";

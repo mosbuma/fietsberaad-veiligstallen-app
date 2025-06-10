@@ -28,7 +28,7 @@ export enum VSUserRoleValuesNew {
     None = 'none',
     Admin = 'admin',
     Editor = 'editor',
-    DataAnalyst = 'dataanalyst',
+    Viewer = 'viewer',
 }
 
 export interface VSUserSitesNew {
@@ -98,6 +98,7 @@ export const securityUserSelect = {
 export const getDefaultSecurityProfile = (): VSUserSecurityProfile => ({
     mainContactId: "",
     roleId: VSUserRoleValuesNew.None,
+    groupId: VSUserGroupValues.Extern,
     rights: {},
     modules: [],
     managingContactIDs:[]

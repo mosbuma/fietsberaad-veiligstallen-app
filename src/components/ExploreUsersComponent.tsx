@@ -66,8 +66,12 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
 
     const { roles } = props;
     const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers: reloadUsers } = useUsersColdfusion();
-    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten();
+    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten(undefined);
     const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
+
+    const [archivedUsers, setArchivedUsers] = useState<VSUserWithRoles[]>([]);
+    const [archivedUserIds, setArchivedUserIds] = useState<string[]>([]);
+    const [archivedFilter, setArchivedFilter] = useState<"Yes" | "No" | "Only">("No");
 
     const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten, reloadGemeenten: reloadGemeenten } = useGemeenten();
 
@@ -90,6 +94,11 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     const [securityProfile, setSecurityProfile] = useState<VSUserSecurityProfile | undefined>(undefined);
     const [isLoadingProfile, setIsLoadingProfile] = useState(false);
     const [profileError, setProfileError] = useState<string | null>(null);
+
+    const [isArchived, setIsArchived] = useState<boolean>(false);
+    const [isUpdatingArchive, setIsUpdatingArchive] = useState<boolean>(false);
+
+    const [showInactiveDays, setShowInactiveDays] = useState<number | undefined>(undefined);
 
     const groups = Object.values(VSUserGroupValues);
 
@@ -138,7 +147,6 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         }
     }, [selectedUserID]);
 
-
     useEffect(() => {
         console.debug("***EXPLOREUSERSCOMPONENT - USEEFFECT FILTEREDUSERS");
         const filteredUsers = users
@@ -166,16 +174,16 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 const mainUser = users.find(main => main.UserID === user.ParentID);
                 return mainUser?.SiteID === exploitantFilter;
             })
-            .filter((user) => {
-                const isDubious = dubiousUserIDs.some(dubious => dubious.UserID === user.UserID);
-                if (invalidDataFilter === "Yes") {
-                    return true;
-                } else if (invalidDataFilter === "Only") {
-                    return isDubious;
-                } else {
-                    return !isDubious;
-                }
-            })
+            // .filter((user) => {
+            //     const isDubious = dubiousUserIDs.some(dubious => dubious.UserID === user.UserID);
+            //     if (invalidDataFilter === "Yes") {
+            //         return true;
+            //     } else if (invalidDataFilter === "Only") {
+            //         return isDubious;
+            //     } else {
+            //         return !isDubious;
+            //     }
+            // })
             .filter((user) => {
                 const userIsActive = user.LastLogin && new Date(user.LastLogin) > new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000);
                 if (inactiveUserFilter === "Yes") {
@@ -185,10 +193,31 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 } else {
                     return userIsActive;
                 }
+            })
+            .filter((user) => {
+                const isArchived = archivedUserIds.includes(user.UserID);
+                if (archivedFilter === "Yes") {
+                    return true;
+                } else if (archivedFilter === "Only") {
+                    return isArchived;
+                } else {
+                    return !isArchived;
+                }
+            })
+            .filter((user) => {
+                if (showInactiveDays === undefined) return true;
+                
+                if (!user.LastLogin) return true; // Show users who never logged in
+                
+                const lastLoginDate = new Date(user.LastLogin);
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - showInactiveDays);
+                
+                return lastLoginDate < cutoffDate; // Show users who haven't logged in since cutoff date
             });
 
         setFilteredUsers(filteredUsers);
-    }, [users, emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
+    }, [users, emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, archivedFilter, archivedUserIds, showInactiveDays]);
 
     useEffect(() => {
         async function loadSecurityProfile() {
@@ -218,6 +247,67 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         loadSecurityProfile();
     }, [selectedUser?.UserID, activeOrganization?.ID]);
 
+    useEffect(() => {
+        if (selectedUser) {
+            // Fetch archive status when user is selected
+            const fetchArchiveStatus = async () => {
+                try {
+                    const response = await fetch(`/api/archive/user/status/${selectedUser.UserID}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setIsArchived(data.archived);
+                    }
+                } catch (error) {
+                    console.error('Error fetching archive status:', error);
+                }
+            };
+            fetchArchiveStatus();
+        }
+    }, [selectedUser]);
+
+    useEffect(() => {
+        const fetchArchivedUsers = async () => {
+            try {
+                const response = await fetch('/api/archive/user/list');
+                if (response.ok) {
+                    const data = await response.json();
+                    setArchivedUserIds(data.archivedUserIds);
+                }
+            } catch (error) {
+                console.error('Error fetching archived users:', error);
+            }
+        };
+        fetchArchivedUsers();
+    }, [isArchived]);
+
+    const handleArchiveToggle = async () => {
+        if (!selectedUser) return;
+        
+        setIsUpdatingArchive(true);
+        try {
+            const response = await fetch('/api/archive/user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: selectedUser.UserID,
+                    archived: !isArchived
+                })
+            });
+
+            if (response.ok) {
+                setIsArchived(!isArchived);
+            } else {
+                console.error('Failed to update archive status');
+            }
+        } catch (error) {
+            console.error('Error updating archive status:', error);
+        } finally {
+            setIsUpdatingArchive(false);
+        }
+    };
+
     const filterEmailHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEmailFilter(event.target.value);
     }
@@ -235,6 +325,8 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         setExploitantFilter("");
         setInvalidDataFilter("Yes");
         setInactiveUserFilter("No");
+        setArchivedFilter("No");
+        setShowInactiveDays(undefined);
     };
 
     const checkAssumptions = () => {
@@ -382,7 +474,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             ))}
                         </select>
                     </div>
-                    <div className="flex flex-col">
+                    {/* <div className="flex flex-col">
                         <label htmlFor="invalidData" className="text-sm font-medium text-gray-700">Gebruikers met ongeldige data:</label>
                         <select 
                             id="invalidData" 
@@ -395,7 +487,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             <option value="No">Nee</option>
                             <option value="Only">Alleen</option>
                         </select>                        
-                    </div>
+                    </div> */}
                     <div className="flex flex-col">
                         <label htmlFor="inactiveUsers" className="text-sm font-medium text-gray-700">Toon Inactieve Gebruikers:</label>
                         <select 
@@ -408,6 +500,36 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             <option value="Yes">Ja</option>
                             <option value="No">Nee</option>
                             <option value="Only">Alleen</option>
+                        </select>                        
+                    </div>
+                    <div className="flex flex-col">
+                        <label htmlFor="archivedUsers" className="text-sm font-medium text-gray-700">Toon gearchiveerde gebruikers:</label>
+                        <select 
+                            id="archivedUsers" 
+                            name="archivedUsers" 
+                            className="mt-1 p-2 border border-gray-300 rounded-md" 
+                            value={archivedFilter}
+                            onChange={(e) => setArchivedFilter(e.target.value as "Yes" | "No" | "Only")}
+                        >
+                            <option value="Yes">Ja</option>
+                            <option value="No">Nee</option>
+                            <option value="Only">Alleen</option>
+                        </select>                        
+                    </div>
+                    <div className="flex flex-col">
+                        <label htmlFor="showInactive" className="text-sm font-medium text-gray-700">Toon gebruikers die de laatste X niet zijn ingelogd:</label>
+                        <select 
+                            id="showInactive" 
+                            name="showInactive" 
+                            className="mt-1 p-2 border border-gray-300 rounded-md" 
+                            value={showInactiveDays || ""}
+                            onChange={(e) => setShowInactiveDays(e.target.value ? Number(e.target.value) : undefined)}
+                        >
+                            <option value="">Geen filter</option>
+                            <option value="30">30 dagen</option>
+                            <option value="90">90 dagen</option>
+                            <option value="180">180 dagen</option>
+                            <option value="365">1 jaar</option>
                         </select>                        
                     </div>
                     {groupFilter === 'exploitant' && (
@@ -518,14 +640,32 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold">Details Gebruiker</h2>
-                    {process.env.NODE_ENV === "development" && (
+                    <div className="flex gap-2">
+                        {process.env.NODE_ENV === "development" && (
+                            <button
+                                onClick={handleLoginAsUser}
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                            >
+                                Inloggen als deze gebruiker
+                            </button>
+                        )}
                         <button
-                            onClick={handleLoginAsUser}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                            onClick={handleArchiveToggle}
+                            disabled={isUpdatingArchive}
+                            className={`${
+                                isArchived 
+                                    ? 'bg-green-500 hover:bg-green-600' 
+                                    : 'bg-red-500 hover:bg-red-600'
+                            } text-white px-4 py-2 rounded-md disabled:opacity-50`}
                         >
-                            Inloggen als deze gebruiker
+                            {isUpdatingArchive 
+                                ? 'Bezig...' 
+                                : isArchived 
+                                    ? 'Gearchiveerd' 
+                                    : 'Archiveren'
+                            }
                         </button>
-                    )}
+                    </div>
                 </div>
                 <div className="space-y-2">
                     <div className="flex items-center">

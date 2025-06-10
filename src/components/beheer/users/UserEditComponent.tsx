@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { z } from 'zod';
-import { VSUserRoleValuesNew, VSUserWithRolesNew } from '~/types/users';
+import { VSUserRoleValuesNew, VSUserGroupValues } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 import FormInput from "~/components/Form/FormInput";
@@ -19,8 +19,29 @@ import bcrypt from "bcryptjs";
 // export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker" | "dataprovider";
 export type UserStatus = "actief" | "inactief";
 
+const getRoleOptions = (groupid: VSUserGroupValues, currentRole: VSUserRoleValuesNew) => {
+  switch (groupid) {
+    case VSUserGroupValues.Extern:
+      return Object.values(VSUserRoleValuesNew).map(role => ({
+        label: getNewRoleLabel(role),
+        value: role.toString()
+      }));
+    case VSUserGroupValues.Intern:
+    case VSUserGroupValues.Exploitant:
+      return [
+        VSUserRoleValuesNew.None,
+        VSUserRoleValuesNew.Admin];
+    default:
+      return Object.values(VSUserRoleValuesNew).map(role => ({
+        label: getNewRoleLabel(role),
+        value: role.toString()
+      }));
+  }
+}
+
 export interface UserEditComponentProps {
     id: string,
+    groupid: VSUserGroupValues,
     siteID: string | null,
     onClose: (userChanged: boolean, confirmClose: boolean) => void,
 }

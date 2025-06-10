@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 import { useRouter } from 'next/router';
 import { displayInOverlay } from '~/components/Overlay';
@@ -13,21 +14,25 @@ import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { makeClientApiCall } from '~/utils/client/api-tools';
 // import { useUsers, useUsersInLijst } from '~/hooks/useUsers';
 import { useExploitanten } from '~/hooks/useExploitanten';
-import { useGemeenten } from '~/hooks/useGemeenten';
+import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
+import { ExploitantGemeenteResponse } from '~/pages/api/protected/exploitant/[id]/gemeenten/[gemeenteid]';
+import { VSUserGroupValues } from '~/types/users';
 
 type ExploitantComponentProps = { 
   contactID: string | undefined;
-  showGemeenten?: boolean;
-  readonly?: boolean;
+  canManageExploitants?: boolean;
+  canAddRemoveExploitants?: boolean;
 };
 
 const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
   const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten(props.contactID);
-  const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
+  const { exploitanten:allExploitanten, isLoading: isLoadingAllExploitanten, error: errorAllExploitanten, reloadExploitanten: reloadAllExploitanten } = useExploitanten(undefined);
+  const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
 
   const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
@@ -36,7 +41,10 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
   const [filterText, setFilterText] = useState("");
 
-  const filteredContacts = exploitanten.filter(contact => 
+  const [addRemoveExploitant, setAddRemoveExploitant] = useState<boolean>(false);
+  const [toggledExploitantIds, setToggledExploitantIds] = useState<Set<string>>(new Set());
+
+  const filteredContacts = (addRemoveExploitant ? allExploitanten : exploitanten).filter(contact => 
     contact.CompanyName?.toLowerCase().includes(filterText.toLowerCase())
   );
 
@@ -57,7 +65,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         setCurrentStalling(undefined);
       } 
     }
-  }, [currentStallingId, currentRevision]);
+  }, [currentStallingId, currentRevision, currentContactID]);
 
   useEffect(() => {
     if("id" in router.query) {
@@ -79,6 +87,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         alert("Exploitant verwijderd");
 
         reloadExploitanten(); // Refresh the list after deletion
+        reloadAllExploitanten(); // Refresh the list of all exploitanten
       } else {
         alert("Er is een fout opgetreden bij het verwijderen van de exploitant.");
         console.error("Unable to delete contact:", response.error);
@@ -95,7 +104,64 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     return selected.sort().map(g=><>{g}<br/></>);
   }
 
-  const isAdmin = true; // TODO: check if the user is an admin
+  const handleToggleExploitant = (exploitantID: string, isSelected: boolean) => {
+    setToggledExploitantIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(exploitantID)) {
+        newSet.delete(exploitantID);
+      } else {
+        newSet.add(exploitantID);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSaveChanges = async () => {
+    // const changes = Array.from(toggledExploitantIds).map(id => {
+    //   const contact = allExploitanten.find(e => e.ID === id);
+    //   const isCurrentlySelected = exploitanten.some(e => e.ID === id);
+    //   return `${contact?.CompanyName} (${isCurrentlySelected ? 'verwijderen' : 'toevoegen'})`;
+    // });
+    // alert(`De volgende wijzigingen worden doorgevoerd:\n${changes.join('\n')}`);
+
+    const activeContactId = session?.user?.activeContactId;
+    if(activeContactId === undefined) {
+      alert("No active contact ID found");
+      return;
+    }
+
+    for(const id of Array.from(toggledExploitantIds)) {
+      const isCurrentlySelected = exploitanten.some(e => e.ID === id); // is exploitant 
+      if(isCurrentlySelected===false) {
+        // add link
+        const url = `/api/protected/exploitant/${id}/gemeenten/${ activeContactId}`;
+        const response = await makeClientApiCall<ExploitantGemeenteResponse>(url, 'POST', { admin: true });
+        if(!response.success) {
+          console.error("Failed to add link to exploitant: " + id + " " + currentContactID);
+          return;
+        }
+      } else {
+        // remove link
+        const url = `/api/protected/exploitant/${id}/gemeenten/${activeContactId}`;
+        const response = await makeClientApiCall<ExploitantGemeenteResponse>(url, 'DELETE', { });
+        if(!response.success) {
+          console.error("Failed to remove link from exploitant: " + id + " " + activeContactId);
+          return;
+        }
+      }
+    }
+    
+    setToggledExploitantIds(new Set());
+    setAddRemoveExploitant(false);
+
+    reloadExploitanten();
+    reloadAllExploitanten();
+  };
+
+  const handleCancelChanges = () => {
+    setToggledExploitantIds(new Set());
+    setAddRemoveExploitant(false);
+  };
 
   const renderOverview = () => {
     return (
@@ -113,43 +179,89 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
               />
             )}
           </div>
-          <button 
+          { props.canManageExploitants && <button 
             onClick={() => handleEdit('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
             Nieuwe Exploitant
-          </button>
+          </button>}
+          { props.canAddRemoveExploitants && (
+            addRemoveExploitant ? (
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleSaveChanges}
+                  disabled={toggledExploitantIds.size === 0}
+                  className={`font-bold py-2 px-4 rounded ${
+                    toggledExploitantIds.size === 0 
+                      ? 'bg-gray-300 cursor-not-allowed' 
+                      : 'bg-green-500 hover:bg-green-700'
+                  } text-white`}
+                >
+                  Opslaan
+                </button>
+                <button 
+                  onClick={handleCancelChanges}
+                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Afbreken
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setAddRemoveExploitant(true)}
+                className="bg-gray-300 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Exploitanten Beheren
+              </button>
+            )
+          )}
         </div>
         <table className="min-w-full bg-white">
           <thead>
-            <tr>
               <th className="py-2">Naam</th>
               <th className="py-2">E-mail</th>
-              {props.showGemeenten && <th className="py-2">Gemeente(n)</th>}
+              {props.canManageExploitants && <th className="py-2">Gemeente(n)</th>}
               <th className="py-2">Actief</th>
-            </tr>
+              {props.canManageExploitants && <th className="py-2">Acties</th>}
+              {addRemoveExploitant && <th className="py-2">Heeft toegang</th>}
           </thead>
           <tbody>
             {filteredContacts.sort((a, b) => (a.CompanyName || '').localeCompare(b.CompanyName || '')).map((contact) => { 
+
+              // currentContactID is managed by contact.ID
+              const isSelected = exploitanten.some(e => e.ID === contact.ID);
+
               return (
                 <tr key={contact.ID}>
                   <td className="border px-4 py-2">{contact.CompanyName}</td>
                   <td className="border px-4 py-2">{contact.Helpdesk}</td>
-                  {props.showGemeenten && <td className="border px-4 py-2">{getGemeenten(contact)}</td>}
+                  {props.canManageExploitants && <td className="border px-4 py-2">{getGemeenten(contact)}</td>}
                   <td className="border px-4 py-2">
                     {contact.Status === "1" ? 
                       <span className="text-green-500">●</span> : 
                       <span className="text-red-500">●</span>
                     }
                   </td>
-                  <td className="border px-4 py-2">
-                    {!props.readonly && (
-                      <>
+                  {props.canManageExploitants && (
+                      <td className="border px-4 py-2">
                         <button onClick={() => handleEdit(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                        <button onClick={() => handleDelete(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!isAdmin}>🗑️</button>
-                      </>
-                    )}
-                  </td>
+                        <button onClick={() => handleDelete(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40">🗑️</button>
+                      </td>
+                  )}
+                  {addRemoveExploitant && (
+                    <td className="border px-4 py-2">
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="checkbox" 
+                          checked={toggledExploitantIds.has(contact.ID) ? !isSelected : isSelected} 
+                          onChange={() => handleToggleExploitant(contact.ID, isSelected)} 
+                        />
+                        {toggledExploitantIds.has(contact.ID) && (
+                          <span>*</span>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -181,6 +293,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         setCurrentStallingId(undefined);
       } else if(showExploitantEdit) {
         reloadExploitanten();
+        reloadAllExploitanten();
         setCurrentContactID(undefined);
       } 
     }
@@ -190,6 +303,8 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
+            groupid={VSUserGroupValues.Exploitant}
+            siteID={currentContactID}
             onClose={()=>setCurrentUserId(undefined)} />
         );
       } else if(showStallingEdit) {
@@ -208,6 +323,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
               setCurrentContactID(undefined); 
 
               reloadExploitanten(); // Refresh the list after edit
+              reloadAllExploitanten(); // Refresh the list of all exploitanten
             }} 
             onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
             onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
@@ -221,7 +337,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   // isLoadingUsers || 
   //         isLoadingUsers && "Gebruikers",
 
-  if(isLoadingExploitanten || isLoadingGemeenten) {
+  if(isLoadingExploitanten || isLoadingGemeenten || isLoadingAllExploitanten) {
     const whatIsLoading = [
         isLoadingExploitanten && "Exploitanten",
         isLoadingGemeenten && "Gemeenten",
@@ -230,11 +346,10 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     return <LoadingSpinner message={whatIsLoading + ' laden'} />;
   }
 
-
   // errorUsers ||
   // errorUsers || 
-  if( errorExploitanten || errorGemeenten) {
-    return <div>Error: {errorExploitanten || errorGemeenten}</div>;
+  if( errorExploitanten || errorGemeenten || errorAllExploitanten) {
+    return <div>Error: {errorExploitanten || errorGemeenten || errorAllExploitanten}</div>;
   }
   
   return (

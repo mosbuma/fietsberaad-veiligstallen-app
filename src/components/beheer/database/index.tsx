@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import BikeparkSelect from '../reports/BikeparkSelect'; // Adjust the import path if necessary
+import React from 'react';
 import { ReportBikepark } from '../reports/ReportsFilter'; // Adjust the import path if necessary
-import { CacheParams, CacheStatus, CacheActions, CacheResult } from "~/backend/services/database-service";
 import CacheTableComponent from './CacheTable';
-import moment from 'moment';
+import UserContactRoleTableComponent from './UserContactRoleTable';
+import UserStatusTableComponent from './UserStatusTable';
 
 interface DatabaseComponentProps {
   firstDate: Date;
@@ -16,6 +15,8 @@ const DatabaseComponent: React.FC<DatabaseComponentProps> = ({ firstDate, lastDa
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-4">Database</h1>
+      <UserStatusTableComponent />
+      <UserContactRoleTableComponent />
       <CacheTableComponent
         title="Transactie cache tabel"
         cacheEndpoint="/api/database/transactionscache"
