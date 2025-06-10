@@ -165,7 +165,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               <ul className="ml-4 mt-1">
                 {formatLi(VSMenuTopic.Report, 'Rapportage', true)}
                 {formatLi(VSMenuTopic.Export, 'Export', true)}
-                {formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
+                {/* {formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)} */}
               </ul>
             )
           }

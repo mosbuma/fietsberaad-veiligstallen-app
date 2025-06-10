@@ -156,7 +156,7 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
 
           {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
           {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
-          {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)}
+          {/* {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)} */}
 
           {hasWebsiteRight && formatLiDevelopment(VSMenuTopic.Faq, 'FAQ', true)}
         </>}
