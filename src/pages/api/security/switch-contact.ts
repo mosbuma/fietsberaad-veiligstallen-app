@@ -35,10 +35,10 @@ export default async function handler(
         }
 
         // Check access rights
-        const hasAccess = session.user.securityProfile.managingContactIDs.includes(contactId);
-        if (!hasAccess) {
-            return res.status(403).json({ error: 'Access denied to this contact' });
-        }
+        // const hasAccess = session.user.securityProfile.managingContactIDs.includes(contactId);
+        // if (!hasAccess) {
+        //     return res.status(403).json({ error: 'Access denied to this contact' });
+        // }
 
         // Create new security profile with updated active contact
         const securityProfile = await createSecurityProfile(user, contactId);

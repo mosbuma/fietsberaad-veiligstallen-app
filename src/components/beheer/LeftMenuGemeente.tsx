@@ -3,11 +3,9 @@ import React from 'react';
 import Link from 'next/link';
 
 import { VSSecurityTopic, VSMenuTopic, VSUserSecurityProfile } from '~/types/index';
-import { VSModuleValues } from '~/types/modules';
-import { type VSContactDataprovider, VSContactExploitant, type VSContactGemeente } from '~/types/contacts';
 import { VSUserRoleValuesNew } from '~/types/users';
 
-import { userHasRight, userHasModule, userHasRole } from '~/types/utils';
+import { userHasRight, userHasRole } from '~/types/utils';
 interface LeftMenuGemeenteProps {
   securityProfile?: VSUserSecurityProfile;
   activecomponent: VSMenuTopic | undefined;
@@ -73,33 +71,32 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
 
   const renderUnifiedMenu = () => {
     // Base conditions from user security profile
-    const profile = securityProfile;
 
     // Role-based conditions
-    const isAdmin = userHasRole(profile, VSUserRoleValuesNew.RootAdmin) || userHasRole(profile, VSUserRoleValuesNew.Admin);
+    const isAdmin = userHasRole(securityProfile, VSUserRoleValuesNew.RootAdmin) || userHasRole(securityProfile, VSUserRoleValuesNew.Admin);
 
-    const hasSystemRight = userHasRight(profile, VSSecurityTopic.System);
-    const hasWebsiteRight = userHasRight(profile, VSSecurityTopic.Website);
-    const hasGemeenteRight = userHasRight(profile, VSSecurityTopic.ContactsGemeenten);
-    const hasLocatiesRight = userHasRight(profile, VSSecurityTopic.ApisGekoppeldeLocaties);
-    const hasBuurtstallingenRight = userHasRight(profile, VSSecurityTopic.Buurtstallingen) && userHasModule(profile, VSModuleValues.Buurtstallingen);
-    const hasRegistrantenRight = userHasRight(profile, VSSecurityTopic.Accounts) && userHasModule(profile, VSModuleValues.Fms);
-    const hasRapportagesRight = userHasRight(profile, VSSecurityTopic.Report) && userHasModule(profile, VSModuleValues.Fms);
-    const hasUsersRight = userHasRight(profile, VSSecurityTopic.UsersGebruikersbeheer) && userHasModule(profile, VSModuleValues.Fms);
-    const hasDataprovidersRight = userHasRight(profile, VSSecurityTopic.ContactsDataproviders) && userHasModule(profile, VSModuleValues.Fms);
-    const hasExternalApisRight = userHasRight(profile, VSSecurityTopic.ApisOverzicht);
-    const hasDevelopmentRight = userHasRight(profile, VSSecurityTopic.Development);
+    // const hasSystemRight = userHasRight(securityProfile, VSSecurityTopic.System);
+    const hasWebsiteRight = userHasRight(securityProfile, VSSecurityTopic.Website);
+    // const hasGemeenteRight = userHasRight(securityProfile, VSSecurityTopic.ContactsGemeenten);
+    const hasLocatiesRight = userHasRight(securityProfile, VSSecurityTopic.ApisGekoppeldeLocaties);
+    const hasBuurtstallingenRight = userHasRight(securityProfile, VSSecurityTopic.Buurtstallingen) // && userHasModule(securityProfile, VSModuleValues.Buurtstallingen);
+    // const hasRegistrantenRight = userHasRight(securityProfile, VSSecurityTopic.Accounts) && userHasModule(securityProfile, VSModuleValues.Fms);
+    const hasRapportagesRight = userHasRight(securityProfile, VSSecurityTopic.Report) // && userHasModule(securityProfile, VSModuleValues.Fms);
+    // const hasUsersRight = userHasRight(securityProfile, VSSecurityTopic.UsersGebruikersbeheer) // && userHasModule(securityProfile, VSModuleValues.Fms);
+    // const hasDataprovidersRight = userHasRight(securityProfile, VSSecurityTopic.ContactsDataproviders) // && userHasModule(securityProfile, VSModuleValues.Fms);
+    // const hasExternalApisRight = userHasRight(securityProfile, VSSecurityTopic.ApisOverzicht);
+    // const hasDevelopmentRight = userHasRight(securityProfile, VSSecurityTopic.Development);
 
-    const hasDatabaseRight = hasSystemRight;
+    // const hasDatabaseRight = hasSystemRight;
     // const hasInstellingenRight = hasSystemRight;
 
     {/* TODO: Later terugzetten, nu niet nodig
-      // const hasFietskluizenRight = userHasRight(profile, VSSecurityTopic.Fietskluizen);
-      // const hasAbonnementenRight = userHasRight(profile, VSSecurityTopic.Abonnementen);
-      // const hasDiashowRight = userHasRight(profile, VSSecurityTopic.Presentations);
-      // const hasUsersBeheerdersRight = userHasRight(profile, VSSecurityTopic.UsersBeheerders);
-      // const hasSleutelhangerreeksenRight = userHasRight(profile, VSSecurityTopic.BarcodereeksenSleutelhangers);
-      // const hasDocumentenModule = userHasRight(profile, VSSecurityTopic.Documents);
+      // const hasFietskluizenRight = userHasRight(securityProfile, VSSecurityTopic.Fietskluizen);
+      // const hasAbonnementenRight = userHasRight(securityProfile, VSSecurityTopic.Abonnementen);
+      // const hasDiashowRight = userHasRight(securityProfile, VSSecurityTopic.Presentations);
+      // const hasUsersBeheerdersRight = userHasRight(securityProfile, VSSecurityTopic.UsersBeheerders);
+      // const hasSleutelhangerreeksenRight = userHasRight(securityProfile, VSSecurityTopic.BarcodereeksenSleutelhangers);
+      // const hasDocumentenModule = userHasRight(securityProfile, VSSecurityTopic.Documents);
 
       {formatLi(VSMenuTopic.Products, 'Opwaardeerproducten')} 
 

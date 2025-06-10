@@ -4,7 +4,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 
 import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
-import { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
+import { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
 import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 import { useGemeenten } from "~/hooks/useGemeenten";
@@ -69,11 +69,12 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten(undefined);
     const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
 
-    const [archivedUsers, setArchivedUsers] = useState<VSUserWithRoles[]>([]);
     const [archivedUserIds, setArchivedUserIds] = useState<string[]>([]);
     const [archivedFilter, setArchivedFilter] = useState<"Yes" | "No" | "Only">("No");
 
     const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten, reloadGemeenten: reloadGemeenten } = useGemeenten();
+
+    const [managingContactIDs, setManagingContactIDs] = useState<string[]>([]);
 
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
@@ -105,6 +106,9 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     const dubiousUserIDs = getDubiousUserIDs(users);
 
     const selectedUser = users.find(user => user.UserID === selectedUserID);
+
+    const [managedContacts, setManagedContacts] = useState<(VSContactGemeente | VSContactExploitant)[]>([]);
+    const [isLoadingManagedContacts, setIsLoadingManagedContacts] = useState(false);
 
     // reset the active user if any of the filters change and the active user is not in the filtered users
     useEffect(() => {
@@ -279,6 +283,32 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         };
         fetchArchivedUsers();
     }, [isArchived]);
+
+    useEffect(() => {
+        async function fetchManagedContacts() {
+            if (!selectedUser) {
+                setManagedContacts([]);
+                return;
+            }
+
+            setIsLoadingManagedContacts(true);
+            try {
+                const response = await fetch(`/api/security/profile/${selectedUser.UserID}/managedcontacts`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch managed contacts');
+                }
+                const data = await response.json();
+                setManagedContacts(data.managedContacts);
+            } catch (error) {
+                console.error('Error fetching managed contacts:', error);
+                setManagedContacts([]);
+            } finally {
+                setIsLoadingManagedContacts(false);
+            }
+        }
+
+        fetchManagedContacts();
+    }, [selectedUser?.UserID]);
 
     const handleArchiveToggle = async () => {
         if (!selectedUser) return;
@@ -568,7 +598,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         );
     }
 
-    const renderUserDetailsSection = (mainContact: VSContactGemeente | VSContactExploitant | undefined | null, managedContacts: (VSContactGemeente | VSContactExploitant)[]) => {
+    const renderUserDetailsSection = (mainContact: VSContactGemeente | VSContactExploitant | undefined | null) => {
         if(!selectedUser) return null;
 
         const handleLoginAsUser = async () => {
@@ -707,11 +737,11 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                     <div className="flex items-center">
                         <label className="w-32 text-sm font-medium text-gray-700">Gemeenten:</label>
                         <div className="flex flex-wrap gap-2 text-gray-900">
-                            {displayedContacts.map((gemeente) => { 
-                                const isContact = managedContacts.some((contact) => contact?.ID === gemeente.ID);
+                            {managedContacts.map((contact) => { 
+                                const isContact = managedContacts.some((managedContact) => managedContact?.ID === contact.ID);
                                 return (
-                                    <div key={gemeente.ID} className={`${isContact ? 'bg-red-200 text-black': 'bg-blue-100 text-blue-800'} px-2 py-1 rounded-md`}>
-                                        <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/${gemeente.ID}`} target="_blank">{gemeente.CompanyName}</Link>
+                                    <div key={contact.ID} className={`${isContact ? 'bg-red-200 text-black': 'bg-blue-100 text-blue-800'} px-2 py-1 rounded-md`}>
+                                        <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/${contact.ID}`} target="_blank">{contact.CompanyName}</Link>
                                     </div>
                                 );
                             })}
@@ -820,14 +850,6 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                             </div>
                         </div>
 
-                        <div className="text-lg font-semibold mb-2 mt-4">Module Toegang</div>
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {securityProfile.modules.map(module => (
-                                <span key={module} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    {module}
-                                </span>
-                            ))}
-                        </div>
                         <div className="text-lg font-semibold mb-6 flex flex-row items-center">
                             Toegangsrechten
                             <button 
@@ -880,16 +902,11 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     checkAssumptions();
 
     let mainContact: VSContactGemeente | VSContactExploitant | undefined | null = undefined;
-    let managedContacts: (VSContactGemeente | VSContactExploitant)[] = [];
     if(securityProfile) {
         mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
-
-        const managedGemeenten = securityProfile.managingContactIDs.map((contactID) => gemeenten.find((gemeente) => gemeente.ID === contactID)).filter((gemeente) => gemeente !== undefined);
-        const managedExploitanten = securityProfile.managingContactIDs.map((contactID) => exploitanten.find((exploitant) => exploitant.ID === contactID)).filter((exploitant) => exploitant !== undefined);
-        managedContacts = [...managedGemeenten, ...managedExploitanten];
     } else {
         if(selectedUser) {
-        console.error("No security profile found for user", selectedUser?.UserID);
+            console.error("No security profile found for user", selectedUser?.UserID);
         }
     }
 
@@ -916,7 +933,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 {renderFilterSection()}
             </div>
             <div>
-                {renderUserDetailsSection(mainContact, managedContacts)}
+                {renderUserDetailsSection(mainContact)}
                 {renderSecurityProfileSection(securityProfile)}
             </div>
         </div>

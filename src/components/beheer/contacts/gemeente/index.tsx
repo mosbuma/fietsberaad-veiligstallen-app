@@ -81,19 +81,6 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     }
   };
 
-  // const getContactPerson = (contact: VSContactGemeenteInLijst): string => {
-  //   // const contactpersons = users.filter(user => user.security_users_sites?.some(site => site.SiteID === contact.ID && site.IsContact === true));
-  //   console.log("**** contact", contact, users);
-  //   const contactperson = users.find(user => user.sites.some(site => site.SiteID === contact.ID && site.IsContact === true));
-  //   return contactperson!==undefined ? 
-  //     contactperson.DisplayName + " (" + contactperson.UserName + ")" : "";
-  // }
-
-  // const getModules = (contact: VSContactGemeenteInLijst): string => {
-  //   const modules = contact.modules_contacts?.map(module => module.module.Name).join(", ") || "";
-  //   return modules;
-  // } 
-
   const renderOverview = () => {
     return (
       <div>

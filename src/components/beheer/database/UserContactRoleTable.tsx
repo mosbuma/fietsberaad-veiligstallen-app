@@ -34,7 +34,6 @@ const UserContactRoleTableComponent: React.FC = ({  }) => {
           }
 
           const json = await response.json();
-          console.log("**** USER CONTACT ROLE STATUS", json);
           setUserContactRoleStatus(json.status);
           setErrorState("");
       } catch (error) {

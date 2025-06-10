@@ -1,5 +1,5 @@
 import type { security_users, security_users_sites, security_roles, user_contact_role } from "~/generated/prisma-client";
-import type { VSUserSecurityProfile, VSUserSecurityProfileCompact } from "~/types/";
+import type { VSUserSecurityProfile } from "~/types/";
 
 export enum VSUserGroupValues {
     Intern = "intern",
@@ -40,7 +40,7 @@ export interface VSUserSitesNew {
 
 export type VSUserInLijstNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
     sites: VSUserSitesNew[];
-    securityProfile: VSUserSecurityProfileCompact;
+    securityProfile: VSUserSecurityProfile;
 }
 
 export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
@@ -93,6 +93,13 @@ export const securityUserSelect = {
             SiteID: true,
             IsContact: true
         }
+    },
+    user_contact_roles: {
+        select: {
+            UserID: true,
+            ContactID: true,
+            NewRoleID: true
+        }
     }
 }
 
@@ -101,8 +108,6 @@ export const getDefaultSecurityProfile = (): VSUserSecurityProfile => ({
     roleId: VSUserRoleValuesNew.None,
     groupId: VSUserGroupValues.Extern,
     rights: {},
-    modules: [],
-    managingContactIDs:[]
 })
 
 export const getDefaultNewUser = (name: string, siteid: string | null): VSUserWithRolesNew => ({

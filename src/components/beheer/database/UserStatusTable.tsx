@@ -32,7 +32,6 @@ const UserStatusTableComponent: React.FC = () => {
         }
 
         const json = await response.json();
-        console.log("**** USER STATUS STATUS", json);
         setUserStatusStatus(json.status);
         setErrorState("");
       } catch (error) {

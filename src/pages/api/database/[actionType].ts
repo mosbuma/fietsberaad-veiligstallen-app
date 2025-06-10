@@ -42,7 +42,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     if (req.method === 'POST') {
       switch (req.query.actionType) {
         case "userstatus": {
-          console.log("**** USER STATUS", req.body);
           const parseResult = UserStatusParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
             return res.status(400).json({
@@ -56,7 +55,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
           return res.json(result);
         }
         case "usercontactrole": {
-          console.log("**** USER CONTACT ROLE", req.body);
           const parseResult = UserContactRoleParamsSchema.safeParse(req.body);
           if (!parseResult.success) {
             return res.status(400).json({
