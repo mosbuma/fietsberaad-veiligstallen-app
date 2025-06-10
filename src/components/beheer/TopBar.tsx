@@ -7,8 +7,9 @@ import { useSession, signOut } from "next-auth/react"
 import { AppState } from "~/store/store";
 import type { VSUserSecurityProfile } from "~/types/";
 import type { Session } from "next-auth";
-import type { VSContactExploitant, VSContactGemeenteInLijst } from "~/types/contacts";
+import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~/types/contacts";
 import { userHasRight, logSession } from '~/types/utils';
+import { getOrganisationByID } from "~/utils/organisations";
 interface TopBarProps {
   title: string;
   currentComponent: string;
@@ -17,6 +18,15 @@ interface TopBarProps {
   exploitanten: VSContactExploitant[] | undefined;
   selectedGemeenteID: string | undefined;
   onGemeenteSelect: (gemeenteID: string) => void;
+}
+
+const getSelectedOrganisationInfo = (gemeenten: VSContactGemeenteInLijst[], exploitanten: VSContactExploitant[], selectedGemeenteID: string) => {
+  // Merge gemeenten and exploitanten
+  const organisations = [...gemeenten, ...exploitanten];
+  // Get organisation info
+  const organisation: VSContact | undefined = getOrganisationByID(organisations as VSContact[], selectedGemeenteID || "");
+
+  return organisation;
 }
 
 const TopBar: React.FC<TopBarProps> = ({
@@ -72,6 +82,8 @@ const TopBar: React.FC<TopBarProps> = ({
     CompanyName: "Fietsberaad",
   }
 
+  const selectedOrganisationInfo: VSContact | undefined = getSelectedOrganisationInfo(gemeenten || [], exploitanten || [], selectedGemeenteID || "");
+
   const gemeentenKort = gemeenten?.map(gemeente => ({
     ID: gemeente.ID,
     CompanyName: gemeente.CompanyName,
@@ -109,7 +121,7 @@ const TopBar: React.FC<TopBarProps> = ({
     >
       <div style={{ flex: 1 }}>
         <img
-          src="/images/logo.png"
+          src={`https://static.veiligstallen.nl/library/logo2/${selectedOrganisationInfo?.CompanyLogo}` || "/images/logo.png"}
           alt="Logo"
           className="h-16 w-auto bg-white p-2"
         />

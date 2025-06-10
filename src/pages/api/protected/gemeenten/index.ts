@@ -79,6 +79,9 @@ export default async function handle(
           data.push({
             ID: gemeente.ID,
             CompanyName: gemeente.CompanyName,
+            CompanyLogo: gemeente.CompanyLogo,
+            ThemeColor1: gemeente.ThemeColor1,
+            ThemeColor2: gemeente.ThemeColor2,
             hasStallingen: numNietSysteemStallingen > 0,
             hasUsers,
             hasExploitanten

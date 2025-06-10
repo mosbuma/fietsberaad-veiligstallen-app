@@ -9,6 +9,9 @@ export interface VSContactExploitant {
     ItemType: string | null;
     Helpdesk: string | null;
     Status: string | null;
+    CompanyLogo: string | null;
+    ThemeColor1: string | null;
+    ThemeColor2: string | null;
     isManagingContacts: {
       ID: number;
       childSiteID: string;
@@ -59,7 +62,10 @@ export interface VSContactExploitant {
 
   export type VSContactGemeenteInLijst = Pick<contacts, 
   "ID" | 
-  "CompanyName"
+  "CompanyName" |
+  "CompanyLogo" | 
+  "ThemeColor1" |
+  "ThemeColor2" 
   > & {
     hasStallingen: boolean;
     hasExploitanten: boolean;
@@ -107,6 +113,9 @@ export interface VSContactExploitant {
     export const gemeenteLijstSelect = {
         ID: true,
         CompanyName: true,
+        CompanyLogo: true,
+        ThemeColor1: true,
+        ThemeColor2: true,
         fietsenstallingen_fietsenstallingen_SiteIDTocontacts: {
           select: {
             ID: true,
@@ -219,5 +228,8 @@ export const dataproviderSelect = {
   DateRejected: true
 }
 
-export type VSContact = VSContactGemeente | VSContactDataprovider | VSContactExploitant;
-    
+export type VSContact = (VSContactGemeente | VSContactDataprovider | VSContactExploitant) & {
+  CompanyLogo: string | null;
+  ThemeColor1: string | null;
+  ThemeColor2: string | null;
+};
