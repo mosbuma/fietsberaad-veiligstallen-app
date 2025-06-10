@@ -15,7 +15,7 @@ const DatabaseComponent: React.FC<DatabaseComponentProps> = ({ firstDate, lastDa
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-4">Database</h1>
       <UserContactRoleTableComponent />
-      {/* <CacheTableComponent
+      <CacheTableComponent
         title="Transactie cache tabel"
         cacheEndpoint="/api/database/transactionscache"
         firstDate={firstDate}
@@ -35,7 +35,7 @@ const DatabaseComponent: React.FC<DatabaseComponentProps> = ({ firstDate, lastDa
         firstDate={firstDate}
         lastDate={lastDate}
         bikeparks={bikeparks}
-      /> */}
+      />
     </div>
   );
 };
