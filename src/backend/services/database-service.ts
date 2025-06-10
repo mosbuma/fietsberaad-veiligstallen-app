@@ -2,9 +2,11 @@ import { getTransactionCacheStatus, updateTransactionCache, clearTransactionCach
 import { getBezettingCacheStatus, updateBezettingCache, clearBezettingCache, createBezettingCacheTable, dropBezettingCacheTable, createBezettingParentIndices, dropBezettingParentIndices } from "~/backend/services/database/BezettingCacheActions";
 import { getStallingsduurCacheStatus, updateStallingsduurCache, clearStallingsduurCache, createStallingsduurCacheTable, dropStallingsduurCacheTable, createStallingsduurParentIndices, dropStallingsduurParentIndices } from "~/backend/services/database/StallingsduurCacheActions";
 import { getUserContactRoleTableStatus, updateUserContactRoleTable, clearUserContactRoleTable, createUserContactRoleTable, dropUserContactRoleTable } from "~/backend/services/database/UserContactTableActions";
+import { getUserStatusTableStatus, updateUserStatusTable, clearUserStatusTable, createUserStatusTable, dropUserStatusTable } from "~/backend/services/database/UserStatusTableActions";
 
 export type CacheActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status' | 'createparentindices' | 'dropparentindices';
 export type UserContactRoleActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status';
+export type UserStatusActions = 'update' | 'clear' | 'createtable' | 'droptable' | 'status';
 
 export interface CacheResult {
   success: boolean;
@@ -46,6 +48,21 @@ export interface UserContactRoleResult {
   status?: UserContactRoleStatus | false;
 }
 export interface UserContactRoleStatus {
+  status: 'missing' | 'available' | 'error';
+  size: number | undefined;
+}
+
+export interface UserStatusParams {
+  action: UserStatusActions;
+}
+
+export interface UserStatusResult {
+  success: boolean;
+  message: string;
+  status?: UserStatusStatus | false;
+}
+
+export interface UserStatusStatus {
   status: 'missing' | 'available' | 'error';
   size: number | undefined;
 }
@@ -176,6 +193,32 @@ const DatabaseService = {
       }
       case 'droptable': { // TODO: remove when this table has been implemented in the prisma scripts and primary database
         const status = await dropUserContactRoleTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      default: {
+        return { success: false, message: "Invalid action" };
+      }
+    }
+  },
+  manageUserStatusTable: async (params: UserStatusParams): Promise<UserStatusResult> => {
+    switch (params.action) {
+      case 'status':
+        const status = await getUserStatusTableStatus(params);
+        return { success: status!==undefined, message: "", status };
+      case 'update': {
+        const status = await updateUserStatusTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'clear': {
+        const status = await clearUserStatusTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'createtable': {  
+        const status = await createUserStatusTable(params);
+        return { success: status!==undefined, message: "", status };
+      }
+      case 'droptable': {
+        const status = await dropUserStatusTable(params);
         return { success: status!==undefined, message: "", status };
       }
       default: {

@@ -1815,6 +1815,12 @@ model user_contact_role {
   ContactID String @db.VarChar(36) @unique
   NewRoleID String @db.VarChar(16) @default("none") 
 
-  @@unique([UserID, ContactID], map: "UserID_ContactID")
-  
+  @@unique([UserID, ContactID], map: "UserID_ContactID") 
+}
+
+model user_status {
+  UserID String @id @default("") @db.VarChar(36)
+  Archived Boolean @default(false)
+
+  @@unique([UserID], map: "UserID") 
 }
