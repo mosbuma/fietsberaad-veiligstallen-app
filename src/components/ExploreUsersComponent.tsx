@@ -256,7 +256,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             // Fetch archive status when user is selected
             const fetchArchiveStatus = async () => {
                 try {
-                    const response = await fetch(`/api/archive/user/status/${selectedUser.UserID}`);
+                    const response = await fetch(`/api/protected/archive/user/status/${selectedUser.UserID}`);
                     if (response.ok) {
                         const data = await response.json();
                         setIsArchived(data.archived);
@@ -272,7 +272,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     useEffect(() => {
         const fetchArchivedUsers = async () => {
             try {
-                const response = await fetch('/api/archive/user/list');
+                const response = await fetch('/api/protected/archive/user/list');
                 if (response.ok) {
                     const data = await response.json();
                     setArchivedUserIds(data.archivedUserIds);
@@ -315,7 +315,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         
         setIsUpdatingArchive(true);
         try {
-            const response = await fetch('/api/archive/user', {
+            const response = await fetch('/api/protected/archive/user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
