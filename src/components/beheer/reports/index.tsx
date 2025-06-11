@@ -46,7 +46,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   const [warningState, setWarningState] = useState(warning);
 
   const [gemeenteInfo, setGemeenteInfo] = useState<VSContactGemeente | undefined>(undefined);
-  // const [filteredGemeenten, setFilteredGemeenten] = useState<VSContactGemeenteInLijst[]>(gemeenten);
 
   const [reportData, setReportData] = useState<ReportData | undefined>(undefined);
 
