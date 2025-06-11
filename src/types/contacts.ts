@@ -225,8 +225,69 @@ export const dataproviderSelect = {
   DateRejected: true
 }
 
-export type VSContact = (VSContactGemeente | VSContactDataprovider | VSContactExploitant) & {
-  CompanyLogo: string | null;
-  ThemeColor1: string | null;
-  ThemeColor2: string | null;
+export type VSContactInLijst = Pick<contacts, 
+  "ID" | 
+  "FirstName" |
+  "LastName" |
+  "Email1" |
+  "Phone1"
+> & {
+  hasUsers: boolean;
+  hasStallingen: boolean;
+};
+
+export type VSContact = Pick<contacts, 
+  "ID" | 
+  "FirstName" |
+  "LastName" |
+  "Email1" |
+  "Phone1" |
+  "Mobile1" |
+  "JobTitle" |
+  "Notes" |
+  "DateRegistration" |
+  "DateConfirmed" |
+  "DateRejected" |
+  "ItemType"
+> & {
+  managesFietsenstallingen?: VSParking[];
+};
+
+export const contactLijstSelect = {
+  ID: true,
+  FirstName: true,
+  LastName: true,
+  Email1: true,
+  Phone1: true,
+  // managesFietsenstallingen: {
+  //   select: {
+  //     ID: true,
+  //     Title: true,
+  //     StallingsID: true,
+  //     Type: true,
+  //   }
+  // }
+};
+
+export const contactSelect = {
+  ID: true,
+  FirstName: true,
+  LastName: true,
+  Email1: true,
+  Phone1: true,
+  Mobile1: true,
+  JobTitle: true,
+  Notes: true,
+  DateRegistration: true,
+  DateConfirmed: true,
+  DateRejected: true,
+  ItemType: true,
+  // managesFietsenstallingen: {
+  //   select: {
+  //     ID: true,
+  //     Title: true,
+  //     StallingsID: true,
+  //     Type: true,
+  //   }
+  // }
 };

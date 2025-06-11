@@ -210,3 +210,58 @@ export const securityuserSchema = z.object({
     .nullable()
     .optional(),
 });
+
+export const contactSchema = z.object({
+  ID: idSchema,
+  FirstName: z.string()
+    .min(1, { message: "Voornaam is verplicht" })
+    .max(255, { message: "Voornaam mag maximaal 255 tekens bevatten" }),
+  LastName: z.string()
+    .min(1, { message: "Achternaam is verplicht" })
+    .max(255, { message: "Achternaam mag maximaal 255 tekens bevatten" }),
+  ItemType: itemTypeEnum,
+  Email1: z.string()
+    .email({ message: "Ongeldig e-mailadres" })
+    .nullable()
+    .optional(),
+  Phone1: z.string()
+    .nullable()
+    .optional(),
+  Mobile1: z.string()
+    .nullable()
+    .optional(),
+  JobTitle: z.string()
+    .nullable()
+    .optional(),
+  Notes: z.string()
+    .nullable()
+    .optional(),
+  DateRegistration: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
+  DateConfirmed: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
+  DateRejected: z.union([z.string().datetime(), z.date(), z.null()])
+    .optional(),
+});
+
+export const contactCreateSchema = contactSchema.omit({ ID: true });
+
+export const getDefaultNewContact = (naam: string = "Nieuw contact") => {
+  const [firstName, ...lastNameParts] = naam.split(' ');
+  const lastName = lastNameParts.join(' ');
+  
+  return {
+    ID: 'new',
+    FirstName: firstName,
+    LastName: lastName,
+    ItemType: "contacts",
+    Email1: null,
+    Phone1: null,
+    Mobile1: null,
+    JobTitle: null,
+    Notes: null,
+    DateRegistration: moment().toDate(),
+    DateConfirmed: null,
+    DateRejected: null,
+  }
+};
