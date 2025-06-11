@@ -10,6 +10,8 @@ import type { Session } from "next-auth";
 import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~/types/contacts";
 import { userHasRight, logSession } from '~/types/utils';
 import { getOrganisationByID } from "~/utils/organisations";
+import Image from "next/image";
+
 interface TopBarProps {
   title: string;
   currentComponent: string;
@@ -120,9 +122,15 @@ const TopBar: React.FC<TopBarProps> = ({
     "
     >
       <div style={{ flex: 1 }}>
-        <img
-          src={`https://static.veiligstallen.nl/library/logo2/${selectedOrganisationInfo?.CompanyLogo}` || "/images/logo.png"}
+        <Image
+          src={selectedOrganisationInfo?.CompanyLogo !== null && selectedOrganisationInfo?.CompanyLogo !== undefined
+            ? selectedOrganisationInfo.CompanyLogo.startsWith('http') 
+              ? selectedOrganisationInfo.CompanyLogo 
+              : selectedOrganisationInfo.CompanyLogo.replace('[local]', '')
+            : "https://static.veiligstallen.nl/library/logo/images/logo.png"}
           alt="Logo"
+          width={64}
+          height={64}
           className="h-16 w-auto bg-white p-2"
         />
       </div>

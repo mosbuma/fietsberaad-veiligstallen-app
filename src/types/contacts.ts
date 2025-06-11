@@ -248,7 +248,9 @@ export type VSContact = Pick<contacts,
   "DateRegistration" |
   "DateConfirmed" |
   "DateRejected" |
-  "ItemType"
+  "ItemType" |
+  "CompanyLogo" |
+  "CompanyLogo2"
 > & {
   managesFietsenstallingen?: VSParking[];
 };
