@@ -22,7 +22,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
     const update = { [logoField]: null }
     try {
       const result = await fetch(
-        "/api/contacts?id=" + contactdata.ID,
+        "/api/protected/contacts/removeLogo/" + contactdata.ID,
         {
           method: "PUT",
           body: JSON.stringify(update),
@@ -35,9 +35,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
         throw Error('Er ging iets fout bij het verwijderen. Probeer je het later nog eens.')
       }
 
-      if (onUpdateAfbeelding) {
-        onUpdateAfbeelding('')
-      };
+      onUpdateAfbeelding && onUpdateAfbeelding();
     } catch (err) {
       console.error('onRemoveAfbeelding - error', err);
     }
@@ -113,7 +111,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
       const update = { [logoField]: data.url[0] }
       try {
         const result = await fetch(
-          "/api/contacts?id=" + contactdata.ID,
+          "/api/protected/contacts/" + contactdata.ID,
           {
             method: "PUT",
             body: JSON.stringify(update),

@@ -4,6 +4,8 @@ import { type VSContact, type VSContactInLijst, contactSelect, contactLijstSelec
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession } from "~/utils/server/database-tools";
+import { contactSchema } from "~/types/database";
+import { ZodError } from "zod";
 
 export type ContactsResponse = {
   data?: VSContact[] | VSContactInLijst[];
@@ -76,8 +78,8 @@ export default async function handle(
             ID: contact.ID,
             FirstName: contact.FirstName,
             LastName: contact.LastName,
-            Email: contact.Email,
-            Phone: contact.Phone,
+            Email1: contact.Email1,
+            Phone1: contact.Phone1,
             // hasUsers,
             // hasStallingen
           })

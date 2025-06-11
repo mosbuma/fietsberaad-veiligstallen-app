@@ -242,6 +242,12 @@ export const contactSchema = z.object({
     .optional(),
   DateRejected: z.union([z.string().datetime(), z.date(), z.null()])
     .optional(),
+  CompanyLogo: z.string()
+    .nullable()
+    .optional(),
+  CompanyLogo2: z.string()
+    .nullable()
+    .optional(),
 });
 
 export const contactCreateSchema = contactSchema.omit({ ID: true });

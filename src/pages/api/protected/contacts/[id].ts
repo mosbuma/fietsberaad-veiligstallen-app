@@ -137,23 +137,26 @@ export default async function handle(
         }
 
         const parsed = parseResult.data;
+
         const updatedContact = await prisma.contacts.update({
           select: contactSelect,
           where: { ID: id },
           data: {
             FirstName: parsed.FirstName,
             LastName: parsed.LastName,
-            ItemType: "organizations",
             Email1: parsed.Email1 ?? undefined,
             Phone1: parsed.Phone1 ?? undefined,
             Mobile1: parsed.Mobile1 ?? undefined,
             JobTitle: parsed.JobTitle ?? undefined,
             Notes: parsed.Notes ?? undefined,
+            CompanyLogo: parsed.CompanyLogo ?? undefined,
+            CompanyLogo2: parsed.CompanyLogo2 ?? undefined,
             DateRegistration: parsed.DateRegistration === null ? null : parsed.DateRegistration ? new Date(parsed.DateRegistration) : undefined,
             DateConfirmed: parsed.DateConfirmed === null ? null : parsed.DateConfirmed ? new Date(parsed.DateConfirmed) : undefined,
             DateRejected: parsed.DateRejected === null ? null : parsed.DateRejected ? new Date(parsed.DateRejected) : undefined,
           }
         });
+        console.log("==updatedContact", updatedContact);
         res.status(200).json({data: updatedContact});
       } catch (e) {
         if (e instanceof z.ZodError) {

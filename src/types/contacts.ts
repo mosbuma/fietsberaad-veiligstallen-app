@@ -282,6 +282,8 @@ export const contactSelect = {
   DateConfirmed: true,
   DateRejected: true,
   ItemType: true,
+  CompanyLogo: true,
+  CompanyLogo2: true,
   // managesFietsenstallingen: {
   //   select: {
   //     ID: true,

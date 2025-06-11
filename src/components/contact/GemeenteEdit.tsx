@@ -37,7 +37,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     const [centerCoords, setCenterCoords] = React.useState<string | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(!!props.onClose);
 
-    const { gemeente: activecontact, isLoading: isLoading, error: error } = useGemeente(props.id);
+    const { gemeente: activecontact, isLoading: isLoading, error: error, reloadGemeente: reloadGemeente } = useGemeente(props.id);
     const { users } = useUsers();
 
     type CurrentState = {
@@ -481,9 +481,9 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
               <div className="border px-4 py-2 space-y-4">
                 <SectionBlockEdit heading="Logo">
                 { isNew ? (
-                    <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={false} />
+                    <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={false} onUpdateAfbeelding={() => reloadGemeente()} />
                 ) : activecontact ? (
-                    <ContactEditLogo contactdata={activecontact} isLogo2={false} />
+                    <ContactEditLogo contactdata={activecontact} isLogo2={false} onUpdateAfbeelding={() => reloadGemeente()} />
                 ) : (
                     <div>
                         <p>Geen contact geselecteerd</p>
@@ -493,9 +493,9 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
 
                 <SectionBlockEdit heading="Logo 2 (optioneel)">
                 { isNew ? (
-                    <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={true} />
+                    <ContactEditLogo contactdata={DEFAULTGEMEENTE} isLogo2={true} onUpdateAfbeelding={() => reloadGemeente()} />
                 ) : activecontact ? (
-                    <ContactEditLogo contactdata={activecontact} isLogo2={true} />
+                    <ContactEditLogo contactdata={activecontact} isLogo2={true} onUpdateAfbeelding={() => reloadGemeente()} />
                 ) : (
                     <div>
                         <p>Geen contact geselecteerd</p>
