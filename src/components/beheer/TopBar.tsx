@@ -11,6 +11,7 @@ import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~
 import { userHasRight, logSession } from '~/types/utils';
 import { getOrganisationByID } from "~/utils/organisations";
 import Image from "next/image";
+import { useGemeente } from "~/hooks/useGemeente";
 
 interface TopBarProps {
   title: string;
@@ -46,6 +47,8 @@ const TopBar: React.FC<TopBarProps> = ({
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
   );
+
+  // const { gemeente: activecontact, isLoading: isLoading, error: error, reloadGemeente: reloadGemeente } = useGemeente(activeMunicipalityInfo?.ID);
 
   const themeColor1 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
     ? `#${activeMunicipalityInfo.ThemeColor1}`
@@ -114,6 +117,30 @@ const TopBar: React.FC<TopBarProps> = ({
     organisaties.unshift(fietsberaad);
   }
 
+  const renderLogo = () => {
+    const activecontact = selectedOrganisationInfo;
+    
+    if(activecontact?.CompanyLogo && activecontact?.CompanyLogo.indexOf('http') === 0) {
+      return <img src={activecontact?.CompanyLogo} className="max-h-16 w-auto bg-white p-2" />
+    }
+
+    if(activecontact?.CompanyLogo) {
+      return <Image
+        src={activecontact?.CompanyLogo !== null && activecontact?.CompanyLogo !== undefined
+          ? activecontact.CompanyLogo.startsWith('http') 
+            ? activecontact.CompanyLogo 
+            : activecontact.CompanyLogo.replace('[local]', '')
+          : "https://fms.veiligstallen.nl/resources/client/logo.png"}
+        alt="Logo"
+        width={64}
+        height={64}
+        className="max-h-16 w-auto bg-white p-2"
+      />
+    }
+
+    return <img src="https://fms.veiligstallen.nl/resources/client/logo.png" className="max-h-16 w-auto bg-white p-2" />
+  }
+
   return (
     <div
       className="
@@ -122,17 +149,7 @@ const TopBar: React.FC<TopBarProps> = ({
     "
     >
       <div style={{ flex: 1 }}>
-        <Image
-          src={selectedOrganisationInfo?.CompanyLogo !== null && selectedOrganisationInfo?.CompanyLogo !== undefined
-            ? selectedOrganisationInfo.CompanyLogo.startsWith('http') 
-              ? selectedOrganisationInfo.CompanyLogo 
-              : selectedOrganisationInfo.CompanyLogo.replace('[local]', '')
-            : "https://static.veiligstallen.nl/library/logo/images/logo.png"}
-          alt="Logo"
-          width={64}
-          height={64}
-          className="h-16 w-auto bg-white p-2"
-        />
+        {renderLogo()}
       </div>
       <div
         className="
