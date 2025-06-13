@@ -2,7 +2,9 @@ import { prisma } from "~/server/db";
 import { UserContactRoleParams, UserContactRoleStatus } from "~/backend/services/database-service";
 import { convertRoleToNewRole } from "~/utils/securitycontext";
 import { generateID } from "~/utils/server/database-tools";
-import { VSUserGroupValues, VSUserRoleValuesNew } from "~/types/users";
+import { VSUserGroupValues } from "~/types/users-coldfusion";
+import { VSUserRoleValuesNew } from "~/types/users";
+import { VSContactItemType } from "~/types/contacts";
 
 export const getUserContactRoleTableStatus = async (params: UserContactRoleParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'user_contact_role'`;
@@ -51,9 +53,9 @@ const userSelect = {
 
 const processInternUsers = async () => {
   // interne gebruikers: koppel aan fietsberaad met rol admin of none
-  const mainContactId= "1";
-  
-  const allUsers = await prisma.security_users.findMany({select: userSelect,where: {GroupID: {in: [VSUserGroupValues.Intern]}}});
+  const allUsers = await prisma.security_users.findMany({
+    select: userSelect,
+    where: {GroupID: {in: [VSUserGroupValues.Intern]}}});
   for(const user of allUsers) {
     const newRoleID = convertRoleToNewRole(user.RoleID, true);
 
@@ -63,10 +65,35 @@ const processInternUsers = async () => {
       data: {
         ID: generateID(),
         UserID: user.UserID,
-        ContactID: mainContactId,
+        ContactID: "1",
         NewRoleID: newRoleID.valueOf(),
+        isOwnOrganization: true,
       } 
     });
+
+    if(newRoleID === VSUserRoleValuesNew.RootAdmin) {
+      const allRelevantContacts = await prisma.contacts.findMany({
+        where: {
+          ID: { not: "1"},
+          ItemType: {in: [VSContactItemType.Organizations, VSContactItemType.Exploitant]},
+        },
+        select: {
+          ID: true,
+        },
+      });
+
+      for(const contact of allRelevantContacts) {
+        await prisma.user_contact_role.create({
+          data: {
+            ID: generateID(),
+            UserID: user.UserID,
+            ContactID: contact.ID,
+            NewRoleID: newRoleID.valueOf(),
+            isOwnOrganization: false,
+          } 
+        });
+      }
+    }
   }
 
   return true;
@@ -79,8 +106,7 @@ const processExternUsers = async () => {
     where: {GroupID: {in: [VSUserGroupValues.Extern]}},});
   for(const user of allUsers) {
     const relatedSites = user.security_users_sites;
-    const mainContactId = relatedSites[0]?.SiteID || undefined;
-    if(relatedSites.length != 1||!mainContactId) {
+    if(relatedSites.length !== 1||!relatedSites[0]?.SiteID) {
       console.error(`**** processExternUsers ERROR User ${user.DisplayName} has ${relatedSites.length} sites, expected 1`);
       continue;
     } else {
@@ -92,8 +118,9 @@ const processExternUsers = async () => {
         data: {
           ID: generateID(),
           UserID: user.UserID,
-          ContactID: mainContactId,
+          ContactID: relatedSites[0].SiteID,
           NewRoleID: newRoleID.valueOf(),
+          isOwnOrganization: true,
         } 
       });
     }
@@ -128,7 +155,6 @@ const processExploitantUsers = async () => {
     });
 
     if(mainContactId) {
-
       const newRoleID = convertRoleToNewRole(user.RoleID, true);
 
       console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - OWN ORGANIZATION - oldrole ${user.RoleID} -> newrole ${newRoleID.valueOf()}`);
@@ -139,10 +165,11 @@ const processExploitantUsers = async () => {
           UserID: user.UserID,
           ContactID: mainContactId,
           NewRoleID: newRoleID.valueOf(),
+          isOwnOrganization: true,
         } 
       });
     } else {
-      console.error(`**** updateUserContactRoleTable ERROR No main contact ID found for user ${user.UserID} /${user.GroupID}`);
+      console.error(`**** updateUserContactRoleTable ERROR No main contact ID found for user ${user.UserID}`);
       continue;
     }
 
@@ -186,6 +213,7 @@ const processExploitantUsers = async () => {
             UserID: user.UserID,
             ContactID: site.ID,
             NewRoleID: newRoleID.valueOf(),
+            isOwnOrganization: false,
           } 
         });
       } else {
@@ -227,6 +255,7 @@ export const createUserContactRoleTable = async (params: UserContactRoleParams) 
     UserID VARCHAR(36) NOT NULL,
     ContactID VARCHAR(36) NOT NULL,
     NewRoleID VARCHAR(16) DEFAULT 'none',
+    isOwnOrganization BOOLEAN DEFAULT TRUE,
     PRIMARY KEY (ID),
     UNIQUE KEY UserIDContactID (UserID, ContactID ),
     CHECK(NewRoleID IN ('rootadmin', 'admin', 'editor', 'viewer', 'none'))

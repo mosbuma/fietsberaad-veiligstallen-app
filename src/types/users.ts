@@ -1,27 +1,6 @@
-import type { security_users, security_users_sites, security_roles, user_contact_role } from "~/generated/prisma-client";
-import type { VSUserSecurityProfile } from "~/types/";
-
-export enum VSUserGroupValues {
-    Intern = "intern",
-    Extern = "extern",
-    Exploitant = "exploitant",
-    Beheerder = "beheerder",
-}
-
-export type VSUserRole = Pick<security_roles, "RoleID" | "Role" | "GroupID" | "Description">;
-
-export enum VSUserRoleValues {
-    Root = 1,
-    InternAdmin = 2,
-    InternEditor = 3,
-    ExternAdmin = 4,
-    ExternEditor = 5,
-    Exploitant = 6,
-    Beheerder = 7,
-    ExploitantDataAnalyst = 8,
-    InternDataAnalyst = 9,
-    ExternDataAnalyst = 10
-}
+import type { security_users, user_contact_role } from "~/generated/prisma-client";
+import type { VSUserSecurityProfile } from "~/types/securityprofile";
+import { initAllTopics } from "./utils";
 
 export enum VSUserRoleValuesNew {
     RootAdmin = "rootadmin",
@@ -31,93 +10,19 @@ export enum VSUserRoleValuesNew {
     Viewer = 'viewer',
 }
 
-export interface VSUserSitesNew {
-    SiteID: string;
-    IsContact: boolean;
-    IsOwnOrganization: boolean;
-    newRoleId: VSUserRoleValuesNew;
-}
-
-export type VSUserInLijstNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
-    sites: VSUserSitesNew[];
+export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "LastLogin" > & {
     securityProfile: VSUserSecurityProfile;
-}
-
-export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "SiteID" | "ParentID" | "LastLogin" > & {
-    sites: VSUserSitesNew[];
-    securityProfile: VSUserSecurityProfile;
+    isContact: boolean;
+    isOwnOrganization: boolean;
 }
 // "EncryptedPassword" | "EncryptedPassword2"
 
-export const securityUserSelectNew = {
-    UserID: true,
-    UserName: true,
-    DisplayName: true,
-    Status: true,
-    SiteID: true,
-    ParentID: true,
-    LastLogin: true,
-    // EncryptedPassword: true,
-    // EncryptedPassword2: true,
-}
-
-
-export type VSUserWithRoles = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "RoleID" | "Status" | "GroupID" | "SiteID" | "ParentID" | "LastLogin"> & 
-    {
-        security_roles: VSUserRole | null;
-        security_users_sites: Pick<security_users_sites, "UserID" | "SiteID" | "IsContact">[]
-        user_contact_roles: Pick<user_contact_role, "UserID" | "ContactID" | "NewRoleID">[]
-    }
-
-export const securityUserSelect = {
-    UserID: true,
-    UserName: true,
-    DisplayName: true,
-    RoleID: true,
-    Status: true,
-    GroupID: true,
-    SiteID: true,
-    ParentID: true,
-    LastLogin: true,
-    security_roles: {
-        select: {
-            RoleID: true,
-            Role: true,
-            Description: true,
-            GroupID: true
-        }
-    },
-    security_users_sites: {
-        select: {
-            UserID: true,
-            SiteID: true,
-            IsContact: true
-        }
-    },
-    user_contact_roles: {
-        select: {
-            UserID: true,
-            ContactID: true,
-            NewRoleID: true
-        }
-    }
-}
-
 export const getDefaultSecurityProfile = (): VSUserSecurityProfile => ({
-    mainContactId: "",
     roleId: VSUserRoleValuesNew.None,
-    groupId: VSUserGroupValues.Extern,
-    rights: {},
+    rights: initAllTopics({
+        create: false,
+        read: false,
+        update: false,
+        delete: false,
+      }),
 })
-
-export const getDefaultNewUser = (name: string, siteid: string | null): VSUserWithRolesNew => ({
-    UserID: 'new',
-    UserName: '',
-    DisplayName: name,
-    Status: "1",
-    SiteID: siteid,
-    sites: [],
-    ParentID: null,
-    LastLogin: null,
-    securityProfile: getDefaultSecurityProfile()
-  });

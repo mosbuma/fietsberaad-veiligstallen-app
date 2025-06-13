@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
-import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
+import { VSMenuTopic } from "~/types/index";
+import { VSUserSecurityProfile } from "~/types/securityprofile";
 import { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
+import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users-coldfusion";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 import { useGemeenten } from "~/hooks/useGemeenten";
 import { useUsersColdfusion } from "~/hooks/useUsersColdfusion";
@@ -59,7 +60,8 @@ export const getDubiousUserIDs = (users: VSUserWithRoles[]) => {
     return dubiousUserIDs;
 }
 
-const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {   
+const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {  
+    const { data: session } = useSession();
     const router = useRouter();
 
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
@@ -118,13 +120,13 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
     }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, filteredUsers]);
 
     useEffect(() => {
-        if(securityProfile) {
-            const mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
+        if(session?.user?.mainContactId) {
+            const mainContact = gemeenten.find((gemeente) => gemeente.ID === session.user.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === session.user.mainContactId);
             setActiveOrganization(mainContact || null);
         } else {
             setActiveOrganization(null);
         }
-    }, [securityProfile?.mainContactId]);
+    }, [session?.user?.mainContactId]);
 
     useEffect(() => {
         const currentUserID = router.query.userID;
@@ -952,6 +954,8 @@ async function fetchSecurityProfile(userId: string, activeContactId: string) {
             'Content-Type': 'application/json',
         }
     });
+
+    console.log("response", response);
 
     if (!response.ok) {
         throw new Error('Failed to fetch security profile');

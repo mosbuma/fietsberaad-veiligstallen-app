@@ -153,30 +153,8 @@ export default async function handle(
           return;
         }
 
-        // add a record to the security_users_sites table that links the new fietsenstalling to the user's sites
-        const newLink = await prisma.security_users_sites.create({
-          data: {
-            UserID: userId,
-            SiteID: newFietsenstalling.ID
-          }
-        });
-        if(!newLink) {
-          console.error("Error creating link to new fietsenstalling:", newFietsenstalling.ID);
-          res.status(500).json({error: "Error creating link to new fietsenstalling"});
-          return;
-        }
-
-        // Update security profile
-        const { session: updatedSession, error: profileError } = await updateSecurityProfile(session, userId);
-        if (profileError) {
-          console.error("Error updating security profile:", profileError);
-          res.status(500).json({error: profileError});
-          return;
-        }
-
         res.status(201).json({ 
-          data: [newFietsenstalling],
-          session: updatedSession
+          data: [newFietsenstalling]
         });
       } catch (e) {
         console.error("Error creating fietsenstalling:", e);

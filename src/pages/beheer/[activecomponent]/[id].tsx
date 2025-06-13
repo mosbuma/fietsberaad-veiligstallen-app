@@ -40,7 +40,6 @@ import ExploreArticlesComponent from '~/components/ExploreArticlesComponent';
 
 import { prisma } from '~/server/db';
 import type { security_roles, fietsenstallingtypen } from '@prisma/client';
-import { VSUserGroupValues, VSUserRoleValuesNew } from "~/types/users";
 import { VSMenuTopic } from "~/types/index";
 
 // import Styles from "~/pages/content.module.css";
@@ -276,16 +275,16 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Intern} siteID={null} />;
+          selectedComponent = <UsersComponent siteID={null} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Extern} siteID={selectedContactID}/>;
+          selectedComponent = <UsersComponent siteID={selectedContactID}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerExploitant:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Exploitant} siteID={selectedContactID}/>;
+          selectedComponent = <UsersComponent siteID={selectedContactID}/>;
           break;
         case VSMenuTopic.UsersGebruikersbeheerBeheerder:
-          selectedComponent = <UsersComponent groupid={VSUserGroupValues.Beheerder} siteID={selectedContactID} />;
+          selectedComponent = <UsersComponent siteID={selectedContactID} />;
           break;
         case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;

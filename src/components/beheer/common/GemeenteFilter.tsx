@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import CollapsibleContent from './CollapsibleContent';
-import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
-import type { VSUserWithRolesNew, VSUserInLijstNew } from "~/types/users";
+import type { VSContactGemeenteInLijst } from "~/types/contacts";
+import type { VSUserWithRolesNew } from "~/types/users";
 import { useDispatch, useSelector } from 'react-redux';
 import { SearchFilter } from '~/components/common/SearchFilter';
 
@@ -16,7 +16,7 @@ import {
 
 interface GemeenteFilterProps {
   gemeenten: VSContactGemeenteInLijst[];
-  users: VSUserInLijstNew[];
+  users: VSUserWithRolesNew[];
   onFilterChange: (filteredGemeenten: VSContactGemeenteInLijst[]) => void;
   showStallingenFilter?: boolean;
   showUsersFilter?: boolean;

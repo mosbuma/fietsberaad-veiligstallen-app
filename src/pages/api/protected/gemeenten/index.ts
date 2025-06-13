@@ -36,7 +36,7 @@ export default async function handle(
           ID: { in: sites }
         },
         select: compact ? gemeenteLijstSelect : gemeenteSelect
-      })) as VSContactGemeente[];
+      })) as unknown as VSContactGemeente[];
 
       if(compact) {
         const data: VSContactGemeenteInLijst[] = [];
@@ -44,27 +44,27 @@ export default async function handle(
         // Get all SiteIDs that have users in a single query
         const sitesWithUsers = await prisma.security_users.findMany({
           where: {
-            security_users_sites: {
+            user_contact_roles: {
               some: {
-                SiteID: {
+                ContactID: {
                   in: gemeenten.map(g => g.ID)
                 }
               }
             }
           },
           select: {
-            security_users_sites: {
+            user_contact_roles: {
               select: {
-                SiteID: true
+                ContactID: true
               }
             }
           }
         });
 
-        // Create a Set of SiteIDs for O(1) lookup
-        const siteIdsWithUsers = new Set(
+        // Create a Set of ContactIDs for O(1) lookup
+        const contactIdsWithUsers = new Set(
           sitesWithUsers.flatMap(user => 
-            user.security_users_sites.map(site => site.SiteID)
+            user.user_contact_roles.map(role => role.ContactID)
           )
         );
 
@@ -73,7 +73,7 @@ export default async function handle(
             (gemeente.fietsenstallingen_fietsenstallingen_SiteIDTocontacts?.
             filter((stalling) => stalling.Title !== 'Systeemstalling').length) || 0;
 
-          const hasUsers = siteIdsWithUsers.has(gemeente.ID);
+          const hasUsers = contactIdsWithUsers.has(gemeente.ID);
           const hasExploitanten = (gemeente.isManagedByContacts?.length || 0) > 0;
           
           data.push({

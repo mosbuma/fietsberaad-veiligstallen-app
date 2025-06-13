@@ -1,7 +1,7 @@
 import { VSUserRoleValuesNew } from "~/types/users";
-import { VSSecurityTopic, VSCRUDRight, VSUserSecurityProfile } from "~/types/index";
+import { VSSecurityTopic, VSCRUDRight, VSUserSecurityProfile } from "~/types/securityprofile";
 import { Session } from "next-auth";
-import { VSUserRoleValues } from "~/types/users";
+import { VSUserRoleValues } from "~/types/users-coldfusion";
 
 export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
     switch(roleId) {
@@ -124,7 +124,6 @@ export const logSecurityProfile = (profile: VSUserSecurityProfile | undefined, i
 
     console.log(`${indent}roleId: ${profile.roleId}`);
     console.log(`${indent}rights: ${activeRights.join(", ")}`);
-    console.log(`${indent}mainContactId: ${profile.mainContactId}`);
 }
   
 

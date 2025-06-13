@@ -8,6 +8,7 @@ import { DataprovidersResponse } from ".";
 import { DataproviderResponse } from "./[id]";
 import { TestError } from "~/types/test";
 import type { DataproviderValidateResponse } from "./validate";
+import { VSContactItemType } from "~/types/contacts";
 
 const createTestProviderPassword = () => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -162,7 +163,7 @@ async function testCreateDataprovider(req: NextApiRequest): Promise<TestResult> 
   try {
     const testRecord = {
       CompanyName: `Test Dataprovider ${Date.now()}`,
-      ItemType: "dataprovider",
+      ItemType: VSContactItemType.Dataprovider,
       UrlName: `test-dataprovider-${Date.now()}`,
       Password: createTestProviderPassword()
     };

@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { VSUserGroupValues, VSUserRoleValuesNew } from '~/types/users';
+import { VSUserRoleValuesNew } from '~/types/users';
 import { UserEditComponent } from './UserEditComponent';
 import { displayInOverlay } from '~/components/Overlay';
 import { ConfirmPopover } from '~/components/ConfirmPopover';
 import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
-import { useUsersInLijst } from '~/hooks/useUsers';
+import { useUsers } from '~/hooks/useUsers';
 import { getNewRoleLabel } from '~/types/utils';
 import { Table, Column } from '~/components/common/Table';
 import { SearchFilter } from '~/components/common/SearchFilter';
 
 type UserComponentProps = { 
-  groupid: VSUserGroupValues,
   siteID: string | null,
 };
 
@@ -24,7 +23,9 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [userFilter, setUserFilter] = useState<string | undefined>(undefined);
 
-  const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsersInLijst();
+  const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsers();
+
+  console.log("users", users);
 
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
@@ -74,23 +75,6 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     .sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
 
   let title = "Gebruikers";
-  // switch (groupid) {
-  //   case VSUserGroupValues.Intern:
-  //     title = "Interne Gebruikers";
-  //     break;
-  //   case VSUserGroupValues.Extern:
-  //     title = "Externe Gebruikers";
-  //     break;
-  //   case VSUserGroupValues.Exploitant:
-  //     title = "Exploitanten";
-  //     break;
-  //   case VSUserGroupValues.Beheerder:
-  //     title = "Beheerders";
-  //     break;
-  //   default:
-  //     title = "Overige Gebruikers";
-  //     break;
-  // }
 
   const handleUserEditClose = (userChanged: boolean, confirmClose: boolean) => {
     if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
@@ -112,6 +96,10 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     }
 
     const columns: Column<any>[] = [
+      // {
+      //   header: 'ID',
+      //   accessor: 'UserID',
+      // },
       {
         header: 'Naam',
         accessor: 'DisplayName',
@@ -126,6 +114,12 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
           const role = roles.find((r) => r.value === user.securityProfile?.roleId);
           return role?.label || '--';
         },
+      },
+      {
+        header: 'Type',
+        accessor: (user) => (
+          user.isOwnOrganization ? 'Intern' : 'Extern'
+        ),
       },
       {
         header: 'Status',
@@ -161,7 +155,6 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
         displayInOverlay(
           <UserEditComponent 
             id={id}      
-            groupid={props.groupid}
             siteID={props.siteID}
             onClose={handleUserEditClose} 
             />, false, "Gebruiker bewerken", () => setId(undefined))

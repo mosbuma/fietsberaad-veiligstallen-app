@@ -6,7 +6,7 @@ import type { TestResult, TestResponse } from "~/types/test";
 import { TestError, TestStatus } from "~/types/test";
 import { SecurityUsersResponse } from ".";
 import { SecurityUserResponse } from "./[id]";
-import { VSUserGroupValues, VSUserRoleValuesNew, VSUserWithRolesNew } from "~/types/users";
+import { VSUserRoleValuesNew, VSUserWithRolesNew } from "~/types/users";
 import { createTestContactGemeente } from "../test-tools";
 
 export default async function handle(
@@ -165,9 +165,7 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
       LastLogin: null,
       securityProfile: {
         roleId: VSUserRoleValuesNew.Admin,
-        groupId: VSUserGroupValues.Extern,
         rights: {},
-        mainContactId: testGemeente.ID,
       }
     };
 

@@ -10,7 +10,7 @@ import SectionBlockEdit from "~/components/SectionBlock";
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 
-import type { VSContactGemeente } from '~/types/contacts';
+import { type VSContactGemeente, VSContactItemType } from '~/types/contacts';
 import type { GemeenteValidateResponse } from '~/pages/api/protected/gemeenten/validate';
 
 // import ContactUsers from './ContactUsers';
@@ -19,7 +19,8 @@ import { useGemeente } from '~/hooks/useGemeente';
 import { useUsers } from '~/hooks/useUsers';
 import { getDefaultNewGemeente } from '~/types/database';
 import { makeClientApiCall } from '~/utils/client/api-tools';
-import { GemeenteResponse } from '~/pages/api/protected/gemeenten/[id]';
+import { GemeenteResponse } from '~/pages/api/protected/gemeenten/[id].not/index';
+import { VSUsersForContactResponse, VSUsersForContact } from '~/pages/api/protected/gemeenten/[id]/contactpersons';
 
 type GemeenteEditProps = {
     id: string;
@@ -38,7 +39,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
     const [isEditing, setIsEditing] = useState(!!props.onClose);
 
     const { gemeente: activecontact, isLoading: isLoading, error: error, reloadGemeente: reloadGemeente } = useGemeente(props.id);
-    const { users } = useUsers();
+    const { users: contactpersons } = useUsers(props.id);
 
     type CurrentState = {
       CompanyName: string|null,
@@ -58,6 +59,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
   
     const isNew = props.id === "new";
 
+    // const [contactpersons, setContactPersons] = useState<VSUsersForContact[]>([]);
     const [CompanyName, setCompanyName] = useState<string|null>(null);
     const [AlternativeCompanyName, setAlternativeCompanyName] = useState<string|null>(null);
     const [UrlName, setUrlName] = useState<string|null>(null);
@@ -91,9 +93,19 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
       Notes: null,
       DateRegistration: null,
     });
+
+    // useEffect(() => {
+    //   const fetchUsers = async () => {
+    //     const response = await fetch(`/api/protected/gemeenten/${props.id}/contactpersons`);
+    //     const responsejson = await response.json() as unknown as VSUsersForContactResponse;
+    //     const contactpersons = responsejson.data.filter(user => ["rootadmin", "admin", "editor"].includes(user.NewRoleID));
+    //     setContactPersons(contactpersons); 
+    //   }
+
+    //   fetchUsers();
+    // }, [props.id]);
   
     useEffect(() => {
-  
         if (isNew) {
             // Use default values for new record
             const initial: CurrentState = {
@@ -197,7 +209,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         try {
           const data: Partial<VSContactGemeente> = {
             ID:id,
-            ItemType: "organizations",
+            ItemType: VSContactItemType.Organizations,
             CompanyName: CompanyName || '',
             AlternativeCompanyName: AlternativeCompanyName || '',
             UrlName: UrlName || '',
@@ -383,16 +395,6 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
         );
     };
 
-    const userlist: { label: string, value: string | undefined }[] = [
-        { label: "Geen", value: undefined },
-        ...users
-          .filter(user => user.sites.some((site) => site.SiteID === activecontact?.ID))
-          .map(user => ({ 
-              label: (user.DisplayName || "") + " (" + (user.UserName || "") + ")", 
-              value: user.UserID || "" 
-          }))
-    ];
-
     return (
       <div style={{ minHeight: "65vh" }}>
       <div
@@ -423,13 +425,16 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
                     disabled={!isEditing}
                   />
                   <br />
-                  { users.length > 0 ?
+                  { contactpersons.length > 0 ?
                       <FormSelect 
                         label="Contactpersoon"
                         value={contactID || ''} 
                         onChange={(e) => setContactID(e.target.value || null)} 
                         required
-                        options={userlist}
+                        options={
+                          contactpersons
+                            .filter(user => user.DisplayName !== null && user.DisplayName !== "")
+                            .map(user => ({ label: user.DisplayName || "", value: user.UserID }))}
                         disabled={!isEditing}
                       /> 
                       : 

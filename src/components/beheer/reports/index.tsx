@@ -4,20 +4,13 @@ import { ReportData } from "~/backend/services/reports/ReportFunctions";
 import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 import { getStartEndDT } from "./ReportsDateFunctions";
 import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
-import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
 import moment from 'moment';
 
-import type { VSUserSecurityProfile } from "~/types/";
+import type { VSUserSecurityProfile } from "~/types/securityprofile";
 import type { VSContactGemeente } from "~/types/contacts";
-import type { VSUserWithRoles } from "~/types/users";
 
 import Chart from './Chart';
-import { AppState } from "~/store/store";
-import { useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
-import { prisma } from "~/server/db";
-import BikeparkDataSourceSelect, { BikeparkWithDataSource } from './BikeparkDataSourceSelect';
-import { getXAxisTitle } from "~/backend/services/reports/ReportAxisFunctions";
 
 interface ReportComponentProps {
   showAbonnementenRapporten: boolean;
@@ -26,8 +19,6 @@ interface ReportComponentProps {
   bikeparks: ReportBikepark[];
   error?: string;
   warning?: string;
-  // gemeenten: VSContactGemeenteInLijst[];
-  // users: VSUserWithRolesNew[];
 }
 
 const ReportComponent: React.FC<ReportComponentProps> = ({
@@ -37,8 +28,6 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
   bikeparks,
   error,
   warning,
-  // gemeenten,
-  // users,
 }) => {
   const { data: session } = useSession()
 

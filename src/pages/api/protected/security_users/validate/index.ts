@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
 import { z } from "zod";
-import { type VSUserWithRolesNew, securityUserSelectNew } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession } from "~/utils/server/database-tools";
 import { securityuserSchema } from "~/types/database";
 import { securityUserCreateSchema, securityUserUpdateSchema } from "../[id]/index";
+import { getSecurityUserNew } from "~/utils/server/security-users-tools";
 
 export type SecurityUserValidateResponse = {
   valid: boolean;
@@ -79,12 +79,7 @@ export default async function handle(
         {field: "UserName" as const, message: "Er bestaat al een gebruiker met deze email"},
       ];
 
-      const oldValues = !isNew ? await prisma.security_users.findUnique({
-        where: {
-          UserID: data.UserID,
-        },
-          select: securityUserSelectNew
-      }) : undefined;
+      const oldValues = !isNew ? await getSecurityUserNew(data.UserID, validateUserSessionResult.activeContactId) : undefined;
 
       for(const field of uniqueFields) {
         const isChanged = oldValues && (oldValues[field.field] !== data[field.field]);

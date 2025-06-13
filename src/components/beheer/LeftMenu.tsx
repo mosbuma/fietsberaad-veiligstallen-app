@@ -2,7 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { VSSecurityTopic, VSMenuTopic, VSUserSecurityProfile } from '~/types/index';
+import { VSSecurityTopic, VSUserSecurityProfile } from '~/types/securityprofile';
+import { VSMenuTopic } from '~/types/';
 import { VSUserRoleValuesNew } from '~/types/users';
 
 import { userHasRight, userHasRole } from '~/types/utils';

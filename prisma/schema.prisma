@@ -1815,6 +1815,8 @@ model user_contact_role {
   UserID String @db.VarChar(36)
   ContactID String @db.VarChar(36) @unique
   NewRoleID String @db.VarChar(16) @default("none") 
+  isOwnOrganization Boolean @default(true)
+
   security_user security_users @relation(fields: [UserID], references: [UserID]) 
 
   @@unique([UserID, ContactID], map: "UserID_ContactID") 

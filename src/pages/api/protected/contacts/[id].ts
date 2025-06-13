@@ -5,7 +5,7 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession, updateSecurityProfile } from "~/utils/server/database-tools";
 import { contactSchema, contactCreateSchema, getDefaultNewContact } from "~/types/database";
-import { type VSContact, contactSelect } from "~/types/contacts";
+import { type VSContact, VSContactItemType, contactSelect } from "~/types/contacts";
 
 export type ContactResponse = {
   data?: VSContact;
@@ -51,7 +51,7 @@ export default async function handle(
       const contact = (await prisma.contacts.findFirst({
         where: {
           ID: id,
-          ItemType: "organizations",
+          ItemType: VSContactItemType.Organizations,
         },
         select: contactSelect
       })) as unknown as VSContact;
@@ -74,7 +74,7 @@ export default async function handle(
         const newData = {
           ID: newID,
           // Required fields
-          ItemType: "organizations",
+          ItemType: VSContactItemType.Organizations,
           FirstName: parsed.FirstName,
           LastName: parsed.LastName,
           Status: "1", // Default status

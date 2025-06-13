@@ -1,14 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserGroupValues, VSUserRoleValues, VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, securityUserSelect } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRolesNew } from "~/types/users";
+import { VSUserGroupValues, VSUserRoleValues, type VSUserWithRoles, securityUserSelect } from "~/types/users-coldfusion";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
-import { convertToNewUser } from "~/pages/api/protected/security_users/index";
 import bcrypt from "bcryptjs";
 import { convertNewRoleToOldRole } from "~/utils/securitycontext";
 import { security_users } from "@prisma/client";
+import { getSecurityUserNew } from "~/utils/server/security-users-tools";
+import { createSecurityProfile } from "~/utils/server/securitycontext";
 // TODO: implement filtering on accessible security_users
 
 export type SecurityUserResponse = {
@@ -56,14 +58,8 @@ export default async function handle(
 
   switch (req.method) {
     case "GET": {
-      const user = await prisma.security_users.findFirst({
-        where: {
-          UserID: id,
-        },
-        select: securityUserSelect
-      }) as VSUserWithRoles;
-      const newUser = await convertToNewUser(user, activeContactId);
-      res.status(200).json({data: newUser || undefined});
+      const user = await getSecurityUserNew(id, activeContactId)
+      res.status(200).json({data: user || undefined});
       break;
     }
     case "POST": {
@@ -132,9 +128,34 @@ export default async function handle(
           select: securityUserSelect
         }) as VSUserWithRoles;
 
-        const newUser = await convertToNewUser(createdUser, activeContactId);
+        // add role to the user_contact_role table
+        await prisma.user_contact_role.upsert({
+          where: { UserID: id, ContactID: activeContactId },
+          update: { 
+            NewRoleID: parsed.RoleID,
+          },
+          create: { 
+            UserID: id, 
+            ContactID: activeContactId,
+            NewRoleID: parsed.RoleID,
+          },
+        });
 
-        res.status(201).json({ data: newUser || undefined });
+        const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
+        console.log("theRoleInfo - create", theRoleInfo);
+
+        const newUserData: VSUserWithRolesNew = {
+          UserID: createdUser.UserID, 
+          UserName: createdUser.UserName, 
+          DisplayName: createdUser.DisplayName, 
+          Status: createdUser.Status, 
+          LastLogin: createdUser.LastLogin, 
+          securityProfile: createSecurityProfile(theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None),
+          isContact: createdUser.security_users_sites.find((site) => site.SiteID === activeContactId)?.IsContact || false,
+          isOwnOrganization: theRoleInfo?.isOwnOrganization || false,
+        }        
+
+        res.status(201).json({ data: newUserData || undefined });
       } catch (e) {
         console.error("Error creating security user:", e);
         res.status(500).json({error: "Error creating security user"});
@@ -164,6 +185,18 @@ export default async function handle(
         }
 
         if(parsed.RoleID) {
+          await prisma.user_contact_role.upsert({
+            where: { UserID: id, ContactID: activeContactId },
+            update: { 
+              NewRoleID: parsed.RoleID,
+            },
+            create: { 
+              UserID: id, 
+              ContactID: activeContactId,
+              NewRoleID: parsed.RoleID,
+            },
+          });
+
           updateData.RoleID = convertNewRoleToOldRole(parsed.RoleID) || undefined;
         }
 
@@ -172,8 +205,23 @@ export default async function handle(
           data: updateData,
           select: securityUserSelect
         }) as VSUserWithRoles;
-        const newUser = await convertToNewUser(updatedUser, activeContactId);
-        res.status(200).json({data: newUser || undefined});
+        // const newUser = await convertToNewUser(updatedUser, activeContactId);
+
+        const theRoleInfo = updatedUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
+        console.log("theRoleInfo - update", theRoleInfo);
+
+        const newUserData: VSUserWithRolesNew = {
+          UserID: updatedUser.UserID, 
+          UserName: updatedUser.UserName, 
+          DisplayName: updatedUser.DisplayName, 
+          Status: updatedUser.Status, 
+          LastLogin: updatedUser.LastLogin, 
+          securityProfile: createSecurityProfile(theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None),
+          isContact: updatedUser.security_users_sites.find((site) => site.SiteID === activeContactId)?.IsContact || false,
+          isOwnOrganization: theRoleInfo?.isOwnOrganization || false,
+        }        
+
+        res.status(200).json({data: newUserData || undefined});
       } catch (e) {
         console.error("Error updating security user:", e);
         res.status(500).json({error: "Error updating security user"});
