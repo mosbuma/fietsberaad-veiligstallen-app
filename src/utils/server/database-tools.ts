@@ -1,4 +1,4 @@
-import { Prisma } from "~/generated/prisma-client";
+import { type Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
 import type { NextApiRequest } from "next";
 import { VSContactItemType } from "~/types/contacts";
@@ -34,7 +34,7 @@ export function generateID() {
 }
 
 // Helper function to validate user session and get their sites
-export async function validateUserSession(session: any, itemType: string = "organizations"): Promise<ValidationError | ValidationSuccess> {
+export async function validateUserSession(session: any, itemType = "organizations"): Promise<ValidationError | ValidationSuccess> {
   if (!session?.user) {
     return { error: "Unauthorized", status: 401 };
   }

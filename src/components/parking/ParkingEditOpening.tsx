@@ -201,10 +201,10 @@ const ParkingEditOpening = ({ parkingdata, openingChanged }: { parkingdata: Park
     // determine new time
 
     // let oldtime: Date = new Date((key in currentValues) ? currentValues[key]: startValues[key]);
-    let oldtime = moment.utc((key in changes) ? changes[key] : startValues[key]);
+    const oldtime = moment.utc((key in changes) ? changes[key] : startValues[key]);
     let newtime = undefined;
 
-    const newval: number = Number(e.target.value);
+    const newval = Number(e.target.value);
     if (isHoursField) {
       if (newval < 0 || newval > 23) {
         return; // invalid value

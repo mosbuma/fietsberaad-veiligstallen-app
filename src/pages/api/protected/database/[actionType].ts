@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import DatabaseService, { CacheParams, UserContactRoleParams, UserStatusParams } from "~/backend/services/database-service";
+import DatabaseService, { type CacheParams, type UserContactRoleParams, type UserStatusParams } from "~/backend/services/database-service";
 import ReportService from "~/backend/services/reports-service";
 import { type ReportType, reportTypeValues } from "~/components/beheer/reports/ReportsFilter";
 import { z } from "zod";

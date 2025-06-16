@@ -2,41 +2,66 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Card, { CardData } from "./Card";
+import Card from "./Card";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
+import { type AppState } from "~/store/store";
+import type { ParkingDetailsType } from "~/types/parking";
 
 import {
   setSelectedParkingId
 } from "~/store/mapSlice";
 
-import { findParkingIndex } from "~/utils/parkings";
-
 interface Props {
-  fietsenstallingen: any;
-  cardsPerSlide?: number;
+  fietsenstallingen: ParkingDetailsType[];
   onShowStallingDetails?: (id: string) => void;
 }
 
+interface MapFeature {
+  id: string;
+}
+
+const sliderProps = {
+  slides: {
+    perView: typeof window !== 'undefined' ? (window.innerWidth / 315) : 1.3,
+    spacing: 15,
+  },
+  // dragStarted: () => {
+    
+  // },
+  // dragEnded: () => {
+    
+  // },
+  // animationEnded: () => {
+    
+  // },
+  // slideChanged: () => {
+  //   // We don't use this below, as we navigate to the Parking on first tap
+  //   // const index: number = event.track.details.abs;
+  //   // slideChangedHandler(index)
+  // }
+}
+
+
 const CardList: React.FC<Props> = ({
   fietsenstallingen,
-  cardsPerSlide = 3,
   onShowStallingDetails
 }: Props) => {
   const dispatch = useDispatch();
 
-  const [visibleParkings, setVisibleParkings] = useState(fietsenstallingen);
-  const [isCardListVisible, setIsCardListVisible] = useState(true);
+  const [visibleParkings, setVisibleParkings] = useState<ParkingDetailsType[]>(fietsenstallingen);
 
   const mapVisibleFeatures = useSelector(
-    (state: AppState) => state.map.visibleFeatures
+    (state: AppState) => (state.map ).visibleFeatures as MapFeature[]
   );
 
   const selectedParkingId = useSelector(
-    (state: AppState) => state.map.selectedParkingId
+    (state: AppState) => (state.map ).selectedParkingId
   );
 
-  const mapExtent = useSelector((state: AppState) => state.map.extent);
+  const mapExtent = useSelector((state: AppState) => (state.map ).extent);
+
+  const [sliderRef, slider] = useKeenSlider<HTMLDivElement>(sliderProps);
 
   // If mapVisibleFeatures change: Filter parkings
   useEffect(() => {
@@ -51,6 +76,7 @@ const CardList: React.FC<Props> = ({
     setVisibleParkings(filtered);
   }, [
     fietsenstallingen,
+    mapVisibleFeatures,
     mapVisibleFeatures.length
   ])
 
@@ -77,7 +103,7 @@ const CardList: React.FC<Props> = ({
     }, 50)
   }, [
     mapExtent,
-    visibleParkings
+    visibleParkings,
   ])
 
   // Scroll to selected parking if selected parking changes
@@ -95,26 +121,6 @@ const CardList: React.FC<Props> = ({
   //   }
   // }, [selectedParkingId]);
 
-  const sliderProps = {
-    slides: {
-      perView: typeof window !== 'undefined' ? (window.innerWidth / 315) : 1.3,// slides are 315px in width
-      spacing: 15,
-    },
-    dragStarted(event) {
-    },
-    dragEnded(event) {
-    },
-    animationEnded(event) {
-    },
-    slideChanged(event) {
-      // We don't use this below, as we navigate to the Parking on first tap
-      // const index: number = event.track.details.abs;
-      // slideChangedHandler(index)
-    }
-  }
-
-  const [sliderRef, slider] = useKeenSlider<HTMLDivElement>(sliderProps);
-
   const expandParking = (id: string) => {
     // Set active parking ID
     dispatch(setSelectedParkingId(id));
@@ -130,11 +136,13 @@ const CardList: React.FC<Props> = ({
     onShowStallingDetails && onShowStallingDetails(id);
   };
 
-  const slideChangedHandler = (index: number) => {
-    // Find related parking
-    const foundParking = fietsenstallingen[index];
-    dispatch(setSelectedParkingId(foundParking.ID));
-  }
+  // const slideChangedHandler = (index: number) => {
+  //   // Find related parking
+  //   const foundParking = fietsenstallingen[index];
+  //   dispatch(setSelectedParkingId(foundParking.ID));
+  // }
+
+  const isCardListVisible = true;
 
   return (
     <div className={`
@@ -143,10 +151,10 @@ const CardList: React.FC<Props> = ({
       ${isCardListVisible ? 'opacity-100' : 'opacity-0'}
     `}>
       <div ref={sliderRef} className={`card-list__slides keen-slider px-5`}>
-        {visibleParkings.map((parking, index) => {
+        {visibleParkings.map((parking) => {
           return (
             <Card
-              key={"c-" + parking.ID}
+              key={`c-${parking.ID}`}
               parking={parking}
               compact={true}
               showButtons={selectedParkingId === parking.ID}

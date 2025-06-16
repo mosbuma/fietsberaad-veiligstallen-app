@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import BikeparkSelect from './BikeparkSelect';
 import { getMaanden, getWeekNumber, getQuarter } from "./ReportsDateFunctions";
 import { createHash } from 'crypto';
-import BikeparkDataSourceSelect, { BikeparkWithDataSource } from "./BikeparkDataSourceSelect";
+import BikeparkDataSourceSelect, { type BikeparkWithDataSource } from "./BikeparkDataSourceSelect";
 
 export type ReportType = "transacties_voltooid" | "inkomsten" | "abonnementen" | "abonnementen_lopend" | "bezetting" | "stallingsduur" | "volmeldingen" | "gelijktijdig_vol" | "downloads"
 export const reportTypeValues: [string, ...string[]] = ["transacties_voltooid", "inkomsten", "abonnementen", "abonnementen_lopend", "bezetting", "stallingsduur", "volmeldingen", "gelijktijdig_vol", "downloads"]
@@ -293,7 +293,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     return true;
   }
 
-  const renderWeekSelect = (showLastPeriod: boolean = true) => {
+  const renderWeekSelect = (showLastPeriod = true) => {
     return (
       <div className="mt-2 w-56 flex flex-col">
         <select
@@ -326,7 +326,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
-  const renderMonthSelect = (showLastPeriod: boolean = true) => {
+  const renderMonthSelect = (showLastPeriod = true) => {
     return (
       <div className="mt-2 w-56 flex flex-col">
         <select
@@ -345,7 +345,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
-  const renderQuarterSelect = (showLastPeriod: boolean = true) => {
+  const renderQuarterSelect = (showLastPeriod = true) => {
     return (
       <div className="mt-2 w-56 flex flex-col">
         <select
@@ -375,7 +375,7 @@ const ReportsFilterComponent: React.FC<ReportsFilterComponentProps> = ({
     )
   }
 
-  const renderYearSelect = (showLastPeriod: boolean = true) => {
+  const renderYearSelect = (showLastPeriod = true) => {
     return <div className="mt-2 w-56 flex flex-col">
       <select
         value={reportRangeYear}

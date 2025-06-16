@@ -15,7 +15,7 @@ import { makeClientApiCall } from '~/utils/client/api-tools';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
-import { ExploitantGemeenteResponse } from '~/pages/api/protected/exploitant/[id]/gemeenten/[gemeenteid]';
+import { type ExploitantGemeenteResponse } from '~/pages/api/protected/exploitant/[id]/gemeenten/[gemeenteid]';
 
 type ExploitantComponentProps = { 
   contactID: string | undefined;
@@ -268,7 +268,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     );
   };
 
-  const renderEdit = (isSm: boolean = false) => {
+  const renderEdit = (isSm = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
     const showExploitantEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
@@ -277,7 +277,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
       return null;
     }
 
-    const handleOnClose = async (verbose: boolean = false) => {
+    const handleOnClose = async (verbose = false) => {
       if (verbose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }

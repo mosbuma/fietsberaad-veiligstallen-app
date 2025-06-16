@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BikeparkSelect from '../reports/BikeparkSelect'; // Adjust the import path if necessary
-import { ReportBikepark } from '../reports/ReportsFilter'; // Adjust the import path if necessary
-import { CacheParams, CacheStatus, CacheActions, CacheResult } from "~/backend/services/database-service";
+import { type ReportBikepark } from '../reports/ReportsFilter'; // Adjust the import path if necessary
+import { type CacheParams, type CacheStatus, type CacheActions, type CacheResult } from "~/backend/services/database-service";
 import moment from 'moment';
 
 interface CacheTableComponentProps {
@@ -102,7 +102,7 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
             throw new Error(`Error: ${response}`);
           }
           
-          let result = await response.json() as CacheResult;
+          const result = await response.json() as CacheResult;
           if(result.success && result.status) {
             setCacheStatus(result.status);
             setErrorState("");
@@ -150,7 +150,7 @@ const CacheTableComponent: React.FC<CacheTableComponentProps> = ({ title, cacheE
             throw new Error(`Error: ${response}`);
           }
           
-          let result = await response.json() as CacheResult;
+          const result = await response.json() as CacheResult;
           if(result.success) {
             setIndicesExist(!indicesExist);
             setErrorState("");

@@ -9,8 +9,6 @@ import SectionBlock from "~/components/SectionBlock";
 import SectionBlockEdit from "~/components/SectionBlockEdit";
 import type { ParkingDetailsType, ParkingSections } from "~/types/parking";
 import {
-  getAllServices,
-  generateRandomId,
   getDefaultLocation,
 } from "~/utils/parkings";
 import {
@@ -21,12 +19,9 @@ import { Tabs, Tab, FormHelperText, Typography } from "@mui/material";
 
 /* Use nicely formatted items for items that can not be changed yet */
 import ParkingViewTarief from "~/components/parking/ParkingViewTarief";
-import type { ServiceType } from "~/components/parking/ParkingViewServices";
 
 import ParkingViewAbonnementen from "~/components/parking/ParkingViewAbonnementen";
-import ParkingEditCapaciteit, {
-  type CapaciteitType,
-} from "~/components/parking/ParkingEditCapaciteit";
+import ParkingEditCapaciteit from "~/components/parking/ParkingEditCapaciteit";
 import ParkingEditLocation from "~/components/parking/ParkingEditLocation";
 import ParkingEditAfbeelding from "~/components/parking/ParkingEditAfbeelding";
 import ParkingEditOpening, {
@@ -39,8 +34,9 @@ import {
   type MunicipalityType,
   getMunicipalityBasedOnLatLng,
 } from "~/utils/map/active_municipality";
-import { geocodeAddress, reverseGeocode, ReverseGeocodeResult } from "~/utils/nomatim";
+import { geocodeAddress, reverseGeocode, type ReverseGeocodeResult } from "~/utils/nomatim";
 import toast from "react-hot-toast";
+import { type VSservice } from "~/types/services";
 
 type connectFietsenstallingType = {
   connect: {
@@ -139,7 +135,7 @@ const ParkingEdit = ({
 
   // type FietsenstallingSectiesType = { [key: string]: Array[] }
 
-  const [allServices, setAllServices] = React.useState<ServiceType[]>([]);
+  const [allServices, setAllServices] = React.useState<VSservice[]>([]);
   const [newServices, setNewServices] = React.useState<ChangedType[]>([]);
 
   const [newCapaciteit, setNewCapaciteit] = React.useState<ParkingSections>([]); // capaciteitschema
@@ -164,24 +160,35 @@ const ParkingEdit = ({
 
   // Set 'allServices' variable in local state
   React.useEffect(() => {
-    (async () => {
-      const result = await getAllServices();
-      setAllServices(result);
-    })();
+    const updateServices = async () => {
+      const response = await fetch(`/api/protected/services`);
+      const json = await response.json() as VSservice[];
+      if (!json) return [];
+
+      setAllServices(json);
+    }
+
+    updateServices().catch(err => {
+      console.error("get all services error", err);
+    });
   }, []);
 
   React.useEffect(() => {
-    (async () => {
+    const updateStallingTypes = async () => {
       try {
-        const response = await fetch(`/api/fietsenstallingtypen/`);
-        const json = await response.json();
+        const response = await fetch(`/api/protected/fietsenstallingtypen`);
+        const json = await response.json() as StallingType[];
         if (!json) return;
 
         setAllTypes(json);
       } catch (err) {
         console.error("get all types error", err);
       }
-    })();
+    }
+
+    updateStallingTypes().catch(err => {
+      console.error("get all types error", err);
+    });
   }, []);
 
   React.useEffect(() => {
@@ -260,7 +267,7 @@ const ParkingEdit = ({
       }
     };
 
-    let checks: checkInfo[] = [
+    const checks: checkInfo[] = [
       {
         type: "string",
         text: "invoer van de titel",
@@ -336,7 +343,7 @@ const ParkingEdit = ({
   };
 
   const getUpdate = () => {
-    let update: ParkingEditUpdateStructure = {};
+    const update: ParkingEditUpdateStructure = {};
 
     update.ID = parkingdata.ID;
 
@@ -474,7 +481,7 @@ const ParkingEdit = ({
       if (null !== sectionToSave) {
         sectionId = sectionToSave.sectieId;
       } else {
-        let result = await fetch("/api/fietsenstalling_sectie/getNewSectieId");
+        const result = await fetch("/api/fietsenstalling_sectie/getNewSectieId");
         sectionId = (await result.json()).sectieId;
       }
 
@@ -514,7 +521,7 @@ const ParkingEdit = ({
   };
 
   const handleRemoveParking = async (
-    message: string = "",
+    message = "",
   ): Promise<boolean> => {
     try {
       if (parkingdata.Status !== "aanm" && parkingdata.Status !== "new") {
@@ -676,7 +683,7 @@ const ParkingEdit = ({
     }
   };
 
-  const renderTabAlgemeen = (visible: boolean = false) => {
+  const renderTabAlgemeen = (visible = false) => {
     const serviceIsActive = (ID: string): boolean => {
       const change = newServices.find(s => s.ID === ID);
       if (change !== undefined) {
@@ -717,7 +724,7 @@ const ParkingEdit = ({
     };
 
     const handleAddressLookup = async () => {
-      let latlng = await geocodeAddress(
+      const latlng = await geocodeAddress(
         newLocation !== undefined ? newLocation : parkingdata.Location,
         newPostcode !== undefined ? newPostcode : parkingdata.Postcode,
         newPlaats !== undefined ? newPlaats : parkingdata.Plaats,
@@ -739,7 +746,7 @@ const ParkingEdit = ({
       } 
 
       if (address && address.address) {
-        let location = (
+        const location = (
           (address.address.road || "---") +
           " " +
           (address.address.house_number || "")
@@ -971,7 +978,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabAfbeelding = (visible: boolean = false) => {
+  const renderTabAfbeelding = (visible = false) => {
     return (
       <div
         className="- mt-10 flex h-full w-full justify-between"
@@ -985,7 +992,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabOpeningstijden = (visible: boolean = false) => {
+  const renderTabOpeningstijden = (visible = false) => {
     const handlerSetNewOpening = (
       tijden: OpeningChangedType,
       Openingstijden: string,
@@ -1008,7 +1015,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabTarieven = (visible: boolean = false) => {
+  const renderTabTarieven = (visible = false) => {
     return (
       <div
         className="mt-10 flex w-full justify-between"
@@ -1038,7 +1045,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabCapaciteit = (visible: boolean = false) => {
+  const renderTabCapaciteit = (visible = false) => {
     const handlerSetNewCapaciteit = (capaciteit: ParkingSections): void => {
       setNewCapaciteit([...capaciteit]);
       return;
@@ -1060,7 +1067,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabAbonnementen = (visible: boolean = false) => {
+  const renderTabAbonnementen = (visible = false) => {
     return (
       <div
         className="mt-10 flex w-full justify-between"
@@ -1085,7 +1092,7 @@ const ParkingEdit = ({
     );
   };
 
-  const renderTabBeheerder = (visible: boolean = false) => {
+  const renderTabBeheerder = (visible = false) => {
     // TODO: uitzoeken & implementeren FMS / ExploitantID logica
     if (
       parkingdata.FMS === true ||

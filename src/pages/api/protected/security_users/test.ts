@@ -4,9 +4,9 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import type { TestResult, TestResponse } from "~/types/test";
 import { TestError, TestStatus } from "~/types/test";
-import { SecurityUsersResponse } from ".";
-import { SecurityUserResponse } from "./[id]";
-import { VSUserRoleValuesNew, VSUserWithRolesNew } from "~/types/users";
+import { type SecurityUsersResponse } from ".";
+import { type SecurityUserResponse } from "./[id]";
+import { VSUserRoleValuesNew, type VSUserWithRolesNew } from "~/types/users";
 import { createTestContactGemeente } from "../test-tools";
 
 export default async function handle(

@@ -27,7 +27,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setMunicipalities } from "~/store/geoSlice";
 import type { AppState } from "~/store/store";
 import ReportComponent from "../beheer/reports";
-import { ReportBikepark } from "../beheer/reports/ReportsFilter";
+import { type ReportBikepark } from "../beheer/reports/ReportsFilter";
 
 const ParkingView = ({
   parkingdata,
@@ -136,7 +136,7 @@ const ParkingView = ({
       status = "Aanmelding";
       break
     default:
-      ;
+      
   }
 
   const buttonOpwaarderen = <Button

@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ReportGrouping } from "~/components/beheer/reports/ReportsFilter";
+import { type ReportGrouping } from "~/components/beheer/reports/ReportsFilter";
 // import { debugLog } from "~/backend/services/reports/ReportFunctions";
 
 export type XAxisLabelMap = Record<string, string>;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { z } from 'zod';
+import { type z } from 'zod';
 import { VSUserRoleValuesNew } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
@@ -11,7 +11,7 @@ import { useUser } from '~/hooks/useUser';
 import { makeClientApiCall } from '~/utils/client/api-tools';
 
 import type { SecurityUserValidateResponse } from '~/pages/api/protected/security_users/validate';
-import { securityUserCreateSchema, SecurityUserResponse, securityUserUpdateSchema } from '~/pages/api/protected/security_users/[id]';
+import { type securityUserCreateSchema, type SecurityUserResponse, type securityUserUpdateSchema } from '~/pages/api/protected/security_users/[id]';
 export interface UserEditComponentProps {
     id: string,
     siteID: string | null,

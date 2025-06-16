@@ -35,7 +35,7 @@ export const exploitantSchema = z.object({
 // use partial to allow optional fields
 export const exploitantCreateSchema = exploitantSchema.omit({ ID: true });
 
-export const getDefaultNewExploitant = (naam: string = "Nieuwe exploitant"): VSContactExploitant => { 
+export const getDefaultNewExploitant = (naam = "Nieuwe exploitant"): VSContactExploitant => { 
   return {
     ID: 'new',
     CompanyName: naam,
@@ -122,7 +122,7 @@ export const gemeenteSchema = z.object({
 
 export const gemeenteCreateSchema = gemeenteSchema.omit({ ID: true });
 
-export const getDefaultNewGemeente = (naam: string = "Nieuwe gemeente")=> { 
+export const getDefaultNewGemeente = (naam = "Nieuwe gemeente")=> { 
   return {
     ID: 'new',
     CompanyName: naam,
@@ -257,7 +257,7 @@ export const contactSchema = z.object({
 
 export const contactCreateSchema = contactSchema.omit({ ID: true });
 
-export const getDefaultNewContact = (naam: string = "Nieuw contact") => {
+export const getDefaultNewContact = (naam = "Nieuw contact") => {
   const [firstName, ...lastNameParts] = naam.split(' ');
   const lastName = lastNameParts.join(' ');
   

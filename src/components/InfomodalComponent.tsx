@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 import Modal from "src/components/Modal";
 import WelcomeToMunicipality from "./WelcomeToMunicipality";
 import { useSelector } from "react-redux";
@@ -27,7 +27,7 @@ export default function InfomodalComponent({ }) {
           // Save the fact that user did see welcome modal
           const VS__didSeeWelcomeModalString: string =
             localStorage.getItem("VS__didSeeWelcomeModal") || "";
-          let VS__didSeeWelcomeModal: number = 0;
+          let VS__didSeeWelcomeModal = 0;
           try {
             VS__didSeeWelcomeModal = parseInt(VS__didSeeWelcomeModalString);
           } catch (ex) {

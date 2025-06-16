@@ -63,7 +63,7 @@ const FaqComponent: React.FC = () => {
     }
   };
 
-  const handleCloseEdit = async (confirmClose: boolean = false) => {
+  const handleCloseEdit = async (confirmClose = false) => {
     if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?') === false)) {
       return;
     }

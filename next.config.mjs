@@ -51,5 +51,3 @@ const nextConfig = withPWA({
 })(config);
 
 export default nextConfig;
-
-// export default withPWA(Object.assign({}, pwa, config));

@@ -1,5 +1,5 @@
-import NextAuth, { DefaultSession, NextAuthOptions as OriginalNextAuthOptions, RequestInternal as OriginalRequestInternal } from "next-auth";
-import { VSUserSecurityProfile } from "~/types";
+import { type DefaultSession, type NextAuthOptions as OriginalNextAuthOptions, type RequestInternal as OriginalRequestInternal } from "next-auth";
+import { type VSUserSecurityProfile } from "~/types";
 
 declare module "next-auth" {
   export type ISODateString = string

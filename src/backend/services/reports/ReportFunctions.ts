@@ -1,5 +1,5 @@
-import { ReportParams, ReportGrouping, ReportType } from "~/components/beheer/reports/ReportsFilter";
-import { getLabelMapForXAxis, getXAxisTitle, XAxisLabelMap } from "~/backend/services/reports/ReportAxisFunctions";
+import { type ReportParams, type ReportGrouping, type ReportType } from "~/components/beheer/reports/ReportsFilter";
+import { getLabelMapForXAxis, getXAxisTitle, type XAxisLabelMap } from "~/backend/services/reports/ReportAxisFunctions";
 
 import { prisma } from "~/server/db";
 import fs from "fs";
@@ -36,6 +36,7 @@ export interface ReportData {
 
 interface SingleResult {
   name: string;
+  CATEGORY: string;
   TIMEGROUP: string;
   value: number;
 }
@@ -43,7 +44,7 @@ interface SingleResult {
 export const convertToTimegroupSeries = async (
   results: SingleResult[],
   params: ReportParams,
-  keyToLabelMap: XAxisLabelMap
+  _keyToLabelMap: XAxisLabelMap
 ): Promise<ReportSeriesData[]> => {
   let series: ReportSeriesData[] = [];
 
@@ -52,7 +53,8 @@ export const convertToTimegroupSeries = async (
   // Get all unique timegroups
   const allTimegroups = [...new Set(results.map(tx => tx.TIMEGROUP.toString()))];
 
-  const groupedByCategory = results.reduce((acc: any, tx: any) => {
+  const groupedByCategory = results.reduce((
+    acc: Record<string, { name: string; data: Record<string, number> }>, tx: SingleResult) => {
     const category = tx.CATEGORY.toString();
     const timegroup = tx.TIMEGROUP.toString();
     if (!acc[category]) {
@@ -60,9 +62,11 @@ export const convertToTimegroupSeries = async (
         name: category,
         data: {}
       };
+      
       // Initialize all timegroups with zero
+      const categoryData = acc[category].data;
       allTimegroups.forEach(tg => {
-        acc[category].data[tg] = 0;
+        categoryData[tg] = 0;
       });
     }
     // Update the value for this specific timegroup
@@ -71,7 +75,7 @@ export const convertToTimegroupSeries = async (
   }, {});
 
   // Convert to series format
-  series = Object.values(groupedByCategory).map((stalling: any) => {
+  series = Object.values(groupedByCategory).map((stalling: { name: string; data: Record<string, number> }) => {
     return {
       name: categoryNames ? categoryNames.find(c => c.id === stalling.name)?.name || stalling.name : stalling.name,
       data: Object.entries(stalling.data).map(([timegroup, value]) => {
@@ -103,7 +107,7 @@ export const convertToTimegroupSeries = async (
   return series;
 }
 
-export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeIntervalInMinutes: number, fieldname: string, useCache: boolean = true) => {
+export const getFunctionForPeriod = (reportGrouping: ReportGrouping, timeIntervalInMinutes: number, fieldname: string, useCache = true) => {
   if (false === useCache) {
     if (reportGrouping === "per_year") return `YEAR(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE))`;
     if (reportGrouping === "per_quarter") return `CONCAT(YEAR(${fieldname}), '-', QUARTER(DATE_ADD(${fieldname}, INTERVAL -${timeIntervalInMinutes} MINUTE)))`;
@@ -132,7 +136,7 @@ export const getReportTitle = (reportType: ReportType) => {
   return "";
 }
 
-export const debugLog = (message: string, truncate: boolean = false) => {
+export const debugLog = (message: string, truncate = false) => {
   const line = `${new Date().toISOString()} ${message}`;
   console.log(message);
   if (truncate) {
@@ -146,16 +150,16 @@ export const interpolateSQL = (sql: string, params: string[]): string => {
   console.log('params', params);
   let interpolatedSQL = sql;
   if (params.length > 0) {
-    interpolatedSQL = interpolatedSQL.replace('?', `"${params[0]}"`);
+    interpolatedSQL = interpolatedSQL.replace('?', `"${params[0]||""}"`);
   }
   if (params.length > 1) {
-    interpolatedSQL = interpolatedSQL.replace('?', `"${params[1]}"`);
+    interpolatedSQL = interpolatedSQL.replace('?', `"${params[1]||""}"`);
   }
   if (params.length > 2) {
-    interpolatedSQL = interpolatedSQL.replace('?', `${params[2]}`);
+    interpolatedSQL = interpolatedSQL.replace('?', `${params[2]||""}`);
   }
   if (params.length > 3) {
-    interpolatedSQL = interpolatedSQL.replace('?', `${params[3]}`);
+    interpolatedSQL = interpolatedSQL.replace('?', `${params[3]||""}`);
   }
   return interpolatedSQL;
 }
@@ -216,7 +220,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
   try {
     const results = await prisma.$queryRawUnsafe<SingleResult[]>(sql);
 
-    let keyToLabelMap = getLabelMapForXAxis(
+    const keyToLabelMap = getLabelMapForXAxis(
       params.reportGrouping,
       params.startDT || new Date(),
       params.endDT || new Date()
@@ -224,7 +228,7 @@ export const getData = async (sql: string, params: ReportParams): Promise<Report
     if (!keyToLabelMap) {
       return false;
     }
-    let series = await convertToTimegroupSeries(results, params, keyToLabelMap);
+    const series = await convertToTimegroupSeries(results, params, keyToLabelMap);
 
     return {
       title: getReportTitle(params.reportType),

@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { type NextApiRequest, type NextApiResponse } from 'next';
 import { prisma } from '~/server/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from "~/pages/api/auth/[...nextauth]";

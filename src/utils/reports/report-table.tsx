@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { ReportContent } from './types';
-import { useTable, Column } from 'react-table';
+import { type ReportContent } from './types';
+import { useTable, type Column } from 'react-table';
 
 const ReportTable: React.FC<{ reportContent: ReportContent }> = ({ reportContent }) => {
     const data = useMemo(() => reportContent.data.records, [reportContent]);

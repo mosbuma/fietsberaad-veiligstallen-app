@@ -6,7 +6,7 @@ import { ConfirmPopover } from '~/components/ConfirmPopover';
 import { LoadingSpinner } from '~/components/beheer/common/LoadingSpinner';
 import { useUsers } from '~/hooks/useUsers';
 import { getNewRoleLabel } from '~/types/utils';
-import { Table, Column } from '~/components/common/Table';
+import { Table, type Column } from '~/components/common/Table';
 import { SearchFilter } from '~/components/common/SearchFilter';
 
 type UserComponentProps = { 
@@ -74,7 +74,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
     )
     .sort((a, b) => (a.DisplayName || "").localeCompare(b.DisplayName || ""));
 
-  let title = "Gebruikers";
+  const title = "Gebruikers";
 
   const handleUserEditClose = (userChanged: boolean, confirmClose: boolean) => {
     if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 

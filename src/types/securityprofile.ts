@@ -1,4 +1,4 @@
-import { VSUserRoleValuesNew } from './users';
+import { type VSUserRoleValuesNew } from './users';
 
 export type VSCRUDRight = {
   create: boolean;

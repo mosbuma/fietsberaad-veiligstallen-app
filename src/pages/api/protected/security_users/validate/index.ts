@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { z } from "zod";
+import { type z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession } from "~/utils/server/database-tools";
 import { securityuserSchema } from "~/types/database";
-import { securityUserCreateSchema, securityUserUpdateSchema } from "../[id]/index";
+import { type securityUserCreateSchema, type securityUserUpdateSchema } from "../[id]/index";
 import { getSecurityUserNew } from "~/utils/server/security-users-tools";
 
 export type SecurityUserValidateResponse = {

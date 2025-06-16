@@ -4,7 +4,7 @@
 // import type { User } from "next-auth";
 import bcrypt from "bcryptjs";
 import { prisma } from "~/server/db";
-import { security_users } from "@prisma/client";
+import { type security_users } from "@prisma/client";
 import type { User } from "next-auth";
 import {
   VSUserRoleValuesNew,
@@ -19,7 +19,7 @@ type OrgAccountData = Pick<security_users, "UserID" | "GroupID" | "ParentID" | "
 };
 
 const getProfileUser = async(orgaccount: OrgAccountData): Promise<User|false> => {
-  let profileUserAccount: User = {
+  const profileUserAccount: User = {
     id: "",
     name: "",
     email: "",
@@ -73,7 +73,7 @@ const getProfileUser = async(orgaccount: OrgAccountData): Promise<User|false> =>
       }
     });
 
-    let roleId = userdata?.user_contact_roles.find((role) => role.ContactID === profileUserAccount.activeContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
+    const roleId = userdata?.user_contact_roles.find((role) => role.ContactID === profileUserAccount.activeContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
 
     profileUserAccount.id = orgaccount.UserID || "";
     profileUserAccount.name = userdata?.DisplayName || "";

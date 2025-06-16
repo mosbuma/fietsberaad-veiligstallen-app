@@ -8,7 +8,7 @@ import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
 import bcrypt from "bcryptjs";
 import { convertNewRoleToOldRole } from "~/utils/securitycontext";
-import { security_users } from "@prisma/client";
+import { type security_users } from "@prisma/client";
 import { getSecurityUserNew } from "~/utils/server/security-users-tools";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
 // TODO: implement filtering on accessible security_users
@@ -171,7 +171,7 @@ export default async function handle(
           return;
         }
 
-        const parsed = parseResult.data as z.infer<typeof securityUserUpdateSchema>;
+        const parsed = parseResult.data ;
 
         const updateData: z.infer<typeof oldSecurityUserUpdateSchema>  = {
           UserID: parsed.UserID,

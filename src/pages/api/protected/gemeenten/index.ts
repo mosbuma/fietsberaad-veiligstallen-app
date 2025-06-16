@@ -86,7 +86,7 @@ export default async function handle(
             hasUsers,
             hasExploitanten
           })
-        };
+        }
         res.status(200).json({data})
       } else {
         res.status(200).json({data: gemeenten})

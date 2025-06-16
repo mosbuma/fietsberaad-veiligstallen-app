@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
+import { type GetServerSidePropsContext, type GetServerSidePropsResult } from 'next';
 import type { User, Session } from "next-auth";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
@@ -142,7 +142,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
 
   let activecomponent: VSMenuTopic | undefined = VSMenuTopic.Home;
 
-  const validTopics = Object.values(VSMenuTopic) as String[];
+  const validTopics = Object.values(VSMenuTopic) as string[];
   const activeComponentQuery = Array.isArray(queryRouter.query.activecomponent) ? queryRouter.query.activecomponent[0] : queryRouter.query.activecomponent;
   if (
     activeComponentQuery &&

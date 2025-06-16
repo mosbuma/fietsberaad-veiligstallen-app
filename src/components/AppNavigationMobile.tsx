@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import Image from 'next/image';
 
-import { VSArticle } from "~/types/articles";
+import { type VSArticle } from "~/types/articles";
+import { type VSContactGemeente } from "~/types/contacts";
 
 import {
-  setIsFilterBoxVisible,
   setIsMobileNavigationVisible,
   setIsParkingListVisible,
 } from "~/store/appSlice";
@@ -52,12 +53,12 @@ const NavItem = ({ title, icon, onClick }: { title: string, icon?: string, onCli
     >
       {icon ? (
         <div className="flex flex-col justify-center">
-          <img
+          <Image
             src={`/images/${icon}`}
             alt={icon}
-            className="
-				mr-3 h-4 w-4
-			"
+            width={16}
+            height={16}
+            className="mr-3 h-4 w-4"
           />
         </div>
       ) : (
@@ -72,10 +73,10 @@ const AppNavigationMobile = ({
   activeMunicipalityInfo,
   mapZoom = 12,
 }: {
-  activeMunicipalityInfo?: any;
+  activeMunicipalityInfo?: VSContactGemeente;
   mapZoom?: number;
 }) => {
-  const { push } = useRouter();
+  const router = useRouter();
   const dispatch = useDispatch();
 
   const [articlesMunicipality, setArticlesMunicipality] = useState<VSArticle[]>([]);
@@ -86,7 +87,9 @@ const AppNavigationMobile = ({
     (async () => {
       const response = await getArticlesForMunicipality(activeMunicipalityInfo?.ID||"1");
       setArticlesMunicipality(filterNavItems(response));
-    })();
+    })().catch(err => {
+      console.error("getArticlesForMunicipality error", err);
+    });
   }, [
     activeMunicipalityInfo,
     mapZoom
@@ -96,7 +99,9 @@ const AppNavigationMobile = ({
     (async () => {
       const response = await getArticlesForMunicipality("1");
       setArticlesFietsberaad(filterNavItems(response));
-    })();
+    })().catch(err => {
+      console.error("getArticlesForMunicipality error", err);
+    });
   }, [
     activeMunicipalityInfo,
     mapZoom
@@ -106,7 +111,7 @@ const AppNavigationMobile = ({
     // console.log("sure");
     dispatch(setIsMobileNavigationVisible(false));
     dispatch(setIsParkingListVisible(false));
-    push(url);
+    router.push(url);
   };
 
   const title =
@@ -140,7 +145,7 @@ const AppNavigationMobile = ({
           className="max-w-[70%]"
         >
           De kortste weg naar een veilige plek voor je fiets{" "}
-          {mapZoom >= 12 ? `in ${activeMunicipalityInfo?.CompanyName}` : ""}
+          {mapZoom >= 12 && activeMunicipalityInfo?.CompanyName ? `in ${activeMunicipalityInfo.CompanyName}` : ""}
         </p>
       </header>
 
@@ -161,7 +166,7 @@ const AppNavigationMobile = ({
             onClick={(e) => {
               e.preventDefault();
 
-              push("/");
+              router.push("/");
               dispatch(setIsMobileNavigationVisible(false));
               dispatch(setIsParkingListVisible(true));
             }}
@@ -173,12 +178,12 @@ const AppNavigationMobile = ({
           <NavSection>
             {primaryMenuItems.map((x, xidx) => (
               <NavItem
-                key={"pmi-" + xidx}
+                key={`pmi-${xidx}`}
                 title={x.DisplayTitle ? x.DisplayTitle : x.Title ? x.Title : ""}
                 onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault();
                   clickItem(
-                    `/${mapZoom >= 12 && activeMunicipalityInfo
+                    `/${mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.UrlName
                       ? activeMunicipalityInfo.UrlName
                       : "fietsberaad"
                     }/${x.Title ? x.Title : ""}`

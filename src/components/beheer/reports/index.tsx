@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import ReportsFilterComponent, { ReportParams, ReportBikepark, ReportState } from "./ReportsFilter";
-import { ReportData } from "~/backend/services/reports/ReportFunctions";
-import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
+import ReportsFilterComponent, { type ReportParams, type ReportBikepark, type ReportState } from "./ReportsFilter";
+import { type ReportData } from "~/backend/services/reports/ReportFunctions";
+import { type AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 import { getStartEndDT } from "./ReportsDateFunctions";
 import CollapsibleContent from '~/components/beheer/common/CollapsibleContent';
 import moment from 'moment';
@@ -59,7 +59,7 @@ const ReportComponent: React.FC<ReportComponentProps> = ({
       try {
         const { startDT, endDT } = getStartEndDT(filterState, firstDate, lastDate);
 
-        let apiEndpoint: string = `/api/reports/${filterState.reportType}`;
+        const apiEndpoint = `/api/reports/${filterState.reportType}`;
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {

@@ -1,5 +1,5 @@
 import { type VSUserSecurityProfile } from "~/types/securityprofile";    
-import { type VSUserRoleValuesNew, type VSUserWithRolesNew } from '~/types/users';
+import { type VSUserRoleValuesNew } from '~/types/users';
 
 import { getRoleRights } from "~/utils/securitycontext";
 

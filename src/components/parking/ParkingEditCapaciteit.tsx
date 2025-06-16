@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
-import { ParkingDetailsType, ParkingSectionPerBikeType, ParkingSections } from '~/types/parking';
+import { type ParkingDetailsType, type ParkingSectionPerBikeType, type ParkingSections } from '~/types/parking';
 
 import {
   getAllFietstypen
 } from "~/utils/parkings";
-import { fietstypen } from "~/generated/prisma-client";
+import { type fietstypen } from "~/generated/prisma-client";
 
 export type CapaciteitType = { ID: string, Name: string };
 
@@ -23,7 +23,7 @@ export type capacitydata = {
 
 const calculateCapacityData = (parking: ParkingDetailsType, allFietstypen: fietstypen[]): capacitydata | null => {
   try {
-    let capacity: capacitydata = {
+    const capacity: capacitydata = {
       unknown: false,
       total: 0,
       detailed: allFietstypen.reduce((acc: { [key: string]: { Toegestaan: boolean; Capaciteit: number } }, fietstype, idx: number) => {
@@ -125,7 +125,7 @@ const toggleActive = (fietsenstalling_secties: ParkingSections, fietstypename: s
   let didUpdateSomething = false;
   if (sectieNotSetYet) {
     didUpdateSomething = true;
-    let newData: ParkingSections = [
+    const newData: ParkingSections = [
       {
         titel: "sectie",
         secties_fietstype: [
@@ -188,7 +188,7 @@ const handleCapacityChange = (fietsenstalling_secties: ParkingSections, fietstyp
   let didUpdateSomething = false;
   if (sectieNotSetYet) {
     didUpdateSomething = true;
-    let newData: ParkingSections = [
+    const newData: ParkingSections = [
       {
         titel: "sectie",
         secties_fietstype: [
@@ -322,7 +322,7 @@ const ParkingEditCapaciteit = ({
 
                   const newFietsenstallingSecties = toggleActive(parkingdata.fietsenstalling_secties, fietstypename, e.target.checked === false);
                   const getNewCapacity = () => {
-                    let newCapacity = parkingdata;
+                    const newCapacity = parkingdata;
                     newCapacity.fietsenstalling_secties = newFietsenstallingSecties;
                     return newCapacity;
                   };

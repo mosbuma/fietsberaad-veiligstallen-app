@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { VSUserWithRolesNew } from '~/types/users';
-import { SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
+import { type VSUserWithRolesNew } from '~/types/users';
+import { type SecurityUserResponse } from '~/pages/api/protected/security_users/[id]';
 
 export const useUser = (id: string) => {
   const [user, setUser] = useState<VSUserWithRolesNew | null>(null);

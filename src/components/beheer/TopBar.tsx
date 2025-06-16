@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 import type { VSUserSecurityProfile } from "~/types/securityprofile";
 import type { Session } from "next-auth";
 import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~/types/contacts";
@@ -26,7 +26,7 @@ const getSelectedOrganisationInfo = (gemeenten: VSContactGemeenteInLijst[], expl
   // Merge gemeenten and exploitanten
   const organisations = [...gemeenten, ...exploitanten];
   // Get organisation info
-  const organisation: VSContact | undefined = getOrganisationByID(organisations as VSContact[], selectedGemeenteID || "");
+  const organisation: VSContact | undefined = getOrganisationByID(organisations as unknown as VSContact[], selectedGemeenteID || "");
 
   return organisation;
 }
@@ -75,7 +75,7 @@ const TopBar: React.FC<TopBarProps> = ({
 
   const handleDisplaySessionInfo = () => {
     if(process.env.NODE_ENV === 'development') {
-      logSession(session as Session | null);
+      logSession(session );
     }
   };
 
@@ -111,7 +111,7 @@ const TopBar: React.FC<TopBarProps> = ({
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
 
-  let organisaties = [...(gemeentenKort || []), ...(exploitantenKort || [])];
+  const organisaties = [...(gemeentenKort || []), ...(exploitantenKort || [])];
   if(showFietsberaadInList) {
     organisaties.unshift(fietsberaad);
   }

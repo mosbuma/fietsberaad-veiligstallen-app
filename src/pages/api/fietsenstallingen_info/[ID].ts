@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { fietsenstallingen } from "~/generated/prisma-client";
+import { type fietsenstallingen } from "~/generated/prisma-client";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     let parking = undefined;
     if (undefined !== req.query.ID && true !== Array.isArray(req.query.ID)) {
       const query = {
-        where: { StallingsID: req.query.ID as string }, // Cast the ID to string
+        where: { StallingsID: req.query.ID  },
       }
 
       parking = await prisma.fietsenstallingen.findFirst(query);

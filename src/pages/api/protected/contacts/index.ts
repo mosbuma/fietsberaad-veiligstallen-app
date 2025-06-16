@@ -83,7 +83,7 @@ export default async function handle(
             hasUsers,
             hasStallingen
           })
-        };
+        }
         res.status(200).json({data})
       } else {
         res.status(200).json({data: contacts})

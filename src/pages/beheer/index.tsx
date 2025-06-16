@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { GetServerSidePropsContext } from 'next';
-import { ReportBikepark } from '../../components/beheer/reports/ReportsFilter';
-import { contacts } from '@prisma/client';
+import { type GetServerSidePropsContext } from 'next';
+import { type ReportBikepark } from '../../components/beheer/reports/ReportsFilter';
+import { type contacts } from '@prisma/client';
 import { useSession } from 'next-auth/react';
 import BeheerPage, { getServerSideProps as importedGetServerSideProps } from './[activecomponent]/index';
 

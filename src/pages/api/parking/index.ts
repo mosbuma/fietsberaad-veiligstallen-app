@@ -4,7 +4,7 @@ import {
   type fietsenstallingen,
 } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
-import { ParkingDetailsType, selectParkingDetailsType } from "~/types/parking";
+import { type ParkingDetailsType, selectParkingDetailsType } from "~/types/parking";
 
 const fixFieldsForParking = (parking: Partial<fietsenstallingen>) => {
   for (const [key, prop] of Object.entries(parking)) {

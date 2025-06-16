@@ -5,8 +5,8 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import type { TestResult, TestResponse } from "~/types/test";
 import { TestStatus } from "~/types/test";
-import { ContactsResponse } from ".";
-import { ContactResponse } from "./[id]";
+import { type ContactsResponse } from ".";
+import { type ContactResponse } from "./[id]";
 import { TestError } from "~/types/test";
 import type { ContactValidateResponse } from "./validate";
 import { VSContactItemType } from "~/types/contacts";

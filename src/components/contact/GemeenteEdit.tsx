@@ -19,8 +19,7 @@ import { useGemeente } from '~/hooks/useGemeente';
 import { useUsers } from '~/hooks/useUsers';
 import { getDefaultNewGemeente } from '~/types/database';
 import { makeClientApiCall } from '~/utils/client/api-tools';
-import { GemeenteResponse } from '~/pages/api/protected/gemeenten/[id].not/index';
-import { VSUsersForContactResponse, VSUsersForContact } from '~/pages/api/protected/gemeenten/[id]/contactpersons';
+import { type GemeenteResponse } from '~/pages/api/protected/gemeenten/[id]';
 
 type GemeenteEditProps = {
     id: string;

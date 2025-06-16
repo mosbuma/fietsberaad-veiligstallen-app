@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import { type TestResult, type TestResponse, TestStatus, TestError } from "~/types/test";
-import { GemeentenResponse } from ".";
-import { GemeenteResponse } from "./[id].not";
+import { type GemeentenResponse } from ".";
+import { type GemeenteResponse } from "./[id].not";
 import moment from "moment";
 import type { GemeenteValidateResponse } from "./validate";
 import { VSContactItemType } from "~/types/contacts";

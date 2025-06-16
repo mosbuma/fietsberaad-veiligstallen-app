@@ -125,7 +125,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     );
   };
 
-  const renderEdit = (isSm: boolean = false) => {
+  const renderEdit = (isSm = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
     const showGemeenteEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
@@ -134,7 +134,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
       return null;
     }
 
-    const handleOnClose = async (confirmClose: boolean = false) => {
+    const handleOnClose = async (confirmClose = false) => {
       if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }

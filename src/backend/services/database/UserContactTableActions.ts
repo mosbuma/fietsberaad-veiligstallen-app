@@ -1,16 +1,16 @@
 import { prisma } from "~/server/db";
-import { UserContactRoleParams, UserContactRoleStatus } from "~/backend/services/database-service";
+import { type UserContactRoleParams, type UserContactRoleStatus } from "~/backend/services/database-service";
 import { convertRoleToNewRole } from "~/utils/securitycontext";
 import { generateID } from "~/utils/server/database-tools";
 import { VSUserGroupValues } from "~/types/users-coldfusion";
 import { VSUserRoleValuesNew } from "~/types/users";
 import { VSContactItemType } from "~/types/contacts";
 
-export const getUserContactRoleTableStatus = async (params: UserContactRoleParams) => {
+export const getUserContactRoleTableStatus = async (_params: UserContactRoleParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'user_contact_role'`;
 
   let tableExists = false;
-  let status: UserContactRoleStatus | false = {
+  const status: UserContactRoleStatus | false = {
     status: 'missing',
     size: undefined,
   };
@@ -107,7 +107,7 @@ const processExternUsers = async () => {
   for(const user of allUsers) {
     const relatedSites = user.security_users_sites;
     if(relatedSites.length !== 1||!relatedSites[0]?.SiteID) {
-      console.error(`**** processExternUsers ERROR User ${user.DisplayName} has ${relatedSites.length} sites, expected 1`);
+      console.error(`**** processExternUsers ERROR User ${user.DisplayName||'???'} has ${relatedSites.length} sites, expected 1`);
       continue;
     } else {
       const newRoleID = convertRoleToNewRole(user.RoleID, true);
@@ -157,7 +157,7 @@ const processExploitantUsers = async () => {
     if(mainContactId) {
       const newRoleID = convertRoleToNewRole(user.RoleID, true);
 
-      console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - OWN ORGANIZATION - oldrole ${user.RoleID} -> newrole ${newRoleID.valueOf()}`);
+      console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName||'???'} [${mainSite?.CompanyName||'???'}] - OWN ORGANIZATION - oldrole ${user.RoleID||'???'} -> newrole ${newRoleID.valueOf()}`);
 
       await prisma.user_contact_role.create({
         data: {
@@ -205,7 +205,7 @@ const processExploitantUsers = async () => {
           newRoleID = VSUserRoleValuesNew.Viewer;
         }
 
-        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - IS LINKED TO ${site.CompanyName} - oldrole ${user.RoleID} -> newrole ${newRoleID?.valueOf()}`);
+        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName||'???'} [${mainSite?.CompanyName||'???'}] - IS LINKED TO ${site.CompanyName||'???'} - oldrole ${user.RoleID||'???'} -> newrole ${newRoleID?.valueOf()}`);
 
         await prisma.user_contact_role.create({
           data: {
@@ -217,7 +217,7 @@ const processExploitantUsers = async () => {
           } 
         });
       } else {
-        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName} [${mainSite?.CompanyName}] - NOT LINKED TO ${site.CompanyName} - no parent relation found`);
+        console.debug(`*** EXPLOITANT ${isSubUser ? "SUB" : "MAIN"} USER ${ user.DisplayName||'???'} [${mainSite?.CompanyName||'???'}] - NOT LINKED TO ${site.CompanyName||'???'} - no parent relation found`);
 
         newRoleID = VSUserRoleValuesNew.None;
         // Not added to the table, because the user is not an admin or viewer of the site

@@ -2,7 +2,7 @@ import React from "react";
 import HorizontalDivider from "~/components/HorizontalDivider";
 
 import SectionBlock from "~/components/SectionBlock";
-import { ParkingDetailsType } from "~/types/parking";
+import { type ParkingDetailsType } from "~/types/parking";
 
 type capacitydata = {
   unknown: boolean;
@@ -17,7 +17,7 @@ type capacitydata = {
 
 const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null => {
   try {
-    let capacity: capacitydata = {
+    const capacity: capacitydata = {
       unknown: false,
       total: 0,
       detailed: {},
@@ -41,7 +41,7 @@ const calculateCapacityData = (parking: ParkingDetailsType): capacitydata | null
             }
           }
 
-          let detailed = capacity.detailed[name];
+          const detailed = capacity.detailed[name];
           if (detailed !== undefined) {
             detailed.Toegestaan = detailed.Toegestaan || (data.Toegestaan !== null && data.Toegestaan);
             detailed.Capaciteit += data.Capaciteit || 0;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserStatusStatus, UserStatusParams, UserStatusActions, UserStatusResult } from "~/backend/services/database-service";
+import { type UserStatusStatus, type UserStatusParams, type UserStatusActions, type UserStatusResult } from "~/backend/services/database-service";
 
 const UserStatusTableComponent: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -67,7 +67,7 @@ const UserStatusTableComponent: React.FC = () => {
           throw new Error(`Error: ${response}`);
         }
 
-        let result = await response.json() as UserStatusResult;
+        const result = await response.json() as UserStatusResult;
         if (result.success && result.status) {
           setUserStatusStatus(result.status);
           setErrorState("");

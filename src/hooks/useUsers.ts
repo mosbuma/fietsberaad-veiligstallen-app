@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
-import { VSUserWithRolesNew } from '~/types/users';
+import { type VSUserWithRolesNew } from '~/types/users';
 
 type UsersResponse = {
   data?: VSUserWithRolesNew[];
