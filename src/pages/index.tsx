@@ -5,7 +5,7 @@ import { getParkingsFromDatabase } from "~/utils/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
 import type { fietsenstallingen } from "~/generated/prisma-client";
-import { Session } from "next-auth";
+import { type Session } from "next-auth";
 import HomeComponent from "~/components/HomeComponent";
 
 export async function getServerSideProps(context: any) {

@@ -1,47 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { z } from 'zod';
-import { VSUserRoleValuesNew, VSUserGroupValues } from '~/types/users';
+import { type z } from 'zod';
+import { VSUserRoleValuesNew } from '~/types/users';
 import PageTitle from "~/components/PageTitle";
 import Button from '@mui/material/Button';
 import FormInput from "~/components/Form/FormInput";
 import FormSelect from "~/components/Form/FormSelect";
 import { UserAccessRight } from './UserAccessRight';
 import { getNewRoleLabel } from '~/types/utils';
-//import { convertRoleToNewRole } from '~/utils/securitycontext';
 import { useUser } from '~/hooks/useUser';
 import { makeClientApiCall } from '~/utils/client/api-tools';
 
 import type { SecurityUserValidateResponse } from '~/pages/api/protected/security_users/validate';
-import { securityUserCreateSchema, SecurityUserResponse, securityUserUpdateSchema } from '~/pages/api/protected/security_users/[id]';
-
-import bcrypt from "bcryptjs";
-
-// export type UserType = "gemeente" | "exploitant" | "beheerder" | "interne-gebruiker" | "dataprovider";
-export type UserStatus = "actief" | "inactief";
-
-const getRoleOptions = (groupid: VSUserGroupValues, currentRole: VSUserRoleValuesNew) => {
-  switch (groupid) {
-    case VSUserGroupValues.Extern:
-      return Object.values(VSUserRoleValuesNew).map(role => ({
-        label: getNewRoleLabel(role),
-        value: role.toString()
-      }));
-    case VSUserGroupValues.Intern:
-    case VSUserGroupValues.Exploitant:
-      return [
-        VSUserRoleValuesNew.None,
-        VSUserRoleValuesNew.Admin];
-    default:
-      return Object.values(VSUserRoleValuesNew).map(role => ({
-        label: getNewRoleLabel(role),
-        value: role.toString()
-      }));
-  }
-}
-
+import { type securityUserCreateSchema, type SecurityUserResponse, type securityUserUpdateSchema } from '~/pages/api/protected/security_users/[id]';
 export interface UserEditComponentProps {
     id: string,
-    groupid: VSUserGroupValues,
     siteID: string | null,
     onClose: (userChanged: boolean, confirmClose: boolean) => void,
 }
@@ -112,9 +84,6 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
         setInitialData(initial);
       } else {
         if (activeuser) {
-          // const site = user.sites.find(site => site.SiteID === props.currentContactID);
-          // const newRoleID = site?.newRoleId || VSUserRoleValuesNew.None;
-
           const initial = {
             displayName: activeuser.DisplayName || initialData.displayName,
             newRoleID: activeuser.securityProfile?.roleId || initialData.newRoleID,

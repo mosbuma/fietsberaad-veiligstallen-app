@@ -8,7 +8,7 @@ import type { DataproviderValidateResponse } from "~/pages/api/protected/datapro
 import { getDefaultNewDataprovider } from "~/types/database";
 import { useDataprovider } from "~/hooks/useDataprovider";
 import { makeClientApiCall } from "~/utils/client/api-tools";
-import { DataproviderResponse } from "~/pages/api/protected/dataprovider/[id]";
+import { type DataproviderResponse } from "~/pages/api/protected/dataprovider/[id]";
 
 type DataproviderEditProps = {
   id: string;

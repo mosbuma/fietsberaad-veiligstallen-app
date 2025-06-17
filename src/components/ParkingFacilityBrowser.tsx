@@ -160,7 +160,7 @@ function ParkingFacilityBrowser({
             );
 
           // Decide if we want to show the parking
-          let showParking = inFilter;
+          const showParking = inFilter;
 
           return showParking;
         });
@@ -183,13 +183,13 @@ function ParkingFacilityBrowser({
             );
 
           // Decide if we want to show the parking
-          let showParking = inFilter;
+          const showParking = inFilter;
 
           return showParking;
         });
         // Sort the parkings list in a logical order
         if (activeMunicipalityInfo && activeMunicipalityInfo.ID) {
-          let sorted: any = [];
+          const sorted: any = [];
           // Get parkings for this municipality
           const parkingsInThisMunicipality = filtered.filter((p) => {
             return p.SiteID === activeMunicipalityInfo.ID

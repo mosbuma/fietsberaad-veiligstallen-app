@@ -17,7 +17,7 @@ import {
   setActiveArticle,
 } from "~/store/appSlice";
 
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 
 // Import utils
 import {
@@ -63,7 +63,7 @@ interface GeoJsonFeature {
 }
 
 const createGeoJson = (input: GeoJsonFeature[]) => {
-  let features: GeoJsonFeature[] = [];
+  const features: GeoJsonFeature[] = [];
 
   input.forEach((x: any) => {
     if (!x.Coordinaten) return;
@@ -356,7 +356,7 @@ function MapboxMap({ fietsenstallingen = [] }: { fietsenstallingen: any[] }) {
 
       // Filter geojson source data for cluster sources
       (() => {
-        let filteredGeojson = filterGeojsonForClusterSources(createGeoJson(fietsenstallingen));
+        const filteredGeojson = filterGeojsonForClusterSources(createGeoJson(fietsenstallingen));
         const sources = ["fietsenstallingen-clusters", "fietsenstallingen-clusters-count"];
         sources.forEach((sourceKey) => {
           const source: maplibregl.GeoJSONSource = stateMap.getSource(

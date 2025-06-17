@@ -1,9 +1,9 @@
 import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
-import { ReportContent } from "./types";
-import { ParkingDetailsType } from "~/types/parking";
+import { type ReportContent } from "./types";
+import { type ParkingDetailsType } from "~/types/parking";
 import { createVeiligstallenOrgLink } from "~/utils/parkings";
 
-export const createFixBadDataReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean = true): Promise<ReportContent> => {
+export const createFixBadDataReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData = true): Promise<ReportContent> => {
     // Alles op een rij:
     // 1. fietsenstallingen.StallingsID: not null & unique
     // 2. fietsenstallingen.SiteID: not null & foreign key naar contacts.id (is al geimplementeerd)
@@ -103,7 +103,7 @@ export const createFixBadDataReport = async (fietsenstallingen: fietsenstallinge
             if (count > 1) {
                 checkStallingsID = <span className="font-bold bg-red-400 text-white p-2">DUPLICATE</span>
             }
-        };
+        }
 
         let checkSiteID = null; // ok
         if (fietsenstalling.SiteID === null) {
@@ -124,7 +124,7 @@ export const createFixBadDataReport = async (fietsenstallingen: fietsenstallinge
             }
         }
 
-        let fullCheck = (checkStallingsID === null && checkSiteID === null && checkExploitantID === null);
+        const fullCheck = (checkStallingsID === null && checkSiteID === null && checkExploitantID === null);
 
         report.data.records.push({
             "ID": parkingdata.ID,

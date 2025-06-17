@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReportBikepark } from '../reports/ReportsFilter'; // Adjust the import path if necessary
+import { type ReportBikepark } from '../reports/ReportsFilter'; // Adjust the import path if necessary
 import CacheTableComponent from './CacheTable';
 import UserContactRoleTableComponent from './UserContactRoleTable';
 import UserStatusTableComponent from './UserStatusTable';

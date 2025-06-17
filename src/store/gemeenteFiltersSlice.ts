@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from './rootReducer';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { type RootState } from './rootReducer';
 
 interface GemeenteFiltersState {
   nameFilter: string;

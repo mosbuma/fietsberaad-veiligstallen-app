@@ -1,5 +1,6 @@
-import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/index";    
-import { VSUserRoleValues, VSUserRoleValuesNew } from '~/types/users';
+import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/securityprofile";    
+import { VSUserRoleValuesNew } from '~/types/users';
+import { VSUserRoleValues} from '~/types/users-coldfusion';
 
 import { changeTopics, initAllTopics } from "~/types/utils";
 

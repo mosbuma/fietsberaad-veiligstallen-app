@@ -1,11 +1,11 @@
 import { prisma } from "~/server/db";
-import { UserStatusParams, UserStatusStatus } from "~/backend/services/database-service";
+import { type UserStatusParams, type UserStatusStatus } from "~/backend/services/database-service";
 
 export const getUserStatusTableStatus = async (params: UserStatusParams) => {
   const sqldetecttable = `SELECT COUNT(*) As count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name= 'user_status'`;
 
   let tableExists = false;
-  let status: UserStatusStatus | false = {
+  const status: UserStatusStatus | false = {
     status: 'missing',
     size: undefined,
   };

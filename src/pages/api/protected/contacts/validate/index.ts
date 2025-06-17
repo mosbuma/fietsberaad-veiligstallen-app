@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSContact, contactSelect } from "~/types/contacts";
+import { type VSContact, VSContactItemType, contactSelect } from "~/types/contacts";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession } from "~/utils/server/database-tools";
@@ -58,7 +58,7 @@ export default async function handle(
       const contact = await prisma.contacts.findUnique({
         where: {
           ID: id,
-          ItemType: "organizations"
+          ItemType: VSContactItemType.Organizations
         },
         select: contactSelect
       });
@@ -137,7 +137,7 @@ export default async function handle(
           const duplicate = await prisma.contacts.findFirst({
             where: {
               [field.field]: data[field.field],
-              ItemType: "organizations"
+              ItemType: VSContactItemType.Organizations
             },
           });
 

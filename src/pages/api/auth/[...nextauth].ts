@@ -19,7 +19,7 @@ import {
   getUserFromLoginCode,
 } from "../../../utils/auth-tools";
 
-import { type VSUserWithRoles, securityUserSelect } from "~/types/users";
+import { VSUserRoleValuesNew } from "~/types/users";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
 
 const providers: Provider[] = [];
@@ -192,6 +192,7 @@ export const authOptions: NextAuthOptions = {
       try {
         if (user) {
           token.id = user.id;
+          token.mainContactId = user.mainContactId;
           token.activeContactId = user.activeContactId;
         }
 
@@ -217,21 +218,61 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }: { session: Session; token: JWT }) {
       try {
         if (session?.user && token?.id) {
-          const account = (await prisma.security_users.findFirst({
+          const orgaccount = (await prisma.security_users.findFirst({
             where: { UserID: token.id as string },
-            select: securityUserSelect,
-          })) as VSUserWithRoles;
+            select: {
+              DisplayName: true,
+              UserID: true, 
+              GroupID: true,
+              ParentID: true,
+              SiteID: true,
+              user_contact_roles: {
+                select: {
+                  ContactID: true,
+                  NewRoleID: true,
+                },
+              },
+              security_users_sites: {
+                select: {
+                  SiteID: true,
+                },
+              },
+            },
+          }));
 
-          if (account) {
-            const securityProfile = await createSecurityProfile(
-              account,
-              token.activeContactId as string,
-            );
+          if (orgaccount) {
+            let mainContactId: string | undefined = undefined;
+            switch(orgaccount.GroupID) {
+              case "intern":
+                mainContactId="1";
+                break;
+              case "extern":
+                mainContactId = orgaccount.security_users_sites[0]?.SiteID || undefined;
+                break;
+              case "beheerder":
+              case "exploitant":
+                if(orgaccount.ParentID) { // sub exploitant user
+                  const parentUser = await prisma.security_users.findUnique({
+                    where: {
+                      UserID: orgaccount.ParentID,
+                    },
+                  });
+                  mainContactId = parentUser?.SiteID || undefined;
+                } else { // main exploitant user
+                  mainContactId = orgaccount.SiteID || undefined;
+                }
+                break;
+              default:
+                mainContactId = undefined;
+                break;
+            }
 
+            const currentRoleID: VSUserRoleValuesNew = orgaccount.user_contact_roles.find((role) => role.ContactID === token.activeContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
             session.user.id = token.id as string;
-            session.user.name = account.DisplayName;
+            session.user.name = orgaccount.DisplayName;
+            session.user.mainContactId = mainContactId;
             session.user.activeContactId = token.activeContactId as string;
-            session.user.securityProfile = securityProfile;
+            session.user.securityProfile = createSecurityProfile(currentRoleID);
           } else {
             console.error(`No account found for user ID: ${token.id}`);
           }

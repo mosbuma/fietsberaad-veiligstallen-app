@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { VSUserRoleRightsResult } from '~/pages/api/protected/security/rolerights/[newRoleID]'
-import { VSUserRoleValuesNew } from '~/types/users';
-import { VSUserRoleRights } from '~/utils/securitycontext';
+import { type VSUserRoleRightsResult } from '~/pages/api/protected/security/rolerights/[newRoleID]'
+import { type VSUserRoleValuesNew } from '~/types/users';
+import { type VSUserRoleRights } from '~/utils/securitycontext';
 
 interface UserAccessRightProps {
   newRoleID: VSUserRoleValuesNew;
@@ -22,7 +22,7 @@ export const UserAccessRight: React.FC<UserAccessRightProps> = ({
 
       try {
         console.log("newRoleID", newRoleID);
-        let url = `/api/protected/security/rolerights/${newRoleID}`;
+        const url = `/api/protected/security/rolerights/${newRoleID}`;
         console.log("url", url);
         const response = await fetch(url, {
           method: 'GET',

@@ -2,7 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { VSSecurityTopic, VSMenuTopic, VSUserSecurityProfile } from '~/types/index';
+import { type VSUserSecurityProfile, VSSecurityTopic } from '~/types/securityprofile';
+import { VSMenuTopic } from '~/types/';
 import { VSUserRoleValuesNew } from '~/types/users';
 
 import { userHasRight, userHasRole } from '~/types/utils';
@@ -20,7 +21,7 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
   // const router = useRouter();
   // const { query } = router;
 
-  const formatLi = (component: VSMenuTopic | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
+  const formatLi = (component: VSMenuTopic | false, title: string, compact = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
@@ -42,7 +43,7 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
     );
   }
 
-  const formatLiDevelopment = (component: VSMenuTopic | false, title: string, compact: boolean = false, children?: React.ReactNode) => {
+  const formatLiDevelopment = (component: VSMenuTopic | false, title: string, compact = false, children?: React.ReactNode) => {
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};

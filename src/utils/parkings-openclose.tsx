@@ -176,7 +176,7 @@ export const formatOpeningTimes = (
   day: DayPrefix,
   label: string,
   isToday: boolean,
-  isNS: boolean = false
+  isNS = false
 ): React.ReactNode => {
   // Get date based on current week and given day
   // Day is a string like 'ma', 'di', 'wo', 'do', 'vr', 'za', 'zo', Dutch for 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'

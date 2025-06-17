@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ReportType } from "../reports/ReportsFilter";
-import { AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
+import { type ReportType } from "../reports/ReportsFilter";
+import { type AvailableDataDetailedResult } from "~/backend/services/reports/availableData";
 import moment from "moment";
 
 import type { BikeparkData, ReportComponentProps } from "./index";

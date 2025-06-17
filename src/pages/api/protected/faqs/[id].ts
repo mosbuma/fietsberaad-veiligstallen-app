@@ -110,7 +110,7 @@ export default async function handle(
           return;
         }
 
-        // add a record to the security_users_sites table that links the new FAQ to the user's sites
+        // add a record to the contacts_faq table that links the new FAQ to the the given SiteID
         const newLink = await prisma.contacts_faq.create({
           data: {
             SiteID: parsed.SiteID as string,
@@ -124,17 +124,8 @@ export default async function handle(
           return;
         }
 
-        // Update security profile
-        const { session: updatedSession, error: profileError } = await updateSecurityProfile(session, userId);
-        if (profileError) {
-          console.error("Error updating security profile:", profileError);
-          res.status(500).json({error: profileError});
-          return;
-        }
-
         res.status(201).json({ 
-          data: newFaq,
-          session: updatedSession
+          data: newFaq
         });
       } catch (e) {
         console.error("Error creating FAQ:", e);

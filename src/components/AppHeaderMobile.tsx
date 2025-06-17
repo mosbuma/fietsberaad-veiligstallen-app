@@ -1,9 +1,8 @@
-// @ts-nocheck
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setAuthState } from "~/store/authSlice";
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 import Link from 'next/link'
+import Image from 'next/image'
 
 // Import components
 import Modal from "src/components/Modal";
@@ -17,23 +16,16 @@ import {
 import Logo from './Logo';
 import PageTitle from "~/components/PageTitle";
 
-import { PrimaryMenuItem, SecundaryMenuItem } from "~/components/MenuItems";
-
-
 function AppHeaderMobile({
   title,
   handleCloseClick,
   children
 }: {
   title?: string,
-  handleCloseClick?: Function,
-  children?: any
+  handleCloseClick?: () => void,
+  children?: React.ReactNode
 }) {
   const dispatch = useDispatch();
-
-  const isAuthenticated = useSelector(
-    (state: AppState) => state.auth.authState
-  );
 
   const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo
@@ -43,26 +35,7 @@ function AppHeaderMobile({
     (state: AppState) => state.app.isMobileNavigationVisible
   );
 
-  const mapZoom = useSelector((state: AppState) => state.map.zoom);
-
-  const handleLoginClick = () => {
-    const authState = isAuthenticated ? false : true;
-    dispatch(setAuthState(authState));
-  };
-
-  const primaryMenuItems = [
-    'ICN',
-    'Koop abonnement',
-    'Over Utrecht Fietst!',
-    'Buurtstallingen',
-    'Fietstrommels'
-  ];
-
-  const secundaryMenuItems = [
-    'FAQ',
-    'Tips',
-    'Contact'
-  ];
+  const mapZoom = useSelector((state: AppState) => state.map.zoom) || 12;
 
   return (
     <>
@@ -88,16 +61,16 @@ function AppHeaderMobile({
           justify-between
         ">
           <div className="flex flex-col justify-center">
-            <Link href={`/${activeMunicipalityInfo ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
-              <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo) ? `${activeMunicipalityInfo.CompanyLogo}` : undefined} />
+            <Link href={`/${activeMunicipalityInfo && activeMunicipalityInfo.UrlName ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
+              <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
             </Link>
           </div>
           <div className="mx-3 flex-1 flex flex-col justify-center">
             <PageTitle className="mb-0">{title}</PageTitle>
           </div>
-          <a href="#" onClick={(e) => {
+          <a href="#" onClick={() => {
             // Custom set action
-            if (handleCloseClick) handleCloseClick(e);
+            if (handleCloseClick) handleCloseClick();
             // Or default action
             else dispatch(setIsMobileNavigationVisible(true));
           }} className="
@@ -106,9 +79,12 @@ function AppHeaderMobile({
             mr-2
           "
           >
-            <img
+            <Image
               src={(handleCloseClick) ? `/images/icon-close.png` : `/images/icon-hamburger.png`}
-              alt={(handleCloseClick) ? `Sluiten` : 'Open menu'} className="w-6" />
+              alt={(handleCloseClick) ? `Sluiten` : 'Open menu'} 
+              width={24}
+              height={24}
+              className="w-6" />
           </a>
         </div>
       </div>

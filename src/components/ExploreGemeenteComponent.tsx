@@ -3,13 +3,12 @@ import { VSMenuTopic } from "~/types";
 import type { VSContactDataprovider, VSContactExploitant, VSContactGemeente } from "~/types/contacts";
 import type { VSUserWithRolesNew } from "~/types/users";
 import Link from "next/link";
-import { getRelatedUsersForGemeente } from "~/utils/contactfilters";
 import { useFietsenstallingen } from "~/hooks/useFietsenstallingen";
 import { useGemeenten } from "~/hooks/useGemeenten";
 import { useUsers } from "~/hooks/useUsers";
 import { useExploitanten } from "~/hooks/useExploitanten";
 import { useDataproviders } from "~/hooks/useDataproviders";
-// import moment from "moment";
+
 interface ExploreGemeenteComponentProps {}
 
 const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {   
@@ -307,7 +306,19 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
         return <div>Error: {gemeentenError || fietsenstallingenError}</div>;
     }
 
-    const relatedUsers = getRelatedUsersForGemeente(users, selectedGemeenteID);
+    let relatedUsers: VSUserWithRolesNew[] = [];
+
+    if(selectedGemeenteID!==null) {
+        relatedUsers = users.filter((user) => { 
+            return (
+                user.sites.some((site) => {
+                    const isLinkedUser = site.SiteID === selectedGemeenteID
+                    // const isSysteemGebruiker = user.GroupID === "intern" && site.SiteID === "0"    
+                    return ( isLinkedUser ) // 
+                })
+            )
+        })
+    }
 
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">

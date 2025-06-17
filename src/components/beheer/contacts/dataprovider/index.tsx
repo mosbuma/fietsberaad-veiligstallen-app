@@ -120,14 +120,14 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
     );
   };
 
-  const renderEdit = (isSm: boolean = false) => {
+  const renderEdit = (isSm = false) => {
     const showDataproviderEdit = currentContactID !== undefined;
 
     if(!showDataproviderEdit) {
       return null;
     }
 
-    const handleOnClose = async (confirmClose: boolean = false) => {
+    const handleOnClose = async (confirmClose = false) => {
       if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }

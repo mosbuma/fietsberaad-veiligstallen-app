@@ -1,62 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { VSUserRoleValuesNew, type VSUserWithRoles, type VSUserWithRolesNew, type VSUserInLijstNew,type VSUserSitesNew, securityUserSelect, VSUserGroupValues } from "~/types/users";
+import { VSUserRoleValuesNew, type VSUserWithRolesNew} from "~/types/users";
+import { securityUserSelect, VSUserGroupValues, VSUserWithRoles } from "~/types/users-coldfusion";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
-import { validateUserSession, generateID } from "~/utils/server/database-tools";
-import { createSecurityProfile, createSecurityProfileCompact } from "~/utils/server/securitycontext";
+import { validateUserSession } from "~/utils/server/database-tools";
+import { createSecurityProfile } from "~/utils/server/securitycontext";
+import { security_users_sites } from "@prisma/client";
 
-// TODO: implement filtering on accessible security_users
 
-const getSitesForUser = (user: VSUserWithRoles): VSUserSitesNew[] => {
-  return user.security_users_sites.map((site) => ({
-    SiteID: site.SiteID,
-    IsContact: site.IsContact,
-    IsOwnOrganization: user.SiteID === site.SiteID,
-    newRoleId: VSUserRoleValuesNew.None
-  }))
-}
+// export const isOwnOrganization = (userGroupID: string | null, userSiteID: string | null, userSites: Pick<security_users_sites, "SiteID" | "IsContact">[], activeContactId: string): boolean => {
+//   switch(userGroupID) {
+//     case VSUserGroupValues.Intern:
+//       return userSiteID === "1";
+//     case VSUserGroupValues.Extern:
+//       return userSiteID === activeContactId || userSites.some((site) => site.SiteID === activeContactId && site.IsContact);
+//     case VSUserGroupValues.Exploitant:
+//       return userSiteID === activeContactId;
 
-export const convertToNewUser = async (user: VSUserWithRoles, activeContactId: string): Promise<VSUserWithRolesNew|false> => {
-  if(null===user) {
-    console.error("convertToNewUser: user is null");
-    return false;
-  }
-
-  return {
-    UserID: user.UserID, 
-    UserName: user.UserName, 
-    DisplayName: user.DisplayName, 
-    Status: user.Status, 
-    SiteID: user.SiteID, 
-    ParentID: user.ParentID, 
-    LastLogin: user.LastLogin, 
-    // EncryptedPassword: user.EncryptedPassword, 
-    // EncryptedPassword2: user.EncryptedPassword2,
-    sites: getSitesForUser(user),
-    securityProfile: await createSecurityProfile(user, activeContactId)
-  }
-}
-
-export const convertToNewUserCompact = (user: VSUserWithRoles): VSUserInLijstNew => {
-  return {
-    UserID: user.UserID, 
-    UserName: user.UserName, 
-    DisplayName: user.DisplayName, 
-    Status: user.Status, 
-    SiteID: user.SiteID, 
-    ParentID: user.ParentID, 
-    LastLogin: user.LastLogin, 
-    // EncryptedPassword: user.EncryptedPassword, 
-    // EncryptedPassword2: user.EncryptedPassword2,
-    sites: getSitesForUser(user),
-    securityProfile: createSecurityProfileCompact(user)
-  }
-}
+//       return true;
+//     default:
+//       return false;
+//   }
+// }
 
 export type SecurityUsersResponse = {
-  data?: VSUserWithRolesNew[] | VSUserInLijstNew[];
+  data?: VSUserWithRolesNew[];
   error?: string;
 };
 
@@ -68,6 +38,54 @@ export const securityUserCreateSchema = z.object({
   Status: z.string().optional(),
   Password: z.string().min(1),
 });
+
+export interface VSUsersForContact {
+  ID: string;
+  Name: string;
+  Organization: string;
+  NewRoleID: string;
+}
+
+const getUsersForContact = async (contactID: string): Promise<VSUserWithRolesNew[]> => {
+//   { 
+//     UserID: true, UserName: true, DisplayName: true, Status: true, SiteID: true, LastLogin: true, user_contact_roles: { select: { ContactID: true, NewRoleID: true } }, security_users_sites: { select: { SiteID: true, IsContact: true } } },
+//   orderBy: { UserID: 'asc' }
+// }  
+  const linkedusers = (await prisma.security_users.findMany({
+    where: { user_contact_roles: { some: { ContactID: contactID } } },
+    select: securityUserSelect,
+    orderBy: { UserID: 'asc' }
+  }));
+
+  const result = linkedusers
+    .map(user => { 
+      const theRoleInfo = user.user_contact_roles.find((role) => role.ContactID === contactID)
+      console.log("theRoleInfo - getUsersForContact", theRoleInfo);
+      const currentRoleID: VSUserRoleValuesNew = theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
+      const isContact = user.security_users_sites.some((site) => site.SiteID === contactID && site.IsContact);
+      const isOwnOrganization = theRoleInfo?.isOwnOrganization || false;
+
+      const newUserData: VSUserWithRolesNew = {
+        UserID: user.UserID, 
+        UserName: user.UserName, 
+        DisplayName: user.DisplayName, 
+        Status: user.Status, 
+        LastLogin: user.LastLogin, 
+        // EncryptedPassword: user.EncryptedPassword, 
+        // EncryptedPassword2: user.EncryptedPassword2,
+        // sites: getSitesForUser(user),
+        securityProfile: createSecurityProfile(currentRoleID),
+        isContact: isContact,
+        isOwnOrganization: isOwnOrganization,
+      }
+        return newUserData;
+    })
+    .filter(user => user.DisplayName !== ""); // filter out users without a name or organization
+
+  
+
+    return result;
+}
 
 export default async function handle(
   req: NextApiRequest,
@@ -82,74 +100,57 @@ export default async function handle(
   }
 
   const { sites, userId, activeContactId } = validateUserSessionResult;
+  const  contactId = req.query.contactId as unknown as string; // optional: get users for a specific contact, 
 
-  const activeContact = await prisma.contacts.findUnique({
+  const selectedContactId = contactId || activeContactId;
+
+  const selectedContact = await prisma.contacts.findUnique({
     where: {
-      ID: activeContactId
+      ID: selectedContactId
     }, 
     select: {
       ItemType: true
     }
   });
 
-  let wherefilter: any = undefined;
-  if(activeContactId === "1") {
-    // intern users
-    wherefilter = { GroupID: VSUserGroupValues.Intern };
-  } else if(activeContact?.ItemType==="exploitant" || activeContact?.ItemType==="beheerder") {
+  // let wherefilter: any = undefined;
+  // if(selectedContactId === "1") {
+  //   // intern users
+  //   wherefilter = { GroupID: VSUserGroupValues.Intern };
+  // } else if(selectedContact?.ItemType==="exploitant" || selectedContact?.ItemType==="beheerder") {
 
-    const mainusers = await prisma.security_users.findMany({
-      where: { SiteID: activeContactId },
-      select: { UserID: true }
-    });
+  //   const mainusers = await prisma.security_users.findMany({
+  //     where: { SiteID: selectedContactId },
+  //     select: { UserID: true }
+  //   });
 
-    const mainids = mainusers.map(u => u.UserID);
-    wherefilter = {
-      OR: [
-        { UserID: { in: mainids } },
-        { ParentID: { in: mainids} }
-      ]
-    }
-  } else if(activeContact?.ItemType==="organizations") {
-    // extern users
-    wherefilter = { 
-      security_users_sites: {
-        some: {
-          SiteID: activeContactId
-        }
-      }, 
-      GroupID: VSUserGroupValues.Extern };
-  } else if(activeContact?.ItemType==="dataprovider") {
-    wherefilter = { GroupID: false };
-  } else {
-    console.warn("Unknown activeContact type", activeContact?.ItemType);
-    wherefilter = { GroupID: false };
-  }
+  //   const mainids = mainusers.map(u => u.UserID);
+  //   wherefilter = {
+  //     OR: [
+  //       { UserID: { in: mainids } },
+  //       { ParentID: { in: mainids} }
+  //     ]
+  //   }
+  // } else if(selectedContact?.ItemType==="organizations") {
+  //   // extern users
+  //   wherefilter = { 
+  //     security_users_sites: {
+  //       some: {
+  //         SiteID: selectedContactId
+  //       }
+  //     }, 
+  //     GroupID: VSUserGroupValues.Extern };
+  // } else if(selectedContact?.ItemType==="dataprovider") {
+  //   wherefilter = { GroupID: false };
+  // } else {
+  //   console.warn("Unknown selectedContact type", selectedContact?.ItemType);
+  //   wherefilter = { GroupID: false };
+  // }
 
   switch (req.method) {
     case "GET": {
-      const compact = req.query.compact === 'true';
-
       // GET all security users
-      const users = await prisma.security_users.findMany({
-        where: wherefilter,
-        select: securityUserSelect
-      }) as VSUserWithRoles[];
-
-      let newUsers: VSUserWithRolesNew[] | VSUserInLijstNew[] = [];
-
-      if(compact) {
-        newUsers = users.map((user) => {
-          const result = convertToNewUserCompact(user);
-          return result;
-        });
-      } else {
-        newUsers = (await Promise.all(users.map(async (user) => {
-          const result = convertToNewUser(user, activeContactId);
-          return result;
-        }))).filter((user): user is VSUserWithRolesNew => user !== false);
-      }
-
+      const newUsers = await getUsersForContact(selectedContactId);
       res.status(200).json({data: newUsers});
       break;
     }
@@ -157,4 +158,4 @@ export default async function handle(
       res.status(405).json({error: "Method Not Allowed"});
     }
   }
-} 
+}

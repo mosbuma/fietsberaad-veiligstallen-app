@@ -2,7 +2,7 @@
    in the format https://www.veiligstallen.nl/ns/stallingen/[id] */
 
 import { getParkingsFromDatabase } from "~/utils/prisma";
-import { GetServerSideProps } from 'next';
+import { type GetServerSideProps } from 'next';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 

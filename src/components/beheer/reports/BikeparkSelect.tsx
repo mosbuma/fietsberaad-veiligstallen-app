@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ReportBikepark } from './ReportsFilter'; // Adjust the import path if necessary
+import { type ReportBikepark } from './ReportsFilter'; // Adjust the import path if necessary
 
 interface BikeparkSelectProps {
   bikeparks: ReportBikepark[];

@@ -3,13 +3,12 @@ import { prisma } from "~/server/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
-import type { TestResult, TestResponse } from "~/types/test";
-import { TestStatus } from "~/types/test";
-import { GemeentenResponse } from ".";
-import { GemeenteResponse } from "./[id]";
-import { TestError } from "~/types/test";
+import { type TestResult, type TestResponse, TestStatus, TestError } from "~/types/test";
+import { type GemeentenResponse } from ".";
+import { type GemeenteResponse } from "./[id].not";
 import moment from "moment";
 import type { GemeenteValidateResponse } from "./validate";
+import { VSContactItemType } from "~/types/contacts";
 
 export default async function handle(
   req: NextApiRequest,
@@ -167,7 +166,7 @@ export default async function handle(
 
 export const testRecordCreateGemeente = {
   CompanyName: `Test Gemeente ${Date.now()}`,
-  ItemType: "organizations",
+  ItemType: VSContactItemType.Organizations,
   ZipID: "T000",
   ThemeColor1: "1f99d2",
   ThemeColor2: "96c11f",

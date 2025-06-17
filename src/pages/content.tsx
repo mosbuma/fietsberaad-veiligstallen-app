@@ -1,24 +1,18 @@
-import React, { useRef, useState, useEffect } from "react";
-import { NextPage } from "next/types";
-import { GetServerSidePropsContext } from 'next';
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from "react";
+import { type NextPage } from "next/types";
+import { type GetServerSidePropsContext } from 'next';
 import { useSelector, useDispatch } from "react-redux";
-import useQueryParam from '../hooks/useQueryParam';
-import { getServerSession } from "next-auth/next"
+import { getServerSession } from "next-auth/next";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname } from 'next/navigation';
 import type { fietsenstallingen } from "@prisma/client";
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 
 // Import components
 import PageTitle from "~/components/PageTitle";
-import FormInput from "~/components/Form/FormInput";
-import FormCheckbox from "~/components/Form/FormCheckbox";
 import AppHeader from "~/components/AppHeader";
 import ParkingFacilityBrowser from "~/components/ParkingFacilityBrowser";
-import { Button } from "~/components/Button";
 import Modal from "src/components/Modal";
 import Overlay from "src/components/Overlay";
 import Parking from "~/components/Parking";
@@ -36,7 +30,7 @@ import { getParkingsFromDatabase } from "~/utils/prisma";
 import {
   setActiveMunicipalityInfo,
 } from "~/store/mapSlice";
-import { ParkingDetailsType } from "~/types/parking";
+import { type ParkingDetailsType } from "~/types/parking";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   try {
@@ -61,7 +55,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
 const Content: NextPage = ({ fietsenstallingen }: any) => {
   const dispatch = useDispatch();
-  const { push } = useRouter();
   const pathName = usePathname();
 
   const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
@@ -73,13 +66,13 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
       setCurrentStalling(undefined);
     }
 
-    const currentStalling = fietsenstallingen.find((stalling: any) => {
+    const currentStalling = fietsenstallingen.find((stalling) => {
       return stalling.ID === currentStallingId;
     });
 
     setCurrentStalling(currentStalling);
 
-  }, [currentStallingId]);
+  }, [currentStallingId, fietsenstallingen]);
 
 
   const activeMunicipalityInfo = useSelector(
@@ -165,7 +158,7 @@ const Content: NextPage = ({ fietsenstallingen }: any) => {
         </title>
       </Head>
 
-      <AppHeader />
+      <AppHeader  />
 
       <div className={`
 				lg:mt-16

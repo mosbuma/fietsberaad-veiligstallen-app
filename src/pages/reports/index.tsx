@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
-import { NextPage } from "next/types";
-import { GetServerSidePropsContext } from 'next';
+import { type NextPage } from "next/types";
+import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from "next-auth/next"
 import { type Session } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
@@ -75,7 +75,7 @@ const convertToCSV = (objArray: any[], columns: string[], hiddenColumns: string[
 
     for (let i = 0; i < array.length; i++) {
         let line = '';
-        for (let index in visibleColumns) {
+        for (const index in visibleColumns) {
             if (line !== '') line += ',';
             line += extractText(array[i][visibleColumns[index] as string]);
         }

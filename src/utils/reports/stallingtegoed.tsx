@@ -1,6 +1,6 @@
 import type { fietsenstallingen, contacts } from "~/generated/prisma-client";
-import { ReportContent } from "./types";
-import { ParkingDetailsType } from "~/types/parking";
+import { type ReportContent } from "./types";
+import { type ParkingDetailsType } from "~/types/parking";
 import { createVeiligstallenOrgOpwaardeerLinkForMunicipality, createVeiligstallenOrgLink } from "~/utils/parkings";
 
 export const createStallingtegoedReport = async (fietsenstallingen: fietsenstallingen[], contacts: contacts[], showData: boolean): Promise<ReportContent> => {
@@ -112,7 +112,7 @@ export const createStallingtegoedReport = async (fietsenstallingen: fietsenstall
 
 
         const municipality: contacts = contacts.find((c: contacts) => c.ID === parkingdata.SiteID) as any as contacts;
-        let url = municipality ? createVeiligstallenOrgOpwaardeerLinkForMunicipality(municipality, fietsenstallingen) : "";
+        const url = municipality ? createVeiligstallenOrgOpwaardeerLinkForMunicipality(municipality, fietsenstallingen) : "";
         const toonOpwaarderen = url !== "";
 
         report.data.records.push({
@@ -126,7 +126,7 @@ export const createStallingtegoedReport = async (fietsenstallingen: fietsenstall
             "UrlName": municipality ? municipality.UrlName : "",
             "BerekentStallingskosten": parkingdata.BerekentStallingskosten ? "Stalling berekent kosten stallingstransacties" : "FMS berekent kosten stallingstransacties",
         });
-    };
+    }
 
     return report;
 }

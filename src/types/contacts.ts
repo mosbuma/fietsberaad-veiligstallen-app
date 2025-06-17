@@ -1,14 +1,22 @@
 import type { contacts } from "~/generated/prisma-client";
 import type { VSParking } from "~/types/parking";
 
+
+export enum VSContactItemType {
+    Admin = "admin",
+    Dataprovider = "dataprovider",
+    Exploitant = "exploitant",
+    Organizations = "organizations",
+}
 export interface VSContactExploitant {
     ID: string;
     CompanyName: string | null;
     UrlName: string | null;
-    ItemType: string | null;
+    ItemType: VSContactItemType | null;
     Helpdesk: string | null;
     Status: string | null;
     CompanyLogo: string | null;
+    CompanyLogo2: string | null;
     ThemeColor1: string | null;
     ThemeColor2: string | null;
     isManagingContacts: {
@@ -90,7 +98,9 @@ export interface VSContactExploitant {
       "CompanyLogo" | 
       "CompanyLogo2" |
       "ThemeColor1" |
-      "ThemeColor2" 
+      "ThemeColor2" |
+      "CompanyLogo" |
+      "CompanyLogo2"
   > & {
           fietsenstallingen_fietsenstallingen_SiteIDTocontacts?: VSParking[];
       } & {

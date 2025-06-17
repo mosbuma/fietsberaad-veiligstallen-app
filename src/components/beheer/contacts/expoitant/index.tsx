@@ -12,12 +12,10 @@ import type { ParkingDetailsType } from "~/types/parking";
 
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { makeClientApiCall } from '~/utils/client/api-tools';
-// import { useUsers, useUsersInLijst } from '~/hooks/useUsers';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
-import { ExploitantGemeenteResponse } from '~/pages/api/protected/exploitant/[id]/gemeenten/[gemeenteid]';
-import { VSUserGroupValues } from '~/types/users';
+import { type ExploitantGemeenteResponse } from '~/pages/api/protected/exploitant/[id]/gemeenten/[gemeenteid]';
 
 type ExploitantComponentProps = { 
   contactID: string | undefined;
@@ -29,7 +27,6 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const router = useRouter();
   const { data: session } = useSession();
 
-  // const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
   const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten } = useExploitanten(props.contactID);
   const { exploitanten:allExploitanten, isLoading: isLoadingAllExploitanten, error: errorAllExploitanten, reloadExploitanten: reloadAllExploitanten } = useExploitanten(undefined);
   const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
@@ -271,18 +268,16 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     );
   };
 
-  const renderEdit = (isSm: boolean = false) => {
+  const renderEdit = (isSm = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
     const showExploitantEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
-
-    // const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
 
     if(!showStallingEdit && !showExploitantEdit && !showUserEdit) {
       return null;
     }
 
-    const handleOnClose = async (verbose: boolean = false) => {
+    const handleOnClose = async (verbose = false) => {
       if (verbose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }
@@ -303,7 +298,6 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
-            groupid={VSUserGroupValues.Exploitant}
             siteID={currentContactID}
             onClose={()=>setCurrentUserId(undefined)} />
         );
@@ -318,16 +312,12 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
           return (
           <ExploitantEdit 
             id={currentContactID} 
-            gemeenten={gemeenten}
             onClose={() => { 
               setCurrentContactID(undefined); 
 
               reloadExploitanten(); // Refresh the list after edit
               reloadAllExploitanten(); // Refresh the list of all exploitanten
             }} 
-            onEditStalling={(stallingID: string | undefined) => setCurrentStallingId(stallingID) }
-            onEditUser={(userID: string | undefined) => setCurrentUserId(userID) }
-            onSendPassword={(userID: string | undefined) => alert("send password to user " + userID) }
           />
         );
       }

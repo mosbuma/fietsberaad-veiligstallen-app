@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import HorizontalDivider from "~/components/HorizontalDivider";
 import { Button } from "~/components/Button";
 import SectionBlock from "~/components/SectionBlock";
-import { ParkingDetailsType } from "~/types/parking";
+import { type ParkingDetailsType } from "~/types/parking";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality";
 
 const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsType }) => {

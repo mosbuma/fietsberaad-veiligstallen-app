@@ -1,5 +1,5 @@
-import { MunicipalityType } from "./map/active_municipality";
-import { VSContactGemeente } from "~/types/contacts";
+import { type MunicipalityType } from "./map/active_municipality";
+import { type VSContactGemeente } from "~/types/contacts";
 export const getMunicipalityBasedOnCbsCode = async (cbsCode: number): Promise<VSContactGemeente | undefined> => {
   if (!cbsCode) return undefined;
 

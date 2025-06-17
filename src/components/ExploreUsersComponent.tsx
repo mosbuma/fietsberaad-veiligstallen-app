@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
-import { VSUserSecurityProfile, VSMenuTopic } from "~/types/index";
-import { VSContactExploitant, VSContactGemeente } from "~/types/contacts";
-import { VSUserWithRoles, VSUserRole, VSUserGroupValues } from "~/types/users";
+import { VSMenuTopic } from "~/types/index";
+import { type VSUserSecurityProfile } from "~/types/securityprofile";
+import { type VSContactExploitant, type VSContactGemeente } from "~/types/contacts";
+import { type VSUserWithRoles, type VSUserRole, VSUserGroupValues } from "~/types/users-coldfusion";
 import { getNewRoleLabel, getOldRoleLabel } from "~/types/utils";
 import { useGemeenten } from "~/hooks/useGemeenten";
 import { useUsersColdfusion } from "~/hooks/useUsersColdfusion";
 import { useExploitanten } from "~/hooks/useExploitanten";
-import { useDataproviders } from "~/hooks/useDataproviders";
 import { LoadingSpinner } from "./beheer/common/LoadingSpinner";
 
 interface ExploreUsersComponentProps {
@@ -38,12 +38,12 @@ export const getDubiousUserIDs = (users: VSUserWithRoles[]) => {
     });
 
     groupMismatch.forEach((user) => {
-        addReason(user.UserID, `User GroupID ${user.GroupID} does not match security_roles GroupID ${user.security_roles?.GroupID}`);
+        addReason(user.UserID, `User GroupID ${user.GroupID||'???'} does not match security_roles GroupID ${user.security_roles?.GroupID||'???'}`);
     });
 
     const roleMismatch = users.filter((user) => user.RoleID !== user.security_roles?.RoleID);
     roleMismatch.forEach((user) => {
-        addReason(user.UserID, `User RoleID ${user.RoleID} does not match security_roles RoleID ${user.security_roles?.RoleID}`);
+        addReason(user.UserID, `User RoleID ${user.RoleID||'???'} does not match security_roles RoleID ${user.security_roles?.RoleID||'???'}`);
     });
 
     const noLinkedSites = users.filter((user) => user.security_users_sites.length === 0 && user.SiteID === null);
@@ -59,22 +59,20 @@ export const getDubiousUserIDs = (users: VSUserWithRoles[]) => {
     return dubiousUserIDs;
 }
 
-const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {   
+const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {  
+    const { data: session } = useSession();
     const router = useRouter();
 
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
     const { roles } = props;
-    const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers: reloadUsers } = useUsersColdfusion();
-    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten(undefined);
-    const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
+    const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersColdfusion();
+    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten } = useExploitanten(undefined);
 
     const [archivedUserIds, setArchivedUserIds] = useState<string[]>([]);
     const [archivedFilter, setArchivedFilter] = useState<"Yes" | "No" | "Only">("No");
 
-    const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten, reloadGemeenten: reloadGemeenten } = useGemeenten();
-
-    const [managingContactIDs, setManagingContactIDs] = useState<string[]>([]);
+    const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
 
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
@@ -115,23 +113,23 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         if(selectedUserID && !filteredUsers.some((user) => user.UserID === selectedUserID)) {
             setSelectedUserID(null);
         }
-    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, filteredUsers]);
+    }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, filteredUsers, selectedUserID]);
 
     useEffect(() => {
-        if(securityProfile) {
-            const mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
+        if(session?.user?.mainContactId) {
+            const mainContact = gemeenten.find((gemeente) => gemeente.ID === session.user.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === session.user.mainContactId);
             setActiveOrganization(mainContact || null);
         } else {
             setActiveOrganization(null);
         }
-    }, [securityProfile?.mainContactId]);
+    }, [session?.user?.mainContactId, gemeenten, exploitanten]);
 
     useEffect(() => {
         const currentUserID = router.query.userID;
         if (currentUserID && currentUserID !== selectedUserID) {
                 setSelectedUserID(currentUserID as string);
             }
-    }, [router.query.userID]);
+    }, [router.query.userID, selectedUserID]);
 
     useEffect(() => {
         if(router.query.userID !== selectedUserID) {
@@ -139,17 +137,22 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             router.push({
                 pathname: router.pathname,
                     query: { ...router.query, userID: selectedUserID }
+                }).catch(err => {
+                    console.error("Error pushing router", err);
                 });
             }
         } else {
             // delete userID from router query
-            const { userID, ...rest } = router.query;
+            const newQuery = { ...router.query };
+            delete newQuery.userID;
             router.push({
                 pathname: router.pathname,
-                query: rest
+                query: newQuery
+            }).catch(err => {
+                console.error("Error pushing router", err);
             });
         }
-    }, [selectedUserID]);
+    }, [selectedUserID, router]);
 
     useEffect(() => {
         console.debug("***EXPLOREUSERSCOMPONENT - USEEFFECT FILTEREDUSERS");
@@ -248,8 +251,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             }
         }
 
-        loadSecurityProfile();
-    }, [selectedUser?.UserID, activeOrganization?.ID]);
+        loadSecurityProfile().catch(err => {
+            console.error("Error loading security profile", err);
+        });
+    }, [selectedUser?.UserID, activeOrganization?.ID, isLoadingProfile, setIsLoadingProfile, setProfileError, setSecurityProfile, selectedUser]);
 
     useEffect(() => {
         if (selectedUser) {
@@ -258,14 +263,16 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 try {
                     const response = await fetch(`/api/protected/archive/user/status/${selectedUser.UserID}`);
                     if (response.ok) {
-                        const data = await response.json();
+                        const data = await response.json() as { archived: boolean };
                         setIsArchived(data.archived);
                     }
                 } catch (error) {
                     console.error('Error fetching archive status:', error);
                 }
             };
-            fetchArchiveStatus();
+            fetchArchiveStatus().catch(err => {
+                console.error("Error fetching archive status", err);
+            });
         }
     }, [selectedUser]);
 
@@ -307,8 +314,10 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
             }
         }
 
-        fetchManagedContacts();
-    }, [selectedUser?.UserID]);
+        fetchManagedContacts().catch(err => {
+            console.error("Error fetching managed contacts", err);
+        });
+    }, [selectedUser?.UserID, isLoadingManagedContacts, setIsLoadingManagedContacts, setManagedContacts, selectedUser]);
 
     const handleArchiveToggle = async () => {
         if (!selectedUser) return;
@@ -609,15 +618,14 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                 const tokenResponse = await fetch(`/api/security/gettoken/${encodeURIComponent(selectedUser.UserID)}`);
                 
                 if (!tokenResponse.ok) {
-                    const error = await tokenResponse.json();
-                    console.error("Failed to get token:", error);
+                    console.error("Failed to get token:");
                     return;
                 }
 
-                const { token } = await tokenResponse.json();
+                const { token } = await tokenResponse.json() as { token: string };
 
                 // Attempt to sign in using the token provider
-                const result = await signIn("token-login", {
+                await signIn("token-login", {
                     userid: selectedUser.UserID,
                     token,
                     redirect: true,
@@ -787,7 +795,7 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
                     className="mt-1 p-2 border border-gray-300 rounded-md" 
                     value={activeOrganization?.ID||'none'}
                     onChange={(e) => {
-                        let organization = null;
+                        let organization: VSContactGemeente | VSContactExploitant | null = null;
                         if(e.target.value !== "none") {
                             if(e.target.value === mainContact?.ID) {
                                 organization = mainContact;
@@ -910,21 +918,18 @@ const ExploreUsersComponent = (props: ExploreUsersComponentProps) => {
         }
     }
 
-    // limit list size to 20
-    const displayedContacts = showAllContacts ? managedContacts : managedContacts.slice(0, 16);
-
-    if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten || isLoadingDataproviders) {
+    if(isLoadingUsers || isLoadingExploitanten || isLoadingGemeenten || isLoadingManagedContacts) {
         const whatIsLoading = [
             isLoadingUsers && "Gebruikers",
             isLoadingExploitanten && "Exploitanten",
             isLoadingGemeenten && "Gemeenten",
-            isLoadingDataproviders && "Dataproviders"
+            isLoadingManagedContacts && "Managed Contacts"
         ].filter(Boolean).join(" + ");
         return <LoadingSpinner message={whatIsLoading + ' laden'} />;
     }
 
-    if(errorUsers || errorExploitanten || errorGemeenten || errorDataproviders) {
-        return <div>Error: {errorUsers || errorExploitanten || errorGemeenten || errorDataproviders }</div>;
+    if(errorUsers || errorExploitanten || errorGemeenten ) {
+        return <div>Error: {errorUsers || errorExploitanten || errorGemeenten  }</div>;
     }
 
     return (
@@ -952,6 +957,8 @@ async function fetchSecurityProfile(userId: string, activeContactId: string) {
             'Content-Type': 'application/json',
         }
     });
+
+    console.log("response", response);
 
     if (!response.ok) {
         throw new Error('Failed to fetch security profile');

@@ -6,12 +6,11 @@ import type { fietsenstallingtypen } from '@prisma/client';
 import ParkingEdit from '~/components/parking/ParkingEdit';
 import GemeenteFilter from '~/components/beheer/common/GemeenteFilter';
 import { getParkingDetails } from "~/utils/parkings";
-import type { VSContactGemeente, VSContactGemeenteInLijst } from "~/types/contacts";
-import { VSUserGroupValues, type VSUserWithRolesNew } from "~/types/users";
+import type { VSContactGemeenteInLijst } from "~/types/contacts";
 import type { ParkingDetailsType } from "~/types/parking";
 import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
-import { useUsersInLijst } from '~/hooks/useUsers';
+import { useUsers } from '~/hooks/useUsers';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
 import { Table } from '~/components/common/Table';
 
@@ -30,7 +29,7 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
   const [currentRevision, setCurrentRevision] = useState<number>(0);
   const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
 
-  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsersInLijst();
+  const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
   const { gemeenten, reloadGemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
 
   useEffect(() => {
@@ -126,18 +125,16 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
     );
   };
 
-  const renderEdit = (isSm: boolean = false) => {
+  const renderEdit = (isSm = false) => {
     const showStallingEdit = currentStalling !== undefined;
     const showUserEdit = currentUserId !== undefined;
     const showGemeenteEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
-
-    const filteredUsers = users.filter(user => user.sites.some(site => site.SiteID === currentContactID) === true);
 
     if(!showStallingEdit && !showGemeenteEdit && !showUserEdit) {
       return null;
     }
 
-    const handleOnClose = async (confirmClose: boolean = false) => {
+    const handleOnClose = async (confirmClose = false) => {
       if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?')===false)) { 
         return;
       }
@@ -157,7 +154,6 @@ const GemeenteComponent: React.FC<GemeenteComponentProps> = (props) => {
         return (
           <UserEditComponent 
             id={currentUserId} 
-            groupid={VSUserGroupValues.Extern}
             siteID={currentContactID}
             onClose={() => handleOnClose(true)}
           />

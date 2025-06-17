@@ -1,7 +1,6 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
-import { getManagedContacts } from "~/utils/server/securitycontext";
 import { prisma } from "~/server/db";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -33,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const managedContacts = await getManagedContacts(user);
+        const managedContacts = user.security_users_sites.map((site) => site.SiteID);
         return res.status(200).json({ managedContacts });
     } catch (error) {
         console.error('Error fetching managed contacts:', error);

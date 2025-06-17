@@ -13,7 +13,7 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
 import { TRANSFORMERS } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getRoot, LexicalEditor, $getSelection, $isRangeSelection, createCommand } from 'lexical';
+import { $getRoot, type LexicalEditor, $getSelection, $isRangeSelection, createCommand } from 'lexical';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { useEffect } from 'react';
 import styles from './RichTextEditor.module.css';

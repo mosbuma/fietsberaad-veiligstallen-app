@@ -88,7 +88,7 @@ const FietsenstallingenComponent: React.FC<FietsenstallingenComponentProps> = ({
     }
   };
 
-  const handleClose = (confirmClose: boolean = false) => {
+  const handleClose = (confirmClose = false) => {
     if (confirmClose && (confirm('Wil je het bewerkformulier verlaten?') === false)) {
       return;
     }

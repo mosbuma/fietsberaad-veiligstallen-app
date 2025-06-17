@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserContactRoleStatus, UserContactRoleParams, UserContactRoleActions, UserContactRoleResult } from "~/backend/services/database-service";
+import { type UserContactRoleStatus, type UserContactRoleParams, type UserContactRoleActions, type UserContactRoleResult } from "~/backend/services/database-service";
 
 const UserContactRoleTableComponent: React.FC = ({  }) => {
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ const UserContactRoleTableComponent: React.FC = ({  }) => {
             throw new Error(`Error: ${response}`);
           }
           
-          let result = await response.json() as UserContactRoleResult;
+          const result = await response.json() as UserContactRoleResult;
           if(result.success && result.status) {
             setUserContactRoleStatus(result.status);
             setErrorState("");

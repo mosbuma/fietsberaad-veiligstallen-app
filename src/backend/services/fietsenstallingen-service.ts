@@ -83,7 +83,7 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
 
         await prisma.fietsenstalling_sectie.create({ data: sectiedata });
         const allTypes = await prisma.fietstypen.findMany();
-        for (let typedata of allTypes) {
+        for (const typedata of allTypes) {
           const newSubSectieIdResult = await prisma.sectie_fietstype.aggregate({
             _max: {
               SectionBiketypeID: true
@@ -99,7 +99,7 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
             BikeTypeID: typedata.ID
           }
           await prisma.sectie_fietstype.create({ data: subsectiedata });
-        };
+        }
       }
 
       return createresult;

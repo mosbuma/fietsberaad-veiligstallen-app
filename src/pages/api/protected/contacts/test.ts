@@ -5,11 +5,11 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import type { TestResult, TestResponse } from "~/types/test";
 import { TestStatus } from "~/types/test";
-import { ContactsResponse } from ".";
-import { ContactResponse } from "./[id]";
+import { type ContactsResponse } from ".";
+import { type ContactResponse } from "./[id]";
 import { TestError } from "~/types/test";
-import moment from "moment";
 import type { ContactValidateResponse } from "./validate";
+import { VSContactItemType } from "~/types/contacts";
 
 export default async function handle(
   req: NextApiRequest,
@@ -170,7 +170,7 @@ export default async function handle(
 export const testRecordCreateContact = {
   FirstName: `Test First ${Date.now()}`,
   LastName: `Test Last ${Date.now()}`,
-  ItemType: "organizations",
+  ItemType: VSContactItemType.Organizations,
   Email1: "test@example.com",
   Phone1: "0612345678",
   Mobile1: "0612345678",
@@ -388,12 +388,12 @@ async function testDeleteContact(req: NextApiRequest, id: string): Promise<TestR
 async function testValidateContact(req: NextApiRequest, id: string): Promise<TestResult> {
   try {
     const { success, result } = await makeApiCall<ContactValidateResponse>(req, `/api/protected/contacts/${id}`);
-    if (!success || !result?.data) {
+    if (!success || !result) {
       return {
         name: "Validate Record",
         status: TestStatus.Failed,
-        message: `Failed to validate record: ${result?.error || 'Unknown error'}`,
-        details: result?.error
+        message: `Failed to validate record: ${result?.message || 'Unknown error'}`,
+        details: result?.message
       };
     }
 
@@ -410,7 +410,7 @@ async function testValidateContact(req: NextApiRequest, id: string): Promise<Tes
       name: "Validate Record",
       status: TestStatus.Success,
       message: "Successfully validated record",
-      details: result.data
+      details: result
     };
   } catch (error) {
     return {

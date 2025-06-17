@@ -81,7 +81,7 @@ const Parking = ({ id, stallingId, fietsenstallingen, onStallingIdChanged, onClo
     return null;
   }
 
-  let allowEdit = session.status === "authenticated" || currentStalling && currentStalling.Status === "aanm";
+  const allowEdit = session.status === "authenticated" || currentStalling && currentStalling.Status === "aanm";
 
   let content = undefined;
   if (allowEdit === true && (editMode === true)) {

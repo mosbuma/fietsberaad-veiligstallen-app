@@ -4,14 +4,13 @@ import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
-import { AppState } from "~/store/store";
-import type { VSUserSecurityProfile } from "~/types/";
+import { type AppState } from "~/store/store";
+import type { VSUserSecurityProfile } from "~/types/securityprofile";
 import type { Session } from "next-auth";
 import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~/types/contacts";
 import { userHasRight, logSession } from '~/types/utils';
 import { getOrganisationByID } from "~/utils/organisations";
-import Image from "next/image";
-import { useGemeente } from "~/hooks/useGemeente";
+import ImageWithFallback from "~/components/common/ImageWithFallback";
 
 interface TopBarProps {
   title: string;
@@ -27,7 +26,7 @@ const getSelectedOrganisationInfo = (gemeenten: VSContactGemeenteInLijst[], expl
   // Merge gemeenten and exploitanten
   const organisations = [...gemeenten, ...exploitanten];
   // Get organisation info
-  const organisation: VSContact | undefined = getOrganisationByID(organisations as VSContact[], selectedGemeenteID || "");
+  const organisation: VSContact | undefined = getOrganisationByID(organisations as unknown as VSContact[], selectedGemeenteID || "");
 
   return organisation;
 }
@@ -76,12 +75,12 @@ const TopBar: React.FC<TopBarProps> = ({
 
   const handleDisplaySessionInfo = () => {
     if(process.env.NODE_ENV === 'development') {
-      logSession(session as Session | null);
+      logSession(session );
     }
   };
 
   const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
-  const showFietsberaadInList = profile?.mainContactId === "1";
+  const showFietsberaadInList = session?.user?.mainContactId === "1";
   const fietsberaad = {
     ID: "1",
     CompanyName: "Fietsberaad",
@@ -94,9 +93,9 @@ const TopBar: React.FC<TopBarProps> = ({
     CompanyName: gemeente.CompanyName,
   })).sort((a, b) => {
     // If a is the main contact, it should come first
-    if (a.ID === (profile?.mainContactId || "")) return -1;
+    if (a.ID === (session?.user?.mainContactId || "")) return -1;
     // If b is the main contact, it should come first
-    if (b.ID === (profile?.mainContactId || "")) return 1;
+    if (b.ID === (session?.user?.mainContactId || "")) return 1;
     // Otherwise sort alphabetically
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
@@ -105,14 +104,14 @@ const TopBar: React.FC<TopBarProps> = ({
     CompanyName: "** " + exploitant.CompanyName + " **",
   })).sort((a, b) => {
     // If a is the main contact, it should come first
-    if (a.ID === (profile?.mainContactId || "")) return -1;
+    if (a.ID === (session?.user?.mainContactId || "")) return -1;
     // If b is the main contact, it should come first
-    if (b.ID === (profile?.mainContactId || "")) return 1;
+    if (b.ID === (session?.user?.mainContactId || "")) return 1;
     // Otherwise sort alphabetically
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
 
-  let organisaties = [...(gemeentenKort || []), ...(exploitantenKort || [])];
+  const organisaties = [...(gemeentenKort || []), ...(exploitantenKort || [])];
   if(showFietsberaadInList) {
     organisaties.unshift(fietsberaad);
   }
@@ -124,13 +123,19 @@ const TopBar: React.FC<TopBarProps> = ({
       return <img src={activecontact?.CompanyLogo} className="max-h-16 w-auto bg-white p-2" />
     }
 
-    if(activecontact?.CompanyLogo) {
-      return <Image
-        src={activecontact?.CompanyLogo !== null && activecontact?.CompanyLogo !== undefined
-          ? activecontact.CompanyLogo.startsWith('http') 
-            ? activecontact.CompanyLogo 
-            : activecontact.CompanyLogo.replace('[local]', '')
-          : "https://fms.veiligstallen.nl/resources/client/logo.png"}
+    let logofile ="https://fms.veiligstallen.nl/resources/client/logo.png";
+    if(activecontact?.CompanyLogo && activecontact?.CompanyLogo !== null) {
+      logofile = activecontact.CompanyLogo;
+      if(!logofile.startsWith('http')) {
+          logofile =logofile.replace('[local]', '')
+          if(!logofile.startsWith('/')) {
+            logofile = '/' + logofile;
+          }
+      }
+
+      return <ImageWithFallback
+        src={logofile}
+        fallbackSrc="https://fms.veiligstallen.nl/resources/client/logo.png"
         alt="Logo"
         width={64}
         height={64}
@@ -206,7 +211,7 @@ const TopBar: React.FC<TopBarProps> = ({
                 key={`select-organisatie-option-${organisatie.ID}`}
                 value={organisatie.ID}
               >
-                {organisatie.CompanyName} {organisatie.ID===profile?.mainContactId ? " (mijn organisatie)" : ""}
+                {organisatie.CompanyName} {organisatie.ID===session?.user?.mainContactId ? " (mijn organisatie)" : ""}
               </option>
             ))}
           </select>

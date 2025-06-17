@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "./store";
 import { HYDRATE } from "next-redux-wrapper";
-import { VSContactGemeente } from "~/types/contacts";
+import { type VSContactGemeente } from "~/types/contacts";
 // Type for our state
 export interface MapState {
-  extent: Number[];
-  zoom: Number | undefined;
+  extent: number[];
+  zoom: number | undefined;
   selectedParkingId: string | undefined; // selected on map / in list
   activeParkingId: string | undefined;  // visible in modal
   activeMunicipalityInfo: VSContactGemeente | undefined;

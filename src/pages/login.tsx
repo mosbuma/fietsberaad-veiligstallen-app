@@ -13,7 +13,7 @@ import { signIn } from "next-auth/react";
 
 // Import styles
 import Styles from "./login.module.css";
-import { NextPage } from "next/types";
+import { type NextPage } from "next/types";
 
 const Login: NextPage = () => {
   const emailRef = useRef<HTMLInputElement | null>(null);

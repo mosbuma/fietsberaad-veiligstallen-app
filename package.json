@@ -10,7 +10,7 @@
     "build": "next build",
     "dev": "next dev",
     "postinstall": "prisma generate",
-    "lint": "next lint",
+    "lint": "eslint .",
     "start": "next start",
     "setup-db-local": "cd mysql-db && bash setup-db.sh && cd .. && prisma db pull --force && prisma generate",
     "start-db-local": "docker start veiligstallen-mysql",

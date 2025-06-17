@@ -1,6 +1,6 @@
 import { Prisma } from "~/generated/prisma-client";
 import { prisma } from "~/server/db";
-import { Session } from "next-auth";
+import { type Session } from "next-auth";
 
 const getParkingsFromDatabase = async (sites: string[] | undefined, session: Session | null = null) => {
   let fietsenstallingen;

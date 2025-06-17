@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ReportBikepark } from '~/components/beheer/reports/ReportsFilter';
+import { type ReportBikepark } from '~/components/beheer/reports/ReportsFilter';
 
 type FietsenstallingenResponse = {
   data?: (ReportBikepark)[];
   error?: string;
 };
 
-export const useFietsenstallingen = (GemeenteID: string, compact: boolean = true) => {
+export const useFietsenstallingen = (GemeenteID: string, compact = true) => {
   const [fietsenstallingen, setFietsenstallingen] = useState<(ReportBikepark)[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

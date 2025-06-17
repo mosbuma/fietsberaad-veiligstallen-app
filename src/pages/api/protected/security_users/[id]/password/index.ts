@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSUserWithRoles, type VSUserWithRolesNew, securityUserChangePasswordSelect } from "~/types/users";
+import { type VSUserWithRolesNew } from "~/types/users";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { z } from "zod";
-import { generateID, validateUserSession } from "~/utils/server/database-tools";
-import { convertToNewUser } from "~/pages/api/protected/security_users";
-// TODO: implement filtering on accessible security_users
+import { validateUserSession } from "~/utils/server/database-tools";
+import { getSecurityUserNew } from "~/utils/server/security-users-tools";
+
 
 export type SecurityUserChangePasswordResponse = {
   data?: VSUserWithRolesNew;
@@ -47,17 +47,9 @@ export default async function handle(
         }
         const parsed = parseResult.data;
 
-        const updatedUser = await prisma.security_users.update({
-          where: { UserID: id },
-          data: {
-            EncryptedPassword: parsed.hashedpassword,
-            EncryptedPassword2: parsed.hashedpassword,
-          },
-          select: securityUserChangePasswordSelect
-        }) as VSUserWithRoles;
+        const updatedUser = await getSecurityUserNew(id, activeContactId);
 
-        const newUser = await convertToNewUser(updatedUser, activeContactId);
-        res.status(201).json({ data: newUser });
+        res.status(201).json({ data: updatedUser as unknown as VSUserWithRolesNew });
       } catch (e) {
         console.error("Error updating security user:", e);
         res.status(500).json({error: "Error updating security user"});

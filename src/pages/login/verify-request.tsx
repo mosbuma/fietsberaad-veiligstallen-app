@@ -23,7 +23,7 @@ import { signIn } from "next-auth/react";
 // import Parking from "~/components/Parking";
 
 import Styles from "./error.module.css";
-import { NextPage } from "next/types";
+import { type NextPage } from "next/types";
 import Head from "next/head";
 import AppHeader from "~/components/AppHeader";
 

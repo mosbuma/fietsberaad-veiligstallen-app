@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ChangeEvent, MouseEvent, useState } from "react";
+import { type ChangeEvent, type MouseEvent, useState } from "react";
 import type {contacts } from '@prisma/client';
 import { Button } from "~/components/Button";
 import ImageSlider from "~/components/ImageSlider";
@@ -84,7 +84,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
     }
 
     try {
-      var formData = new FormData();
+      const formData = new FormData();
       formData.append("media", file);
 
       const res = await fetch("/api/upload", {

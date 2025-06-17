@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
-import { type VSContact, type VSContactInLijst, contactSelect, contactLijstSelect } from "~/types/contacts";
+import { type VSContact, type VSContactInLijst, VSContactItemType, contactSelect, contactLijstSelect } from "~/types/contacts";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession } from "~/utils/server/database-tools";
@@ -34,7 +34,7 @@ export default async function handle(
       // GET all contacts user can access
       const contacts = (await prisma.contacts.findMany({
         where: {
-          ItemType: "organizations",
+          ItemType: VSContactItemType.Organizations,
           ID: { in: sites }
         },
         select: compact ? contactLijstSelect : contactSelect
@@ -71,8 +71,8 @@ export default async function handle(
         );
 
         for(const contact of contacts) {
-          // const hasUsers = siteIdsWithUsers.has(contact.ID);
-          // const hasStallingen = (contact.managesFietsenstallingen?.length || 0) > 0;
+          const hasUsers = siteIdsWithUsers.has(contact.ID);
+          const hasStallingen = (contact.managesFietsenstallingen?.length || 0) > 0;
           
           data.push({
             ID: contact.ID,
@@ -80,10 +80,10 @@ export default async function handle(
             LastName: contact.LastName,
             Email1: contact.Email1,
             Phone1: contact.Phone1,
-            // hasUsers,
-            // hasStallingen
+            hasUsers,
+            hasStallingen
           })
-        };
+        }
         res.status(200).json({data})
       } else {
         res.status(200).json({data: contacts})

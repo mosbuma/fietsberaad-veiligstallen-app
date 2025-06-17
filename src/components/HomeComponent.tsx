@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -42,17 +42,16 @@ import { IconButton } from "~/components/Button";
 import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
 import AppNavigationMobile from "~/components/AppNavigationMobile";
 import MapboxMap from "~/components/MapComponent";
-import ParkingFacilityBlock from "~/components/ParkingFacilityBlock";
 import FooterNav from "~/components/FooterNav";
 
 import { useSession } from "next-auth/react";
-import { AppState } from "~/store/store";
+import { type AppState } from "~/store/store";
 import { createNewStalling } from "~/utils/parkings";
 import { getMunicipalityBasedOnLatLng } from "~/utils/map/active_municipality"; 
 
-import { Session } from "next-auth";
+import { type Session } from "next-auth";
 import ArticleComponent from "./ArticleComponent";
-import { fietsenstallingen } from "~/generated/prisma-client";
+import { type fietsenstallingen } from "~/generated/prisma-client";
 import InfomodalComponent from "./InfomodalComponent";
 
 interface HomeComponentProps {
@@ -74,17 +73,17 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
   
     const dispatch = useDispatch();
   
-    const activeTypes = useSelector(
-      (state: AppState) => state.filter.activeTypes,
-    );
+    // const activeTypes = useSelector(
+    //   (state: AppState) => state.filter.activeTypes,
+    // );
 
     const activeTypes2 = useSelector(
       (state: AppState) => state.filter.activeTypes2
     );
 
-    const activeTypesArticles = useSelector(
-      (state: AppState) => state.filterArticles.activeTypes,
-    );
+    // const activeTypesArticles = useSelector(
+    //   (state: AppState) => state.filterArticles.activeTypes,
+    // );
   
     const isParkingListVisible = useSelector(
       (state: AppState) => state.app.isParkingListVisible,
@@ -180,7 +179,7 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
           return;
         }
 
-        let cbsCode = cbsCodeFromMunicipality(ddmunicipality);
+        const cbsCode = cbsCodeFromMunicipality(ddmunicipality);
         if(cbsCode === false) {
           console.warn("#### HomeComponent - no valid cbsCode for the current location");
           // updateUrl("root");

@@ -5,6 +5,7 @@ import "keen-slider/keen-slider.min.css";
 import CardStyles from './Card.module.css';
 
 import ParkingFacilityBlock from './ParkingFacilityBlock';
+import { type ParkingDetailsType } from "~/types/parking";
 
 export interface CardData {
   ID: string;
@@ -12,24 +13,22 @@ export interface CardData {
   description: string;
 }
 
-interface Props extends CardData {}
-
-const Card: React.FC<Props> = ({
+const Card: React.FC<CardData> = ({
   parking,
-  compact,
+  compact = true,
   expandParking,
   clickParking,
-  showButtons
+  showButtons = false
 }: {
-  parking: object,
-  compact?: true,
-  expandParking?: Function,
-  clickParking?: Function,
-  showButtons?: false
+  parking: ParkingDetailsType,
+  compact: boolean,
+  expandParking?: () => void,
+  clickParking?: () => void,
+  showButtons: boolean
 }) => {
   return (
     <div
-      key={"card-" + parking.title}
+      key={`card-${parking.ID}`}
       className={`
         ${CardStyles.base}
         keen-slider__slide

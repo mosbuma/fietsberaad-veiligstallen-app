@@ -1,6 +1,8 @@
 import { z } from "zod";
 import moment from "moment";
 import { VSUserRoleValuesNew } from "./users";
+import { type VSContactExploitant, VSContactItemType } from '~/types/contacts';
+
 // Custom validation for the ID format (e.g., 0199B305-F1B5-408D-9D4927EBA0F9A80D)
 export const idSchema = z.string().refine(
   (id) => {
@@ -33,16 +35,19 @@ export const exploitantSchema = z.object({
 // use partial to allow optional fields
 export const exploitantCreateSchema = exploitantSchema.omit({ ID: true });
 
-export const getDefaultNewExploitant = (naam: string = "Nieuwe exploitant")=> { 
+export const getDefaultNewExploitant = (naam = "Nieuwe exploitant"): VSContactExploitant => { 
   return {
     ID: 'new',
     CompanyName: naam,
     UrlName: "",
-    ItemType: "exploitant",
+    ItemType: VSContactItemType.Exploitant,
     Helpdesk: "",
     Status: "active",
-    ParentID: "mb",
     isManagingContacts: [],
+    CompanyLogo: "",
+    CompanyLogo2: "",
+    ThemeColor1: "#1f99d2",
+    ThemeColor2: "#96c11f",
   }
 }
 
@@ -117,11 +122,11 @@ export const gemeenteSchema = z.object({
 
 export const gemeenteCreateSchema = gemeenteSchema.omit({ ID: true });
 
-export const getDefaultNewGemeente = (naam: string = "Nieuwe gemeente")=> { 
+export const getDefaultNewGemeente = (naam = "Nieuwe gemeente")=> { 
   return {
     ID: 'new',
     CompanyName: naam,
-    ItemType: "organizations",
+    ItemType: VSContactItemType.Organizations,
     AlternativeCompanyName: "",
     UrlName: "",
     ZipID: "mb",
@@ -170,7 +175,7 @@ export const dataproviderCreateSchema = dataproviderSchema.omit({ ID: true });
 export const getDefaultNewDataprovider = (name: string) => ({
   ID: 'new',
   CompanyName: name,
-  ItemType: "dataprovider" as const,
+  ItemType: VSContactItemType.Dataprovider as const,
   UrlName: null,
   Password: null,
   Status: "1",
@@ -252,7 +257,7 @@ export const contactSchema = z.object({
 
 export const contactCreateSchema = contactSchema.omit({ ID: true });
 
-export const getDefaultNewContact = (naam: string = "Nieuw contact") => {
+export const getDefaultNewContact = (naam = "Nieuw contact") => {
   const [firstName, ...lastNameParts] = naam.split(' ');
   const lastName = lastNameParts.join(' ');
   
@@ -269,5 +274,7 @@ export const getDefaultNewContact = (naam: string = "Nieuw contact") => {
     DateRegistration: moment().toDate(),
     DateConfirmed: null,
     DateRejected: null,
+    CompanyLogo: null,
+    CompanyLogo2: null,
   }
 };
