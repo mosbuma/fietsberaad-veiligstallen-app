@@ -25,8 +25,6 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
 
   const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers } = useUsers();
 
-  console.log("users", users);
-
   const handleResetPassword = (userId: string) => {
     // Placeholder for reset password logic
     console.log(`Reset password for user: ${userId}`);

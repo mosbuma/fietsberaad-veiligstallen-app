@@ -1,5 +1,5 @@
 import { useSession } from 'next-auth/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { type VSUserWithRolesNew } from '~/types/users';
 
 type UsersResponse = {
@@ -12,7 +12,6 @@ export const useUsers = (id: string | undefined = undefined) => {
   const [users, setUsers] = useState<VSUserWithRolesNew[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const mounted = useRef(false);
 
   const fetchUsers = async () => {
     try {
@@ -48,11 +47,11 @@ export const useUsers = (id: string | undefined = undefined) => {
   };
 
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
+    // Only fetch if session is loaded and not in loading state
+    if (session.status !== 'loading') {
       fetchUsers();
     }
-  });
+  }, [session.status, session.data?.user?.activeContactId, id]);
 
   return {
     users,

@@ -92,19 +92,15 @@ export const UserAccessRight: React.FC<UserAccessRightProps> = ({
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Onderdeel</th>
                   <th className="px-2 py-2 text-center text-xs font-medium text-gray-500">
                     <div>Toevoegen</div>
-                    <div className="text-xs text-gray-400">✓</div>
                   </th>
                   <th className="px-2 py-2 text-center text-xs font-medium text-gray-500">
                     <div>Lezen</div>
-                    <div className="text-xs text-gray-400">✓</div>
                   </th>
                   <th className="px-2 py-2 text-center text-xs font-medium text-gray-500">
                     <div>Wijzigen</div>
-                    <div className="text-xs text-gray-400">✓</div>
                   </th>
                   <th className="px-2 py-2 text-center text-xs font-medium text-gray-500">
                     <div>Verwijderen</div>
-                    <div className="text-xs text-gray-400">✓</div>
                   </th>
                 </tr>
               </thead>
