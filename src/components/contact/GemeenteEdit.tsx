@@ -407,7 +407,7 @@ const GemeenteEdit = (props: GemeenteEditProps) => {
             <Tabs value={selectedTab} onChange={handleChange} aria-label="Edit contact">
               <Tab label="Algemeen" value="tab-algemeen" />
               <Tab label="Logos" value="tab-logos" />
-              <Tab label="Coordinaten" value="tab-coordinaten" />
+              {/* <Tab label="Coordinaten" value="tab-coordinaten" /> */}
             </Tabs>
             {selectedTab === "tab-algemeen" && (
               <div className="mt-4 w-full">
