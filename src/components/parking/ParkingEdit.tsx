@@ -883,7 +883,7 @@ const ParkingEdit = ({
               value={
                 newStallingType !== undefined
                   ? newStallingType
-                  : parkingdata.fietsenstalling_type[0]?.id
+                  : parkingdata.fietsenstalling_type?.id
               }
               onChange={event => {
                 setNewStallingType(event.target.value);

@@ -73,7 +73,11 @@ export type ParkingDetailsType = {
     Beheerder: string,
     BeheerderContact: string,
     BerekentStallingskosten: boolean,
-    fietsenstalling_type: fietsenstallingtypen[],
+    fietsenstalling_type: {
+        id: string,
+        name: string | null,
+        sequence: number,
+    },
     fietsenstalling_secties: ParkingSections,
     uitzonderingenopeningstijden: UitzonderingenOpeningstijden,
 

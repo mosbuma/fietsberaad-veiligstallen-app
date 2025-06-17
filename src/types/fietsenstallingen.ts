@@ -61,6 +61,7 @@ export type VSFietsenstalling = {
   reservationCostPerDay: number | null;
   wachtlijst_Id: bigint | null;
   thirdPartyReservationsUrl: string | null;
+  fietsenstalling_type: string | null;
 };
 
 export type VSFietsenstallingLijst = {
@@ -139,7 +140,8 @@ export const getDefaultNewFietsenstalling = (name: string): VSFietsenstalling =>
   BronBezettingsdata: "FMS",
   reservationCostPerDay: null,
   wachtlijst_Id: null,
-  thirdPartyReservationsUrl: null
+  thirdPartyReservationsUrl: null,
+  fietsenstalling_type: "bewaakt",
 });
 
 export const fietsenstallingSelect = {
@@ -203,6 +205,7 @@ export const fietsenstallingSelect = {
   reservationCostPerDay: true,
   wachtlijst_Id: true,
   thirdPartyReservationsUrl: true,
+  fietsenstalling_type: true,
 };
 
 export const fietsenstallingLijstSelect = {

@@ -4,7 +4,13 @@ import type { ICrudService } from "~/backend/handlers/crud-service-interface";
 
 // 
 const include = {
-  fietsenstalling_type: true,
+  fietsenstalling_type: {
+    select: {
+      id: true,
+      name: true,
+      sequence: true,
+    }
+  },
   fietsenstalling_secties: {
     include: {
       secties_fietstype: {
@@ -37,6 +43,13 @@ const FietsenstallingenService: ICrudService<fietsenstallingen> = {
       //   }
       // },
       include: {
+        fietsenstalling_type: {
+          select: {
+            id: true,
+            name: true,
+            sequence: true,
+          }
+        },
         fietsenstalling_secties: true,
         uitzonderingenopeningstijden: true,
       }
