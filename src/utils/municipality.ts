@@ -1,11 +1,20 @@
 import { type MunicipalityType } from "./map/active_municipality";
 import { type VSContactGemeente } from "~/types/contacts";
+
 export const getMunicipalityBasedOnCbsCode = async (cbsCode: number): Promise<VSContactGemeente | undefined> => {
   if (!cbsCode) return undefined;
 
   const response = await fetch(`/api/contacts?cbsCode=${cbsCode}`);
   const json = await response.json();
   return json[0] as VSContactGemeente;
+};
+
+export const getMunicipalityById = async (id: string): Promise<VSContactGemeente | undefined> => {
+  if (!id) return undefined;
+
+  const response = await fetch(`/api/contacts?ID=${id}`);
+  const json = await response.json();
+  return json as unknown as VSContactGemeente;
 };
 
 export const getMunicipalityBasedOnUrlName = async (urlName: string): Promise<VSContactGemeente | undefined> => {

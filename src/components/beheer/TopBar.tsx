@@ -43,11 +43,14 @@ const TopBar: React.FC<TopBarProps> = ({
   const { push } = useRouter();
   const { data: session } = useSession()
 
-  const activeMunicipalityInfo = useSelector(
-    (state: AppState) => state.map.activeMunicipalityInfo
-  );
-
-  // const { gemeente: activecontact, isLoading: isLoading, error: error, reloadGemeente: reloadGemeente } = useGemeente(activeMunicipalityInfo?.ID);
+  const activeMunicipalityInfo = useSelector((state: AppState) => {
+    // If path is like /beheer/*, return the activeMunicipalityInfo from the map slice
+    // Make sure it works on server side
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/beheer/')) {
+      return state.admin?.activeMunicipalityInfo
+    }
+    return state.map.activeMunicipalityInfo
+  });
 
   const themeColor1 = activeMunicipalityInfo && activeMunicipalityInfo.ThemeColor1
     ? `#${activeMunicipalityInfo.ThemeColor1}`
@@ -152,6 +155,7 @@ const TopBar: React.FC<TopBarProps> = ({
       z-10 flex w-full items-center
       justify-between bg-white px-5 shadow
     "
+    style={{minHeight: '64px'}}
     >
       <div style={{ flex: 1 }}>
         {renderLogo()}
@@ -221,17 +225,17 @@ const TopBar: React.FC<TopBarProps> = ({
           href="https://fms.veiligstallen.nl"
           target="_blank"
           className="
-              mx-2
-              flex
-              h-10
-              flex-col
-              justify-center
-              rounded-md
-              px-4
-              font-bold
-              text-white
-              shadow-lg
-            "
+            mx-2
+            flex
+            h-10
+            flex-col
+            justify-center
+            rounded-md
+            px-4
+            font-bold
+            text-white
+            shadow-lg
+          "
           style={{
             backgroundColor: "#15aeef",
           }}
@@ -241,23 +245,23 @@ const TopBar: React.FC<TopBarProps> = ({
         </a>
 
         <button
-            className="
-              mx-2
-              h-10
-              rounded-md
-              px-4
-              font-bold
-              text-white
-              shadow-lg
-              whitespace-nowrap
-            "
-            style={{
-              backgroundColor: themeColor2 || themeColor1,
-            }}
-            onClick={handleLoginClick}
-          >
-            {session ? "Log uit" : "Log in"}
-          </button>
+          className="
+            mx-2
+            h-10
+            rounded-md
+            px-4
+            font-bold
+            text-white
+            shadow-lg
+            whitespace-nowrap
+          "
+          style={{
+            backgroundColor: themeColor2 || themeColor1,
+          }}
+          onClick={handleLoginClick}
+        >
+          {session ? "Log uit" : "Log in"}
+        </button>
       </div>
     </div>
   );

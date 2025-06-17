@@ -53,6 +53,11 @@ import { useGemeenten, useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { useFietsenstallingen } from '~/hooks/useFietsenstallingen';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import ExploitantEdit from '~/components/contact/ExploitantEdit';
+import { setActiveMunicipalityInfo } from '~/store/adminSlice';
+import { useDispatch } from 'react-redux';
+import { getMunicipalityById } from '~/utils/municipality';
+import { VSContact } from '~/types/contacts';
+
 //   .ContentPage_Body h2 {
 //     font-size: 1.1em;
 //     font-weight: bold;
@@ -122,7 +127,10 @@ export type BeheerPageProps = {
 const BeheerPage: React.FC<BeheerPageProps> = ({
   currentUser,
   roles,
-  fietsenstallingtypen }) => {
+  fietsenstallingtypen
+}) => {
+  const dispatch = useDispatch();
+
   const queryRouter = useRouter();
   const { data: session, update: updateSession } = useSession();
 
@@ -177,13 +185,20 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         throw new Error('Failed to switch contact');
       }
 
+      // Get user from response
       const { user } = await response.json();
-
+      
       // Update the session with new user data
       const newSession = await updateSession({
         ...session,
         user
       });
+
+      // Set activeMunicipalityInfo in redux
+      const municipality = await getMunicipalityById(user.activeContactId) as unknown as VSContact;
+      if (municipality) {
+        dispatch(setActiveMunicipalityInfo(municipality));
+      }
 
       // Replace current page with home page, which will trigger a full reload
       queryRouter.replace('/beheer/home');
