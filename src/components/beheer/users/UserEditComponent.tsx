@@ -141,12 +141,12 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
     const handleUpdate = async () => {
       try {
         if(isNew) {
-            if (!displayName || !userName || !newRoleID || !status ) {
-              setErrorMessage("Naam, Gebruikersnaam, Rol en Status zijn verplicht.");
-              return;
-            }
+          if (!displayName || !userName || !newRoleID || !status ) {
+            setErrorMessage("Naam, Gebruikersnaam, Rol en Status zijn verplicht.");
+            return;
+          }
   
-            const data: z.infer<typeof securityUserCreateSchema> = {
+          const data: z.infer<typeof securityUserCreateSchema> = {
             UserID: id,
             DisplayName: displayName,
             RoleID: newRoleID,

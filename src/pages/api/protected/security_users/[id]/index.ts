@@ -13,6 +13,8 @@ import { getSecurityUserNew } from "~/utils/server/security-users-tools";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
 // TODO: implement filtering on accessible security_users
 
+const saltRounds = 13;
+
 export type SecurityUserResponse = {
   data?: VSUserWithRolesNew;
   error?: string;
@@ -74,6 +76,9 @@ export default async function handle(
 
         const newUserID = generateID();
 
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(parsed.password, saltRounds);
+
         // determine the groupID based on the siteID
         let groupID: VSUserGroupValues | undefined = undefined;
         if(parsed.SiteID===null) {
@@ -106,7 +111,7 @@ export default async function handle(
           }
         }
 
-        const hashedPassword = await bcrypt.hash(parsed.password, 10);
+        
 
         const oldRole = convertNewRoleToOldRole(parsed.RoleID);
 
@@ -143,6 +148,17 @@ export default async function handle(
             NewRoleID: parsed.RoleID,
           },
         });
+
+        // add security_users_sites record for external users
+        if (parsed.SiteID && groupID === VSUserGroupValues.Extern) {
+          await prisma.security_users_sites.create({
+            data: {
+              UserID: newUserID,
+              SiteID: parsed.SiteID,
+              IsContact: false,
+            },
+          });
+        }
 
         const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
         console.log("theRoleInfo - create", theRoleInfo);
@@ -184,7 +200,7 @@ export default async function handle(
         }
 
         if(parsed.password) {
-          updateData.EncryptedPassword = await bcrypt.hash(parsed.password, 10);
+          updateData.EncryptedPassword = await bcrypt.hash(parsed.password, saltRounds);
         }
 
         if(parsed.RoleID) {

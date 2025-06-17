@@ -2,8 +2,6 @@ import React, { useRef } from "react";
 import { useRouter } from 'next/navigation'
 import useQueryParam from '../../hooks/useQueryParam';
 
-// import bcrypt from 'bcrypt'
-
 // Import utils
 // import { getParkingsFromDatabase } from "~/utils/prisma";
 
