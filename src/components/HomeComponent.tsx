@@ -317,8 +317,8 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
               imageUrl={
                 mapZoom >= 12 &&
                 activeMunicipalityInfo &&
-                activeMunicipalityInfo.CompanyLogo2
-                  ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}`
+                activeMunicipalityInfo.CompanyLogo
+                  ? `${activeMunicipalityInfo.CompanyLogo}`
                   : undefined
               }
             />
