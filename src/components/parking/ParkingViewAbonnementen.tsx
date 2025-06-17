@@ -11,7 +11,9 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
   const [abonnementUrl, setAbonnementUrl] = useState<string>("");
   useEffect(() => {
     updateAbonnementUrl(parkingdata);
-  }, [parkingdata]);
+  }, [
+    parkingdata,
+  ]);
 
   // if(!parkingdata.abonnementsvorm_fietsenstalling || parkingdata.abonnementsvorm_fietsenstalling.length === 0) {
   //   return null;
@@ -76,7 +78,6 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
       <cfset request.siteID = session.council.getID() />   
       
       council = contacts table
-
   */}
 
     let url = "";
@@ -100,7 +101,6 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
     setAbonnementUrl(url);
   }
 
-
   return (
     <>
       <SectionBlock heading="Abonnementen">
@@ -112,7 +112,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               <div className="text-right sm:text-center">&euro;{x.abonnementsvormen.prijs?.toLocaleString('nl-NL') || "---"}</div>
             </Fragment>
           }) : <></>}
-          {((parkingdata.abonnementsvorm_fietsenstalling && parkingdata.abonnementsvorm_fietsenstalling.length > 0)) ?
+          {((abonnementUrl && parkingdata.abonnementsvorm_fietsenstalling && parkingdata.abonnementsvorm_fietsenstalling.length > 0)) ?
             <div className="text-right sm:text-center">
               <Button className="mt-4" onClick={() => {
                 window.open(abonnementUrl, '_blank');
@@ -121,7 +121,7 @@ const ParkingViewAbonnementen = ({ parkingdata }: { parkingdata: ParkingDetailsT
               </Button>
             </div >
             :
-            <div className="text-start col-span-3 -ml-2 -mr-2">
+            <div className="text-start col-span-3 mt-4">
               Geen abonnementen beschikbaar
             </div>}
         </div>
