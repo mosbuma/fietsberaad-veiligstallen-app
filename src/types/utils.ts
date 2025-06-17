@@ -6,15 +6,15 @@ import { VSUserRoleValues } from "~/types/users-coldfusion";
 export const getNewRoleLabel = (roleId: VSUserRoleValuesNew): string => {
     switch(roleId) {
         case VSUserRoleValuesNew.RootAdmin:
-            return "Root Admin";
+            return "Super admin";
         case VSUserRoleValuesNew.None:
-            return "None";
+            return "-";
         case VSUserRoleValuesNew.Admin:
             return "Admin";
         case VSUserRoleValuesNew.Editor:
             return "Editor";
         case VSUserRoleValuesNew.Viewer:
-            return "Data Analist";
+            return "Data-analist";
         default:
             return "Unknown";
     }
