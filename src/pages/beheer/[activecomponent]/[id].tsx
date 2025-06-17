@@ -160,6 +160,18 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
     activecomponent = activeComponentQuery as VSMenuTopic;
   }
 
+  // Set activeMunicipalityInfo in redux
+  useEffect(() => {
+    setActiveMunicipalityInfoInRedux(selectedContactID);
+  }, [selectedContactID]);
+
+  const setActiveMunicipalityInfoInRedux = async (contactID: string) => {
+    const municipality = await getMunicipalityById(contactID) as unknown as VSContact;
+    if (municipality) {
+      dispatch(setActiveMunicipalityInfo(municipality));
+    }
+  }
+
   const handleSelectComponent = (componentKey: VSMenuTopic) => {
     try {
       queryRouter.push(`/beheer/${componentKey}`);
@@ -193,12 +205,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
         ...session,
         user
       });
-
-      // Set activeMunicipalityInfo in redux
-      const municipality = await getMunicipalityById(user.activeContactId) as unknown as VSContact;
-      if (municipality) {
-        dispatch(setActiveMunicipalityInfo(municipality));
-      }
 
       // Replace current page with home page, which will trigger a full reload
       queryRouter.replace('/beheer/home');
