@@ -130,12 +130,15 @@ export default async function handle(
 
         // add role to the user_contact_role table
         await prisma.user_contact_role.upsert({
-          where: { UserID: id, ContactID: activeContactId },
+          where: {
+            UserID: newUserID, ContactID: activeContactId
+          },
           update: { 
             NewRoleID: parsed.RoleID,
           },
-          create: { 
-            UserID: id, 
+          create: {
+            ID: generateID(),
+            UserID: newUserID, 
             ContactID: activeContactId,
             NewRoleID: parsed.RoleID,
           },
