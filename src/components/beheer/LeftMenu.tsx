@@ -25,7 +25,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
-    const classNamePassive = `block px-4 py-2 rounded`;
+    const classNamePassive = `block px-4 py-2 rounded cursor-default`;
 
     return (
       <li className={compact ? 'mb-2' : 'mb-1'}>
@@ -47,7 +47,7 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
-    const classNamePassive = `block px-4 py-2 rounded strikethrough`;
+    const classNamePassive = `block px-4 py-2 rounded strikethrough cursor-default`;
 
     return (
       <li className={compact ? 'mb-2' : 'mb-1'}>

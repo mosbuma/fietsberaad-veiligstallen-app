@@ -25,7 +25,7 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
-    const classNamePassive = `block px-4 py-2 rounded`;
+    const classNamePassive = `block px-4 py-2 rounded cursor-default`;
 
     return (
       <li className={compact ? 'mb-2' : 'mb-1'}>
@@ -47,7 +47,7 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
     const isSelected = component === activecomponent;
     const className = `block px-4 py-2 rounded ${isSelected ? "font-bold" : "hover:bg-gray-200"}`;
     const style = isSelected ? { backgroundColor: 'rgba(31, 153, 210, 0.1)' } : {};
-    const classNamePassive = `block px-4 py-2 rounded strikethrough`;
+    const classNamePassive = `block px-4 py-2 rounded strikethrough cursor-default`;
 
     return (
       <li className={compact ? 'mb-2' : 'mb-1'}>
@@ -151,12 +151,11 @@ const LeftMenuGemeente: React.FC<LeftMenuGemeenteProps> = ({
           { hasBuurtstallingenRight && formatLi(VSMenuTopic.Buurtstallingen, 'Buurtstallingen / Fietstrommels')}
 
           {hasWebsiteRight && formatLi(VSMenuTopic.ArticlesPages, 'Pagina\'s', true)}
+          {hasWebsiteRight && formatLi(VSMenuTopic.Faq, 'FAQ', true)}
 
           {hasRapportagesRight && formatLi(VSMenuTopic.Report, 'Rapportage', true)}
           {hasRapportagesRight && formatLi(VSMenuTopic.Export, 'Export', true)}
           {/* {hasRapportagesRight && formatLiDevelopment(VSMenuTopic.Logboek, 'Logboek', true)} */}
-
-          {hasWebsiteRight && formatLi(VSMenuTopic.Faq, 'FAQ', true)}
         </>}
       </>
     )
