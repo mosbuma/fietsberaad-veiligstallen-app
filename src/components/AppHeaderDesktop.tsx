@@ -93,9 +93,11 @@ function AppHeaderDesktop({
       router.push('/login');
     } else {
       // sign out
-      signOut().catch(err => {
-        console.error("signOut error", err);
-      });
+      if(confirm('Wil je uitloggen?')) {
+        signOut().catch(err => {
+          console.error("signOut error", err);
+        });
+      }
     }
   };
 
