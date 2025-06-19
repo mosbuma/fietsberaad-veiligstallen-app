@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { type AppState } from "~/store/store";
 import AppHeaderDesktop from "~/components/AppHeaderDesktop";
 import AppHeaderMobile from "~/components/AppHeaderMobile";
+
 import {
   getArticlesForMunicipality,
   // getNavigationItemsForMunicipality,
@@ -62,6 +63,9 @@ function AppHeader({
   const primaryMenuItems = getPrimary(articlesMunicipality, articlesFietsberaad, showGemeenteMenu);
   const secundaryMenuItems = getSecondary(articlesMunicipality, articlesFietsberaad, showGemeenteMenu);
 
+  // Check if we're on the home page (root path)
+  const isHomePage = pathName === '/' || pathName === '' || pathName.split('/').length === 2 && pathName.split('/').length === 2;
+
   return (
     <>
       <div
@@ -85,7 +89,7 @@ function AppHeader({
           sm:hidden
         `}
       >
-        <AppHeaderMobile />
+        <AppHeaderMobile hideLogo={isHomePage} />
       </div>
     </>
   );
