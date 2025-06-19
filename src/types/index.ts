@@ -29,6 +29,7 @@ export enum VSMenuTopic {
     "Documents" = "documents",
     "ExploreGemeenten" = "exploregemeenten",
     "ExploreUsers" = "exploreusers",
+    "ExploreUsersColdfusion" = "exploreuserscoldfusion",
     "ExplorePages" = "explorepages",
     "Export" = "export",
     "Faq" = "faq",

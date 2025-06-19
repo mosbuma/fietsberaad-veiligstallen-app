@@ -184,10 +184,9 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
               formatLi(false, 'Ontwikkeling', false,
                 <ul className="ml-4 mt-1">
                   {formatLi(VSMenuTopic.ExploreGemeenten, 'Gemeenten', true)}
-                  {formatLi(VSMenuTopic.ExploreExploitanten, 'Exploitanten', true)}
                   {formatLi(VSMenuTopic.ExploreUsers, 'Gebruikers', true)}
+                  {formatLi(VSMenuTopic.ExploreUsersColdfusion, 'Gebruikers (Oude structuur)', true)}
                   {formatLi(VSMenuTopic.ExplorePages, `Pagina's`, true)}
-                  {formatLi(VSMenuTopic.ExploreLeftMenu, 'Test Hoofdmenu', true)}
                   {formatLi(VSMenuTopic.TestDatabaseApi, 'Test Database API', true)}
                 </ul>)
               )
