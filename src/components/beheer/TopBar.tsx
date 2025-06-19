@@ -67,7 +67,9 @@ const TopBar: React.FC<TopBarProps> = ({
       push('/login?redirect=/beheer');
     } else {
       // sign out
-      signOut();
+      if(confirm('Wil je uitloggen?')) {
+        signOut();
+      }
     }
   };
 

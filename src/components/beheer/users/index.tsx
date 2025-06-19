@@ -241,7 +241,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
               type="checkbox"
               checked={isArchived}
               onChange={() => handleArchiveToggle(user.UserID, isArchived)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              className="cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
             />
           );
         },
@@ -249,13 +249,17 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
       {
         header: 'Acties',
         accessor: (user) => (
-          <>
-            <button onClick={() => handleResetPassword(user.UserID)} className="text-blue-500 mx-1 disabled:opacity-40" disabled={true || !user.isOwnOrganization}>🔑</button>
+          <div className="whitespace-nowrap">
+            {/* <button onClick={() => handleResetPassword(user.UserID)} className="text-blue-500 mx-1 disabled:opacity-40" disabled={true || !user.isOwnOrganization}>🔑</button> */}
             <button onClick={() => handleEditUser(user.UserID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
             {process.env.NODE_ENV === "development" &&
               session?.user?.mainContactId === "1" && (
                 <button 
-                  onClick={() => handleLoginAsUser(user.UserID, user.UserName || '')} 
+                  onClick={() => {
+                    if(confirm('Wil je inloggen als deze gebruiker?')) {
+                      handleLoginAsUser(user.UserID, user.UserName || '')
+                    }
+                  }} 
                   className="text-orange-500 mx-1" 
                   title="Login als deze gebruiker"
                 >
@@ -269,7 +273,7 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
             >
               🗑️
             </button>
-          </>
+          </div>
         ),
       },
     ];

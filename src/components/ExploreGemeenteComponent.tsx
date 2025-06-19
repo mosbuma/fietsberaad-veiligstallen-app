@@ -130,7 +130,7 @@ const ExploreGemeenteComponent = (props: ExploreGemeenteComponentProps) => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Stallingen:</label>
+                        <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Toon data-eigenaren zonder stallingen:</label>
                         <select 
                             id="showGemeentenWithoutStallingen" 
                             name="showGemeentenWithoutStallingen" 
