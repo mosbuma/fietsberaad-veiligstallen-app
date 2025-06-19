@@ -30,10 +30,75 @@ export const getUserStatusTableStatus = async (params: UserStatusParams) => {
 }
 
 export const updateUserStatusTable = async (params: UserStatusParams): Promise<UserStatusStatus | false> => {
-  // Empty handler as requested
+
   const status = await getUserStatusTableStatus(params);
-  console.log("*** updateUserStatusTable STATUS", status);
-  return status;
+  if(status === false) {
+    return false;
+  }
+
+  const knownBadEmails = [
+    '_k.ho@u-stal.nl',
+    'Zwolle_stationsplein_lots_sept_nov_2024',
+    'd.vanharen@u-stal.nl',
+    'p.mosterd.hilversum@u-stal.nl',
+    '_t.weultjes@u-stal.nl',
+    'f.a.a.noordman@capelleaandenijssel.nl',
+    'fhj.gerts@papendrecht.nl',
+    'folkert.piersma@prorail.nl',
+    'freek.vanduuren@denhaag.nl',
+    'g.vanden.aker@gembest.nl',
+    'Hans.van.Dijk@minienw.nl',
+    'hapr.ribbers@breda.nl',
+    'hosmedes@almere.nl',
+    'j.donker@zeist.nl',
+    'j.van.drunen@leiden.nl',
+    'j.van.straaten@zandvoort.nl',
+    'javis@centrum.amsterdam.nl',
+    'jkant@alkmaar.nl',
+    'jpunt@delft.nl',
+    'lvenema@leeuwarden.nl',
+    'm.van.den.elzen@helmond.nl',
+    'msprang@alkmaar.nl',
+    'n.vanhunen@apeldoorn.nl',
+    'nensing@haarlem.nl',
+    'pwc.van.oers@breda.nl',
+    'r.kosters@middelburg.nl',
+    'r.schuurmans@zwijndrecht.nl',
+    's.brouwers@gembest.nl',
+    's.sleking@zwolle.nl',
+    'sjoerd.gallmann@nsstations.nl',
+    't.velders@nieuwegein.nl',
+    'ton.dekorte@sittard-geleen.nl',
+    'w.h.mooij@zoetermeer.nl',
+    'zwolle@exploitant.nl']
+
+    for(const email of knownBadEmails) {
+      const users = await prisma.security_users.findMany({
+        where: {UserName: email},
+        select: {UserID: true, DisplayName: true }
+      });
+
+      if(!users || users.length === 0) {
+        console.log(`*** updateUserStatusTable USER ${email} does not exist`);
+        continue;
+      }
+
+      for(const user of users) {
+        console.log(`*** updateUserStatusTable archive USER ${user.DisplayName} (${email}${users.length>1? " - multiple accounts":""})`);
+        await prisma.user_status.upsert({
+          where: {UserID: user.UserID},
+          update: {
+            Archived: true,
+          },
+          create: {
+            UserID: user.UserID,
+            Archived: true,
+          }
+        });
+      }
+    }
+  
+  return getUserStatusTableStatus(params);
 }
 
 export const clearUserStatusTable = async (params: UserStatusParams) => {

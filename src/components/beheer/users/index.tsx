@@ -12,6 +12,7 @@ import { signIn, useSession } from 'next-auth/react';
 
 type UserComponentProps = { 
   siteID: string | null,
+  contacts: {ID: string, CompanyName: string}[],
 };
 
 const UsersComponent: React.FC<UserComponentProps> = (props) => {
@@ -200,6 +201,13 @@ const UsersComponent: React.FC<UserComponentProps> = (props) => {
       {
         header: 'E-mail',
         accessor: 'UserName',
+      },
+      {
+        header: 'Organisatie',
+        accessor: (user) => {
+          const organizationName = props.contacts.find(contact => contact.ID === user.ownOrganizationID)?.CompanyName || "Onbekende organisatie";
+          return organizationName;
+        },
       },
       {
         header: 'Rol',

@@ -215,6 +215,11 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   const gemeentenaam = gemeenten?.find(gemeente => gemeente.ID === selectedContactID)?.CompanyName || "";
   const exploitantnaam = exploitanten?.find(exploitant => exploitant.ID === selectedContactID)?.CompanyName || "";
 
+  const contacts = [
+    ...gemeenten.map(gemeente => ({ID: gemeente.ID, CompanyName: gemeente.CompanyName || "Gemeente " + gemeente.ID})),
+    ...exploitanten.map(exploitant => ({ID: exploitant.ID, CompanyName: exploitant.CompanyName || "Exploitant " + exploitant.ID}))
+  ];
+
   const renderComponent = () => {
     try {
       let selectedComponent = undefined;
@@ -285,16 +290,16 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <LogboekComponent />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerFietsberaad:
-          selectedComponent = <UsersComponent siteID={null} />;
+          selectedComponent = <UsersComponent siteID={null} contacts={contacts} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerGemeente:
-          selectedComponent = <UsersComponent siteID={selectedContactID}/>;
+          selectedComponent = <UsersComponent siteID={selectedContactID} contacts={contacts} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerExploitant:
-          selectedComponent = <UsersComponent siteID={selectedContactID}/>;
+          selectedComponent = <UsersComponent siteID={selectedContactID} contacts={contacts} />;
           break;
         case VSMenuTopic.UsersGebruikersbeheerBeheerder:
-          selectedComponent = <UsersComponent siteID={selectedContactID} />;
+          selectedComponent = <UsersComponent siteID={selectedContactID} contacts={contacts} />;
           break;
         case VSMenuTopic.Fietsenstallingen:
           selectedComponent = <FietsenstallingenComponent type="fietsenstallingen" />;

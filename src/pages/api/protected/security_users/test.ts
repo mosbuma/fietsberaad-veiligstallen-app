@@ -162,6 +162,7 @@ async function testCreateSecurityUser(req: NextApiRequest): Promise<TestResult> 
         rights: {},
       },
       isContact: false,
+      ownOrganizationID: testGemeente.ID,
       isOwnOrganization: true
     };
 

@@ -4,45 +4,21 @@ import { VSUserRoleValuesNew, type VSUserWithRolesNew} from "~/types/users";
 import { securityUserSelect, VSUserGroupValues, VSUserWithRoles } from "~/types/users-coldfusion";
 import { getServerSession } from "next-auth";
 import { authOptions } from '~/pages/api/auth/[...nextauth]'
-import { z } from "zod";
-import { validateUserSession } from "~/utils/server/database-tools";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
+import { SecurityUsersResponse } from "../index";
+import { validateUserSession } from "~/utils/server/database-tools";
 
-export type SecurityUsersResponse = {
-  data?: VSUserWithRolesNew[];
-  error?: string;
-};
 
-export const securityUserCreateSchema = z.object({
-  UserName: z.string().min(1),
-  DisplayName: z.string().min(1),
-  RoleID: z.number(),
-  GroupID: z.string().optional(),
-  Status: z.string().optional(),
-  Password: z.string().min(1),
-});
 
-export interface VSUsersForContact {
-  ID: string;
-  Name: string;
-  Organization: string;
-  NewRoleID: string;
-}
-
-const getUsersForContact = async (contactID: string): Promise<VSUserWithRolesNew[]> => {
-  const linkedusers = (await prisma.security_users.findMany({
-    where: { user_contact_roles: { some: { ContactID: contactID } } },
+const getAllUsers = async (): Promise<VSUserWithRolesNew[]> => {
+  const allusers = (await prisma.security_users.findMany({
     select: securityUserSelect,
     orderBy: { UserID: 'asc' }
-  }));
-
-  const result = linkedusers
-    .map(user => { 
-      const ownRoleInfo = user.user_contact_roles.find((role) => role.isOwnOrganization)
-      const theRoleInfo = user.user_contact_roles.find((role) => role.ContactID === contactID)
+  }))
+  const result =allusers.map(user => { 
+      const theRoleInfo = user.user_contact_roles.find((role) => role.isOwnOrganization);
       const currentRoleID: VSUserRoleValuesNew = theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
-      const isContact = user.security_users_sites.some((site) => site.SiteID === contactID && site.IsContact);
-      const isOwnOrganization = theRoleInfo?.isOwnOrganization || false;
+      const isContact = user.security_users_sites.some((site) => site.SiteID === theRoleInfo?.ContactID && site.IsContact);
 
       const newUserData: VSUserWithRolesNew = {
         UserID: user.UserID, 
@@ -55,14 +31,12 @@ const getUsersForContact = async (contactID: string): Promise<VSUserWithRolesNew
         // sites: getSitesForUser(user),
         securityProfile: createSecurityProfile(currentRoleID),
         isContact: isContact,
-        ownOrganizationID: ownRoleInfo?.ContactID || "",
-        isOwnOrganization: isOwnOrganization,
+        ownOrganizationID: theRoleInfo?.ContactID || "",
+        isOwnOrganization: true,
       }
         return newUserData;
     })
     .filter(user => user.DisplayName !== ""); // filter out users without a name or organization
-
-  
 
     return result;
 }
@@ -79,16 +53,11 @@ export default async function handle(
     return;
   }
 
-  const { activeContactId } = validateUserSessionResult;
-  const  contactId = req.query.contactId as unknown as string; // optional: get users for a specific contact, 
-
-  const selectedContactId = contactId || activeContactId;
-
   switch (req.method) {
     case "GET": {
-      // GET all security users
-      const newUsers = await getUsersForContact(selectedContactId);
-      res.status(200).json({data: newUsers});
+      // GET all security users in their own organization scope
+      const allUsers = await getAllUsers();
+      res.status(200).json({data: allUsers});
       break;
     }
     default: {

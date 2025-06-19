@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
 
-import { type VSContactExploitant, type VSContactGemeente } from "~/types/contacts";
-// import { type VSUserRole, VSUserGroupValues } from "~/types/users-coldfusion";
 import { VSUserRoleValuesNew, type VSUserWithRolesNew } from "~/types/users";
-import { useUsers } from "~/hooks/useUsers";
+import { useAllUsers } from "~/hooks/useAllUsers";
 import { useGemeenten } from "~/hooks/useGemeenten";
 import { useExploitanten } from "~/hooks/useExploitanten";
 import { LoadingSpinner } from "./beheer/common/LoadingSpinner";
@@ -20,7 +16,7 @@ const ExploreUsersComponent = () => {
 
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
-    const { users, isLoading: isLoadingUsers, error: errorUsers } = useUsers();
+    const { users, isLoading: isLoadingUsers, error: errorUsers } = useAllUsers();
 
     const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeenten();
     const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten } = useExploitanten(undefined);
@@ -35,7 +31,7 @@ const ExploreUsersComponent = () => {
     const [emailFilter, setEmailFilter] = useState<string>("");
     const [roleFilter, setRoleFilter] = useState<VSUserRoleValuesNew | undefined>(undefined);
     const [contactFilter, setContactFilter] = useState<"Yes" | "No">("No");
-    const [organisatieFilter, setOrganisatieFilter] = useState<string>("");
+    const [organisatieFilter, setOrganisatieFilter] = useState<string>("all-organizations");
     const [invalidDataFilter, setInvalidDataFilter] = useState<"Yes" | "No" | "Only">("No");
 
     const [showAllContacts, setShowAllContacts] = useState(false);
@@ -92,6 +88,10 @@ const ExploreUsersComponent = () => {
                 user.UserName?.toLowerCase().includes(emailFilter.toLowerCase()) || 
                 user.DisplayName?.toLowerCase().includes(emailFilter.toLowerCase())
             ))
+            .filter((user) => {
+                if(contactFilter === "Yes") return user.isContact;
+                return !user.isContact;
+            })
             .filter((user) => (roleFilter === undefined || user.securityProfile?.roleId === roleFilter))
             .filter((user) => {
                 const isArchived = archivedUserIds.includes(user.UserID);
@@ -102,6 +102,10 @@ const ExploreUsersComponent = () => {
                 } else {
                     return !isArchived;
                 }
+            })
+            .filter((user) => {
+                if(organisatieFilter === "all-organizations") return true;
+                return user.ownOrganizationID === organisatieFilter;
             })
             .filter((user) => {
                 if (showInactiveDays === undefined) return true;
@@ -200,7 +204,7 @@ const ExploreUsersComponent = () => {
         setShowInactiveDays(undefined);
     };
 
-    const renderFilterSection = () => {
+    const renderFilterSection = (contacts: {ID: string, CompanyName: string}[]) => {
         const roles= Object.values(VSUserRoleValuesNew);
 
         return (
@@ -264,7 +268,8 @@ const ExploreUsersComponent = () => {
                             value={organisatieFilter}
                             onChange={(e) => setOrganisatieFilter(e.target.value)}
                         >
-                            <option value="">Alle organisaties</option>
+                            <option value="all-organizations">Alle organisaties</option>
+                            <option value="">Geen organisatie</option>
                             {contacts.map((contact) => (
                                 <option value={contact.ID} key={contact.ID}>{contact.CompanyName}</option>
                             ))}
@@ -317,15 +322,18 @@ const ExploreUsersComponent = () => {
                     <div>
                         <h2 className="text-xl font-semibold mt-6">Gebruikerslijst</h2>
                         <ul className="list-disc list-inside max-h-fit overflow-y-auto">
-                            {filteredUsers.map((user) => (
+                            {filteredUsers.map((user) => { 
+                                const organizationName: string = contacts.find(contact => contact.ID === user.ownOrganizationID)?.CompanyName || "Onbekende organisatie";
+                                
+                                return (
                                 <li 
                                     key={user.UserID} 
                                     className={`cursor-pointer p-2 ${selectedUserID === user.UserID ? 'bg-blue-100' : ''}`} 
                                     onClick={() => selectUserHandler(user.UserID)}
                                 >
-                                    {`${user.DisplayName} [${user.UserName}]`}
+                                    {`${user.DisplayName} [${user.UserName}/${organizationName}]`}
                                 </li>
-                            ))}
+                            )})}
                         </ul>
                     </div>
                 </form>
@@ -357,7 +365,7 @@ const ExploreUsersComponent = () => {
     return (
         <div className="w-3/4 mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                {renderFilterSection()}
+                {renderFilterSection(contacts)}
             </div>
             <div>
                 { selectedUser && <ExploreUserDetailsComponent
@@ -370,6 +378,5 @@ const ExploreUsersComponent = () => {
         </div>
     );
 }
-
 
 export default ExploreUsersComponent;

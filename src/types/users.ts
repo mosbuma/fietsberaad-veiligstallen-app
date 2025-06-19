@@ -13,6 +13,7 @@ export enum VSUserRoleValuesNew {
 export type VSUserWithRolesNew = Pick<security_users, "UserID" | "UserName" | "DisplayName" | "Status" | "LastLogin" > & {
     securityProfile: VSUserSecurityProfile;
     isContact: boolean;
+    ownOrganizationID: string;
     isOwnOrganization: boolean;
 }
 // "EncryptedPassword" | "EncryptedPassword2"

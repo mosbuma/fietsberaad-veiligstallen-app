@@ -84,6 +84,14 @@ const UserStatusTableComponent: React.FC = () => {
       }
     };
 
+    if(action === 'clear' || 
+      action === 'droptable' || 
+      action === 'update') {
+     if(prompt("Let op! Dit maakt alle handmatige wijzigingen in de Gebruiker Status tabel ongedaan. Weet je zeker dat je dit wilt doen?\n\nType 'wissen' om door te gaan.") !== 'wissen') {
+       return;
+     }
+   }
+
     processTable();
   };
 

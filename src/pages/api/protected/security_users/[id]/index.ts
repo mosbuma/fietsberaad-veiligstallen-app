@@ -161,6 +161,12 @@ export default async function handle(
         }
 
         const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId);
+        const ownRoleInfo = createdUser.user_contact_roles.find((role) => role.isOwnOrganization);
+        if(!ownRoleInfo || !theRoleInfo?.ContactID) {
+          console.error("Error creating security user: no own organization ID found");
+          res.status(500).json({error: "Error creating security user: no own organization ID found"});
+          return;
+        }
 
         const newUserData: VSUserWithRolesNew = {
           UserID: createdUser.UserID, 
@@ -170,6 +176,7 @@ export default async function handle(
           LastLogin: createdUser.LastLogin, 
           securityProfile: createSecurityProfile(theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None),
           isContact: createdUser.security_users_sites.find((site) => site.SiteID === activeContactId)?.IsContact || false,
+          ownOrganizationID: ownRoleInfo?.ContactID || "",
           isOwnOrganization: theRoleInfo?.isOwnOrganization || false,
         }        
 
@@ -226,6 +233,7 @@ export default async function handle(
         // const newUser = await convertToNewUser(updatedUser, activeContactId);
 
         const theRoleInfo = updatedUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
+        const ownRoleInfo = updatedUser.user_contact_roles.find((role) => role.isOwnOrganization)
 
         const newUserData: VSUserWithRolesNew = {
           UserID: updatedUser.UserID, 
@@ -235,7 +243,8 @@ export default async function handle(
           LastLogin: updatedUser.LastLogin, 
           securityProfile: createSecurityProfile(theRoleInfo?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None),
           isContact: updatedUser.security_users_sites.find((site) => site.SiteID === activeContactId)?.IsContact || false,
-          isOwnOrganization: theRoleInfo?.isOwnOrganization || false,
+          ownOrganizationID: ownRoleInfo?.ContactID || "",
+          isOwnOrganization: ownRoleInfo?.isOwnOrganization || false,
         }        
 
         res.status(200).json({data: newUserData || undefined});

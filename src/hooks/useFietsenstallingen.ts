@@ -19,8 +19,6 @@ export const useFietsenstallingen = (GemeenteID: string, compact = true) => {
       const response = await fetch(`/api/protected/fietsenstallingen?GemeenteID=${GemeenteID}&compact=${compact}`);
       const result: FietsenstallingenResponse = await response.json();
 
-      console.debug('Size Result (bytes):', JSON.stringify(result.data).length);
-      
       if (result.error) {
         throw new Error(result.error);
       }

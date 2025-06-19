@@ -13,12 +13,23 @@ export const getSecurityUserNew = async (id: string, activeContactID: string): P
       DisplayName: true,
       Status: true,
       LastLogin: true,
+      security_users_sites: {
+        where: {
+          SiteID: activeContactID,
+        },
+        select: {
+          SiteID: true,
+          IsContact: true,
+        }
+      },
       user_contact_roles: {
         where: {
           ContactID: activeContactID,
         },
         select: {
+          ContactID: true,
           NewRoleID: true,
+          isOwnOrganization: true,
         }
       }
     }
@@ -34,7 +45,7 @@ export const getSecurityUserNew = async (id: string, activeContactID: string): P
     console.warn("Security user has no contact roles:", id);
     roleId = VSUserRoleValuesNew.None;
   } else if(data.user_contact_roles.length !== 1 || !data.user_contact_roles[0]?.NewRoleID) {
-    console.error("Security user has multiple contact roles:", id);
+    console.error("Security user has multiple contact roles for its own organization:", id);
     return false;
   } else {
     roleId = data.user_contact_roles[0].NewRoleID as VSUserRoleValuesNew;
@@ -43,5 +54,8 @@ export const getSecurityUserNew = async (id: string, activeContactID: string): P
   return {
     ...data,
     securityProfile: createSecurityProfile(roleId),
-  } as unknown as VSUserWithRolesNew;
+    isContact: data.security_users_sites.find((site) => site.SiteID === activeContactID)?.IsContact || false,
+    ownOrganizationID: data.user_contact_roles.find((role) => role.isOwnOrganization)?.ContactID ||"",
+    isOwnOrganization: data.user_contact_roles.find((role) => role.isOwnOrganization)?.isOwnOrganization || false,
+  };
 }
