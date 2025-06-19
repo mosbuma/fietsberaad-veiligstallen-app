@@ -7,6 +7,7 @@ import { type AppState } from "~/store/store";
 import { setActiveArticle } from "~/store/appSlice";
 import Logo from './Logo';
 import { ToggleMenuIcon } from "~/components/ToggleMenuIcon";
+import ImageWithFallback from "~/components/common/ImageWithFallback";
 
 import {
   setIsMobileNavigationVisible
@@ -113,6 +114,39 @@ function AppHeaderDesktop({
 
   const showStallingAanmaken = session && mapZoom >= 13 && activeMunicipalityInfo;
 
+  const renderLogo = () => {
+    const activecontact = activeMunicipalityInfo;
+
+    // If logo URL starts with http, return the image
+    if(activecontact?.CompanyLogo && activecontact?.CompanyLogo.indexOf('http') === 0) {
+      return <img src={activecontact?.CompanyLogo} className="max-h-full w-auto bg-white mr-2" />
+    }
+
+    let logofile ="https://fms.veiligstallen.nl/resources/client/logo.png";
+
+    // If logo URL is not null and mapZoom is 12 or higher, return the image
+    if(mapZoom >= 12 && activecontact?.CompanyLogo && activecontact?.CompanyLogo !== null) {
+      logofile = activecontact.CompanyLogo;
+      if(!logofile.startsWith('http')) {
+        logofile =logofile.replace('[local]', '')
+        if(!logofile.startsWith('/')) {
+          logofile = '/' + logofile;
+        }
+      }
+
+      return <ImageWithFallback
+        src={logofile}
+        fallbackSrc="https://fms.veiligstallen.nl/resources/client/logo.png"
+        alt="Logo"
+        width={64}
+        height={64}
+        className="max-h-full w-auto bg-white mr-2"
+      />
+    }
+
+    return <img src="https://fms.veiligstallen.nl/resources/client/logo.png" className="max-h-full w-auto bg-white mr-2" />
+  }
+
   return (
     <>
       <div
@@ -132,17 +166,11 @@ function AppHeaderDesktop({
         style={{ height: '64px' }}
       >
         <Link href={`/${activeMunicipalityInfo && activeMunicipalityInfo.UrlName ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
-          <Logo
-            imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo) ? `${activeMunicipalityInfo.CompanyLogo}` : undefined}
-            className={`
-              transition-opacity
-              duration-500
-              ${(activeMunicipalityInfo) ? 'opacity-100' : 'opacity-0'}
-            `}
-          />
+          {renderLogo()}
         </Link>
         <div className={`
           primaryMenuItems-wrapper
+          relative
           flex-1 flex flex-start
           flex-wrap overflow-hidden
           transition-opacity

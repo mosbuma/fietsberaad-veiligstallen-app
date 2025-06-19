@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type AppState } from "~/store/store";
 import Link from 'next/link'
 import Image from 'next/image'
+import ImageWithFallback from "~/components/common/ImageWithFallback";
 
 // Import components
 import Modal from "src/components/Modal";
@@ -19,11 +20,13 @@ import PageTitle from "~/components/PageTitle";
 function AppHeaderMobile({
   title,
   handleCloseClick,
-  children
+  children,
+  hideLogo = false
 }: {
   title?: string,
   handleCloseClick?: () => void,
-  children?: React.ReactNode
+  children?: React.ReactNode,
+  hideLogo?: boolean
 }) {
   const dispatch = useDispatch();
 
@@ -36,6 +39,44 @@ function AppHeaderMobile({
   );
 
   const mapZoom = useSelector((state: AppState) => state.map.zoom) || 12;
+
+  const renderLogo = () => {
+    // Don't render logo if hideLogo is true
+    if (hideLogo) {
+      return null;
+    }
+
+    const activecontact = activeMunicipalityInfo;
+
+    // If logo URL starts with http, return the image
+    if(activecontact?.CompanyLogo && activecontact?.CompanyLogo.indexOf('http') === 0) {
+      return <img src={activecontact?.CompanyLogo} className="max-h-12 w-auto bg-white mr-2" />
+    }
+
+    let logofile ="https://fms.veiligstallen.nl/resources/client/logo.png";
+
+    // If logo URL is not null and mapZoom is 12 or higher, return the image
+    if(mapZoom >= 12 && activecontact?.CompanyLogo && activecontact?.CompanyLogo !== null) {
+      logofile = activecontact.CompanyLogo;
+      if(!logofile.startsWith('http')) {
+          logofile =logofile.replace('[local]', '')
+          if(!logofile.startsWith('/')) {
+            logofile = '/' + logofile;
+          }
+      }
+
+      return <ImageWithFallback
+        src={logofile}
+        fallbackSrc="https://fms.veiligstallen.nl/resources/client/logo.png"
+        alt="Logo"
+        width={64}
+        height={64}
+        className="max-h-12 w-auto bg-white mr-2"
+      />
+    }
+
+    return <img src="https://fms.veiligstallen.nl/resources/client/logo.png" className="max-h-12 w-auto bg-white mr-2" />
+  }
 
   return (
     <>
@@ -51,8 +92,13 @@ function AppHeaderMobile({
           sticky
           top-0
 
+          sm:h-auto
+
           shadow
         "
+        style={{
+          height: '72px'
+        }}
       >
         <div className="
           py-3
@@ -62,7 +108,7 @@ function AppHeaderMobile({
         ">
           <div className="flex flex-col justify-center">
             <Link href={`/${activeMunicipalityInfo && activeMunicipalityInfo.UrlName ? (activeMunicipalityInfo.UrlName !== 'fietsberaad' ? activeMunicipalityInfo.UrlName : '') : ''}`}>
-              <Logo imageUrl={(mapZoom >= 12 && activeMunicipalityInfo && activeMunicipalityInfo.CompanyLogo2) ? `https://static.veiligstallen.nl/library/logo2/${activeMunicipalityInfo.CompanyLogo2}` : undefined} />
+              {renderLogo()}
             </Link>
           </div>
           <div className="mx-3 flex-1 flex flex-col justify-center">

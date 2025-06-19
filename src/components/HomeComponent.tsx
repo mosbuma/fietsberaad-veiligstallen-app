@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import ImageWithFallback from "~/components/common/ImageWithFallback";
 
 import {
   setIsParkingListVisible,
@@ -202,47 +203,40 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
         dispatch(setActiveMunicipalityInfo(municipalityInfo));
       })();
     }, [currentLatLng]);
+    
+    const renderLogo = () => {
+      const activecontact = activeMunicipalityInfo;
   
-    // Do things in municipality if municipality is given by URL
-    // useEffect(() => {
-    //   if(url_municipality === undefined) {
-    //     return;
-    //   }
-
-    //   // Handle navigation to municipality/municipalitypage when given in the URL
-    //   (async () => {
-    //     console.debug("#### HomeComponent - Getting municipality based on urlName", url_municipality);
-
-    //     const municipality_differs = (activeMunicipalityInfo === undefined && url_municipality !== undefined) || (activeMunicipalityInfo !== undefined && url_municipality !== activeMunicipalityInfo?.UrlName);
-    //     const article_differs = (activeArticleTitle !== "" && url_municipalitypage !== undefined) || (activeArticleTitle !== "" && url_municipalitypage !== activeArticleTitle);
-
-    //     if(municipality_differs || article_differs) {
-    //       console.debug("#### HomeComponent - URL differs from active municipality + page, updating URL");
-    //       updateUrl("municipality", url_municipality);
-    //     }
-
-    //     if(url_municipality === undefined) {
-    //         return;
-    //     }
-
-    //     // Get url_municipality
-    //     const info = await getMunicipalityBasedOnUrlName(url_municipality);
-    //     if (!info) return;
-
-    //     // Fly to url_municipality, on the map
-    //     const initialLatLng = convertCoordinatenToCoords(
-    //       info.Coordinaten,
-    //     );
-    //     if (initialLatLng) {
-    //         dispatch(setInitialLatLng(initialLatLng));
-    //     }
-    //     // Set url_municipality info in redux
-    //     // dispatch(setActiveMunicipality(url_municipality));
-    //     dispatch(setActiveMunicipalityInfo(info));
-    //     dispatch(setActiveArticleTitle(url_municipalitypage || ""));
-    //     })();
-    // }, []);
+      // If logo URL starts with http, return the image
+      if(activecontact?.CompanyLogo && activecontact?.CompanyLogo.indexOf('http') === 0) {
+        return <img src={activecontact?.CompanyLogo} className="max-h-12 w-auto bg-white mr-2" />
+      }
   
+      let logofile ="https://fms.veiligstallen.nl/resources/client/logo.png";
+  
+      // If logo URL is not null and mapZoom is 12 or higher, return the image
+      if(mapZoom >= 12 && activecontact?.CompanyLogo && activecontact?.CompanyLogo !== null) {
+        logofile = activecontact.CompanyLogo;
+        if(!logofile.startsWith('http')) {
+            logofile =logofile.replace('[local]', '')
+            if(!logofile.startsWith('/')) {
+              logofile = '/' + logofile;
+            }
+        }
+  
+        return <ImageWithFallback
+          src={logofile}
+          fallbackSrc="https://fms.veiligstallen.nl/resources/client/logo.png"
+          alt="Logo"
+          width={64}
+          height={64}
+          className="max-h-12 w-auto bg-white mr-2"
+        />
+      }
+  
+      return <img src="https://fms.veiligstallen.nl/resources/client/logo.png" className="max-h-12 w-auto bg-white mr-2" />
+    }
+
     const renderDesktopParkingList = () => {
       return (
         <div
@@ -310,17 +304,9 @@ const HomeComponent = ({ fietsenstallingen, online, message, url_municipality, u
             onClick={() => {
               dispatch(setIsParkingListVisible(false));
             }}
-            className="mr-3 block"
+            className="mr-3 block flex justify-center flex-col"
           >
-            <Logo
-              imageUrl={
-                mapZoom >= 12 &&
-                activeMunicipalityInfo &&
-                activeMunicipalityInfo.CompanyLogo
-                  ? `${activeMunicipalityInfo.CompanyLogo}`
-                  : undefined
-              }
-            />
+            {renderLogo()}
           </Link>
           <SearchBar
             filterChanged={(e: { target: { value: any } }) => {
