@@ -169,15 +169,6 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
             )
           }
 
-          {hasSystemRight && hasExternalApisRight && (
-            formatLi(false, 'Externe API\'s', false,
-              <ul className="ml-4 mt-1">
-                {formatLiDevelopment(VSMenuTopic.ApisOverzicht, 'Overzicht API\'s', true)}
-                {formatLiDevelopment(VSMenuTopic.ApisGekoppeldeLocaties, 'Gekoppelde locaties', true)}
-              </ul>
-            )
-          )}
-
           {(hasWebsiteRight) && 
             formatLi(VSMenuTopic.Website, 'Website beheer', false,
               <ul className="ml-4 mt-1">
