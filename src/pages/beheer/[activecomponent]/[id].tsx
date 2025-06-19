@@ -34,11 +34,12 @@ import SettingsComponent from '~/components/beheer/settings';
 import UsersComponent from '~/components/beheer/users';
 import DatabaseComponent from '~/components/beheer/database';
 import ExploreUsersComponent from '~/components/ExploreUsersComponent';
+import ExploreUsersComponentColdfusion from '~/ExploreUsersComponentColdfusion';
 import ExploreGemeenteComponent from '~/components/ExploreGemeenteComponent';
 import ExploreArticlesComponent from '~/components/ExploreArticlesComponent';
 
 import { prisma } from '~/server/db';
-import type { security_roles, fietsenstallingtypen } from '@prisma/client';
+import type { fietsenstallingtypen } from '@prisma/client';
 import { VSMenuTopic } from "~/types/index";
 
 // import Styles from "~/pages/content.module.css";
@@ -216,6 +217,7 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
   const exploitantnaam = exploitanten?.find(exploitant => exploitant.ID === selectedContactID)?.CompanyName || "";
 
   const contacts = [
+    { ID: "1", CompanyName: "Fietsberaad" },
     ...gemeenten.map(gemeente => ({ID: gemeente.ID, CompanyName: gemeente.CompanyName || "Gemeente " + gemeente.ID})),
     ...exploitanten.map(exploitant => ({ID: exploitant.ID, CompanyName: exploitant.CompanyName || "Exploitant " + exploitant.ID}))
   ];
@@ -278,7 +280,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <DataproviderComponent />;
           break;
         case VSMenuTopic.ExploreUsers:
-          selectedComponent = <ExploreUsersComponent />;
+          // selectedComponent = <ExploreUsersComponent />;
+          selectedComponent = <ExploreUsersComponentColdfusion />;
           break;
         case VSMenuTopic.ExploreGemeenten:
           selectedComponent = <ExploreGemeenteComponent />;
