@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import DataproviderEdit from "~/components/contact/DataproviderEdit";
-import type { VSContactDataprovider } from "~/types/contacts";
 import { useDataproviders } from '~/hooks/useDataproviders';
 import { LoadingSpinner } from '../../common/LoadingSpinner';
 import { Table } from '~/components/common/Table';
 import { SearchFilter } from '~/components/common/SearchFilter';
+import { VSSecurityTopic, VSCRUDRight } from '~/types/securityprofile';
+import { getSecurityRights, allowNone } from '~/utils/client/security-profile-tools';
 
 type DataproviderComponentProps = { 
 };
 
 const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
 
@@ -40,11 +43,11 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
 
   const handleDeleteContact = async (id: string) => {
     try {
-      const response = await fetch(`/api/protected/dataproviders/${id}`, {
+      const response = await fetch(`/api/protected/dataprovider/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Failed to delete gemeente');
+        throw new Error('Failed to delete dataprovider');
       }
 
       reloadDataproviders();
@@ -56,8 +59,11 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
 
   const renderOverview = () => {
     if (isLoading) {
-      return <div>Loading...</div>;
+      return <LoadingSpinner />;
     }
+
+    let rights: VSCRUDRight = getSecurityRights(session?.user?.securityProfile, VSSecurityTopic.ContactsDataproviders);
+    console.log("rights", rights);
 
     return (
       <div>
@@ -74,12 +80,12 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
               />
             )}
           </div>
-          <button 
+          { rights.create && <button 
             onClick={() => handleEditContact('new')}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
           >
-            Nieuwe Dataprovider
-          </button>
+            Nieuwe Dataleverancier
+          </button> }
         </div>
 
         <SearchFilter
@@ -107,8 +113,8 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
               header: '',
               accessor: (contact) => (
                 <>
-                  <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40">✏️</button>
-                  <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={true}>🗑️</button>
+                  <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40" disabled={!rights.update}>✏️</button>
+                  <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!rights.delete}>🗑️</button>
                 </>
               )
             }

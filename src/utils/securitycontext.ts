@@ -1,33 +1,9 @@
 import { type VSCRUDRight, type VSUserSecurityProfile, VSSecurityTopic } from "~/types/securityprofile";    
+import { allowNone, allowCRUD, allowRead, allowReadUpdate } from "~/utils/client/security-profile-tools";
 import { VSUserRoleValuesNew } from '~/types/users';
 import { VSUserRoleValues} from '~/types/users-coldfusion';
 
 import { changeTopics, initAllTopics } from "~/types/utils";
-
-const allowNone: VSCRUDRight = {
-    create: false,
-    read: false,
-    update: false,
-    delete: false
-};
-const allowCRUD: VSCRUDRight = {
-    create: true,
-    read: true,
-    update: true,
-    delete: true
-};
-const allowRead: VSCRUDRight = {
-    create: false,
-    read: true,
-    update: false,
-    delete: false
-};
-const allowReadUpdate: VSCRUDRight = {
-    create: false,
-    read: true,
-    update: true,
-    delete: false
-};
 
 // Module access definitions per contact type
 // type ModuleAccess = {
