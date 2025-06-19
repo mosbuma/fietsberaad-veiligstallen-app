@@ -68,10 +68,10 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
     const queryUserID = Array.isArray(router.query.userID) ? router.query.userID[0] : router.query.userID;
 
     const { users, isLoading: isLoadingUsers, error: errorUsers, reloadUsers: reloadUsers } = useUsersColdfusion();
-    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten();
-    const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
 
     const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten, reloadGemeenten: reloadGemeenten } = useGemeenten();
+    const { exploitanten, isLoading: isLoadingExploitanten, error: errorExploitanten, reloadExploitanten: reloadExploitanten } = useExploitanten();
+    const { dataproviders, isLoading: isLoadingDataproviders, error: errorDataproviders, reloadDataproviders: reloadDataproviders } = useDataproviders();
 
     const [filteredUsers, setFilteredUsers] = useState<VSUserWithRoles[]>(users);
     const [selectedUserID, setSelectedUserID] = useState<string | null>(queryUserID || null);
@@ -102,14 +102,14 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
         }
     }, [emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter, filteredUsers]);
 
-    useEffect(() => {
-        if(securityProfile) {
-            const mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
-            setActiveOrganization(mainContact || null);
-        } else {
-            setActiveOrganization(null);
-        }
-    }, [securityProfile?.mainContactId]);
+    // useEffect(() => {
+    //     if(securityProfile) {
+    //         const mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
+    //         setActiveOrganization(mainContact || null);
+    //     } else {
+    //         setActiveOrganization(null);
+    //     }
+    // }, [securityProfile?.mainContactId]);
 
     useEffect(() => {
         const currentUserID = router.query.userID;
@@ -187,34 +187,6 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
 
         setFilteredUsers(filteredUsers);
     }, [users, emailFilter, groupFilter, roleFilter, contactFilter, gemeenteFilter, exploitantFilter, invalidDataFilter, inactiveUserFilter]);
-
-    useEffect(() => {
-        async function loadSecurityProfile() {
-            if (!selectedUser) {
-                return;
-            }
-
-            setIsLoadingProfile(true);
-            setProfileError(null);
-
-            try {
-                const profile = await fetchSecurityProfile(
-                    selectedUser.UserID, 
-                    activeOrganization?.ID || ""
-                );
-
-                setSecurityProfile(profile);
-            } catch (error) {
-                console.error('Error fetching security profile:', error);
-                setProfileError(error instanceof Error ? error.message : 'Failed to fetch security profile');
-                setSecurityProfile(undefined);
-            } finally {
-                setIsLoadingProfile(false);
-            }
-        }
-
-        loadSecurityProfile();
-    }, [selectedUser?.UserID, activeOrganization?.ID]);
 
     const filterEmailHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEmailFilter(event.target.value);
@@ -481,10 +453,10 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
                     linkElement = <span className="text-gray-900">{mainContact?.CompanyName} [Admin]</span>;
                     break;
                 case 'organizations':
-                    linkElement = <Link href={`/beheer/${VSMenuTopic.ExploreGemeenten}/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    linkElement = <span className="text-gray-900">{mainContact.CompanyName}</span>;
                     break;
                 case 'exploitant':
-                    linkElement = <Link href={`/beheer/${VSMenuTopic.ExploreExploitanten}/${mainContact.ID}`} target="_blank">{mainContact.CompanyName}</Link>;
+                    linkElement = <span className="text-gray-900">{mainContact.CompanyName}</span>;
                     break;
                 case 'dataprovider':
                     linkElement = <span className="text-gray-900">{mainContact?.CompanyName}</span>;
@@ -516,14 +488,6 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
             <div className="p-6 bg-white shadow-md rounded-md">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold">Details Gebruiker</h2>
-                    {process.env.NODE_ENV === "development" && (
-                        <button
-                            onClick={handleLoginAsUser}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
-                        >
-                            Inloggen als deze gebruiker
-                        </button>
-                    )}
                 </div>
                 <div className="space-y-2">
                     <div className="flex items-center">
@@ -640,116 +604,10 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
         );
     }    
 
-    const renderSecurityProfileSection = (securityProfile: VSUserSecurityProfile | undefined) => {
-        if (!selectedUser || !activeOrganization) {
-            return null;
-        }
-
-        if(!securityProfile) {
-            return null;
-        }
-
-        const displayRights = Object.entries(securityProfile.rights).filter(([topic, rights]) => rights.create || rights.read || rights.update || rights.delete || showAllAccessRights);
-
-        const toggleShowAll = () => {
-            setShowAllAccessRights(!showAllAccessRights);
-        };
-
-        return (
-            <div className="p-6 bg-white shadow-md rounded-md mt-2 flex flex-col mb-6">
-                {renderSelectActiveOrganization(mainContact, managedContacts)}
-                
-                <div className="text-2xl font-bold mb-4">Beveiligingsprofiel</div>
-
-                {isLoadingProfile && (
-                    <div className="text-gray-600">Beveiligingsprofiel laden...</div>
-                )}
-
-                {profileError && (
-                    <div className="text-red-600">Fout: {profileError}</div>
-                )}
-
-                {!isLoadingProfile && !profileError && securityProfile && (
-                    <>
-                        <div className="space-y-2">
-                            <div className="flex items-center">
-                                <label className="w-32 text-sm font-medium text-gray-700">Rol ID:</label>
-                                <span className="text-gray-900">{getNewRoleLabel(securityProfile.roleId)}</span>
-                            </div>
-                        </div>
-
-                        <div className="text-lg font-semibold mb-2 mt-4">Module Toegang</div>
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {securityProfile.modules.map(module => (
-                                <span key={module} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    {module}
-                                </span>
-                            ))}
-                        </div>
-                        <div className="text-lg font-semibold mb-6 flex flex-row items-center">
-                            Toegangsrechten
-                            <button 
-                                onClick={toggleShowAll}
-                                className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-                            >
-                                {showAllAccessRights ? "Show Less" : "Show All"}
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-[1fr,auto,auto,auto,auto] gap-2">
-                            {/* Headers */}
-                            <div className="font-medium text-sm">Topics</div>
-                            <div className="font-medium text-sm px-2">Create</div>
-                            <div className="font-medium text-sm px-2">Read</div>
-                            <div className="font-medium text-sm px-2">Update</div>
-                            <div className="font-medium text-sm px-2">Delete</div>
-
-                            {displayRights.map(([topic, rights]) => {
-                                const hasRights = rights.create || rights.read || rights.update || rights.delete;
-                                if (!showAllAccessRights && !hasRights) return null;
-
-                                return (
-                                    <>
-                                        <h4 className="font-medium truncate border-b pb-2">{topic}</h4>
-                                        <div className={`${rights.create ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
-                                            {rights.create ? '✓' : '✗'}
-                                        </div>
-                                        <div className={`${rights.read ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
-                                            {rights.read ? '✓' : '✗'}
-                                        </div>
-                                        <div className={`${rights.update ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
-                                            {rights.update ? '✓' : '✗'}
-                                        </div>
-                                        <div className={`${rights.delete ? 'text-green-600' : 'text-red-600'} px-2 border-b pb-2`}>
-                                            {rights.delete ? '✓' : '✗'}
-                                        </div>
-                                    </>
-                                );
-                            })}
-                            {displayRights.length === 0 && (
-                                <div className="col-span-5 text-gray-600">Geen toegangsrechten</div>
-                            )}
-                        </div>
-                    </>  
-                )}
-            </div>
-        );
-    };
-
     checkAssumptions();
 
     let mainContact: VSContactGemeente | VSContactExploitant | undefined | null = undefined;
     let managedContacts: (VSContactGemeente | VSContactExploitant)[] = [];
-    if(securityProfile) {
-        mainContact = gemeenten.find((gemeente) => gemeente.ID === securityProfile.mainContactId) || exploitanten.find((exploitant) => exploitant.ID === securityProfile.mainContactId);
-
-        const managedGemeenten = securityProfile.managingContactIDs.map((contactID) => gemeenten.find((gemeente) => gemeente.ID === contactID)).filter((gemeente) => gemeente !== undefined);
-        const managedExploitanten = securityProfile.managingContactIDs.map((contactID) => exploitanten.find((exploitant) => exploitant.ID === contactID)).filter((exploitant) => exploitant !== undefined);
-        managedContacts = [...managedGemeenten, ...managedExploitanten];
-    } else {
-        if(selectedUser) {
-        console.error("No security profile found for user", selectedUser?.UserID);
-        }
-    }
 
     // limit list size to 20
     const displayedContacts = showAllContacts ? managedContacts : managedContacts.slice(0, 16);
@@ -775,7 +633,6 @@ const ExploreUsersComponentColdfusion = (props: ExploreUsersComponentColdfusionP
             </div>
             <div>
                 {renderUserDetailsSection(mainContact, managedContacts)}
-                {renderSecurityProfileSection(securityProfile)}
             </div>
         </div>
     );
