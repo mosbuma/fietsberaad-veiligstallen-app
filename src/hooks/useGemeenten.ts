@@ -35,8 +35,8 @@ const useGemeentenBasis = <T extends VSContactGemeenteInLijst | VSContactGemeent
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
-      fetchGemeenten();
     }
+    fetchGemeenten();
   }, [version]);
 
   return {

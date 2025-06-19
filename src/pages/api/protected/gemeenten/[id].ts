@@ -105,7 +105,7 @@ export default async function handle(
         }
 
         res.status(201).json({ 
-          data: [newOrg]
+          data: newOrg
         });
       } catch (e) {
         console.error("Fout bij het aanmaken van gemeente:", e);
