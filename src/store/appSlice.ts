@@ -7,6 +7,8 @@ export interface AppState {
   isMobileNavigationVisible: boolean;
   activeArticleMunicipality: string | undefined;
   activeArticleTitle: string | undefined;
+  exploitantenVersion: number;
+  gemeentenVersion: number;
 }
 
 interface SetActiveArticlePayload {
@@ -20,7 +22,9 @@ const initialState: AppState = {
   isFilterBoxVisible: false,
   isMobileNavigationVisible: false,
   activeArticleMunicipality: undefined,
-  activeArticleTitle: undefined
+  activeArticleTitle: undefined,
+  exploitantenVersion: 0,
+  gemeentenVersion: 0
 };
 
 // Actual Slice
@@ -41,6 +45,12 @@ export const appSlice = createSlice({
       state.activeArticleTitle = action.payload.articleTitle;
       state.activeArticleMunicipality = action.payload.municipality;
     },
+    incrementExploitantenVersion(state) {
+      state.exploitantenVersion += 1;
+    },
+    incrementGemeentenVersion(state) {
+      state.gemeentenVersion += 1;
+    },
   },
 
   // Special reducer for hydrating the state. Special case for next-redux-wrapper
@@ -59,4 +69,6 @@ export const {
   setIsFilterBoxVisible,
   setIsMobileNavigationVisible,
   setActiveArticle,
+  incrementExploitantenVersion,
+  incrementGemeentenVersion,
 } = appSlice.actions;

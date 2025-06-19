@@ -6,6 +6,7 @@ import { z } from "zod";
 import { generateID, validateUserSession } from "~/utils/server/database-tools";
 import { gemeenteSchema, gemeenteCreateSchema, getDefaultNewGemeente } from "~/types/database";
 import { type VSContactGemeente, gemeenteSelect, VSContactItemType } from "~/types/contacts";
+import { VSUserRoleValuesNew } from "~/types/users";
 
 export type GemeenteResponse = {
   data?: VSContactGemeente;
@@ -102,6 +103,32 @@ export default async function handle(
           console.error("Fout bij het aanmaken van nieuwe gemeente:", newData);
           res.status(500).json({error: "Fout bij het aanmaken van nieuwe gemeente"});
           return;
+        }
+
+        const fietsberaadusers = await prisma.user_contact_role.findMany({
+          where: {
+            ContactID: "1",
+            NewRoleID: {
+              in: [VSUserRoleValuesNew.RootAdmin] // VSUserRoleValuesNew.Admin, 
+            }
+          },
+          select: {
+            UserID: true,
+            NewRoleID: true,
+          }
+        });
+
+        // Give fietsberaad admins immediate access to the new exploitant
+        for(const fbuser of fietsberaadusers) {
+          await prisma.user_contact_role.create({
+            data: {
+              ID: generateID(),
+              UserID: fbuser.UserID,
+              ContactID: newID,
+              NewRoleID: [VSUserRoleValuesNew.Admin, VSUserRoleValuesNew.RootAdmin].includes(fbuser.NewRoleID as VSUserRoleValuesNew) ? fbuser.NewRoleID : VSUserRoleValuesNew.None,
+              isOwnOrganization: false,
+            }
+          });
         }
 
         res.status(201).json({ 
