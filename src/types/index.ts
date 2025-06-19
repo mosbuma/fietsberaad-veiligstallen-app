@@ -27,7 +27,6 @@ export enum VSMenuTopic {
     "Database" = "database",
     "Development" = "development",
     "Documents" = "documents",
-    "ExploreExploitanten" = "exploreexploitanten",
     "ExploreGemeenten" = "exploregemeenten",
     "ExploreUsers" = "exploreusers",
     "ExplorePages" = "explorepages",
@@ -51,6 +50,5 @@ export enum VSMenuTopic {
     "UsersGebruikersbeheerBeheerder" = "usersgebruikersbeheerbeheerder",
     "Website" = "website",
 
-    "ExploreLeftMenu" = "exploreleftmenu",
     "TestDatabaseApi" = "testdatabaseapi",
 }

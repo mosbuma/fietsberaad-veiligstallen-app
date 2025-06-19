@@ -11,73 +11,36 @@ import {
   getDefaultSecurityProfile,
 } from "~/types/users";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
-import { initAllTopics } from "~/types/utils";
 import { checkToken } from "~/utils/token-tools";
 
-type OrgAccountData = Pick<security_users, "UserID" | "GroupID" | "ParentID" | "SiteID" | "EncryptedPassword"> & {
-  security_users_sites: { SiteID: string }[];
+type OrgAccountData = Pick<security_users, "UserID" | "DisplayName" | "UserName" | "GroupID" | "ParentID" | "SiteID" | "EncryptedPassword"> & {
+  user_contact_roles: { 
+    ContactID: string,
+    isOwnOrganization: boolean,
+    NewRoleID: string
+  }[];
 };
 
 const getProfileUser = async(orgaccount: OrgAccountData): Promise<User|false> => {
-  const profileUserAccount: User = {
-    id: "",
-    name: "",
-    email: "",
-    mainContactId: "",
-    activeContactId: "",
-    securityProfile: getDefaultSecurityProfile(),
-  };
-  let mainContactId: string | undefined = undefined;
-    switch(orgaccount.GroupID) {
-      case "intern":
-        mainContactId="1";
-        break;
-      case "extern":
-        mainContactId = orgaccount.security_users_sites[0]?.SiteID || undefined;
-        break;
-      case "beheerder":
-      case "exploitant":
-        if(orgaccount.ParentID) { // sub exploitant user
-          const parentUser = await prisma.security_users.findUnique({
-            where: {
-              UserID: orgaccount.ParentID,
-            },
-          });
-          mainContactId = parentUser?.SiteID || undefined;
-        } else { // main exploitant user
-          mainContactId = orgaccount.SiteID || undefined;
-        }
-        break;
-      default:
-        mainContactId = undefined;
-        break;
-    }
+    const profileUserAccount: User = {
+      id: "",
+      name: "",
+      email: "",
+      mainContactId: "",
+      activeContactId: "",
+      securityProfile: getDefaultSecurityProfile(),
+    };
 
+    const mainContactId = orgaccount.user_contact_roles.find((role) => role.isOwnOrganization)?.ContactID || undefined;
     if (mainContactId === undefined) {
       return false;
     }
 
-    const userdata = await prisma.security_users.findFirst({
-      where: { UserID: orgaccount.UserID },
-      select: {
-        UserName: true,
-        DisplayName: true,
-        user_contact_roles: {
-            select: {
-                ID: true,
-                UserID: true,
-                ContactID: true,
-                NewRoleID: true,
-            }
-        },
-      }
-    });
-
-    const roleId = userdata?.user_contact_roles.find((role) => role.ContactID === profileUserAccount.activeContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
+    const roleId = orgaccount?.user_contact_roles.find((role) => role.ContactID === mainContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
 
     profileUserAccount.id = orgaccount.UserID || "";
-    profileUserAccount.name = userdata?.DisplayName || "";
-    profileUserAccount.email = userdata?.UserName || "";
+    profileUserAccount.name = orgaccount?.DisplayName || "";
+    profileUserAccount.email = orgaccount?.UserName || "";
     profileUserAccount.mainContactId = mainContactId;
     profileUserAccount.activeContactId = mainContactId;
     profileUserAccount.securityProfile = createSecurityProfile(roleId);
@@ -105,13 +68,13 @@ export const getUserFromCredentials = async (
       where: { UserName: email.toLowerCase() },
       select: { 
         UserID: true, 
-        GroupID: true,
-        ParentID: true,
-        SiteID: true,
+        DisplayName: true,
+        UserName: true,
         EncryptedPassword: true,
-        security_users_sites: {
+        user_contact_roles: {
           select: {
-            SiteID: true,
+            ContactID: true,
+            isOwnOrganization: true
           }
         }
       },
@@ -182,12 +145,12 @@ export const getUserFromLoginCode = async (
           ParentID: true,
           SiteID: true,
           EncryptedPassword: true,
-          security_users_sites: {
+          user_contact_roles: {
             select: {
-              SiteID: true,
+              ContactID: true,
+              isOwnOrganization: true
             }
           }
-  
         },
       }) as OrgAccountData;
 

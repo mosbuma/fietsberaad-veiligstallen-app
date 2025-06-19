@@ -30,7 +30,10 @@ export const getSecurityUserNew = async (id: string, activeContactID: string): P
   }
 
   let roleId = VSUserRoleValuesNew.None;
-  if(data.user_contact_roles.length !== 1 || !data.user_contact_roles[0]?.NewRoleID) {
+  if(data.user_contact_roles.length === 0) {
+    console.warn("Security user has no contact roles:", id);
+    roleId = VSUserRoleValuesNew.None;
+  } else if(data.user_contact_roles.length !== 1 || !data.user_contact_roles[0]?.NewRoleID) {
     console.error("Security user has multiple contact roles:", id);
     return false;
   } else {

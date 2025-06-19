@@ -35,7 +35,6 @@ import UsersComponent from '~/components/beheer/users';
 import DatabaseComponent from '~/components/beheer/database';
 import ExploreUsersComponent from '~/components/ExploreUsersComponent';
 import ExploreGemeenteComponent from '~/components/ExploreGemeenteComponent';
-import ExploreExploitant from '~/components/ExploreExploitantComponent';
 import ExploreArticlesComponent from '~/components/ExploreArticlesComponent';
 
 import { prisma } from '~/server/db';
@@ -49,7 +48,7 @@ import { useSession } from "next-auth/react";
 
 import GemeenteEdit from '~/components/contact/GemeenteEdit';
 import DatabaseApiTest from '~/components/beheer/test/DatabaseApiTest';
-import { useGemeenten, useGemeentenInLijst } from '~/hooks/useGemeenten';
+import { useGemeentenInLijst } from '~/hooks/useGemeenten';
 import { useFietsenstallingen } from '~/hooks/useFietsenstallingen';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import ExploitantEdit from '~/components/contact/ExploitantEdit';
@@ -97,8 +96,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
 
   const currentUser = session?.user || false;
 
-  const roles = await prisma.security_roles.findMany({});
-
   const fietsenstallingtypen = await prisma.fietsenstallingtypen.findMany({
     select: {
       id: true,
@@ -114,19 +111,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   } else {
     console.warn("no current user");
   }
-  return { props: { currentUser, roles, fietsenstallingtypen } };
+  return { props: { currentUser, fietsenstallingtypen } };
 };
 
 export type BeheerPageProps = {
   currentUser?: User;
   selectedContactID?: string;
-  roles?: security_roles[];
   fietsenstallingtypen?: fietsenstallingtypen[];
 };
 
 const BeheerPage: React.FC<BeheerPageProps> = ({
   currentUser,
-  roles,
   fietsenstallingtypen
 }) => {
   const dispatch = useDispatch();
@@ -194,7 +189,8 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to switch contact');
+        alert("Het wisselen van contact is niet gelukt");
+        return;
       }
 
       // Get user from response
@@ -277,20 +273,13 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
           selectedComponent = <DataproviderComponent />;
           break;
         case VSMenuTopic.ExploreUsers:
-          selectedComponent = <ExploreUsersComponent roles={roles || []} />;
+          selectedComponent = <ExploreUsersComponent />;
           break;
         case VSMenuTopic.ExploreGemeenten:
           selectedComponent = <ExploreGemeenteComponent />;
           break;
-        case VSMenuTopic.ExploreExploitanten:
-          selectedComponent = <ExploreExploitant />;
-          break;
         case VSMenuTopic.ExplorePages:
           selectedComponent = <ExploreArticlesComponent gemeenten={gemeenten || []} />;
-          break;
-        case VSMenuTopic.ExploreLeftMenu:
-          // selectedComponent = <ExploreLeftMenuComponent roles={roles || []} users={users || []} exploitanten={exploitanten || []}
-          //   gemeenten={gemeenten || []} dataproviders={dataproviders || []} />;
           break;
         case VSMenuTopic.Logboek:
           selectedComponent = <LogboekComponent />;
@@ -400,7 +389,6 @@ const BeheerPage: React.FC<BeheerPageProps> = ({
       <TopBar
         title="VeiligStallen beheer"
         currentComponent={activecomponent}
-        user={currentUser} 
         gemeenten={gemeenten}
         exploitanten={exploitanten}
         selectedGemeenteID={selectedContactID}

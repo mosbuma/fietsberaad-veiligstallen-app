@@ -15,6 +15,7 @@ import { type securityUserCreateSchema, type SecurityUserResponse, type security
 export interface UserEditComponentProps {
     id: string,
     siteID: string | null,
+    onlyAllowRoleChange: boolean,
     onClose: (userChanged: boolean, confirmClose: boolean) => void,
 }
 
@@ -311,7 +312,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
             value={displayName} 
             onChange={(e) => setDisplayName(e.target.value)} 
             required 
-            disabled={!isEditing}
+            disabled={!isEditing || props.onlyAllowRoleChange}
             autoComplete="off"
             innerRef={nameInputRef}
           />
@@ -331,7 +332,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
             onChange={(e) => setUserName(e.target.value)} 
             required 
             type="email"
-            disabled={!isEditing}
+            disabled={!isEditing || props.onlyAllowRoleChange}
             autoComplete="new-email"
           />
           <br />
@@ -342,7 +343,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
                 value={password} 
                 onChange={handlePasswordChange}
                 type="password"
-                disabled={!isEditing}
+                disabled={!isEditing || props.onlyAllowRoleChange}
                 autoComplete="new-password"
               />
               <br />
@@ -351,7 +352,7 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 type="password"
-                disabled={!isEditing}
+                disabled={!isEditing || props.onlyAllowRoleChange}
                 autoComplete="new-password"
               />
               <br />
@@ -368,26 +369,26 @@ export const UserEditComponent = (props: UserEditComponentProps) => {
           )}
           <br />
           <div className="flex items-center space-x-4">
-            <label className="flex items-center">
+            <label className={`flex items-center ${(!isEditing || props.onlyAllowRoleChange) ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input 
                 type="radio" 
                 name="status" 
                 value="1" 
                 checked={status} 
                 onChange={() => setStatus(true)} 
-                disabled={!isEditing}
+                disabled={!isEditing || props.onlyAllowRoleChange}
                 className="mr-2"
               />
               Actief
             </label>
-            <label className="flex items-center">
+            <label className={`flex items-center ${(!isEditing || props.onlyAllowRoleChange) ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input 
                 type="radio" 
                 name="status" 
                 value="0" 
                 checked={!status} 
                 onChange={() => setStatus(false)} 
-                disabled={!isEditing}
+                disabled={!isEditing || props.onlyAllowRoleChange}
                 className="mr-2"
               />
               Niet Actief

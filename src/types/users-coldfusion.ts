@@ -40,14 +40,14 @@ export const securityUserSelect = {
     SiteID: true,
     ParentID: true,
     LastLogin: true,
-    // security_roles: {
-    //     select: {
-    //         RoleID: true,
-    //         Role: true,
-    //         Description: true,
-    //         GroupID: true
-    //     }
-    // },
+    security_roles: {
+        select: {
+            RoleID: true,
+            Role: true,
+            Description: true,
+            GroupID: true
+        }
+    },
     security_users_sites: {
         select: {
             UserID: true,

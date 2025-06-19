@@ -5,7 +5,7 @@ import { authOptions } from '~/pages/api/auth/[...nextauth]'
 import { validateUserSession, makeApiCall } from "~/utils/server/database-tools";
 import { type TestResult, type TestResponse, TestStatus, TestError } from "~/types/test";
 import { type GemeentenResponse } from ".";
-import { type GemeenteResponse } from "./[id].not";
+import { type GemeenteResponse } from "./[id]";
 import moment from "moment";
 import type { GemeenteValidateResponse } from "./validate";
 import { VSContactItemType } from "~/types/contacts";
@@ -88,7 +88,6 @@ export default async function handle(
       throw new TestError("Create test failed", createTest);
     }
     createdRecordId = (createTest.details as { ID: string })?.ID || null;
-    console.log("createdRecordId", createdRecordId);
     // Test 2: Retrieve all records
     const readAllTest = await testReadAllGemeenten(req);
     testResults[1] = readAllTest;
@@ -99,7 +98,6 @@ export default async function handle(
     // Test 3: Retrieve the new record
     if (createdRecordId) {
       const readSingleTest = await testReadSingleGemeente(req, createdRecordId);
-      console.log("readSingleTest", readSingleTest);
       testResults[2] = readSingleTest;
       if (readSingleTest.status === TestStatus.Failed) {
         throw new TestError("Read single test failed", readSingleTest);
@@ -180,7 +178,6 @@ export const testRecordCreateGemeente = {
 async function testCreateGemeente(req: NextApiRequest): Promise<TestResult> {
   try {
     const { success, result, error }  = await makeApiCall<GemeentenResponse>(req, '/api/protected/gemeenten/new', 'POST', testRecordCreateGemeente);
-    console.log("testCreateGemeente", result, error);
     if (!success || !result?.data) {
       return {
         name: "Create Record",

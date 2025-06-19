@@ -3,6 +3,7 @@ import { prisma } from "~/server/db";
 import type { NextApiRequest } from "next";
 import { VSContactItemType } from "~/types/contacts";
 import { getSecurityUserNew } from "./security-users-tools";
+import { VSUserRoleValuesNew } from "~/types/users";
 
 type ValidationError = {
   error: string;
@@ -44,12 +45,14 @@ export async function validateUserSession(session: any, itemType = "organization
       UserID: session.user.id
     },
     select: {
-      security_users_sites: {
+      UserID: true,
+      user_contact_roles: {
         select: {
-          SiteID: true
+          ContactID: true,
+          isOwnOrganization: true,
+          NewRoleID: true
         }
-      },
-      RoleID: true
+      }
     }
   });
 
@@ -64,7 +67,10 @@ export async function validateUserSession(session: any, itemType = "organization
     sites: []
   }
 
-  if(theuser.RoleID !== 1) {
+  const ownRole = theuser.user_contact_roles.find((role) => role.isOwnOrganization);
+  const isAdminFietsberaad = ownRole && ownRole.ContactID === "1" && [VSUserRoleValuesNew.RootAdmin, VSUserRoleValuesNew.Admin].includes(ownRole.NewRoleID as VSUserRoleValuesNew);
+
+  if(isAdminFietsberaad===false) {
     // get all distinct contact IDs for the user from the user_contact_role table
     const items = await prisma.user_contact_role.findMany({
       where: {
@@ -76,19 +82,7 @@ export async function validateUserSession(session: any, itemType = "organization
     });
     data.sites = items.map((item) => item.ContactID);
   } else {
-    let whereFilter: Prisma.contactsWhereInput = {  ItemType: itemType };
-    if(itemType === "any") {
-      whereFilter = {
-        OR: [
-          { ItemType: VSContactItemType.Organizations },
-          { ItemType: VSContactItemType.Exploitant },
-          { ItemType: "admin" }
-        ]
-      }
-    }
-    // organizations or admin
     const allSites = await prisma.contacts.findMany({
-      // where: whereFilter,
       select: {
         ID: true
       }

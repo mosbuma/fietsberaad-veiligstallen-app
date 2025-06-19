@@ -121,57 +121,6 @@ providers.push(
   }),
 );
 
-// https://next-auth.js.org/configuration/providers/credentials
-// providers.push(
-//   CredentialsProvider({
-//     // The name to display on the sign in form (e.g. 'Sign in with...')
-//     name: "Email and password",
-//     // The credentials is used to generate a suitable form on the sign in page.
-//     // You can specify whatever fields you are expecting to be submitted.
-//     // e.g. domain, username, password, 2FA token, etc.
-//     // You can pass any HTML attribute to the <input> tag through the object.
-//     credentials: {
-//       email: {
-//         label: "Email",
-//         type: "email",
-//         placeholder: "user@example.com",
-//       },
-//       password: {
-//         label: "Password",
-//         type: "password",
-//       },
-//     },
-//     async authorize(
-//       credentials: Record<"email" | "password", string> | undefined,
-//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//       req: Pick<RequestInternal, "body" | "method" | "headers" | "query">
-//     ): Promise<User | null> {
-//       const user = await getUserFromCredentials(credentials);
-//       return user;
-//     },
-//   }),
-//   // EmailProvider({
-//   //   name: "Magic link",
-//   //   server: {
-//   //     host: process.env.EMAIL_SERVER_HOST,
-//   //     port: process.env.EMAIL_SERVER_PORT,
-//   //     auth: {
-//   //       user: process.env.EMAIL_SERVER_USER,
-//   //       pass: process.env.EMAIL_SERVER_PASSWORD
-//   //     }
-//   //   },
-//   //   from: process.env.EMAIL_FROM,
-//   //   maxAge: 60 * 60, // 1 hour
-//   //   // sendVerificationRequest({
-//   //   //   identifier: email,
-//   //   //   url,
-//   //   //   provider: { server, from }
-//   //   // }) {
-//   //   //   /* your function */
-//   //   // }
-//   // })
-// );
-
 export const authOptions: NextAuthOptions = {
   providers,
   // adapter: PrismaAdapter(prisma),
@@ -221,52 +170,21 @@ export const authOptions: NextAuthOptions = {
           const orgaccount = (await prisma.security_users.findFirst({
             where: { UserID: token.id as string },
             select: {
-              DisplayName: true,
               UserID: true, 
-              GroupID: true,
-              ParentID: true,
-              SiteID: true,
+              DisplayName: true,
+              UserName: true,
               user_contact_roles: {
                 select: {
                   ContactID: true,
                   NewRoleID: true,
-                },
-              },
-              security_users_sites: {
-                select: {
-                  SiteID: true,
+                  isOwnOrganization: true
                 },
               },
             },
           }));
 
           if (orgaccount) {
-            let mainContactId: string | undefined = undefined;
-            switch(orgaccount.GroupID) {
-              case "intern":
-                mainContactId="1";
-                break;
-              case "extern":
-                mainContactId = orgaccount.security_users_sites[0]?.SiteID || undefined;
-                break;
-              case "beheerder":
-              case "exploitant":
-                if(orgaccount.ParentID) { // sub exploitant user
-                  const parentUser = await prisma.security_users.findUnique({
-                    where: {
-                      UserID: orgaccount.ParentID,
-                    },
-                  });
-                  mainContactId = parentUser?.SiteID || undefined;
-                } else { // main exploitant user
-                  mainContactId = orgaccount.SiteID || undefined;
-                }
-                break;
-              default:
-                mainContactId = undefined;
-                break;
-            }
-
+            const mainContactId = orgaccount.user_contact_roles.find((role) => role.isOwnOrganization)?.ContactID || undefined;
             const currentRoleID: VSUserRoleValuesNew = orgaccount.user_contact_roles.find((role) => role.ContactID === token.activeContactId)?.NewRoleID as VSUserRoleValuesNew || VSUserRoleValuesNew.None;
             session.user.id = token.id as string;
             session.user.name = orgaccount.DisplayName;

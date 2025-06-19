@@ -2,20 +2,16 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { type User } from "next-auth";
 import { useSession, signOut } from "next-auth/react"
 import { type AppState } from "~/store/store";
-import type { VSUserSecurityProfile } from "~/types/securityprofile";
-import type { Session } from "next-auth";
 import type { VSContactExploitant, VSContactGemeenteInLijst, VSContact } from "~/types/contacts";
-import { userHasRight, logSession } from '~/types/utils';
+import { logSession } from '~/types/utils';
 import { getOrganisationByID } from "~/utils/organisations";
 import ImageWithFallback from "~/components/common/ImageWithFallback";
 
 interface TopBarProps {
   title: string;
   currentComponent: string;
-  user: User | undefined;
   gemeenten: VSContactGemeenteInLijst[] | undefined;
   exploitanten: VSContactExploitant[] | undefined;
   selectedGemeenteID: string | undefined;
@@ -34,7 +30,6 @@ const getSelectedOrganisationInfo = (gemeenten: VSContactGemeenteInLijst[], expl
 const TopBar: React.FC<TopBarProps> = ({
   title,
   currentComponent,
-  user,
   gemeenten,
   exploitanten,
   selectedGemeenteID,
@@ -82,7 +77,6 @@ const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
-  const profile = session?.user?.securityProfile as VSUserSecurityProfile | undefined;
   const showFietsberaadInList = session?.user?.mainContactId === "1";
   const fietsberaad = {
     ID: "1",
@@ -102,6 +96,7 @@ const TopBar: React.FC<TopBarProps> = ({
     // Otherwise sort alphabetically
     return (a.CompanyName || '').localeCompare(b.CompanyName || '');
   });
+
   const exploitantenKort = exploitanten?.map(exploitant => ({
     ID: exploitant.ID,
     CompanyName: "** " + exploitant.CompanyName + " **",

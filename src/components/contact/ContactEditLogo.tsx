@@ -22,7 +22,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
     const update = { [logoField]: null }
     try {
       const result = await fetch(
-        "/api/protected/contacts/removeLogo/" + contactdata.ID,
+        "/api/protected/gemeenten/removeLogo/" + contactdata.ID,
         {
           method: "PUT",
           body: JSON.stringify(update),
@@ -111,7 +111,7 @@ const ContactEditLogo = ({ contactdata, isLogo2, onUpdateAfbeelding }: ContactEd
       const update = { [logoField]: data.url[0] }
       try {
         const result = await fetch(
-          "/api/protected/contacts/" + contactdata.ID,
+          "/api/protected/gemeenten/" + contactdata.ID,
           {
             method: "PUT",
             body: JSON.stringify(update),

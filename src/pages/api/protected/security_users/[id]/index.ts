@@ -11,7 +11,6 @@ import { convertNewRoleToOldRole } from "~/utils/securitycontext";
 import { type security_users } from "@prisma/client";
 import { getSecurityUserNew } from "~/utils/server/security-users-tools";
 import { createSecurityProfile } from "~/utils/server/securitycontext";
-// TODO: implement filtering on accessible security_users
 
 const saltRounds = 13;
 
@@ -96,7 +95,9 @@ export default async function handle(
             return;
           }
 
-          if(contact.ItemType === "organizations") {
+          if(contact.ItemType === "admin") {
+            groupID = VSUserGroupValues.Intern;
+          } else if(contact.ItemType === "organizations") {
             groupID = VSUserGroupValues.Extern;
           } else if(contact.ItemType === "exploitant") {
             groupID = VSUserGroupValues.Exploitant;
@@ -110,8 +111,6 @@ export default async function handle(
             return;
           }
         }
-
-        
 
         const oldRole = convertNewRoleToOldRole(parsed.RoleID);
 
@@ -146,6 +145,7 @@ export default async function handle(
             UserID: newUserID, 
             ContactID: activeContactId,
             NewRoleID: parsed.RoleID,
+            isOwnOrganization: true,
           },
         });
 
@@ -160,8 +160,7 @@ export default async function handle(
           });
         }
 
-        const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
-        console.log("theRoleInfo - create", theRoleInfo);
+        const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId);
 
         const newUserData: VSUserWithRolesNew = {
           UserID: createdUser.UserID, 
@@ -227,7 +226,6 @@ export default async function handle(
         // const newUser = await convertToNewUser(updatedUser, activeContactId);
 
         const theRoleInfo = updatedUser.user_contact_roles.find((role) => role.ContactID === activeContactId)
-        console.log("theRoleInfo - update", theRoleInfo);
 
         const newUserData: VSUserWithRolesNew = {
           UserID: updatedUser.UserID, 
@@ -249,9 +247,21 @@ export default async function handle(
     }
     case "DELETE": {
       try {
+        // delete all user_contact_role records for the user
+        await prisma.user_contact_role.deleteMany({
+          where: { UserID: id }
+        });
+
+        // delete all security_users_sites records for the user
+        await prisma.security_users_sites.deleteMany({
+          where: { UserID: id }
+        });
+
+        // delete the user
         await prisma.security_users.delete({
           where: { UserID: id }
         });
+
         res.status(200).json({});
       } catch (e) {
         console.error("Error deleting security user:", e);

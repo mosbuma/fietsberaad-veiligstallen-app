@@ -162,6 +162,40 @@ export default async function handle(
     }
     case "DELETE": {
       try {
+        // Fetch all users for this contact
+        const users = await prisma.user_contact_role.findMany({
+          where: {
+            ContactID: id,
+            isOwnOrganization: true
+          },
+          select: {
+            UserID: true
+          }
+        });
+
+        const userIDs = users.map((user) => user.UserID);
+
+        // delete all role assignments that manage this contact
+        await prisma.user_contact_role.deleteMany({
+          where: {
+            ContactID: id,
+          }
+        });
+
+        // delete all users that have a role assignment for this contact
+        await prisma.security_users.deleteMany({
+          where: {
+            UserID: { in: userIDs },
+          }
+        });
+
+        // delete all contact_contact records for this contact
+        await prisma.contact_contact.deleteMany({
+          where: {
+            childSiteID: id
+          }
+        });
+
         await prisma.contacts.delete({
           where: { ID: id }
         });
