@@ -35,9 +35,9 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
   const filters = useSelector(selectGemeenteFilters);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  console.log(`*** GemeenteFilter - filters: ${JSON.stringify(filters)}`);
-  console.log(`*** GemeenteFilter - gemeenten:`, gemeenten);
-  console.log(`*** GemeenteFilter - users:`, users);
+  // console.log(`*** GemeenteFilter - filters: ${JSON.stringify(filters)}`);
+  // console.log(`*** GemeenteFilter - gemeenten:`, gemeenten);
+  // console.log(`*** GemeenteFilter - users:`, users);
 
   // Initialize filters if they don't exist
   useEffect(() => {
@@ -119,7 +119,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
         <CollapsibleContent buttonText="Extra filter opties">
           <div className="p-4 space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Extra Filters</h2>
+              <h2 className="text-lg font-semibold">Extra filters</h2>
               <button 
                 onClick={handleResetFilters}
                 className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 text-sm"
@@ -130,7 +130,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
 
             {showStallingenFilter && (
               <div className="flex items-center">
-                <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Stallingen:</label>
+                <label htmlFor="showGemeentenWithoutStallingen" className="text-sm font-medium text-gray-700">Toon data-eigenaren zonder stallingen:</label>
                 <select 
                   id="showGemeentenWithoutStallingen" 
                   name="showGemeentenWithoutStallingen" 
@@ -147,7 +147,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
 
             {showUsersFilter && (
               <div className="flex items-center">
-                <label htmlFor="showGemeentenWithoutUsers" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Gemeentegebruikers:</label>
+                <label htmlFor="showGemeentenWithoutUsers" className="text-sm font-medium text-gray-700">Toon data-eigenaren zonder gebruikers:</label>
                 <select 
                   id="showGemeentenWithoutUsers" 
                   name="showGemeentenWithoutUsers" 
@@ -164,7 +164,7 @@ const GemeenteFilter: React.FC<GemeenteFilterProps> = ({
 
             {showExploitantenFilter && (
               <div className="flex items-center">
-                <label htmlFor="showGemeentenWithoutExploitanten" className="text-sm font-medium text-gray-700">Toon Gemeenten Zonder Exploitanten:</label>
+                <label htmlFor="showGemeentenWithoutExploitanten" className="text-sm font-medium text-gray-700">Toon data-eigenaren zonder exploitanten:</label>
                 <select 
                   id="showGemeentenWithoutExploitanten" 
                   name="showGemeentenWithoutExploitanten" 
