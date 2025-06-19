@@ -10,8 +10,9 @@ export default function InfomodalComponent({ }) {
     const [visible, setVisible] = useState(true);
 
     const initialLatLng = useSelector(
-        (state: AppState) => state.map.initialLatLng,
+      (state: AppState) => state.map.initialLatLng,
     );
+    const mapZoom = useSelector((state: AppState) => state.map.zoom) || 12;
 
     const activeMunicipalityInfo = useSelector(
     (state: AppState) => state.map.activeMunicipalityInfo,
@@ -47,45 +48,46 @@ export default function InfomodalComponent({ }) {
   
 
     const handleClose = () => {
-        setVisible(false);
+      setVisible(false);
     }
 
     if(!visible) return null;
-
+    if(!activeMunicipalityInfo) return null;
+    if(mapZoom < 12) return null;
+    
     return (
-        <Modal
+      <Modal
         onClose={() => {
-            // Save the fact that user did see welcome modal
-            localStorage.setItem(
-            "VS__didSeeWelcomeModal",
-            Date.now().toString(),
-            );
+          // Save the fact that user did see welcome modal
+          localStorage.setItem(
+          "VS__didSeeWelcomeModal",
+          Date.now().toString(),
+          );
 
-            setVisible(false);
+          setVisible(false);
         }}
         clickOutsideClosesDialog={false}
         modalStyle={{
-            width: "400px",
-            maxWidth: "100%",
-            marginRight: "auto",
-            marginLeft: "auto",
+          width: "400px",
+          maxWidth: "100%",
+          marginRight: "auto",
+          marginLeft: "auto",
         }}
         modalBodyStyle={{
-            overflow: "visible",
+          overflow: "visible",
         }}
         >
         <WelcomeToMunicipality
-            municipalityInfo={activeMunicipalityInfo}
-            buttonClickHandler={() => {
+          municipalityInfo={activeMunicipalityInfo}
+          buttonClickHandler={() => {
             // Save the fact that user did see welcome modal
             localStorage.setItem(
-                "VS__didSeeWelcomeModal",
-                Date.now().toString(),
+              "VS__didSeeWelcomeModal",
+              Date.now().toString(),
             );
-
             setVisible(false);
-            }}
+          }}
         />
-        </Modal>
+      </Modal>
     );
 }
