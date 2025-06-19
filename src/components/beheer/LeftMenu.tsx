@@ -142,8 +142,6 @@ const LeftMenu: React.FC<LeftMenuProps> = ({
         </>}
 
         {! doOnlyShowReports() && <>
-          {hasInstellingenRight && formatLi(VSMenuTopic.SettingsGemeente, 'Instellingen')}
-
           {hasUsersRight && formatLi(VSMenuTopic.UsersGebruikersbeheerFietsberaad, `Gebruikers`, true)}
 
           { formatLi(false, 'Organisaties', false,
