@@ -40,20 +40,6 @@ export const getParkingDetails = async (stallingId: string): Promise<ParkingDeta
   }
 };
 
-export const getAllFietstypen = async (): Promise<any> => {
-  try {
-    const response = await fetch(
-      `/api/fietstypen`
-    );
-    const json = await response.json();
-    if (!json) return;
-
-    return json;
-  } catch (err) {
-    console.error("get all fietstypen error", err);
-  }
-};
-
 const generateRandomChar = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   return chars[Math.floor(Math.random() * chars.length)];

@@ -3,10 +3,7 @@ import FormInput from "~/components/Form/FormInput";
 import FormCheckbox from "~/components/Form/FormCheckbox";
 import { type ParkingDetailsType, type ParkingSectionPerBikeType, type ParkingSections } from '~/types/parking';
 
-import {
-  getAllFietstypen
-} from "~/utils/parkings";
-import { type fietstypen } from "~/generated/prisma-client";
+import { VSFietstype, VSFietsTypenWaarden } from "~/types/fietstypen";
 
 export type CapaciteitType = { ID: string, Name: string };
 
@@ -21,7 +18,7 @@ export type capacitydata = {
   };
 };
 
-const calculateCapacityData = (parking: ParkingDetailsType, allFietstypen: fietstypen[]): capacitydata | null => {
+const calculateCapacityData = (parking: ParkingDetailsType, allFietstypen: VSFietstype[]): capacitydata | null => {
   try {
     const capacity: capacitydata = {
       unknown: false,
@@ -242,15 +239,12 @@ const ParkingEditCapaciteit = ({
   capaciteitChanged: Function,
   update: ParkingSections
 }) => {
-  // Variable to store the 'alle fietstypen' response
   const [capacitydata, setCapacitydata] = React.useState<capacitydata | null>(null);
-  // const [allFietstypen, setAllFietstypen] = React.useState<fietstypen[]>([]);
 
   // Set 'allFietstypen' local state
   useEffect(() => {
     (async () => {
-      const allFietstypen = await getAllFietstypen();
-      setCapacitydata(calculateCapacityData(parkingdata, allFietstypen));
+      setCapacitydata(calculateCapacityData(parkingdata, VSFietsTypenWaarden));
     })();
   }, [])
 
