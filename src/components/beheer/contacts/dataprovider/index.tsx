@@ -114,7 +114,11 @@ const DataproviderComponent: React.FC<DataproviderComponentProps> = (props) => {
               accessor: (contact) => (
                 <>
                   <button onClick={() => handleEditContact(contact.ID)} className="text-yellow-500 mx-1 disabled:opacity-40" disabled={!rights.update}>✏️</button>
-                  <button onClick={() => handleDeleteContact(contact.ID)} className="text-red-500 mx-1 disabled:opacity-40" disabled={!rights.delete}>🗑️</button>
+                  <button onClick={() => {
+                    if(confirm('Wil je de dataleverancier verwijderen?')) {
+                      handleDeleteContact(contact.ID)
+                    }
+                  }} className="text-red-500 mx-1 disabled:opacity-40" disabled={!rights.delete}>🗑️</button>
                 </>
               )
             }
