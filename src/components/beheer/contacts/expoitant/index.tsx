@@ -2,15 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { useRouter } from 'next/router';
-import { displayInOverlay } from '~/components/Overlay';
 import ExploitantEdit from "~/components/contact/ExploitantEdit";
-import ParkingEdit from '~/components/parking/ParkingEdit';
 
-import { getParkingDetails } from "~/utils/parkings";
 import type { VSContactExploitant} from "~/types/contacts";
-import type { ParkingDetailsType } from "~/types/parking";
 
-import { UserEditComponent } from '~/components/beheer/users/UserEditComponent';
 import { makeClientApiCall } from '~/utils/client/api-tools';
 import { useExploitanten } from '~/hooks/useExploitanten';
 import { useGemeentenInLijst } from '~/hooks/useGemeenten';
@@ -32,10 +27,6 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const { gemeenten, isLoading: isLoadingGemeenten, error: errorGemeenten } = useGemeentenInLijst();
 
   const [currentContactID, setCurrentContactID] = useState<string | undefined>(undefined);
-  const [currentStallingId, setCurrentStallingId] = useState<string | undefined>(undefined);
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
-  const [currentRevision, setCurrentRevision] = useState<number>(0);
-  const [currentStalling, setCurrentStalling] = useState<ParkingDetailsType | undefined>(undefined);
   const [filterText, setFilterText] = useState("");
 
   const [addRemoveExploitant, setAddRemoveExploitant] = useState<boolean>(false);
@@ -44,25 +35,6 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   const filteredContacts = (addRemoveExploitant ? allExploitanten : exploitanten).filter(contact => 
     contact.CompanyName?.toLowerCase().includes(filterText.toLowerCase())
   );
-
-  useEffect(() => {
-    if (currentStallingId !== undefined) {
-      if(currentStalling === undefined || currentStalling?.ID !== currentStallingId) {
-        getParkingDetails(currentStallingId).then((stalling) => {
-          if (null !== stalling) {
-            setCurrentStalling(stalling);
-          } else {
-            console.error("Failed to load stalling with ID: " + currentStallingId);
-            setCurrentStalling(undefined);
-          }
-        });
-      }
-    } else {
-      if(currentStalling !== undefined) {
-        setCurrentStalling(undefined);
-      } 
-    }
-  }, [currentStallingId, currentRevision, currentContactID]);
 
   useEffect(() => {
     if("id" in router.query) {
@@ -269,11 +241,9 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   };
 
   const renderEdit = (isSm = false) => {
-    const showStallingEdit = currentStalling !== undefined;
-    const showUserEdit = currentUserId !== undefined;
-    const showExploitantEdit = showStallingEdit || showUserEdit || currentContactID !== undefined;
+    const showExploitantEdit = currentContactID !== undefined;
 
-    if(!showStallingEdit && !showExploitantEdit && !showUserEdit) {
+    if(!showExploitantEdit) {
       return null;
     }
 
@@ -282,11 +252,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
         return;
       }
         
-      if(showUserEdit) {
-        setCurrentUserId(undefined);
-      } else if(showStallingEdit) {
-        setCurrentStallingId(undefined);
-      } else if(showExploitantEdit) {
+      if(showExploitantEdit) {
         reloadExploitanten();
         reloadAllExploitanten();
         setCurrentContactID(undefined);
@@ -294,21 +260,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
     }
 
     if(currentContactID !== undefined) {
-      if(showUserEdit) {
-        return (
-          <UserEditComponent 
-            id={currentUserId} 
-            siteID={currentContactID}
-            onClose={()=>setCurrentUserId(undefined)} />
-        );
-      } else if(showStallingEdit) {
-        return (
-          <ParkingEdit 
-            parkingdata={currentStalling} 
-            onClose={() => setCurrentStallingId(undefined)} 
-            onChange={() => { setCurrentRevision(currentRevision + 1); }} 
-          />
-        )} else if(showExploitantEdit) {
+      if(showExploitantEdit) {
           return (
           <ExploitantEdit 
             id={currentContactID} 
@@ -344,7 +296,7 @@ const ExploitantComponent: React.FC<ExploitantComponentProps> = (props) => {
   
   return (
     <div>
-      {currentContactID === undefined && currentStalling === undefined && currentUserId === undefined ? renderOverview() : renderEdit()}
+      {currentContactID === undefined ? renderOverview() : renderEdit()}
     </div>
   );
 };
