@@ -127,7 +127,7 @@ export default async function handle(
           LastLogin: null
         }
         
-        const createdUser = await prisma.security_users.create({
+        await prisma.security_users.create({
           data,
           select: securityUserSelect
         }) as VSUserWithRoles;
@@ -160,6 +160,20 @@ export default async function handle(
           });
         }
 
+        // fetch the new user with the full info
+        const createdUser = await prisma.security_users.findFirst({
+          where: {
+            UserID: newUserID,
+          },
+          select: securityUserSelect
+        }) as VSUserWithRoles;
+
+        if(!createdUser) {
+          console.error("Error creating security user: no user data found");
+          res.status(500).json({error: "Error creating security user: no user data found"});
+          return;
+        }
+
         const theRoleInfo = createdUser.user_contact_roles.find((role) => role.ContactID === activeContactId);
         const ownRoleInfo = createdUser.user_contact_roles.find((role) => role.isOwnOrganization);
         if(!ownRoleInfo || !theRoleInfo?.ContactID) {
@@ -167,6 +181,8 @@ export default async function handle(
           res.status(500).json({error: "Error creating security user: no own organization ID found"});
           return;
         }
+
+
 
         const newUserData: VSUserWithRolesNew = {
           UserID: createdUser.UserID, 
