@@ -27,11 +27,17 @@ const ExportSectionReportComponent: React.FC<ExportSectionReportProps> = ({
   // section report is not always available in the coldfusion fms: bezetting does not have a report
   const showSectionReport = reportType === "transacties_voltooid" || reportType === "stallingsduur";
 
+  const validBikeparkIDs = bikeparks.map(bp => bp.StallingsID).filter(bp => bp !== "" && bp !== undefined && bp !== null);
+  
   useEffect(() => {
       const fetchReportData = async () => {
         setLoading(true);
 
         try {
+          if(validBikeparkIDs.length !== bikeparks.length) {
+            console.warn("ExportSectionReportComponent: some bikeparks have no StallingsID. These are not shown.");
+          }
+
           const apiEndpoint = "/api/protected/database/availableDataDetailed";
 
           const response = await fetch(apiEndpoint, {
@@ -41,7 +47,7 @@ const ExportSectionReportComponent: React.FC<ExportSectionReportProps> = ({
             },
             body: JSON.stringify({
               reportType,
-              bikeparkIDs: bikeparks.map(bp => bp.StallingsID),
+              bikeparkIDs: validBikeparkIDs,
               startDT: firstDate,
               endDT: lastDate
             }),
